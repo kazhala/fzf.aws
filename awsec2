@@ -1,0 +1,113 @@
+#!/bin/sh
+# aws ec2 script that will list ec2 instances on your default aws account
+# and give you action options to take on the selected ec2 instance
+# @params
+# ${selected_region} set by -s flag, determine aws query should include other region
+# ${action} set by -n -y flag, determine what operation to take on selected_instance
+# ${selected_instance} the selected instance, containing id, status, keypair and ip of the instance
+# ${instance_id} id of the ${selected_instance}
+# ${instance_status} of the ${selected_instance}
+# ${instance_key_pem} key pair of the ${selected_instance}
+# ${instance_ip_address} public ip of the ${selected_instance}
+
+function usage() {
+  echo "usage: awsec2 [-h] [-s] [-n] [-y]\n"
+  echo "start/stop/connect to selected ec2 instance"
+  echo "by default, if instance is stopped, select will start the instance"
+  echo "you will be prompt to ssh/stop on selected intance if running\n"
+  echo "optional arguments:\n"
+  echo "-h\tshow this help message and exit\n"
+  echo "-s\tselect a region otherwise default region will be used\n"
+  echo "-n\tstop the selected instance if it is running\n"
+  echo "-y\tconnect to the selected instance if it is running"
+}
+
+function select_ec2_instance() {
+  # if there is flag, meaning a region other than default is selected
+  # request region specific ec2 or using default region
+  if [[ -z "$selected_region" ]]
+  then
+    selected_instance=$(aws ec2 describe-instances \
+        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,PublicDnsName,KeyName]' \
+        --output text | fzf --exit-0 | awk '{print $1 " " $2 " " $5 " " $6}')
+  else
+    selected_instance=$(aws ec2 describe-instances --region "$selected_region" \
+        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,PublicDnsName,KeyName]' \
+        --output text | fzf --exit-0 | awk '{print $1 " " $2 " " $5 " " $6}')
+  fi 
+
+  # if no instance is selected, exit
+  [[ -z "$selected_instance" ]] && echo "No instance selected" && exit 0
+  instance_status=$(echo "$selected_instance" | awk '{print $2}')
+  instance_id=$(echo "$selected_instance" | awk '{print $1}')
+  # if stopped, start the instance
+  if [[ "$instance_status" == stopped && "$action" != 'stop' ]]
+  then
+    echo "Starting instance now.."
+    aws ec2 start-instances --instance-ids "$instance_id" --output text
+  elif [[ "$instance_status" == running ]]
+  then
+    echo "SSH ready"
+    # ask user for actions on the selected instance
+    while [[ $action != 'stop' && $action != 'ssh' ]]
+    do
+      read -p "Actions to make(ssh/stop): " action
+    done
+    if [[ "$action" == 'stop' ]]
+    then
+      aws ec2 stop-instances --instance-ids "$instance_id" --output text
+    elif [[ "$action" == 'ssh' ]]
+    then
+      # go to the folder where the key pem files are stored
+      cd "$AWS_PEM"
+      instance_key_pem=$(echo "$selected_instance" | awk '{print $4 ".pem"}')
+      instance_ip_address=$(echo "$selected_instance" | awk '{print $3}')
+      if [[ -f "$instance_key_pem" ]]
+      then
+        # ssh into the instance
+        ssh -i "$instance_key_pem" ec2-user@"$instance_ip_address"
+      else
+        echo "Key pair not detected on this computer"
+      fi
+    fi
+  elif [[ "$instance_status" == stopped && "$action" == 'stop' ]]
+  then
+    echo "Intance is already in a stopped state"
+    exit 1
+  else
+    instance_state=$(echo "$selected_instance" | awk '{print $2}')
+    echo "Instance is still $instance_state"
+    exit 1
+  fi
+  exit 0
+}
+
+# if no flags, use default region and list ec2 instances
+if [[ -z "$@" ]]
+then
+  select_ec2_instance
+fi
+
+while getopts ":shyn" opt
+do
+  case "$opt" in
+    s)
+      # -s will let you select a region and then take actions on the selected instance
+      echo "Select a region"
+      selected_region=$(aws ec2 describe-regions --output text | awk '{print $4}' | fzf)
+      [[ -z "$selected_region" ]] && echo "No region selected" && exit 1;;
+    h)
+      usage
+      exit 0;;
+    y)
+      action='ssh';;
+    n)
+      action='stop';;
+    *)
+      echo "Invalid option $OPTARG" 1>&2
+      usage
+      exit 1;;
+  esac
+done
+
+select_ec2_instance

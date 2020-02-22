@@ -1,0 +1,16 @@
+#!/bin/sh
+shopt -s nullglob
+
+cd $HOME/Downloads
+for f in *
+do
+  pem_file=$(echo $f | awk -F "." '{
+    if ($2 == "pem") {
+      print $0
+    }
+  }')
+  [[ -z "$pem_file" ]] && continue
+  chmod 400 "$pem_file"
+  mv -v "$pem_file" "$AWS_PEM/$pem_file"
+  unset pem_file
+done

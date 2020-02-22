@@ -1,0 +1,288 @@
+#!/bin/sh
+# perform CRUD operations in s3 interactively
+# @params global
+# ${operation_type}: [upload, download, delete] default to upload, determines what operation to take
+# ${operation_cmd}: [cp, mv, rm] default to cp, determine what cmd to use in s3 command
+# ${path}: s3 bucket path, root would be bucket name, bucket/path
+# ${path_to_file}: local file or directory path for download or upload
+# ${recursive}: determine if the -r flag is set for recursive operation
+# ${hidden}: determine if the local file search should include hidden files
+# TODO: operation between buckets
+
+function usage() {
+  echo "usage: aws3 [-h] [-p] [-P] [-r] [-d] [-D] [-H] [-m]\n"
+  echo "perform CRUD operations with cp/mv/rm in s3 bucket interactively\n"
+  echo "optional arguments:\n"
+  echo "-h\tshow this help message and exit\n"
+  echo "-p\tspecify a path after this flag and skip s3 bucket/path selection\n"
+  echo "-P\tspecify a local path for operation\n"
+  echo "-r\toperate recursively on s3, e.g. cp entire bucket/folder\n"
+  echo "-D\tuse rm operations to delete files on s3, add -r to delete folder\n"
+  echo "-d\tdownload the select file to local directory, add -r to download folder\n"
+  echo "-H\tInclude hidden folder or directory\n"
+  echo "-m\tuse mv instead of cp command, mv/cut, cp/copy"
+}
+
+# route the operation based on operation type
+# default upload
+function operation_route() {
+  case "$operation_type" in
+    upload)
+      upload_file;;
+    download)
+      download_file;;
+    delete)
+      delete_file;;
+  esac
+}
+
+# confirmation helper
+function get_confirmation() {
+  while [[ "$confirm" != 'y'  && "$confirm" != 'n' ]]
+  do
+    read -p "Confirm?(y/n): " confirm
+  done
+}
+
+# delete the file or folder in s3
+function delete_file() {
+  if [[ -z "$recursive" ]]
+  then
+    aws s3 "$operation_cmd" "s3://$path" --dryrun
+  else
+    aws s3 "$operation_cmd" "s3://$path" --dryrun --recursive
+  fi
+  get_confirmation
+  if [[ "$confirm" == 'y' ]]
+  then
+    if [[ -z "$recursive" ]]
+    then
+      aws s3 "$operation_cmd" "s3://$path"
+    else
+      aws s3 "$operation_cmd" "s3://$path"
+    fi
+  fi
+  exit 0
+}
+
+# download the file or folder from s3 to the selected folder
+function download_file() {
+  if [[ -z "$path_to_file" ]]
+  then
+    cd "$HOME"
+    echo "select a folder to download"
+    # get the folder
+    if [[ -z "$hidden" ]]
+    then
+      path_to_file=$(fd --type d | fzf)
+    else
+      path_to_file=$(fd --tyep d --H | fzf)
+    fi
+    # has to select a folder
+    # TODO: should make home folder available?
+    [[ -z "$path_to_file" ]] && exit 1
+    path_to_file="$HOME/$path_to_file"
+  fi
+  if [[ -z "$recursive" ]]
+  then
+    aws s3 "$operation_cmd" "s3://$path" "$path_to_file" --dryrun
+  else
+    aws s3 "$operation_cmd" "s3://$path" "$path_to_file" --dryrun --recursive
+  fi
+  get_confirmation
+  # upload to s3
+  if [[ "$confirm" == 'y' ]]
+  then
+    if [[ -z "$recursive" ]]
+    then
+      aws s3 "$operation_cmd" "s3://$path" "$path_to_file"
+    else
+      aws s3 "$operation_cmd" "s3://$path" "$path_to_file" --recursive
+    fi
+  fi
+  exit 0
+}
+
+# upload file to s3
+function upload_file() {
+  if [[ -z "$path_to_file" ]]
+  then
+    cd "$HOME"
+    # popup fzf to select a file or dir based on flags
+    if [[ -z "$recursive" ]]
+    then
+      echo "select a local file to upload"
+      if [[ -z "$hidden" ]]
+      then
+        path_to_file=$(fd --type f | fzf)
+      else
+        path_to_file=$(fd --type f -H | fzf)
+      fi
+    else
+      echo "select a local dir to upload recursively"
+      if [[ -z "$hidden" ]]
+      then
+        path_to_file=$(fd --type d | fzf) 
+      else
+        path_to_file=$(fd --type d -H | fzf)
+      fi
+    fi
+    # exit if no file selected
+    [[ -z "$path_to_file" ]] && exit 1
+    path_to_file="$HOME/$path_to_file"
+  fi
+  # get user confirmation
+  if [[ -z "$recursive" ]]
+  then
+    aws s3 "$operation_cmd" "$path_to_file" "s3://$path" --dryrun
+  else
+    aws s3 "$operation_cmd" "$path_to_file" "s3://$path" --dryrun --recursive
+  fi
+  get_confirmation
+  # upload to s3
+  if [[ "$confirm" == 'y' ]]
+  then
+    if [[ -z "$recursive" ]]
+    then
+      aws s3 "$operation_cmd" "$path_to_file" "s3://$path"
+    else
+      aws s3 "$operation_cmd" "$path_to_file" "s3://$path" --recursive
+    fi
+  fi
+  exit 0
+}
+
+# get the subdirectory path in the bucket to upload
+function get_bucket_path() {
+  path="$bucket"
+  # if download/delete and not recursive, get all files in s3
+  if [[ "$operation_type" == 'download'  && -z "$recursive" ]] || [[ "$operation_type" == 'delete' && -z "$recursive" ]]
+  then
+    selected_path=$(aws s3 ls "$path" --recursive | fzf --exit-0 | awk '{print $4}')
+    [[ -z "$selected_path" ]] && exit 1
+    path="$bucket/$selected_path"
+    return
+  fi
+
+  # display options for operation in subdirectory in s3
+  echo "Operate in subdirectory?"
+  # display options through fzf for better expereince and control
+  local option="yes: interactively select path through s3\n"
+  option="${option}no: operate in bucket root\n"
+  option="${option}input: manully input the path\n"
+  option="${option}append: interactively select a path and then input a new path to append"
+  # get the selected option
+  local selected_option=$( echo "$option" | \
+      fzf | sed 's/://' | awk '{print $1}')
+  # exit if no selection
+  [[ -z "$selected_option" ]] && exit 1
+  if [[ "$selected_option" == 'yes' || "$selected_option" == 'append' ]]
+  then
+    # interactively selected path
+    while true
+    do
+      # grep PRE is filtering the folder in s3, remove all files entry
+      selected_path=$(aws s3 ls "$path" | grep PRE | \
+        fzf --exit-0 | awk '{print $2}')
+      if [[ "$path" == "$bucket" ]]
+      then
+        path="$path/"
+      fi
+      [[ -z "$selected_path" ]] && break
+      path="$path$selected_path"
+    done
+    # if append option, ask user to append path
+    if [[ "$selected_option" == 'append' ]]
+    then
+      read -p "Input the new path to append: " append_path
+      path="$path$append_path"
+    fi
+    return
+  elif [[ "$selected_option" == 'no' ]]
+  then
+    return
+  elif [[ "$selected_option" == 'input' ]]
+  then
+    read -p "Input the path: " new_path
+    path="$path/$new_path"
+    return
+  fi
+}
+
+# get user to select a s3 bucket through fzf
+function get_bucket() {
+  echo "select a bucket"
+  bucket=$(aws s3 ls | fzf --exit-0 --select-1 | awk '{print $3}')
+  [[ -z "$bucket" ]] && exit 1
+}
+
+# default operation_cmd
+# [cp, mv, rm]
+operation_cmd='cp'
+# [upload, download, delete]
+operation_type='upload'
+
+# if no argument, interactively query s3 for path
+if [[ -z "$@" ]]
+then
+  get_bucket
+  get_bucket_path
+  # path is defined in get_bucket_path
+  upload_file "$path"
+fi
+
+while getopts ":p:hrDmdHP:" opt
+do
+  case "$opt" in
+    p)
+      # -p expect a path bucket/path
+      path="$OPTARG";;
+    P)
+      # specify a local file path
+      path_to_file="$OPTARG";;
+    h)
+      usage
+      exit 0;;
+    r)
+      # set recursive flag
+      recursive='true';;
+    D)
+      # remove file -d Delete
+      operation_type='delete'
+      operation_cmd='rm';;
+    m)
+      # mv instead of cp
+      operation_cmd='mv';;
+    d)
+      # download file
+      operation_type='download';;
+    H)
+      hidden='true';;
+    *)
+      echo "Invalid option: $OPTARG" 1>&2
+      usage
+      exit 1;;
+  esac
+done
+
+# can't mix delete with other flags
+# added checks due to deletion should also take recursive flag if needed
+if [[ "$operation_type" == 'delete' && "$operation_cmd" != 'rm' ]]
+then
+  echo "Invalid option: Delete operation can't mix with mv/cp command" 1>&2
+  exit 1
+fi
+if [[ "$operation_type" != 'delete' && "$operation_cmd" == 'rm' ]]
+then
+  echo "Invalid option: rm command can't be used to upload or download" 1>&2
+  exit 1
+fi
+
+# operform actions
+# if path is specified in -p flag, then skip
+if [[ -z "$path" ]]
+then
+  get_bucket
+  get_bucket_path
+fi
+operation_route

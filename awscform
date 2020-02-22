@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+# python script to automate the CRUD of cloudformaiton
+import boto3
+import subprocess
+import json
+import argparse
+import yaml
+from botocore.exceptions import ClientError
+
+# make yaml class ignore all undefined tags and keep parsing
+# yaml doesn't understand all the !Ref, !FindInMap etc
+yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
+
+
+# helper function to find stacks in all the stack list
+def search_stack_in_stacks(stack_name, stacks):
+    return [stack for stack in stacks if stack['StackName'] == stack_name][0]
+
+
+parser = argparse.ArgumentParser(
+    description='CRUD operation on aws cloudformation.')
+parser.add_argument('-n', '--new', action='store_true',
+                    default=False, help='upload a new template')
+parser.add_argument('-o', '--upload', action='store_true',
+                    help='upload a new template to update stack')
+parser.add_argument('-u', '--update', action='store_const',
+                    const='update', default=None, help='update the selected stack')
+parser.add_argument('-d', '--delete', action='store_const',
+                    const='delete', default=None, help='delete the selected stack')
+args = parser.parse_args()
+
+
+# initialize the cloudformation boto3 client
+cloudformation = boto3.client('cloudformation')
+s3 = boto3.client('s3')
+# using s3 resource to read the object data for dynamic parameter input
+s3_resource = boto3.resource('s3')
+
+try:
+    # create a new stack
+    if args.new:
+        # list all bucket
+        response = s3.list_buckets()
+        fzf_string = ''
+        # prepare fzf string, require each line a bucket
+        for bucket in response['Buckets']:
+            fzf_string += f"bucket: {bucket['Name']}"
+            fzf_string += '\n'
+
+        # remove the empty line at the end
+        fzf_string = str(fzf_string).rstrip()
+
+        # piping to fzf and use awk to pick up the second field
+        fzf_input = subprocess.Popen(
+            ('echo', fzf_string), stdout=subprocess.PIPE)
+        selection = subprocess.Popen(
+            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        selection_name = subprocess.check_output(
+            ('awk', '{print $2}'), stdin=selection.stdout)
+
+        # conver the byte to string and remove the empty trailing line
+        selected_bucket = str(selection_name, 'utf-8').rstrip()
+        if not selected_bucket:
+            raise Exception('Empty selection, exiting..')
+        # list all objects inside the bucket
+        response = s3.list_objects(
+            Bucket=selected_bucket
+        )
+        fzf_string = ''
+        # prepare the fzf input for selecting object
+        for s3_object in response['Contents']:
+            fzf_string += f"object: {s3_object['Key']}"
+            fzf_string += '\n'
+        fzf_string = str(fzf_string).rstrip()
+
+        # starting pipeing and use awk to pick up the name
+        fzf_input = subprocess.Popen(
+            ('echo', fzf_string), stdout=subprocess.PIPE)
+        selection = subprocess.Popen(
+            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        selection_name = subprocess.check_output(
+            ('awk', '{print $2}'), stdin=selection.stdout)
+        selected_object = str(selection_name, 'utf-8').rstrip()
+        if not selected_object:
+            raise Exception('Empty selection, existing..')
+
+        # get the bucket region for geting the url of the template
+        response = s3.get_bucket_location(Bucket=selected_bucket)
+        bucket_location = response['LocationConstraint']
+
+        # read the file data into body variable and use yaml package to process it
+        s3_object = s3_resource.Object(selected_bucket, selected_object)
+        body = s3_object.get()['Body'].read()
+        body = str(body, 'utf-8')
+
+        body = yaml.safe_load(body)
+        parameters = body['Parameters']
+        for key in parameters:
+            print(key)
+
+        # s3 object url
+        # template_body_loacation = f"https://s3-{bucket_location}.amazonaws.com/{selected_bucket}/{selected_object}"
+        # stack_name = input('StackName: ')
+        # response = cloudformation.create_stack(
+        #     StackName=stack_name,
+        #     TemplateURL=template_body_loacation
+        # )
+        # print(response)
+
+    # operation on the  existing stack
+    else:
+        # get all the stacks in the default region
+        response = cloudformation.describe_stacks()
+
+        # prepare fzf string require multiline for selection
+        fzf_string = ''
+        for stack in response['Stacks']:
+            fzf_string += f"name: {stack['StackName']}"
+            fzf_string += 4*' '
+            fzf_string += f"{stack['Description']}"
+            fzf_string += '\n'
+
+        # remove the empty lines
+        fzf_string = str(fzf_string).rstrip()
+        # start the shell subprocess, prepare for pipes
+        fzf_input = subprocess.Popen(
+            ('echo', f'{fzf_string}'), stdout=subprocess.PIPE)
+        # get the string from pipes
+        selection = subprocess.Popen(
+            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        # get the stack name from the fzf selection
+        selection_name = subprocess.check_output(
+            ('awk', '{print $2}'), stdin=selection.stdout)
+        # convert byte to string
+        selected_stack = str(selection_name, 'utf-8').rstrip()
+
+        if not selected_stack:
+            raise Exception('Empty selection, existing..')
+
+        action_to_take = None
+        if args.update:
+            action_to_take = args.update
+        elif args.delete:
+            action_to_take = args.delete
+        # take user actions
+        while action_to_take != 'update' and action_to_take != 'delete' and action_to_take != 'exit':
+            action_to_take = input(
+                'What do you want to do with the stack?(update/delete/exit): ')
+
+        if action_to_take == 'update':
+            use_current_template = not args.upload
+            if use_current_template:
+                # get the selected stack details
+                stack_details = search_stack_in_stacks(
+                    selected_stack, response['Stacks'])
+                print('Enter new parameter values, skip to use original value')
+                parameters = stack_details['Parameters']
+
+                updated_parameters = []
+                for parameter in parameters:
+                    # take new values
+                    parameter_value = input(
+                        f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
+                    # push to list
+                    if not parameter_value:
+                        updated_parameters.append({
+                            'ParameterKey': parameter['ParameterKey'],
+                            'UsePreviousValue': True
+                        })
+                    else:
+                        updated_parameters.append({
+                            'ParameterKey': parameter['ParameterKey'],
+                            'ParameterValue': parameter_value
+                        })
+
+                # update the stack
+                response = cloudformation.update_stack(
+                    StackName=selected_stack,
+                    UsePreviousTemplate=True,
+                    Parameters=updated_parameters
+                )
+            else:
+                print('Choose a template to upload')
+            print(response)
+        else:
+            exit()
+
+except subprocess.CalledProcessError as e:
+    print('No selection made')
+except ClientError as e:
+    print(e)
+except KeyboardInterrupt:
+    print('\nExit')
+except Exception as e:
+    print(e)
