@@ -5,6 +5,7 @@ import subprocess
 import json
 import argparse
 import yaml
+import re
 from botocore.exceptions import ClientError
 
 # make yaml class ignore all undefined tags and keep parsing
@@ -84,19 +85,43 @@ try:
         if not selected_object:
             raise Exception('Empty selection, existing..')
 
-        # get the bucket region for geting the url of the template
-        response = s3.get_bucket_location(Bucket=selected_bucket)
-        bucket_location = response['LocationConstraint']
+        # check if it is yaml file
+        is_yaml = re.match(r'^.*\.(yaml|yml)$', selected_object)
+        if is_yaml:
+            # get the bucket region for geting the url of the template
+            response = s3.get_bucket_location(Bucket=selected_bucket)
+            bucket_location = response['LocationConstraint']
 
-        # read the file data into body variable and use yaml package to process it
-        s3_object = s3_resource.Object(selected_bucket, selected_object)
-        body = s3_object.get()['Body'].read()
-        body = str(body, 'utf-8')
+            # read the file data into body variable and use yaml package to process it
+            s3_object = s3_resource.Object(selected_bucket, selected_object)
+            body = s3_object.get()['Body'].read()
+            body = str(body, 'utf-8')
 
-        body = yaml.safe_load(body)
-        parameters = body['Parameters']
-        for key in parameters:
-            print(key)
+            body = yaml.safe_load(body)
+            parameters = body['Parameters']
+            print('Enter parameters specified in your template below')
+            create_parameters = []
+            for ParameterKey in parameters:
+                if 'Description' in parameters[ParameterKey]:
+                    print(
+                        f"Description: {parameters[ParameterKey]['Description']}")
+                if 'Type' in parameters[ParameterKey]:
+                    print(f"Type: {parameters[ParameterKey]['Type']}")
+                if 'ConstraintDescription' in parameters[ParameterKey]:
+                    print(
+                        f"ConstraintDescription: {parameters[ParameterKey]['ConstraintDescription']}")
+                if 'AllowedPattern' in parameters[ParameterKey]:
+                    print(
+                        f"AllowedPattern: {parameters[ParameterKey]['AllowedPattern']}")
+                if 'Default' in parameters[ParameterKey]:
+                    default_value = parameters[ParameterKey]['Default']
+                    user_input = input(
+                        f'{ParameterKey}({default_value}): ')
+                    if not user_input:
+                        ParameterValue = default_value
+                else:
+                    ParameterValue = input(f'{ParameterKey}: ')
+                print(80*'-')
 
         # s3 object url
         # template_body_loacation = f"https://s3-{bucket_location}.amazonaws.com/{selected_bucket}/{selected_object}"
