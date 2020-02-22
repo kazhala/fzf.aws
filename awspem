@@ -1,6 +1,7 @@
 #!/bin/sh
 shopt -s nullglob
-
+[[ -z "$AWS_PEM" ]] && echo "Please confiure your pem directory env var, instructions in README.md" && exit 1
+[[ -z "$DOWNLOAD_LOCATION" ]] && echo "Please confiure your download location env var, instructions in README.md" && exit 1
 cd $HOME/Downloads
 for f in *
 do
