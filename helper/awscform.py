@@ -1,4 +1,5 @@
 import re
+from helper.fzf_py import fzf_py
 
 # helper function to find stacks in all the stack list
 
@@ -16,6 +17,7 @@ def process_yaml_params(parameters):
     print('Enter parameters specified in your template below')
     create_parameters = []
     for ParameterKey in parameters:
+        default_value = ''
         if 'Description' in parameters[ParameterKey]:
             print(
                 f"Description: {parameters[ParameterKey]['Description']}")
@@ -29,12 +31,31 @@ def process_yaml_params(parameters):
                 f"AllowedPattern: {parameters[ParameterKey]['AllowedPattern']}")
         if 'Default' in parameters[ParameterKey]:
             default_value = parameters[ParameterKey]['Default']
-            user_input = input(
-                f'{ParameterKey}({default_value}): ')
+            if 'AllowedValues' in parameters[ParameterKey]:
+                print(
+                    f'Choose a value for {ParameterKey}(Default: {default_value}):')
+                choose_value_fzf = fzf_py()
+                for allowed_value in parameters[ParameterKey]['AllowedValues']:
+                    choose_value_fzf.append_fzf(allowed_value)
+                    choose_value_fzf.append_fzf('\n')
+                user_input = choose_value_fzf.execute_fzf()
+            else:
+                user_input = input(
+                    f'{ParameterKey}(Default: {default_value}): ')
             if not user_input:
                 ParameterValue = default_value
+            else:
+                ParameterValue = user_input
         else:
-            ParameterValue = input(f'{ParameterKey}: ')
+            if 'AllowedValues' in parameters[ParameterKey]:
+                print(f'Choose a value for {ParameterKey}:')
+                choose_value_fzf = fzf_py()
+                for allowed_value in parameters[ParameterKey]['AllowedValues']:
+                    choose_value_fzf.append_fzf(allowed_value)
+                    choose_value_fzf.append_fzf('\n')
+                ParameterValue = choose_value_fzf.execute_fzf()
+            else:
+                ParameterValue = input(f'{ParameterKey}: ')
         print(80*'-')
         create_parameters.append(
             {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
