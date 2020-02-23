@@ -40,13 +40,16 @@ try:
     # create a new stack
     if args.new:
         if args.local:
+            # local file path
             local_path = ''
             if args.path:
                 local_path = args.path[0]
             else:
                 file_finder_fzf = fzf_py()
                 local_path = file_finder_fzf.get_local_file()
+            # check if yaml
             if is_yaml(local_path):
+                # open the file and process
                 with open(local_path, 'r') as body:
                     # read all data into template_body for boto3 param
                     body = body.read()

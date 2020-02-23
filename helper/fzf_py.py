@@ -3,12 +3,22 @@ import os
 
 
 class fzf_py:
+    """
+    Python simple wrapper class for fzf, user who uses this class will need
+    to pass \n into the append_fzf function inorder to create different entries,
+    Currently only supports a few limited operation, reading second column data
+    and select local file path, require checks on fd existence
+    """
+
     def __init__(self):
         self.fzf_string = ''
 
+    # add new strings that will be passed into fzf
+    # use \n to sperate entries
     def append_fzf(self, new_string):
         self.fzf_string += new_string
 
+    # execute fzf and return formated string
     def execute_fzf(self):
         # remove the empty line at the end
         self.fzf_string = str(self.fzf_string).rstrip()
@@ -26,6 +36,7 @@ class fzf_py:
         # conver the byte to string and remove the empty trailing line
         return str(selection_name, 'utf-8').rstrip()
 
+    # get any local files through fd
     def get_local_file(self):
         home_path = os.environ['HOME']
         os.chdir(home_path)
