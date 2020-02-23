@@ -19,7 +19,7 @@ class fzf_py:
         self.fzf_string += new_string
 
     # execute fzf and return formated string
-    def execute_fzf(self):
+    def execute_fzf(self, empty_allow=False):
         # remove the empty line at the end
         self.fzf_string = str(self.fzf_string).rstrip()
         # piping to fzf and use awk to pick up the second field
@@ -30,7 +30,7 @@ class fzf_py:
         selection_name = subprocess.check_output(
             ('awk', '{print $2}'), stdin=selection.stdout)
 
-        if not selection_name:
+        if not selection_name and not empty_allow:
             raise Exception('Empty selection, exiting..')
 
         # conver the byte to string and remove the empty trailing line

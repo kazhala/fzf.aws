@@ -44,7 +44,7 @@ def process_yaml_params(parameters):
                 for allowed_value in parameters[ParameterKey]['AllowedValues']:
                     choose_value_fzf.append_fzf(allowed_value)
                     choose_value_fzf.append_fzf('\n')
-                user_input = choose_value_fzf.execute_fzf()
+                user_input = choose_value_fzf.execute_fzf(empty_allow=True)
             else:
                 user_input = input(
                     f'{ParameterKey}(Default: {default_value}): ')
