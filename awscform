@@ -6,8 +6,8 @@ import json
 import argparse
 import yaml
 from botocore.exceptions import ClientError
-from helper.fzf_py import fzf_py
-from helper.awscform import *
+from pyHelper.fzf_py import fzf_py
+from pyHelper.awscform import *
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc

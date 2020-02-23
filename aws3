@@ -11,7 +11,7 @@
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/helper/confirm.sh
+source "$mydir"/shHelper/confirm.sh
 
 function usage() {
   echo "usage: aws3 [-h] [-p] [-P] [-r] [-d] [-D] [-H] [-m]\n"
