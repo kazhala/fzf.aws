@@ -47,13 +47,22 @@ try:
                 file_finder_fzf = fzf_py()
                 local_path = file_finder_fzf.get_local_file()
             if is_yaml(local_path):
-                # read yaml into python dict
                 with open(local_path, 'r') as body:
-                    body = yaml.safe_load(body)
-                parameters = body['Parameters']
-                stack_name = input('StackName: ')
-                create_parameters = process_yaml_params(parameters)
-                print(create_parameters)
+                    # read all data into template_body for boto3 param
+                    template_body = body.read()
+                    # load yaml into pythong dict
+                    formated_body = yaml.safe_load(body)
+                    parameters = formated_body['Parameters']
+                    stack_name = input('StackName: ')
+                    # process all parameters
+                    create_parameters = process_yaml_params(parameters)
+                    # create the stack
+                    response = cloudformation.create_stack(
+                        StackName=stack_name,
+                        TemplateBody=template_body,
+                        Parameters=create_parameters
+                    )
+                    print(response)
 
         else:
             # get the s3 bucket
@@ -86,7 +95,6 @@ try:
                 body = s3_object.get()['Body'].read()
                 # conver to string from byte
                 body = str(body, 'utf-8')
-
                 # read yaml to pythong dict
                 body = yaml.safe_load(body)
                 parameters = body['Parameters']
@@ -124,14 +132,13 @@ try:
                 'What do you want to do with the stack?(update/delete/exit): ')
 
         if action_to_take == 'update':
-            use_current_template = not args.upload
+            use_current_template = not args.replace
             if use_current_template:
                 # get the selected stack details
                 stack_details = search_stack_in_stacks(
                     selected_stack, response['Stacks'])
                 print('Enter new parameter values, skip to use original value')
                 parameters = stack_details['Parameters']
-
                 updated_parameters = []
                 for parameter in parameters:
                     # take new values
