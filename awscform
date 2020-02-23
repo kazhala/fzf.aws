@@ -7,6 +7,7 @@ import argparse
 import yaml
 import re
 from botocore.exceptions import ClientError
+from helper.fzf_py import fzf_py
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc
@@ -42,48 +43,23 @@ try:
     if args.new:
         # list all bucket
         response = s3.list_buckets()
-        fzf_string = ''
+        s3_bucket_fzf = fzf_py()
         # prepare fzf string, require each line a bucket
         for bucket in response['Buckets']:
-            fzf_string += f"bucket: {bucket['Name']}"
-            fzf_string += '\n'
+            s3_bucket_fzf.append_fzf(f"bucket: {bucket['Name']}")
+            s3_bucket_fzf.append_fzf('\n')
+        selected_bucket = s3_bucket_fzf.execute_fzf()
 
-        # remove the empty line at the end
-        fzf_string = str(fzf_string).rstrip()
-
-        # piping to fzf and use awk to pick up the second field
-        fzf_input = subprocess.Popen(
-            ('echo', fzf_string), stdout=subprocess.PIPE)
-        selection = subprocess.Popen(
-            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
-        selection_name = subprocess.check_output(
-            ('awk', '{print $2}'), stdin=selection.stdout)
-
-        # conver the byte to string and remove the empty trailing line
-        selected_bucket = str(selection_name, 'utf-8').rstrip()
-        if not selected_bucket:
-            raise Exception('Empty selection, exiting..')
         # list all objects inside the bucket
         response = s3.list_objects(
             Bucket=selected_bucket
         )
-        fzf_string = ''
+        s3_object_fzf = fzf_py()
         # prepare the fzf input for selecting object
         for s3_object in response['Contents']:
-            fzf_string += f"object: {s3_object['Key']}"
-            fzf_string += '\n'
-        fzf_string = str(fzf_string).rstrip()
-
-        # starting pipeing and use awk to pick up the name
-        fzf_input = subprocess.Popen(
-            ('echo', fzf_string), stdout=subprocess.PIPE)
-        selection = subprocess.Popen(
-            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
-        selection_name = subprocess.check_output(
-            ('awk', '{print $2}'), stdin=selection.stdout)
-        selected_object = str(selection_name, 'utf-8').rstrip()
-        if not selected_object:
-            raise Exception('Empty selection, existing..')
+            s3_object_fzf.append_fzf(f"object: {s3_object['Key']}")
+            s3_object_fzf.append_fzf('\n')
+        selected_object = s3_object_fzf.execute_fzf()
 
         # check if it is yaml file
         is_yaml = re.match(r'^.*\.(yaml|yml)$', selected_object)
@@ -139,31 +115,13 @@ try:
     else:
         # get all the stacks in the default region
         response = cloudformation.describe_stacks()
-
-        # prepare fzf string require multiline for selection
-        fzf_string = ''
+        stack_fzf = fzf_py()
         for stack in response['Stacks']:
-            fzf_string += f"name: {stack['StackName']}"
-            fzf_string += 4*' '
-            fzf_string += f"{stack['Description']}"
-            fzf_string += '\n'
-
-        # remove the empty lines
-        fzf_string = str(fzf_string).rstrip()
-        # start the shell subprocess, prepare for pipes
-        fzf_input = subprocess.Popen(
-            ('echo', f'{fzf_string}'), stdout=subprocess.PIPE)
-        # get the string from pipes
-        selection = subprocess.Popen(
-            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
-        # get the stack name from the fzf selection
-        selection_name = subprocess.check_output(
-            ('awk', '{print $2}'), stdin=selection.stdout)
-        # convert byte to string
-        selected_stack = str(selection_name, 'utf-8').rstrip()
-
-        if not selected_stack:
-            raise Exception('Empty selection, existing..')
+            stack_fzf.append_fzf(f"name: {stack['StackName']}")
+            stack_fzf.append_fzf(4*' ')
+            stack_fzf.append_fzf(f"{stack['Description']}")
+            stack_fzf.append_fzf('\n')
+        selected_stack = stack_fzf.execute_fzf()
 
         action_to_take = None
         if args.update:
