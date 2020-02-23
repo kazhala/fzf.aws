@@ -5,19 +5,13 @@ import subprocess
 import json
 import argparse
 import yaml
-import re
 from botocore.exceptions import ClientError
 from helper.fzf_py import fzf_py
+from helper.awscform import *
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc
 yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
-
-
-# helper function to find stacks in all the stack list
-def search_stack_in_stacks(stack_name, stacks):
-    return [stack for stack in stacks if stack['StackName'] == stack_name][0]
-
 
 parser = argparse.ArgumentParser(
     description='CRUD operation on aws cloudformation.')
@@ -52,7 +46,12 @@ try:
             else:
                 file_finder_fzf = fzf_py()
                 local_path = file_finder_fzf.get_local_file()
-            print(local_path)
+            if is_yaml(local_path):
+                # read yaml into python dict
+                with open(local_path, 'r') as body:
+                    body = yaml.safe_load(body)
+                print(body)
+
         else:
             # get the s3 bucket
             response = s3.list_buckets()
@@ -74,9 +73,7 @@ try:
                 s3_object_fzf.append_fzf('\n')
             selected_object = s3_object_fzf.execute_fzf()
 
-            # check if it is yaml file
-            is_yaml = re.match(r'^.*\.(yaml|yml)$', selected_object)
-            if is_yaml:
+            if is_yaml(selected_object):
                 # get the bucket region for geting the url of the template
                 response = s3.get_bucket_location(Bucket=selected_bucket)
                 bucket_location = response['LocationConstraint']

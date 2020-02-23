@@ -33,4 +33,4 @@ class fzf_py:
             ('fd', '--type', 'f'), stdout=subprocess.PIPE)
         selected_file_path = subprocess.check_output(
             ('fzf'), stdin=list_file.stdout)
-        return f"{home_path}/{str(selected_file_path, 'utf-8')}"
+        return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
