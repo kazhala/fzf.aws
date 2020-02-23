@@ -49,7 +49,7 @@ try:
             if is_yaml(local_path):
                 with open(local_path, 'r') as body:
                     # read all data into template_body for boto3 param
-                    template_body = body.read()
+                    body = body.read()
                     # load yaml into pythong dict
                     formated_body = yaml.safe_load(body)
                     parameters = formated_body['Parameters']
@@ -59,7 +59,7 @@ try:
                     # create the stack
                     response = cloudformation.create_stack(
                         StackName=stack_name,
-                        TemplateBody=template_body,
+                        TemplateBody=body,
                         Parameters=create_parameters
                     )
                     print(response)
