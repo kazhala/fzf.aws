@@ -50,7 +50,10 @@ try:
                 # read yaml into python dict
                 with open(local_path, 'r') as body:
                     body = yaml.safe_load(body)
-                print(body)
+                parameters = body['Parameters']
+                stack_name = input('StackName: ')
+                create_parameters = process_yaml_params(parameters)
+                print(create_parameters)
 
         else:
             # get the s3 bucket
@@ -88,32 +91,7 @@ try:
                 body = yaml.safe_load(body)
                 parameters = body['Parameters']
                 stack_name = input('StackName: ')
-                print('Enter parameters specified in your template below')
-                create_parameters = []
-                for ParameterKey in parameters:
-                    if 'Description' in parameters[ParameterKey]:
-                        print(
-                            f"Description: {parameters[ParameterKey]['Description']}")
-                    if 'Type' in parameters[ParameterKey]:
-                        print(f"Type: {parameters[ParameterKey]['Type']}")
-                    if 'ConstraintDescription' in parameters[ParameterKey]:
-                        print(
-                            f"ConstraintDescription: {parameters[ParameterKey]['ConstraintDescription']}")
-                    if 'AllowedPattern' in parameters[ParameterKey]:
-                        print(
-                            f"AllowedPattern: {parameters[ParameterKey]['AllowedPattern']}")
-                    if 'Default' in parameters[ParameterKey]:
-                        default_value = parameters[ParameterKey]['Default']
-                        user_input = input(
-                            f'{ParameterKey}({default_value}): ')
-                        if not user_input:
-                            ParameterValue = default_value
-                    else:
-                        ParameterValue = input(f'{ParameterKey}: ')
-                    print(80*'-')
-                    create_parameters.append(
-                        {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
-
+                create_parameters = process_yaml_params(parameters)
                 # s3 object url
                 template_body_loacation = f"https://s3-{bucket_location}.amazonaws.com/{selected_bucket}/{selected_object}"
                 response = cloudformation.create_stack(

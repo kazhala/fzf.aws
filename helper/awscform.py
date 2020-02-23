@@ -38,3 +38,4 @@ def process_yaml_params(parameters):
         print(80*'-')
         create_parameters.append(
             {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
+    return create_parameters
