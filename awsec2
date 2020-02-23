@@ -10,6 +10,10 @@
 # ${instance_key_pem} key pair of the ${selected_instance}
 # ${instance_ip_address} public ip of the ${selected_instance}
 
+# import helper scripts
+mydir="${0%/*}"
+source "$mydir"/helper/confirm.sh
+
 function usage() {
   echo "usage: awsec2 [-h] [-s] [-n] [-y]\n"
   echo "start/stop/connect to selected ec2 instance"
@@ -28,12 +32,12 @@ function select_ec2_instance() {
   if [[ -z "$selected_region" ]]
   then
     selected_instance=$(aws ec2 describe-instances \
-        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,PublicDnsName,KeyName]' \
-        --output text | fzf --exit-0 | awk '{print $1 " " $2 " " $5 " " $6}')
+        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
+        --output text | sed 's/\'$'\t/|/g' | fzf --exit-0 | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
   else
     selected_instance=$(aws ec2 describe-instances --region "$selected_region" \
-        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,PublicDnsName,KeyName]' \
-        --output text | fzf --exit-0 | awk '{print $1 " " $2 " " $5 " " $6}')
+        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
+        --output text | sed 's/\'$'\t/|/g' | fzf --exit-0 | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
   fi 
 
   # if no instance is selected, exit
@@ -43,11 +47,16 @@ function select_ec2_instance() {
   # if stopped, start the instance
   if [[ "$instance_status" == stopped && "$action" != 'stop' ]]
   then
-    echo "Starting instance now.."
-    aws ec2 start-instances --instance-ids "$instance_id" --output text
+    echo "Instance is currently stopped, start instance?"
+    get_confirmation
+    if [[ "$confirm" == 'y' ]]
+    then
+      echo "Starting instance now.."
+      aws ec2 start-instances --instance-ids "$instance_id" --output text
+    fi
   elif [[ "$instance_status" == running ]]
   then
-    echo "SSH ready"
+    echo "Instance is running, ready to perform actions"
     # ask user for actions on the selected instance
     while [[ $action != 'stop' && $action != 'ssh' ]]
     do
@@ -60,8 +69,8 @@ function select_ec2_instance() {
     then
       # go to the folder where the key pem files are stored
       cd "$AWS_PEM"
-      instance_key_pem=$(echo "$selected_instance" | awk '{print $4 ".pem"}')
-      instance_ip_address=$(echo "$selected_instance" | awk '{print $3}')
+      instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
+      instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
       if [[ -f "$instance_key_pem" ]]
       then
         # ssh into the instance

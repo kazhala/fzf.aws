@@ -9,6 +9,10 @@
 # ${hidden}: determine if the local file search should include hidden files
 # TODO: operation between buckets
 
+# import helper scripts
+mydir="${0%/*}"
+source "$mydir"/helper/confirm.sh
+
 function usage() {
   echo "usage: aws3 [-h] [-p] [-P] [-r] [-d] [-D] [-H] [-m]\n"
   echo "perform CRUD operations with cp/mv/rm in s3 bucket interactively\n"
@@ -34,14 +38,6 @@ function operation_route() {
     delete)
       delete_file;;
   esac
-}
-
-# confirmation helper
-function get_confirmation() {
-  while [[ "$confirm" != 'y'  && "$confirm" != 'n' ]]
-  do
-    read -p "Confirm?(y/n): " confirm
-  done
 }
 
 # delete the file or folder in s3
