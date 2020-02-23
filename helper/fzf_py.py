@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 
 class fzf_py:
@@ -24,3 +25,12 @@ class fzf_py:
 
         # conver the byte to string and remove the empty trailing line
         return str(selection_name, 'utf-8').rstrip()
+
+    def get_local_file(self):
+        home_path = os.environ['HOME']
+        os.chdir(home_path)
+        list_file = subprocess.Popen(
+            ('fd', '--type', 'f'), stdout=subprocess.PIPE)
+        selected_file_path = subprocess.check_output(
+            ('fzf'), stdin=list_file.stdout)
+        return f"{home_path}/{str(selected_file_path, 'utf-8')}"
