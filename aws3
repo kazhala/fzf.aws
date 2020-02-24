@@ -11,6 +11,7 @@
 # import helper scripts
 mydir="${0%/*}"
 source "$mydir"/shHelper/confirm.sh
+# local file functions in aws3.sh helper
 source "$mydir"/shHelper/aws3.sh
 
 # help message
@@ -229,7 +230,7 @@ do
     H)
       hidden='true';;
     *)
-      echo "Invalid option: $OPTARG" 1>&2
+      echo "Invalid option: $OPTARG" >&2
       usage
       exit 1;;
   esac
@@ -239,12 +240,12 @@ done
 # added checks due to deletion should also take recursive flag if needed
 if [[ "$operation_type" == 'delete' && "$operation_cmd" != 'rm' ]]
 then
-  echo "Invalid option: Delete operation can't mix with mv/cp command" 1>&2
+  echo "Invalid option: Delete operation can't mix with mv/cp command" >&2
   exit 1
 fi
 if [[ "$operation_type" != 'delete' && "$operation_cmd" == 'rm' ]]
 then
-  echo "Invalid option: rm command can't be used to upload or download" 1>&2
+  echo "Invalid option: rm command can't be used to upload or download" >&2
   exit 1
 fi
 
