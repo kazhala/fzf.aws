@@ -4,8 +4,8 @@ import os
 
 class fzf_py:
     """
-    Python simple wrapper class for fzf, user who uses this class will need
-    to pass \n into the append_fzf function inorder to create different entries,
+    Python simple wrapper class for fzf used for fzf.aws, user who uses this class
+    will need to pass \n into the append_fzf function inorder to create different entries,
     Currently only supports a few limited operation, reading second column data
     and select local file path, require checks on fd existence
     """
@@ -57,7 +57,7 @@ class fzf_py:
 
     def check_fd(self):
         try:
-            subprocess.run(['bat', '-V'], stdout=subprocess.DEVNULL)
+            subprocess.run(['fd', '-V'], stdout=subprocess.DEVNULL)
             return True
         except:
             return False
