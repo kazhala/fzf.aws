@@ -27,6 +27,8 @@ parser.add_argument('-l', '--local', action='store_true',
                     default=False, help='upload local file')
 parser.add_argument('-p', '--path', nargs=1, action='store', default=None,
                     help='specifie a path where the local file is stored')
+parser.add_argument('-R', '--root', action='store_true', default=False,
+                    help='search local file from root instead of current directory')
 args = parser.parse_args()
 
 
@@ -46,7 +48,7 @@ try:
                 local_path = args.path[0]
             else:
                 file_finder_fzf = fzf_py()
-                local_path = file_finder_fzf.get_local_file()
+                local_path = file_finder_fzf.get_local_file(args.root)
             # check if yaml
             if is_yaml(local_path):
                 # open the file and process

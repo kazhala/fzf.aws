@@ -37,11 +37,15 @@ class fzf_py:
         return str(selection_name, 'utf-8').rstrip()
 
     # get any local files through fd
-    def get_local_file(self):
-        home_path = os.environ['HOME']
-        os.chdir(home_path)
+    def get_local_file(self, search_from_root):
+        if search_from_root:
+            home_path = os.environ['HOME']
+            os.chdir(home_path)
         list_file = subprocess.Popen(
             ('fd', '--type', 'f'), stdout=subprocess.PIPE)
         selected_file_path = subprocess.check_output(
             ('fzf'), stdin=list_file.stdout)
-        return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
+        if search_from_root:
+            return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
+        else:
+            return f"{str(selected_file_path, 'utf-8').rstrip()}"
