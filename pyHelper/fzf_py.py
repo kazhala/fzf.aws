@@ -41,11 +41,23 @@ class fzf_py:
         if search_from_root:
             home_path = os.environ['HOME']
             os.chdir(home_path)
-        list_file = subprocess.Popen(
-            ('fd', '--type', 'f'), stdout=subprocess.PIPE)
+        if self.check_fd():
+            list_file = subprocess.Popen(
+                ('fd', '--type', 'f', '--regex', r'(yaml|yml|json)$'), stdout=subprocess.PIPE)
+        else:
+            list_file = subprocess.Popen(
+                ('find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'),
+                stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         selected_file_path = subprocess.check_output(
             ('fzf'), stdin=list_file.stdout)
         if search_from_root:
             return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
         else:
             return f"{str(selected_file_path, 'utf-8').rstrip()}"
+
+    def check_fd(self):
+        try:
+            subprocess.run(['bat', '-V'], stdout=subprocess.DEVNULL)
+            return True
+        except:
+            return False
