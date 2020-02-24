@@ -7,13 +7,13 @@
 # ${path_to_file}: local file or directory path for download or upload
 # ${recursive}: determine if the -r flag is set for recursive operation
 # ${hidden}: determine if the local file search should include hidden files
-# TODO: operation between buckets
 
 # import helper scripts
 mydir="${0%/*}"
 source "$mydir"/shHelper/confirm.sh
 source "$mydir"/shHelper/aws3.sh
 
+# help message
 function usage() {
   echo "usage: aws3 [-h] [-p] [-P] [-r] [-R] [-d] [-D] [-H] [-m]\n"
   echo "perform CRUD operations with cp/mv/rm in s3 bucket interactively\n"
