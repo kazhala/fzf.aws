@@ -4,9 +4,10 @@ from pyHelper.fzf_py import fzf_py
 from botocore.exceptions import ClientError
 
 ec2 = boto3.client('ec2')
-aws_specific_param_type = [
+aws_specific_param = [
     'AWS::EC2::KeyPair::KeyName',
-    'AWS::EC2::SecurityGroup::Id'
+    'AWS::EC2::SecurityGroup::Id',
+    'List<AWS::EC2::SecurityGroup::Id>'
 ]
 
 
@@ -22,14 +23,23 @@ def is_yaml(file_name):
 
 def get_selected_param_value(type_name):
     try:
-        aws_specified_param_fzf = fzf_py()
+        aws_specific_param_fzf = fzf_py()
         selected_aws_value = None
         if type_name == 'AWS::EC2::KeyPair::KeyName':
             response = ec2.describe_key_pairs()
             for key in response['KeyPairs']:
-                aws_specified_param_fzf.append_fzf(key['KeyName'])
-                aws_specified_param_fzf.append_fzf('\n')
-            selected_aws_value = aws_specified_param_fzf.execute_fzf(
+                aws_specific_param_fzf.append_fzf(f"KeyName: {key['KeyName']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
+            response = ec2.describe_security_groups()
+            for sg in response['SecurityGroups']:
+                aws_specific_param_fzf.append_fzf(f"GroupId: {sg['GroupId']}")
+                aws_specific_param_fzf.append_fzf(4*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"GroupName: {sg['GroupName']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        if aws_specific_param_fzf.fzf_string:
+            selected_aws_value = aws_specific_param_fzf.execute_fzf(
                 empty_allow=True)
         return selected_aws_value
     except ClientError as e:
@@ -69,7 +79,7 @@ def process_yaml_params(parameters):
                     choose_value_fzf.append_fzf('\n')
                 user_input = choose_value_fzf.execute_fzf(empty_allow=True)
             else:
-                if parameter_type in aws_specific_param_type:
+                if parameter_type in aws_specific_param:
                     user_input = get_selected_param_value(parameter_type)
                 else:
                     user_input = input(
@@ -91,7 +101,7 @@ def process_yaml_params(parameters):
                     choose_value_fzf.append_fzf('\n')
                 ParameterValue = choose_value_fzf.execute_fzf()
             else:
-                if parameter_type in aws_specific_param_type:
+                if parameter_type in aws_specific_param:
                     ParameterValue = get_selected_param_value(parameter_type)
                 else:
                     ParameterValue = input(f'{ParameterKey}: ')
