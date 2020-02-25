@@ -2,16 +2,15 @@
 # python script to automate the CRUD of cloudformaiton
 import boto3
 import subprocess
-import json
 import argparse
-import yaml
 from botocore.exceptions import ClientError
+# import fzf python class
 from fawsf_py.fzf_py import fzf_py
-from fawsf_py.awscform import *
+# import common helper
+from fawsf_py.awscform.awscform import *
+# import operation specific
+from fawsf_py.awscform.create_stack import *
 
-# make yaml class ignore all undefined tags and keep parsing
-# yaml doesn't understand all the !Ref, !FindInMap etc
-yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
 
 parser = argparse.ArgumentParser(
     description='CRUD operation on aws cloudformation.')
@@ -55,26 +54,18 @@ try:
                 local_path = file_finder_fzf.get_local_file(args.root)
             # check if yaml
             if is_yaml(local_path):
-                # open the file and process
-                with open(local_path, 'r') as body:
-                    # read all data into template_body for boto3 param
-                    body = body.read()
-                    # load yaml into pythong dict
-                    formated_body = yaml.safe_load(body)
-                    parameters = formated_body['Parameters']
-                    stack_name = input('StackName: ')
-                    # process all parameters
-                    create_parameters = process_yaml_params(parameters)
-                    # ask for tags
-                    tags = get_stack_tags()
-                    # create the stack
-                    response = cloudformation.create_stack(
-                        StackName=stack_name,
-                        TemplateBody=body,
-                        Parameters=create_parameters,
-                        Tags=tags
-                    )
-                    print(response)
+                stack_name = input('StackName: ')
+                file_data = process_yaml_file(local_path)
+                create_parameters = process_stack_params(
+                    file_data['dictYaml']['Parameters'])
+                tags = get_stack_tags()
+                response = cloudformation.create_stack(
+                    StackName=stack_name,
+                    TemplateBody=file_data['body'],
+                    Parameters=create_parameters,
+                    Tags=tags
+                )
+                print(response)
 
         else:
             # get the s3 bucket
@@ -112,7 +103,7 @@ try:
                 parameters = body['Parameters']
                 stack_name = input('StackName: ')
                 # get the parameters
-                create_parameters = process_yaml_params(parameters)
+                create_parameters = process_stack_params(parameters)
                 # ask for tags
                 tags = get_stack_tags()
                 # s3 object url
@@ -151,8 +142,8 @@ try:
             use_current_template = not args.replace
             if use_current_template:
                 # get the selected stack details
-                stack_details = search_stack_in_stacks(
-                    selected_stack, response['Stacks'])
+                stack_details = search_dict_in_list(
+                    selected_stack, response['Stacks'], 'StackName')
                 print('Enter new parameter values, skip to use original value')
                 parameters = stack_details['Parameters']
                 updated_parameters = []

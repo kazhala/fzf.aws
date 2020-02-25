@@ -1,53 +1,19 @@
-import re
+# functions related to create cloudformation stack
 import boto3
 from fawsf_py.fzf_py import fzf_py
 from botocore.exceptions import ClientError
+from fawsf_py.awscform.awscform import remove_dict_from_list
 
 ec2 = boto3.client('ec2')
+
+# aws specific params that require making request
 aws_specific_param = [
     'AWS::EC2::KeyPair::KeyName',
     'AWS::EC2::SecurityGroup::Id'
 ]
-
 aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
 ]
-
-
-# helper function to find stacks in all the stack list
-def search_stack_in_stacks(stack_name, stacks):
-    return [stack for stack in stacks if stack['StackName'] == stack_name][0]
-
-
-# check if it is yaml file
-def is_yaml(file_name):
-    return re.match(r'^.*\.(yaml|yml)$', file_name)
-
-
-# helper function to remove a item in list
-def remove_selected_value(aws_value, response_list, key_name):
-    return_list = response_list
-    for item in response_list:
-        if item[key_name] == aws_value:
-            return_list.remove(item)
-    return return_list
-
-
-# get the tags
-def get_stack_tags():
-    tag_list = []
-    print('Tags help you identify your sub resources')
-    print('A "Name" tag is suggested to enter at the very least')
-    print('Skip enter value to stop entering for tags')
-    while True:
-        tag_name = input('TagName: ')
-        if not tag_name:
-            break
-        tag_value = input('TagValue: ')
-        if not tag_value:
-            break
-        tag_list.append({'Key': tag_name, 'Value': tag_value})
-    return tag_list
 
 
 # handler if parameter type is a list type
@@ -78,7 +44,7 @@ def get_list_param_value(type_name):
                     break
                 return_list.append(selected_aws_value)
                 # remove the selected item from the response_list
-                response_list = remove_selected_value(
+                response_list = remove_dict_from_list(
                     selected_aws_value, response_list, 'GroupId')
                 # clear the string
                 aws_list_param_fzf.fzf_string = ''
@@ -90,8 +56,10 @@ def get_list_param_value(type_name):
         print(e)
 
 
+# use fzf to display aws specific parameters
 def get_selected_param_value(type_name):
     try:
+        # init fzf
         aws_specific_param_fzf = fzf_py()
         selected_aws_value = None
         if type_name == 'AWS::EC2::KeyPair::KeyName':
@@ -99,24 +67,16 @@ def get_selected_param_value(type_name):
             for key in response['KeyPairs']:
                 aws_specific_param_fzf.append_fzf(f"KeyName: {key['KeyName']}")
                 aws_specific_param_fzf.append_fzf('\n')
-        elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
-            response = ec2.describe_security_groups()
-            for sg in response['SecurityGroups']:
-                aws_specific_param_fzf.append_fzf(f"GroupId: {sg['GroupId']}")
-                aws_specific_param_fzf.append_fzf(4*' ')
-                aws_specific_param_fzf.append_fzf(
-                    f"GroupName: {sg['GroupName']}")
-                aws_specific_param_fzf.append_fzf('\n')
-        if aws_specific_param_fzf.fzf_string:
-            selected_aws_value = aws_specific_param_fzf.execute_fzf(
-                empty_allow=True)
+        # get the selection from fzf
+        selected_aws_value = aws_specific_param_fzf.execute_fzf(
+            empty_allow=True)
         return selected_aws_value
     except ClientError as e:
         print(e)
 
 
 # process the template file parameters
-def process_yaml_params(parameters):
+def process_stack_params(parameters):
     print('Enter parameters specified in your template below')
     # prepare array
     create_parameters = []
