@@ -1,10 +1,5 @@
 # common helper functions for awscform
 import re
-import yaml
-
-# make yaml class ignore all undefined tags and keep parsing
-# yaml doesn't understand all the !Ref, !FindInMap etc
-yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
 
 
 # check if it is yaml file
@@ -41,13 +36,3 @@ def get_stack_tags():
             break
         tag_list.append({'Key': tag_name, 'Value': tag_value})
     return tag_list
-
-
-# read yaml file and return the body
-def process_yaml_file(path):
-    with open(path, 'r') as body:
-        # read all data into template_body for boto3 param
-        body = body.read()
-        # load yaml into pythong dict
-        formated_body = yaml.safe_load(body)
-        return {'body': body, 'dictYaml': formated_body}

@@ -6,10 +6,9 @@ import argparse
 from botocore.exceptions import ClientError
 # import fzf python class
 from fawsf_py.fzf_py import fzf_py
-# import common helper
-from fawsf_py.awscform.awscform import *
-# import operation specific
-from fawsf_py.awscform.create_stack import *
+from fawsf_py.awscform.helper import *
+from fawsf_py.awscform.process_template import *
+from fawsf_py.awscform.s3_operations import *
 
 
 parser = argparse.ArgumentParser(
@@ -44,15 +43,17 @@ s3_resource = boto3.resource('s3')
 try:
     # create a new stack
     if args.new:
+        # local flag specified
         if args.local:
-            # local file path
             local_path = ''
+            # local path specified
             if args.path:
                 local_path = args.path[0]
             else:
+                # use find or fd to find local file
                 file_finder_fzf = fzf_py()
+                # search from root dir if root flag sepcified
                 local_path = file_finder_fzf.get_local_file(args.root)
-            # check if yaml
             if is_yaml(local_path):
                 stack_name = input('StackName: ')
                 file_data = process_yaml_file(local_path)
@@ -67,47 +68,22 @@ try:
                 )
                 print(response)
 
+        # if no local file flag, get from s3
         else:
-            # get the s3 bucket
-            response = s3.list_buckets()
-            s3_bucket_fzf = fzf_py()
-            # prepare fzf string, require each line a bucket
-            for bucket in response['Buckets']:
-                s3_bucket_fzf.append_fzf(f"bucket: {bucket['Name']}")
-                s3_bucket_fzf.append_fzf('\n')
-            selected_bucket = s3_bucket_fzf.execute_fzf()
+            selected_bucket = get_s3_bucket()
+            # get the s3 file path
+            selected_file = get_s3_file(selected_bucket)
 
-            # get the s3 object
-            response = s3.list_objects(
-                Bucket=selected_bucket
-            )
-            s3_object_fzf = fzf_py()
-            # prepare the fzf input for selecting object
-            for s3_object in response['Contents']:
-                s3_object_fzf.append_fzf(f"object: {s3_object['Key']}")
-                s3_object_fzf.append_fzf('\n')
-            selected_object = s3_object_fzf.execute_fzf()
-
-            if is_yaml(selected_object):
-                # get the bucket region for geting the url of the template
-                response = s3.get_bucket_location(Bucket=selected_bucket)
-                bucket_location = response['LocationConstraint']
-                # read the file data into body variable and use yaml package to process it
-                s3_object = s3_resource.Object(
-                    selected_bucket, selected_object)
-                body = s3_object.get()['Body'].read()
-                # conver to string from byte
-                body = str(body, 'utf-8')
-                # read yaml to pythong dict
-                body = yaml.safe_load(body)
-                parameters = body['Parameters']
+            if is_yaml(selected_file):
                 stack_name = input('StackName: ')
-                # get the parameters
-                create_parameters = process_stack_params(parameters)
-                # ask for tags
+                file_data = get_file_data(
+                    selected_bucket, selected_file, 'yaml')
+                create_parameters = process_stack_params(
+                    file_data['Parameters'])
                 tags = get_stack_tags()
                 # s3 object url
-                template_body_loacation = f"https://s3-{bucket_location}.amazonaws.com/{selected_bucket}/{selected_object}"
+                template_body_loacation = get_s3_url(
+                    selected_bucket, selected_file)
                 response = cloudformation.create_stack(
                     StackName=stack_name,
                     TemplateURL=template_body_loacation,

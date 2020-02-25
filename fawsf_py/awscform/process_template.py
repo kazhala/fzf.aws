@@ -1,8 +1,14 @@
-# functions related to create cloudformation stack
+# functions related to processing a new template
 import boto3
+import yaml
 from fawsf_py.fzf_py import fzf_py
 from botocore.exceptions import ClientError
-from fawsf_py.awscform.awscform import remove_dict_from_list
+from fawsf_py.awscform.helper import remove_dict_from_list
+
+# make yaml class ignore all undefined tags and keep parsing
+# yaml doesn't understand all the !Ref, !FindInMap etc
+yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
+
 
 ec2 = boto3.client('ec2')
 
@@ -14,6 +20,21 @@ aws_specific_param = [
 aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
 ]
+
+
+# read yaml file and return the body
+def process_yaml_file(path):
+    with open(path, 'r') as body:
+        # read all data into template_body for boto3 param
+        body = body.read()
+        # load yaml into pythong dict
+        formated_body = yaml.safe_load(body)
+        return {'body': body, 'dictYaml': formated_body}
+
+
+# process the yaml body
+def process_yaml_body(file_body):
+    return yaml.safe_load(file_body)
 
 
 # handler if parameter type is a list type
