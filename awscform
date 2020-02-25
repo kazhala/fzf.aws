@@ -61,11 +61,14 @@ try:
                     stack_name = input('StackName: ')
                     # process all parameters
                     create_parameters = process_yaml_params(parameters)
+                    # ask for tags
+                    tags = get_stack_tags()
                     # create the stack
                     response = cloudformation.create_stack(
                         StackName=stack_name,
                         TemplateBody=body,
-                        Parameters=create_parameters
+                        Parameters=create_parameters,
+                        Tags=tags
                     )
                     print(response)
 
@@ -104,13 +107,17 @@ try:
                 body = yaml.safe_load(body)
                 parameters = body['Parameters']
                 stack_name = input('StackName: ')
+                # get the parameters
                 create_parameters = process_yaml_params(parameters)
+                # ask for tags
+                tags = get_stack_tags()
                 # s3 object url
                 template_body_loacation = f"https://s3-{bucket_location}.amazonaws.com/{selected_bucket}/{selected_object}"
                 response = cloudformation.create_stack(
                     StackName=stack_name,
                     TemplateURL=template_body_loacation,
-                    Parameters=create_parameters
+                    Parameters=create_parameters,
+                    Tags=tags
                 )
                 print(response)
 

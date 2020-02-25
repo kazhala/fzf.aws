@@ -24,12 +24,30 @@ def is_yaml(file_name):
     return re.match(r'^.*\.(yaml|yml)$', file_name)
 
 
+# helper function to remove a item in list
 def remove_selected_value(aws_value, response_list, key_name):
     return_list = response_list
     for item in response_list:
         if item[key_name] == aws_value:
             return_list.remove(item)
     return return_list
+
+
+# get the tags
+def get_stack_tags():
+    tag_list = []
+    print('Tags help you identify your sub resources')
+    print('A "Name" tag is suggested to enter at the very least')
+    print('Skip enter value to stop entering for tags')
+    while True:
+        tag_name = input('TagName: ')
+        if not tag_name:
+            break
+        tag_value = input('TagValue: ')
+        if not tag_value:
+            break
+        tag_list.append({'Key': tag_name, 'Value': tag_value})
+    return tag_list
 
 
 # handler if parameter type is a list type
