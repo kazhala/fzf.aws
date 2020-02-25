@@ -29,6 +29,10 @@ parser.add_argument('-p', '--path', nargs=1, action='store', default=None,
                     help='specifie a path where the local file is stored')
 parser.add_argument('-R', '--root', action='store_true', default=False,
                     help='search local file from root instead of current directory')
+parser.add_argument('-t', '--tag', action='store_true',
+                    default=False, help='update the tag as well')
+parser.add_argument('-T', '--newtag', action='store_true',
+                    default=False, help='create new tags during update')
 args = parser.parse_args()
 
 
@@ -167,12 +171,34 @@ try:
                             'ParameterKey': parameter['ParameterKey'],
                             'ParameterValue': parameter_value
                         })
+                tags = stack_details['Tags']
+                if args.tag:
+                    new_tags = []
+                    print('Skip the value to use previouse value')
+                    print('Enter delete in both field to remove a tag')
+                    for tag in tags:
+                        tag_key = input(f"Key({tag['Key']}): ")
+                        if not tag_key:
+                            tag_key = tag['Key']
+                        tag_value = input(f"Value({tag['Value']}): ")
+                        if not tag_value:
+                            tag_value = tag['Value']
+                        if tag_key == 'delete' and tag_value == 'delete':
+                            continue
+                        new_tags.append(
+                            {'Key': tag_key, 'Value': tag_value})
+                    tags = new_tags
+                if args.newtag:
+                    new_tags = get_stack_tags()
+                    for new_tag in new_tags:
+                        tags.append(new_tag)
 
                 # update the stack
                 response = cloudformation.update_stack(
                     StackName=selected_stack,
                     UsePreviousTemplate=True,
-                    Parameters=updated_parameters
+                    Parameters=updated_parameters,
+                    Tags=tags
                 )
             else:
                 print('Choose a template to upload')
