@@ -36,9 +36,6 @@ args = parser.parse_args()
 
 # initialize the cloudformation boto3 client
 cloudformation = boto3.client('cloudformation')
-s3 = boto3.client('s3')
-# using s3 resource to read the object data for dynamic parameter input
-s3_resource = boto3.resource('s3')
 
 try:
     # create a new stack

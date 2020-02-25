@@ -5,6 +5,7 @@ from fawsf_py.fzf_py import fzf_py
 from fawsf_py.awscform.process_template import *
 
 s3 = boto3.client('s3')
+# using s3 resource to read the object data for dynamic parameter input
 s3_resource = boto3.resource('s3')
 
 
