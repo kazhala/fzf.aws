@@ -12,7 +12,7 @@
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/shHelper/confirm.sh
+source "$mydir"/fawsf_sh/confirm.sh
 
 function usage() {
   echo "usage: awsec2 [-h] [-s] [-n] [-y]\n"

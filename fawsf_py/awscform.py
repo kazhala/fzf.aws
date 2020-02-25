@@ -1,6 +1,6 @@
 import re
 import boto3
-from pyHelper.fzf_py import fzf_py
+from fawsf_py.fzf_py import fzf_py
 from botocore.exceptions import ClientError
 
 ec2 = boto3.client('ec2')
