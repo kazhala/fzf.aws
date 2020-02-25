@@ -6,7 +6,10 @@ from botocore.exceptions import ClientError
 ec2 = boto3.client('ec2')
 aws_specific_param = [
     'AWS::EC2::KeyPair::KeyName',
-    'AWS::EC2::SecurityGroup::Id',
+    'AWS::EC2::SecurityGroup::Id'
+]
+
+aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
 ]
 
@@ -19,6 +22,54 @@ def search_stack_in_stacks(stack_name, stacks):
 # check if it is yaml file
 def is_yaml(file_name):
     return re.match(r'^.*\.(yaml|yml)$', file_name)
+
+
+def remove_selected_value(aws_value, response_list, key_name):
+    return_list = response_list
+    for item in response_list:
+        if item[key_name] == aws_value:
+            return_list.remove(item)
+    return return_list
+
+
+# handler if parameter type is a list type
+def get_list_param_value(type_name):
+    try:
+        # init a fzf object
+        aws_list_param_fzf = fzf_py()
+        # a list to keep track of the response items
+        response_list = []
+        # the list to return the selected values
+        return_list = []
+        if type_name == 'List<AWS::EC2::SecurityGroup::Id>':
+            response = ec2.describe_security_groups()
+            response_list = response['SecurityGroups']
+            # keep getting the value until user stop input or no more in list
+            while True:
+                for sg in response_list:
+                    aws_list_param_fzf.append_fzf(f"GroupId: {sg['GroupId']}")
+                    aws_list_param_fzf.append_fzf(4*' ')
+                    aws_list_param_fzf.append_fzf(
+                        f"GroupName: {sg['GroupName']}")
+                    aws_list_param_fzf.append_fzf('\n')
+                # execute fzf
+                selected_aws_value = aws_list_param_fzf.execute_fzf(
+                    empty_allow=True)
+                # empty input stop the loop
+                if not selected_aws_value:
+                    break
+                return_list.append(selected_aws_value)
+                # remove the selected item from the response_list
+                response_list = remove_selected_value(
+                    selected_aws_value, response_list, 'GroupId')
+                # clear the string
+                aws_list_param_fzf.fzf_string = ''
+                # exit if no more item
+                if len(response_list) == 0:
+                    break
+        return return_list
+    except ClientError as e:
+        print(e)
 
 
 def get_selected_param_value(type_name):
@@ -81,6 +132,8 @@ def process_yaml_params(parameters):
             else:
                 if parameter_type in aws_specific_param:
                     user_input = get_selected_param_value(parameter_type)
+                elif parameter_type in aws_specific_param_list:
+                    user_input = get_list_param_value(parameter_type)
                 else:
                     user_input = input(
                         f'{ParameterKey}(Default: {default_value}): ')
@@ -103,10 +156,17 @@ def process_yaml_params(parameters):
             else:
                 if parameter_type in aws_specific_param:
                     ParameterValue = get_selected_param_value(parameter_type)
+                elif parameter_type in aws_specific_param_list:
+                    ParameterValue = get_list_param_value(parameter_type)
                 else:
                     ParameterValue = input(f'{ParameterKey}: ')
         # seperater
         print(80*'-')
-        create_parameters.append(
-            {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
+        if type(ParameterValue) is list:
+            ParameterValue = ','.join(ParameterValue)
+            create_parameters.append(
+                {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
+        else:
+            create_parameters.append(
+                {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
     return create_parameters
