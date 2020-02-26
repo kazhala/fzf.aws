@@ -18,8 +18,8 @@ def create_stack(args):
         if args.path:
             local_path = args.path[0]
         else:
-            # use find or fd to find local file
             file_finder_fzf = fzf_py()
+            # use find or fd to find local file
             # search from root dir if root flag sepcified
             local_path = file_finder_fzf.get_local_file(args.root)
         if is_yaml(local_path):
@@ -44,8 +44,10 @@ def create_stack(args):
 
         if is_yaml(selected_file):
             stack_name = input('StackName: ')
+            # read the s3 file
             file_data = get_file_data(
                 selected_bucket, selected_file, 'yaml')
+            # get params
             create_parameters = process_stack_params(
                 file_data['Parameters'])
             tags = get_tags()

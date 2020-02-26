@@ -1,3 +1,4 @@
+# update stack operation
 import boto3
 from faws_py.util import search_dict_in_list
 from faws_py.awscform.helper.get_tags import get_tags
@@ -6,8 +7,8 @@ cloudformation = boto3.client('cloudformation')
 
 
 def update_stack(args, stack_name, stack_details):
-    use_current_template = not args.replace
-    if use_current_template:
+    # check to use current template or replace current template
+    if not args.replace:
         print('Enter new parameter values, skip to use original value')
         parameters = stack_details['Parameters']
         updated_parameters = []
@@ -26,8 +27,10 @@ def update_stack(args, stack_name, stack_details):
                     'ParameterKey': parameter['ParameterKey'],
                     'ParameterValue': parameter_value
                 })
+        # get tags from user if flag -t
         tags = stack_details['Tags']
         if args.tag:
+            # update existing tags
             new_tags = []
             print('Skip the value to use previouse value')
             print('Enter delete in both field to remove a tag')
@@ -43,6 +46,7 @@ def update_stack(args, stack_name, stack_details):
                 new_tags.append(
                     {'Key': tag_key, 'Value': tag_value})
             tags = new_tags
+        # create new tags
         if args.newtag:
             new_tags = get_tags()
             for new_tag in new_tags:
