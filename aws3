@@ -10,9 +10,9 @@
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/fawsf_sh/confirm.sh
+source "$mydir"/faws_sh/confirm.sh
 # local file functions in aws3.sh helper
-source "$mydir"/fawsf_sh/aws3.sh
+source "$mydir"/faws_sh/aws3.sh
 
 # help message
 function usage() {

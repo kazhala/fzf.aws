@@ -4,11 +4,9 @@ import boto3
 import subprocess
 import argparse
 from botocore.exceptions import ClientError
-# import fzf python class
-from fawsf_py.fzf_py import fzf_py
-from fawsf_py.awscform.helper import *
-from fawsf_py.awscform.process_template import *
-from fawsf_py.awscform.s3_operations import *
+from faws_py.awscform.create_stack import create_stack
+from faws_py.awscform.helper.get_stack import get_stack
+from faws_py.awscform.update_stack import update_stack
 
 
 parser = argparse.ArgumentParser(
@@ -34,73 +32,16 @@ parser.add_argument('-T', '--newtag', action='store_true',
 args = parser.parse_args()
 
 
-# initialize the cloudformation boto3 client
-cloudformation = boto3.client('cloudformation')
-
 try:
     # create a new stack
     if args.new:
-        # local flag specified
-        if args.local:
-            local_path = ''
-            # local path specified
-            if args.path:
-                local_path = args.path[0]
-            else:
-                # use find or fd to find local file
-                file_finder_fzf = fzf_py()
-                # search from root dir if root flag sepcified
-                local_path = file_finder_fzf.get_local_file(args.root)
-            if is_yaml(local_path):
-                stack_name = input('StackName: ')
-                file_data = process_yaml_file(local_path)
-                create_parameters = process_stack_params(
-                    file_data['dictYaml']['Parameters'])
-                tags = get_stack_tags()
-                response = cloudformation.create_stack(
-                    StackName=stack_name,
-                    TemplateBody=file_data['body'],
-                    Parameters=create_parameters,
-                    Tags=tags
-                )
-                print(response)
+        create_stack(args)
 
-        # if no local file flag, get from s3
-        else:
-            selected_bucket = get_s3_bucket()
-            # get the s3 file path
-            selected_file = get_s3_file(selected_bucket)
-
-            if is_yaml(selected_file):
-                stack_name = input('StackName: ')
-                file_data = get_file_data(
-                    selected_bucket, selected_file, 'yaml')
-                create_parameters = process_stack_params(
-                    file_data['Parameters'])
-                tags = get_stack_tags()
-                # s3 object url
-                template_body_loacation = get_s3_url(
-                    selected_bucket, selected_file)
-                response = cloudformation.create_stack(
-                    StackName=stack_name,
-                    TemplateURL=template_body_loacation,
-                    Parameters=create_parameters,
-                    Tags=tags
-                )
-                print(response)
-
-    # operation on the  existing stack
+    # operation on the existing stack(update/delete/exit)
     else:
-        # get all the stacks in the default region
-        response = cloudformation.describe_stacks()
-        stack_fzf = fzf_py()
-        for stack in response['Stacks']:
-            stack_fzf.append_fzf(f"name: {stack['StackName']}")
-            stack_fzf.append_fzf(4*' ')
-            stack_fzf.append_fzf(f"{stack['Description']}")
-            stack_fzf.append_fzf('\n')
-        selected_stack = stack_fzf.execute_fzf()
-
+        # get the selected_stack {'StackName': str, 'StackDetails': {}}
+        selected_stack = get_stack()
+        # process flags and ask user for input if needed
         action_to_take = None
         if args.update:
             action_to_take = args.update
@@ -110,63 +51,12 @@ try:
         while action_to_take != 'update' and action_to_take != 'delete' and action_to_take != 'exit':
             action_to_take = input(
                 'What do you want to do with the stack?(update/delete/exit): ')
-
         if action_to_take == 'update':
-            use_current_template = not args.replace
-            if use_current_template:
-                # get the selected stack details
-                stack_details = search_dict_in_list(
-                    selected_stack, response['Stacks'], 'StackName')
-                print('Enter new parameter values, skip to use original value')
-                parameters = stack_details['Parameters']
-                updated_parameters = []
-                for parameter in parameters:
-                    # take new values
-                    parameter_value = input(
-                        f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
-                    # push to list
-                    if not parameter_value:
-                        updated_parameters.append({
-                            'ParameterKey': parameter['ParameterKey'],
-                            'UsePreviousValue': True
-                        })
-                    else:
-                        updated_parameters.append({
-                            'ParameterKey': parameter['ParameterKey'],
-                            'ParameterValue': parameter_value
-                        })
-                tags = stack_details['Tags']
-                if args.tag:
-                    new_tags = []
-                    print('Skip the value to use previouse value')
-                    print('Enter delete in both field to remove a tag')
-                    for tag in tags:
-                        tag_key = input(f"Key({tag['Key']}): ")
-                        if not tag_key:
-                            tag_key = tag['Key']
-                        tag_value = input(f"Value({tag['Value']}): ")
-                        if not tag_value:
-                            tag_value = tag['Value']
-                        if tag_key == 'delete' and tag_value == 'delete':
-                            continue
-                        new_tags.append(
-                            {'Key': tag_key, 'Value': tag_value})
-                    tags = new_tags
-                if args.newtag:
-                    new_tags = get_stack_tags()
-                    for new_tag in new_tags:
-                        tags.append(new_tag)
+            update_stack(
+                args, selected_stack['StackName'], selected_stack['StackDetails'])
 
-                # update the stack
-                response = cloudformation.update_stack(
-                    StackName=selected_stack,
-                    UsePreviousTemplate=True,
-                    Parameters=updated_parameters,
-                    Tags=tags
-                )
-            else:
-                print('Choose a template to upload')
-            print(response)
+        elif action_to_take == 'delete':
+            print('delete stack')
         else:
             exit()
 
