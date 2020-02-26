@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# python script to automate the CRUD of cloudformaiton
+# python script to automate the CRUD of cloudformation
 import boto3
 import subprocess
 import argparse
@@ -46,7 +46,8 @@ try:
             update_stack(
                 args, selected_stack['StackName'], selected_stack['StackDetails'])
         elif args.delete:
-            delete_stack(selected_stack['StackName'])
+            delete_stack(selected_stack['StackName'],
+                         selected_stack['StackDetails'])
         else:
             print(selected_stack['StackDetails'])
 
