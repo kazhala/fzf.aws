@@ -42,25 +42,13 @@ try:
     else:
         # get the selected_stack {'StackName': str, 'StackDetails': {}}
         selected_stack = get_stack()
-        # process flags and ask user for input if needed
-        action_to_take = None
         if args.update:
-            action_to_take = args.update
-        elif args.delete:
-            action_to_take = args.delete
-        # take user actions
-        while action_to_take != 'update' and action_to_take != 'delete' and action_to_take != 'exit':
-            action_to_take = input(
-                'What do you want to do with the stack?(update/delete/exit): ')
-        if action_to_take == 'update':
             update_stack(
                 args, selected_stack['StackName'], selected_stack['StackDetails'])
-
-        elif action_to_take == 'delete':
+        elif args.delete:
             delete_stack(selected_stack['StackName'])
         else:
-            print(selected_stack)
-            # exit()
+            print(selected_stack['StackDetails'])
 
 except subprocess.CalledProcessError as e:
     print('No selection made')
