@@ -19,3 +19,10 @@ def remove_dict_from_list(value, target_list, key_name):
 # helper function to find dict in list based on key values
 def search_dict_in_list(value, target_list, name):
     return [item for item in target_list if item[name] == value][0]
+
+
+def get_confirmation(message):
+    confirm = None
+    while confirm != 'y' and confirm != 'n':
+        confirm = input(message).lower()
+    return confirm

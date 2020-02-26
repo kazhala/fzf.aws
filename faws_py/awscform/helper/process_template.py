@@ -3,7 +3,7 @@ import boto3
 import yaml
 from faws_py.fzf_py import fzf_py
 from botocore.exceptions import ClientError
-from faws_py.awscform.helper.util import remove_dict_from_list
+from faws_py.util import remove_dict_from_list
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc

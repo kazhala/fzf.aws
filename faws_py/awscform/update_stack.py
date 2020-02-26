@@ -1,5 +1,5 @@
 import boto3
-from faws_py.awscform.helper.util import search_dict_in_list
+from faws_py.util import search_dict_in_list
 from faws_py.awscform.helper.get_tags import get_tags
 
 cloudformation = boto3.client('cloudformation')

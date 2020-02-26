@@ -1,6 +1,6 @@
 # awscform create stack operation
 import boto3
-from faws_py.awscform.helper.util import is_yaml
+from faws_py.util import is_yaml
 from faws_py.awscform.helper.get_tags import get_tags
 from faws_py.fzf_py import fzf_py
 from faws_py.awscform.helper.process_template import process_yaml_file, process_stack_params

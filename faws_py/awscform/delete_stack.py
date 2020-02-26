@@ -1,13 +1,12 @@
 import boto3
+from faws_py.util import get_confirmation
 
 cloudformation = boto3.client('cloudformation')
 
 
 def delete_stack(stack_name):
-    confirm = None
-    while confirm != 'y' and confirm != 'n':
-        confirm = input(
-            f"Are you sure you want to delete the stack '{stack_name}'(y/n): ").lower()
+    confirm = get_confirmation(
+        f"Are you sure you want to delete the stack '{stack_name}'(y/n): ")
     if confirm == 'n':
         exit()
     else:
