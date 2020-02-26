@@ -1,117 +1,50 @@
 #!/bin/sh
 # aws ec2 script that will list ec2 instances on your default aws account
-# and give you action options to take on the selected ec2 instance
-# @params
-# ${selected_region} set by -s flag, determine aws query should include other region
-# ${action} set by -n -y flag, determine what operation to take on selected_instance
-# ${selected_instance} the selected instance, containing id, status, keypair and ip of the instance
-# ${instance_id} id of the ${selected_instance}
-# ${instance_status} of the ${selected_instance}
-# ${instance_key_pem} key pair of the ${selected_instance}
-# ${instance_ip_address} public ip of the ${selected_instance}
+# based on flags and perform different actions
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/faws_sh/confirm.sh
+source "$mydir"/faws_sh/awsec2/get_instance.sh
+source "$mydir"/faws_sh/awsec2/ssh_instance.sh
+source "$mydir"/faws_sh/awsec2/stop_instance.sh
+source "$mydir"/faws_sh/awsec2/start_instance.sh
 
+# help
 function usage() {
   echo "usage: awsec2 [-h] [-s] [-n] [-y]\n"
   echo "start/stop/connect to selected ec2 instance"
-  echo "by default, if instance is stopped, select will start the instance"
-  echo "you will be prompt to ssh/stop on selected intance if running\n"
+  echo "by default, if instance is stopped, select will start the instance\n"
+  echo "default action is -s flag, ssh into the selected instance if running\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
-  echo "-s\tselect a region otherwise default region will be used\n"
+  echo "-r\tselect a region otherwise default region will be used\n"
   echo "-n\tstop the selected instance if it is running\n"
-  echo "-y\tconnect to the selected instance if it is running"
+  echo "-s\tssh to the selected instance if it is running"
 }
 
-function select_ec2_instance() {
-  # if there is flag, meaning a region other than default is selected
-  # request region specific ec2 or using default region
-  if [[ -z "$selected_region" ]]
-  then
-    selected_instance=$(aws ec2 describe-instances \
-        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
-        --output text | sed 's/\'$'\t/ | /g' | fzf --exit-0 | sed 's/\'$'\s//g' | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
-  else
-    selected_instance=$(aws ec2 describe-instances --region "$selected_region" \
-        --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
-        --output text | sed 's/\'$'\t/ | /g' | fzf --exit-0 | sed 's/\'$'\s//g' | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
-  fi 
+# default args
+action='ssh'
+selected_region=''
 
-  # if no instance is selected, exit
-  [[ -z "$selected_instance" ]] && echo "No instance selected" && exit 0
-  instance_status=$(echo "$selected_instance" | awk '{print $2}')
-  instance_id=$(echo "$selected_instance" | awk '{print $1}')
-  # if stopped, start the instance
-  if [[ "$instance_status" == stopped && "$action" != 'stop' ]]
-  then
-    echo "Instance is currently stopped, start instance?"
-    get_confirmation
-    if [[ "$confirm" == 'y' ]]
-    then
-      echo "Starting instance now.."
-      aws ec2 start-instances --instance-ids "$instance_id" --output text
-    fi
-  elif [[ "$instance_status" == running ]]
-  then
-    echo "Instance is running, ready to perform actions"
-    # ask user for actions on the selected instance
-    while [[ $action != 'stop' && $action != 'ssh' ]]
-    do
-      read -p "Actions to make(ssh/stop): " action
-    done
-    if [[ "$action" == 'stop' ]]
-    then
-      aws ec2 stop-instances --instance-ids "$instance_id" --output text
-    elif [[ "$action" == 'ssh' ]]
-    then
-      # go to the folder where the key pem files are stored
-      cd "$AWS_PEM"
-      instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
-      instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
-      if [[ -f "$instance_key_pem" ]]
-      then
-        # ssh into the instance
-        ssh -i "$instance_key_pem" ec2-user@"$instance_ip_address"
-      else
-        echo "Key pair not detected on this computer"
-      fi
-    fi
-  elif [[ "$instance_status" == stopped && "$action" == 'stop' ]]
-  then
-    echo "Intance is already in a stopped state"
-    exit 1
-  else
-    instance_state=$(echo "$selected_instance" | awk '{print $2}')
-    echo "Instance is still $instance_state"
-    exit 1
-  fi
-  exit 0
-}
-
-# if no flags, use default region and list ec2 instances
-if [[ -z "$@" ]]
-then
-  select_ec2_instance
-fi
-
-while getopts ":shyn" opt
+# process flags
+while getopts ":srhn" opt
 do
   case "$opt" in
-    s)
-      # -s will let you select a region and then take actions on the selected instance
+    r)
+      # -r set a region to use, otherwise default region will be used
       echo "Select a region"
       selected_region=$(aws ec2 describe-regions --output text | awk '{print $4}' | fzf)
       [[ -z "$selected_region" ]] && echo "No region selected" && exit 1;;
-    h)
-      usage
-      exit 0;;
-    y)
+    s)
+      # default action
       action='ssh';;
     n)
+      # stop the instance if the instance is running
       action='stop';;
+    h)
+      # display usage and exit
+      usage
+      exit 0;;
     *)
       echo "Invalid option $OPTARG" >&2
       usage
@@ -119,4 +52,39 @@ do
   esac
 done
 
-select_ec2_instance
+# get the instance data
+# ${selected_instance} data format
+# $1  $2      $3      $4
+# id  status  keypair publicIp
+selected_instance=$(get_instance "$selected_region")
+instance_id=$(echo "$selected_instance" | awk '{print $1}')
+instance_status=$(echo "$selected_instance" | awk '{print $2}')
+instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
+instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
+# exit if no instance selected
+[[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
+# default action, ssh into the instance
+if [[ "$action" == 'ssh' ]]; then
+  # start the instance if it is stopped
+  if [[ "$instance_status" == stopped ]]; then
+    start_instance "$instance_id"
+  # ssh into the instance
+  elif [[ "$instance_status" == running ]]; then
+    ssh_instance "$instance_key_pem" "$instance_ip_address" "$AWS_PEM"
+  else
+    # exit if instance state is not running or stopped 
+    echo "Instance is still $instance_status, please wait"
+    exit 1
+  fi
+elif [[ "$action" == 'stop' ]]; then
+  if [[ "$instance_status" == stopped ]]; then
+    echo "Instance is already stopped"
+  # stpp the instance if it is running
+  elif [[ "$instance_status" == running ]]; then
+    stop_instance "$instance_id"
+  else
+    # exit if instance state is not running or stopped 
+    echo "Instance is still $instance_status, please wait"
+    exit 1
+  fi
+fi

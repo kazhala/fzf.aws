@@ -5,4 +5,3 @@ function get_confirmation() {
     read -p "Confirm?(y/n): " confirm
   done
 }
-
