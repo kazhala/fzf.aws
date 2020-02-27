@@ -16,11 +16,11 @@ function delete_file_s3() {
   get_confirmation "Confirm?"
   if [[ "$confirm" == 'y' ]]
   then
-    if [[ -z "$recursive" ]]
+    if [[ "$recursive" != 'true' ]]
     then
       aws s3 "$operation_cmd" "s3://$s3_path"
     else
-      aws s3 "$operation_cmd" "s3://$s3_path"
+      aws s3 "$operation_cmd" "s3://$s3_path" --recursive
     fi
   fi
   exit 0
