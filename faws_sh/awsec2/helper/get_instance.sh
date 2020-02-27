@@ -6,11 +6,11 @@ function get_instance() {
   # request region specific ec2 or using default region
   if [[ -z "$1" ]]
   then
-    selected_instance=$(aws ec2 describe-instances \
+    local selected_instance=$(aws ec2 describe-instances \
         --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
         --output text | sed 's/\'$'\t/ | /g' | fzf --exit-0 | sed 's/\'$'\s//g' | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
   else
-    selected_instance=$(aws ec2 describe-instances --region "$selected_region" \
+    local selected_instance=$(aws ec2 describe-instances --region "$selected_region" \
         --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \
         --output text | sed 's/\'$'\t/ | /g' | fzf --exit-0 | sed 's/\'$'\s//g' | awk -F '|' '{print $1 " " $2 " " $5 " " $6}')
   fi 
