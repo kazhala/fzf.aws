@@ -4,23 +4,25 @@
 
 # import helper scripts
 mydir="${0%/*}"
+source "$mydir"/faws_sh/confirm.sh
 source "$mydir"/faws_sh/awsec2/helper/get_instance.sh
 source "$mydir"/faws_sh/awsec2/helper/get_region.sh
 source "$mydir"/faws_sh/awsec2/ssh_instance.sh
 source "$mydir"/faws_sh/awsec2/stop_instance.sh
-source "$mydir"/faws_sh/confirm.sh
+source "$mydir"/faws_sh/awsec2/terminate_instance.sh
 
 # help
 function usage() {
-  echo "usage: awsec2 [-h] [-r] [-s] [-e]\n"
+  echo "usage: awsec2 [-h] [-r] [-s] [-e] [-t]\n"
   echo "start/stop/connect to selected ec2 instance"
   echo "by default, if instance is stopped, select will start the instance"
   echo "default action is -s flag, ssh into the selected instance if running\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
   echo "-r\tselect a region otherwise default region will be used\n"
+  echo "-s\tssh to the selected instance if it is running, this is the default action\n"
   echo "-e\tstop the selected instance if it is running\n"
-  echo "-s\tssh to the selected instance if it is running, this is the default action"
+  echo "-t\tterminate the selected instance"
 }
 
 # default args
@@ -28,7 +30,7 @@ action='ssh'
 selected_region=''
 
 # process flags
-while getopts ":srhe" opt
+while getopts ":srhet" opt
 do
   case "$opt" in
     r)
@@ -42,6 +44,9 @@ do
     e)
       # stop the instance if the instance is running
       action='stop';;
+    t)
+      # terminate the instance
+      action='terminate';;
     h)
       # display usage and exit
       usage
@@ -69,4 +74,6 @@ if [[ "$action" == 'ssh' ]]; then
   ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$AWS_PEM"
 elif [[ "$action" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status"
+elif [[ "$action" == 'terminate' ]]; then
+  terminate_instance "$instance_id"
 fi
