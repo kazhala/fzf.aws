@@ -10,8 +10,7 @@
 function ssh_instance() {
   # start the instance if it is stopped
   if [[ "$2" == stopped ]]; then
-    echo "Instance is currently stopped, start instance?"
-    get_confirmation
+    get_confirmation "Instance is currently stopped, start instance?"
     if [[ "$confirm" == 'y' ]]; then
       echo "Starting instance now.."
       aws ec2 start-instances --instance-ids "$1" --output text

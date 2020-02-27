@@ -8,7 +8,7 @@ function stop_instance() {
     echo "Instance is already stopped"
   # stpp the instance if it is running
   elif [[ "$2" == running ]]; then
-    get_confirmation
+    get_confirmation "Instance will be stopped, continue?"
     if [[ $confirm == 'y' ]]; then
       aws ec2 stop-instances --instance-ids "$1" --output text
     fi
