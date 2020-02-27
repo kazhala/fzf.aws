@@ -23,7 +23,7 @@ function ssh_instance() {
     if [[ -f "$3" ]]; then
       ssh -i "$3" ec2-user@"$4"
     else
-      echo "Key pair not detected on this computer"
+      echo "Key pair not detected in the specified directory"
     fi
   else
     # exit if instance state is not running or stopped 

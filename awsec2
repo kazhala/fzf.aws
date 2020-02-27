@@ -13,13 +13,14 @@ source "$mydir"/faws_sh/awsec2/terminate_instance.sh
 
 # help
 function usage() {
-  echo "usage: awsec2 [-h] [-r] [-s] [-e] [-t]\n"
+  echo "usage: awsec2 [-h] [-r] [-p] [-s] [-e] [-t]\n"
   echo "start/stop/connect to selected ec2 instance"
   echo "by default, if instance is stopped, select will start the instance"
   echo "default action is -s flag, ssh into the selected instance if running\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
   echo "-r\tselect a region otherwise default region will be used\n"
+  echo "-p\tspecify the path to look for keypair pem file\n"
   echo "-s\tssh to the selected instance if it is running, this is the default action\n"
   echo "-e\tstop the selected instance if it is running\n"
   echo "-t\tterminate the selected instance"
@@ -28,9 +29,10 @@ function usage() {
 # default args
 action='ssh'
 selected_region=''
+pem_location="$AWS_PEM"
 
 # process flags
-while getopts ":srhet" opt
+while getopts ":srhetp:" opt
 do
   case "$opt" in
     r)
@@ -47,6 +49,9 @@ do
     t)
       # terminate the instance
       action='terminate';;
+    p)
+      # user specified path for pem file
+      pem_location="$OPTARG";;
     h)
       # display usage and exit
       usage
@@ -71,7 +76,7 @@ instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
 [[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
 # default action, ssh into the instance
 if [[ "$action" == 'ssh' ]]; then
-  ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$AWS_PEM"
+  ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location"
 elif [[ "$action" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status"
 elif [[ "$action" == 'terminate' ]]; then
