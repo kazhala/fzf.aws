@@ -1,10 +1,3 @@
-# aws3 helper functions
-
-# check if fd exists, if not, use find instead
-function fd_exists() {
-  fd -V &>/dev/null
-  echo "$?"
-}
 
 # get local file path
 # @params
