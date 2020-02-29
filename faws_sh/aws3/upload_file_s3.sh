@@ -29,6 +29,7 @@ function upload_file_s3() {
   [[ -z "$local_path" ]] && echo 'No local path selected' && exit 1
 
   # display dryrun info and get confirmation
+  # sync doesn't accpet recursive flag, it perform recursive by default
   if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "$local_path" "s3://$s3_path" --dryrun
   else

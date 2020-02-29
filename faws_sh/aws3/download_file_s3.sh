@@ -29,6 +29,7 @@ function download_file_s3() {
   echo "File will be downloaded to directory $PWD"
 
   # dryrun and get confirmation
+  # sync doesn't accpet recursive flag, it perform recursive by default
   if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "s3://$s3_path" "$local_path" --dryrun
   else

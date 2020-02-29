@@ -31,14 +31,14 @@ function usage() {
   echo "-h\tshow this help message and exit\n"
   echo "-p\tspecify a path after this flag and skip s3 bucket/path selection\n"
   echo "-P\tspecify a local path for operation\n"
-  echo "-r\toperate recursively on s3, e.g. cp entire bucket/folder\n"
-  echo "-R\tsearch local file from root directory, note: slow if no fd\n"
+  echo "-r\toperate recursively on s3, when manipulating with folders, -r is required\n"
+  echo "-R\tsearch local file from root directory, note: very slow if no fd installed\n"
   echo "-D\tuse rm operations to delete files on s3, add -r to delete folder\n"
   echo "-d\tdownload the select file to local directory, add -r to download folder\n"
-  echo "-H\tInclude hidden folder or directory\n"
-  echo "-m\tuse mv instead of cp command, mv/cut, cp/copy\n"
+  echo "-H\tInclude hidden folder or directory during local file search\n"
+  echo "-m\tuse mv instead of cp command, like cut a file and paste in another location\n"
   echo "-b\ttransfer file between bucket\n"
-  echo "-s\tuse sync instead of cp command, sync the file"
+  echo "-s\tuse sync instead of cp command, recursively copies new and updated files from the source directory to the destination"
 }
 
 # default operation_cmd

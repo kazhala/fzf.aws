@@ -11,6 +11,7 @@ function transfer_file_s3() {
   local to_path="$3"
   local recursive="$4"
   # display dryrun information and ask for confirmation
+  # sync doesn't accpet recursive flag, it perform recursive by default
   if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path" --dryrun
   else
