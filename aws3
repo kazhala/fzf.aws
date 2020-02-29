@@ -17,6 +17,7 @@ source "$mydir"/faws_sh/aws3/helper/get_bucket_path.sh
 source "$mydir"/faws_sh/aws3/upload_file_s3.sh
 source "$mydir"/faws_sh/aws3/delete_file_s3.sh
 source "$mydir"/faws_sh/aws3/download_file_s3.sh
+source "$mydir"/faws_sh/aws3/transfer_file_s3.sh
 
 # help message
 function usage() {
@@ -42,7 +43,7 @@ recursive='false'
 hidden='false'
 search_from_root='false'
 
-while getopts ":p:hrDmdHP:R" opt
+while getopts ":p:hrDmdHP:Rb" opt
 do
   case "$opt" in
     p)
@@ -71,6 +72,8 @@ do
     h)
       usage
       exit 0;;
+    b)
+      operation_type='bucket';;
     *)
       echo "Invalid option: $OPTARG" >&2
       usage
@@ -78,16 +81,29 @@ do
   esac
 done
 
+# get the bucket path before any operation
 if [[ -z "$s3_path" ]]; then
+  # get bucekt name
   bucket=$(get_bucket)
   [[ -z "$bucket" ]] && echo "No bucket selected" && exit 1
+  # get subfolders in the bucket or root
   s3_path=$(get_bucket_path "$bucket" "$operation_type" "$recursive")
   [[ -z "$s3_path" ]] && echo "No option/path selected" && exit 1
 fi
+
+# process operation type and call different scripts
 if [[ "$operation_type" == 'upload' ]]; then
   upload_file_s3 "$operation_cmd" "$s3_path" "$recursive" "$hidden" "$search_from_root" "$local_path"
 elif [[ "$operation_type" == 'download' ]]; then
   download_file_s3 "$operation_cmd" "$s3_path" "$recursive" "$hidden" "$search_from_root" "$local_path"
 elif [[ "$operation_type" == 'delete' ]]; then
   delete_file_s3  "$s3_path" "$recursive"
+elif [[ "$operation_type" == 'bucket' ]]; then
+  # select a second bucket
+  target_bucket=$(get_bucket)
+  [[ -z "$target_bucket" ]] && echo "Target bucket not selected" && exit 1
+  # select second bucket path
+  target_s3_path=$(get_bucket_path "$target_bucket" "$operation_type" 'true')
+  [[ -z "$target_s3_path" ]] && echo "Target path not specified" && exit 1
+  transfer_file_s3 "$operation_cmd" "$s3_path" "$target_s3_path" "$recursive"
 fi
