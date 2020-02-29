@@ -10,6 +10,7 @@ function get_bucket_path() {
   local operation_type="$2"
   local recursive="$3"
   # if download/delete and not recursive, get all files in s3
+  # if recursive flag, we want the folder name instead of the file name
   if [[ "$operation_type" != 'upload' && "$recursive" != 'true' ]]; then
     local selected_path=$(aws s3 ls "$path" --recursive | fzf --exit-0 | awk '{print $4}')
     [[ -z "$selected_path" ]] && return

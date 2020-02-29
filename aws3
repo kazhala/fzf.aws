@@ -38,18 +38,19 @@ function usage() {
   echo "-H\tInclude hidden folder or directory during local file search\n"
   echo "-m\tuse mv instead of cp command, like cut a file and paste in another location\n"
   echo "-b\ttransfer file between bucket\n"
-  echo "-s\tuse sync instead of cp command, recursively copies new and updated files from the source directory to the destination"
+  echo "-s\tuse sync instead of cp command, recursively copies new and updated files from the source directory to the destination\n"
+  echo "-u\tupload file to s3 bucket, to upload folder, -r flag should be set"
 }
 
 # default operation_cmd
 operation_cmd='cp'
-operation_type='upload'
+operation_type='list'
 local_path=''
 recursive='false'
 hidden='false'
 search_from_root='false'
 
-while getopts ":p:hrDmdHP:Rbs" opt
+while getopts ":p:hrDmdHP:Rbsu" opt
 do
   case "$opt" in
     p)
@@ -87,6 +88,8 @@ do
     s)
       operation_cmd='sync'
       recursive='true';;
+    u)
+      operation_type='upload';;
     *)
       echo "Invalid option: $OPTARG" >&2
       usage
@@ -100,7 +103,7 @@ if [[ -z "$s3_path" ]]; then
   # get bucekt name
   bucket=$(get_bucket)
   [[ -z "$bucket" ]] && echo "No bucket selected" && exit 1
-  echo "Select a path where $operation_type should be performed"
+  echo "Select a path"
   # get subfolders in the bucket or root
   s3_path=$(get_bucket_path "$bucket" "$operation_type" "$recursive")
   [[ -z "$s3_path" ]] && echo "No option/path selected" && exit 1
@@ -125,4 +128,7 @@ elif [[ "$operation_type" == 'bucket' ]]; then
     [[ -z "$target_s3_path" ]] && echo "Target path not specified" && exit 1
   fi
   transfer_file_s3 "$operation_cmd" "$s3_path" "$target_s3_path" "$recursive"
+else
+  # just print the path if no operation type set
+  echo "s3://$s3_path"
 fi
