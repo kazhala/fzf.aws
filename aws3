@@ -22,6 +22,7 @@ source "$mydir"/faws_sh/aws3/upload_file_s3.sh
 source "$mydir"/faws_sh/aws3/delete_file_s3.sh
 source "$mydir"/faws_sh/aws3/download_file_s3.sh
 source "$mydir"/faws_sh/aws3/transfer_file_s3.sh
+source "$mydir"/faws_sh/aws3/presign_url_s3.sh
 
 # help message
 function usage() {
@@ -51,7 +52,7 @@ recursive='false'
 hidden='false'
 search_from_root='false'
 
-while getopts ":p:hrDmdHP:Rbsu" opt
+while getopts ":p:hrDmdHP:RbsuU:" opt
 do
   case "$opt" in
     p)
@@ -91,6 +92,11 @@ do
       recursive='true';;
     u)
       operation_type='upload';;
+    U)
+      operation_type='presign'
+      recursive='false'
+      expires_in="$OPTARG"
+      break;;
     *)
       echo "Invalid option: $OPTARG" >&2
       usage
@@ -98,7 +104,9 @@ do
   esac
 done
 
-[[ -z "$operation_type" ]] && echo 'No operation type flag detected, [-udDb](upload/download/delete/bucket)'
+# if no operation_type detected, display message and echo the s3 path of the selected object
+# don't show the recursive interface, even -r is set
+[[ -z "$operation_type" ]] && recursive='false' && echo 'No operation type flag detected, [-udDb](upload/download/delete/bucket)'
 
 # get the bucket path before any operation
 if [[ -z "$s3_path" ]]; then
@@ -131,6 +139,8 @@ elif [[ "$operation_type" == 'bucket' ]]; then
     [[ -z "$target_s3_path" ]] && echo "Target path not specified" && exit 1
   fi
   transfer_file_s3 "$operation_cmd" "$s3_path" "$target_s3_path" "$recursive"
+elif [[ "$operation_type" == 'presign' ]]; then
+  presign_url_s3 "$s3_path" "$expires_in"
 else
   # just print the path if no operation type set
   echo "s3://$s3_path"
