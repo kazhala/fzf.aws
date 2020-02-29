@@ -33,7 +33,7 @@ function get_bucket_path() {
       do
         # grep PRE is filtering the folder in s3, remove all files entry
         selected_path=$(aws s3 ls "$path" | grep PRE | \
-          fzf --exit-0 | awk '{print $2}')
+          sed 's/^.*PRE/PRE/g' | fzf --exit-0 | awk '{print $2}')
         if [[ "$path" == "$1" ]]
         then
           path="$path/"
