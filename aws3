@@ -26,7 +26,7 @@ source "$mydir"/faws_sh/aws3/presign_url_s3.sh
 
 # help message
 function usage() {
-  echo "usage: aws3 [-h] [-p] [-P] [-r] [-R] [-d] [-D] [-H] [-m] [-b] [-s]\n"
+  echo "usage: aws3 [-h] [-u] [-d] [-D] [-b] [-p number] [-P path] [-l path] [-m] [-s] [-r] [-R] [-H]\n"
   echo "perform CRUD operations with cp/mv/rm in s3 bucket interactively\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
@@ -34,9 +34,11 @@ function usage() {
   echo "-d\tDOWNLOAD the select file to local directory, add -r to download folder\n"
   echo "-D\tDELETE the selected file in s3, add -r to delete entire folder or clear bucket content\n"
   echo "-b\tBUCKET, transfer file between buckets\n"
-  echo "-p\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection\n"
+  echo "-p\tPRESIGN a url for the selected s3 object\n"
+  echo "  \tsecond arg will be used as expiring time for the url, put 0 to use the default value 3600\n"
+  echo "-P\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection\n"
   echo "  \tE.g. -p bucketname or -p bucketname/path, don't put in the s3:// prefix\n"
-  echo "-P\tspecify a local path for operation\n"
+  echo "-l\tspecify a local path for operation\n"
   echo "-m\tuse mv instead of cp command, like cut a file and paste in another location\n"
   echo "-s\tuse sync instead of cp command, recursively copies new and updated files from the source directory to the destination\n"
   echo "-r\toperate recursively, set this flag when manipulating folders\n"
@@ -52,17 +54,17 @@ recursive='false'
 hidden='false'
 search_from_root='false'
 
-while getopts ":p:hrDmdHP:RbsuU:" opt
+while getopts ":P:hrDmdHl:Rbsup:" opt
 do
   case "$opt" in
-    p)
+    P)
       # -p expect a path bucket/path
       if [[ -z "$s3_path" ]]; then
         s3_path="$OPTARG"
       elif [[ -z "$target_s3_path" ]]; then
         target_s3_path="$OPTARG"
       fi;;
-    P)
+    l)
       # specify a local file path
       local_path="$OPTARG";;
     r)
@@ -92,7 +94,7 @@ do
       recursive='true';;
     u)
       operation_type='upload';;
-    U)
+    p)
       operation_type='presign'
       recursive='false'
       expires_in="$OPTARG"

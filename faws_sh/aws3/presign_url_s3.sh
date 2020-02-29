@@ -6,8 +6,11 @@
 function presign_url_s3() {
   local s3_path="$1"
   local expires_in="$2"
+  # using single bracket to test -eq to make sure string not convert to zero
+  # want error to apper in this case
   if [[ -n "$expires_in" ]] && [ "$expires_in" -eq "$expires_in" ] 2>/dev/null
   then
+    # if 0, use default timeout 3600seconds
     if [[ "$expires_in" -eq 0 ]]; then
       aws s3 presign "s3://$s3_path"
     else
