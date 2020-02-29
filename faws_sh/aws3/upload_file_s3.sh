@@ -15,6 +15,7 @@ function upload_file_s3() {
   local search_from_root=$5
   local local_path=$6
   [[ "$search_from_root" == 'true' ]] && cd "$HOME"
+  # get local file path
   if [[ -z "$local_path" ]]; then
     if [[ "$recursive" != 'true' ]]
     then
@@ -26,7 +27,8 @@ function upload_file_s3() {
     fi
   fi
   [[ -z "$local_path" ]] && echo 'No local path selected' && exit 1
-  # get user confirmation
+
+  # display dryrun info and get confirmation
   if [[ "$recursive" != 'true' ]]
   then
     aws s3 "$operation_cmd" "$local_path" "s3://$s3_path" --dryrun

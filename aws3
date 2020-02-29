@@ -1,12 +1,16 @@
 #!/bin/sh
 # perform CRUD operations in s3 interactively
-# @params global
-# $operation_type: [upload, download, delete] default to upload, determines what operation to take
-# $operation_cmd: [cp, mv, rm] default to cp, determine what cmd to use in s3 command
-# $path: s3 bucket path, root would be bucket name, bucket/path
-# $path_to_file: local file or directory path for download or upload
+# @params
+# $operation_type: default to upload, determines what operation(upload/download/delete/bucket) to take
+# $operation_cmd: default to cp, determine what cmd to use in s3 command(cp/mv/sync)
+# $bucket: bucket name
+# $target_bucket: target bucket name
+# $s3_path: s3 bucket path, root would be bucket name, bucket/path
+# $target_s3_path: when operation_type=bucket, the target s3 location for file transfer
+# $local_path: local file or directory path for download or upload, need to be set by -P flag
 # $recursive: determine if the -r flag is set for recursive operation
 # $hidden: determine if the local file search should include hidden files
+# $search_from_root: determine if the find/fd should search from root
 
 # import helper scripts
 mydir="${0%/*}"
@@ -21,7 +25,7 @@ source "$mydir"/faws_sh/aws3/transfer_file_s3.sh
 
 # help message
 function usage() {
-  echo "usage: aws3 [-h] [-p] [-P] [-r] [-R] [-d] [-D] [-H] [-m]\n"
+  echo "usage: aws3 [-h] [-p] [-P] [-r] [-R] [-d] [-D] [-H] [-m] [-b]\n"
   echo "perform CRUD operations with cp/mv/rm in s3 bucket interactively\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
@@ -32,7 +36,8 @@ function usage() {
   echo "-D\tuse rm operations to delete files on s3, add -r to delete folder\n"
   echo "-d\tdownload the select file to local directory, add -r to download folder\n"
   echo "-H\tInclude hidden folder or directory\n"
-  echo "-m\tuse mv instead of cp command, mv/cut, cp/copy"
+  echo "-m\tuse mv instead of cp command, mv/cut, cp/copy\n"
+  echo "-b\ttransfer file between bucket"
 }
 
 # default operation_cmd
@@ -87,9 +92,11 @@ done
 
 # get the bucket path before any operation
 if [[ -z "$s3_path" ]]; then
+  echo "Select a bucket for $operation_type"
   # get bucekt name
   bucket=$(get_bucket)
   [[ -z "$bucket" ]] && echo "No bucket selected" && exit 1
+  echo "Select a path where $operation_type should be performed"
   # get subfolders in the bucket or root
   s3_path=$(get_bucket_path "$bucket" "$operation_type" "$recursive")
   [[ -z "$s3_path" ]] && echo "No option/path selected" && exit 1
@@ -104,9 +111,11 @@ elif [[ "$operation_type" == 'delete' ]]; then
   delete_file_s3  "$s3_path" "$recursive"
 elif [[ "$operation_type" == 'bucket' ]]; then
   if [[ -z "$target_s3_path" ]]; then
+    echo "Select a target bucket for file transfer between buckets"
     # select a second bucket
     target_bucket=$(get_bucket)
     [[ -z "$target_bucket" ]] && echo "Target bucket not selected" && exit 1
+    echo "Select a path where the file should be $operation_cmd"
     # select second bucket path
     target_s3_path=$(get_bucket_path "$target_bucket" "$operation_type" 'true')
     [[ -z "$target_s3_path" ]] && echo "Target path not specified" && exit 1

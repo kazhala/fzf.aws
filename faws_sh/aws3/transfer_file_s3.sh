@@ -17,6 +17,7 @@ function transfer_file_s3() {
     aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path" --recursive --dryrun
   fi
   get_confirmation "Confirm?"
+
   # perform operation
   if [[ "$confirm" == 'y' ]]; then
     if [[ "$recursive" != 'true' ]]; then

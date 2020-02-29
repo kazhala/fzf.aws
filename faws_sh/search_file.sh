@@ -9,6 +9,8 @@ function search_file() {
   local hidden=$2
   local exe_fd=$(fd_exists)
   local local_path=''
+
+  # if fd command exists, use fd otherwise use find
   if [[ "$exe_fd" -eq 0 ]]
   then
     if [[ "$file_type" != 'folder' ]]
