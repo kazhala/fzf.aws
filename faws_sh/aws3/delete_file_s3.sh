@@ -8,8 +8,7 @@ function delete_file_s3() {
   local s3_path=$1
   local recursive=$2
   # dryrun and get confirmation
-  if [[ "$recursive" != 'true' ]]
-  then
+  if [[ "$recursive" != 'true' ]]; then
     aws s3 "$operation_cmd" "s3://$s3_path" --dryrun
   else
     aws s3 "$operation_cmd" "s3://$s3_path" --dryrun --recursive
@@ -17,10 +16,8 @@ function delete_file_s3() {
   get_confirmation "Confirm?"
 
   # delete the file
-  if [[ "$confirm" == 'y' ]]
-  then
-    if [[ "$recursive" != 'true' ]]
-    then
+  if [[ "$confirm" == 'y' ]]; then
+    if [[ "$recursive" != 'true' ]]; then
       aws s3 "$operation_cmd" "s3://$s3_path"
     else
       aws s3 "$operation_cmd" "s3://$s3_path" --recursive

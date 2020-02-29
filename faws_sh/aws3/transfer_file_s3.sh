@@ -11,7 +11,7 @@ function transfer_file_s3() {
   local to_path="$3"
   local recursive="$4"
   # display dryrun information and ask for confirmation
-  if [[ "$recursive" != 'true' ]]; then
+  if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path" --dryrun
   else
     aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path" --recursive --dryrun
@@ -20,7 +20,7 @@ function transfer_file_s3() {
 
   # perform operation
   if [[ "$confirm" == 'y' ]]; then
-    if [[ "$recursive" != 'true' ]]; then
+    if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
       aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path"
     else
       aws s3 "$operation_cmd" "s3://$from_path" "s3://$to_path" --recursive

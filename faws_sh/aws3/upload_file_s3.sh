@@ -29,18 +29,15 @@ function upload_file_s3() {
   [[ -z "$local_path" ]] && echo 'No local path selected' && exit 1
 
   # display dryrun info and get confirmation
-  if [[ "$recursive" != 'true' ]]
-  then
+  if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "$local_path" "s3://$s3_path" --dryrun
   else
     aws s3 "$operation_cmd" "$local_path" "s3://$s3_path" --dryrun --recursive
   fi
   get_confirmation "Confirm?"
   # upload to s3
-  if [[ "$confirm" == 'y' ]]
-  then
-    if [[ "$recursive" != 'true' ]]
-    then
+  if [[ "$confirm" == 'y' ]]; then
+    if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
       aws s3 "$operation_cmd" "$local_path" "s3://$s3_path"
     else
       aws s3 "$operation_cmd" "$local_path" "s3://$s3_path" --recursive

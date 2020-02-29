@@ -29,8 +29,7 @@ function download_file_s3() {
   echo "File will be downloaded to directory $PWD"
 
   # dryrun and get confirmation
-  if [[ "$recursive" != 'true' ]]
-  then
+  if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
     aws s3 "$operation_cmd" "s3://$s3_path" "$local_path" --dryrun
   else
     aws s3 "$operation_cmd" "s3://$s3_path" "$local_path" --dryrun --recursive
@@ -39,8 +38,7 @@ function download_file_s3() {
   # download from s3
   if [[ "$confirm" == 'y' ]]
   then
-    if [[ "$recursive" != 'true' ]]
-    then
+    if [[ "$recursive" != 'true' || "$operation_cmd" == 'sync' ]]; then
       aws s3 "$operation_cmd" "s3://$s3_path" "$local_path"
     else
       aws s3 "$operation_cmd" "s3://$s3_path" "$local_path" --recursive
