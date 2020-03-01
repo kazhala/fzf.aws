@@ -12,40 +12,47 @@ from faws_py.awscform.delete_stack import delete_stack
 
 parser = argparse.ArgumentParser(
     description='CRUD operation on aws cloudformation.')
-parser.add_argument('-n', '--new', action='store_true',
-                    default=False, help='create a new stack')
-parser.add_argument('-r', '--replace', action='store_true', default=False,
-                    help='replace current template to update')
-parser.add_argument('-u', '--update', action='store_const',
-                    const='update', default=None, help='update the selected stack')
-parser.add_argument('-d', '--delete', action='store_const',
-                    const='delete', default=None, help='delete the selected stack')
-parser.add_argument('-l', '--local', action='store_true',
-                    default=False, help='upload local file')
-parser.add_argument('-p', '--path', nargs=1, action='store', default=None,
-                    help='specifie a path where the local file is stored')
-parser.add_argument('-R', '--root', action='store_true', default=False,
-                    help='search local file from root instead of current directory')
-parser.add_argument('-t', '--tag', action='store_true',
-                    default=False, help='update the tag as well')
-parser.add_argument('-T', '--newtag', action='store_true',
-                    default=False, help='create new tags during update')
+subparsers = parser.add_subparsers(dest='subparser_name')
+# update command flags
+update_cmd = subparsers.add_parser('update')
+update_cmd.add_argument('-t', '--tag', action='store_true',
+                        default=False, help='update the tag during update')
+update_cmd.add_argument('-T', '--newtag', action='store_true',
+                        default=False, help='create new tags during update')
+update_cmd.add_argument('-R', '--root', action='store_true', default=False,
+                        help='search local file from root instead of current directory')
+update_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
+                        help='specifie a path where the local file is stored')
+update_cmd.add_argument('-l', '--local', action='store_true',
+                        default=False, help='upload local file')
+update_cmd.add_argument('-r', '--replace', action='store_true', default=False,
+                        help='replace current template to update')
+# new command flags
+new_cmd = subparsers.add_parser('new')
+new_cmd.add_argument('-R', '--root', action='store_true', default=False,
+                     help='search local file from root instead of current directory')
+new_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
+                     help='specifie a path where the local file is stored')
+new_cmd.add_argument('-l', '--local', action='store_true',
+                     default=False, help='upload local file')
+# delete doesn't have flags
+delete_cmd = subparsers.add_parser('delete')
 args = parser.parse_args()
-
+print(args)
 
 try:
     # create a new stack
-    if args.new:
+    if args.subparser_name == 'new':
         create_stack(args)
 
     # operation on the existing stack(update/delete/exit)
     else:
         # get the selected_stack {'StackName': str, 'StackDetails': {}}
         selected_stack = get_stack()
-        if args.update:
+        if args.subparser_name == 'update':
             update_stack(
                 args, selected_stack['StackName'], selected_stack['StackDetails'])
-        elif args.delete:
+        elif args.subparser_name == 'delete':
             delete_stack(selected_stack['StackName'],
                          selected_stack['StackDetails'])
         else:
