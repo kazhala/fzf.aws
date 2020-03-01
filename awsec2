@@ -13,26 +13,38 @@ source "$mydir"/faws_sh/awsec2/terminate_instance.sh
 
 # help
 function usage() {
-  echo "usage: awsec2 [-h] [-r] [-p] [-s] [-e] [-t]\n"
-  echo "start/stop/connect to selected ec2 instance"
-  echo "by default, if instance is stopped, select will start the instance"
-  echo "default action is -s flag, ssh into the selected instance if running\n"
+  echo "usage: awsec2 <command> [-h] [-r] [-p]\n"
+  echo "ssh/stop/terminate the selected instance\n"
+  echo "<command>:\n"
+  echo "ssh      \tssh to the selected instance if it is running\n"
+  echo "         \twill start the instance if it is stopped\n"
+  echo "stop     \tstop the selected instance if it is running\n"
+  echo "terminate\tterminate the selected instance\n"
   echo "optional arguments:\n"
   echo "-h\tshow this help message and exit\n"
   echo "-r\tselect a region otherwise default region will be used\n"
-  echo "-p\tspecify the path to look for keypair pem file\n"
-  echo "-s\tssh to the selected instance if it is running, this is the default action\n"
-  echo "-e\tstop the selected instance if it is running\n"
-  echo "-t\tterminate the selected instance"
+  echo "-p\tspecify the path to look for keypair pem file"
 }
 
 # default args
-action='ssh'
+action=''
 selected_region=''
 pem_location="$AWS_PEM"
 
+case "$1" in
+  ssh)
+    action='ssh'
+    shift;;
+  stop)
+    action='stop'
+    shift;;
+  terminate)
+    action='terminate'
+    shift;;
+esac
+
 # process flags
-while getopts ":srhetp:" opt
+while getopts ":rhp:" opt
 do
   case "$opt" in
     r)
@@ -40,15 +52,6 @@ do
       echo "Select a region"
       selected_region=$(get_region)
       [[ -z "$selected_region" ]] && echo "No region selected" && exit 1;;
-    s)
-      # default action
-      action='ssh';;
-    e)
-      # stop the instance if the instance is running
-      action='stop';;
-    t)
-      # terminate the instance
-      action='terminate';;
     p)
       # user specified path for pem file
       pem_location="$OPTARG";;
@@ -81,4 +84,6 @@ elif [[ "$action" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status"
 elif [[ "$action" == 'terminate' ]]; then
   terminate_instance "$instance_id"
+else
+  echo "$selected_instance"
 fi
