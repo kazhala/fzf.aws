@@ -10,21 +10,7 @@ source "$mydir"/faws_sh/awsec2/helper/get_region.sh
 source "$mydir"/faws_sh/awsec2/ssh_instance.sh
 source "$mydir"/faws_sh/awsec2/stop_instance.sh
 source "$mydir"/faws_sh/awsec2/terminate_instance.sh
-
-# help
-function usage() {
-  echo "usage: awsec2 <command> [-h] [-r] [-p]\n"
-  echo "ssh/stop/terminate the selected instance\n"
-  echo "<command>:\n"
-  echo "ssh      \tssh to the selected instance if it is running\n"
-  echo "         \twill start the instance if it is stopped\n"
-  echo "stop     \tstop the selected instance if it is running\n"
-  echo "terminate\tterminate the selected instance\n"
-  echo "optional arguments:\n"
-  echo "-h\tshow this help message and exit\n"
-  echo "-r\tselect a region otherwise default region will be used\n"
-  echo "-p\tspecify the path to look for keypair pem file"
-}
+source "$mydir"/faws_sh/awsec2/usage.sh
 
 # default args
 action=''
@@ -59,11 +45,11 @@ do
       pem_location="$OPTARG";;
     h)
       # display usage and exit
-      usage
+      usage "$action"
       exit 0;;
     *)
       echo "Invalid option $OPTARG" >&2
-      usage
+      usage "$action"
       exit 1;;
   esac
 done
