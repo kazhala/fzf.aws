@@ -34,9 +34,7 @@ def update_stack(args, stack_name, stack_details):
         tags = stack_details['Tags']
         if args.tag:
             tags = update_tags(tags)
-        # create new tags
-        if args.newtag:
-            new_tags = get_tags()
+            new_tags = get_tags(update=True)
             for new_tag in new_tags:
                 tags.append(new_tag)
         # update the stack
@@ -67,9 +65,7 @@ def update_stack(args, stack_name, stack_details):
                 tags = stack_details['Tags']
                 if args.tag:
                     tags = update_tags(tags)
-                # create new tags
-                if args.newtag:
-                    new_tags = get_tags()
+                    new_tags = get_tags(update=True)
                     for new_tag in new_tags:
                         tags.append(new_tag)
                 response = cloudformation.update_stack(
@@ -97,9 +93,7 @@ def update_stack(args, stack_name, stack_details):
                 tags = stack_details['Tags']
                 if args.tag:
                     tags = update_tags(tags)
-                # create new tags
-                if args.newtag:
-                    new_tags = get_tags()
+                    new_tags = get_tags(update=True)
                     for new_tag in new_tags:
                         tags.append(new_tag)
                 # s3 object url

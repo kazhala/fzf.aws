@@ -18,8 +18,6 @@ update_cmd = subparsers.add_parser(
     'update', description='update an existing stack')
 update_cmd.add_argument('-t', '--tag', action='store_true',
                         default=False, help='update the tag during update')
-update_cmd.add_argument('-T', '--newtag', action='store_true',
-                        default=False, help='create new tags during update')
 update_cmd.add_argument('-R', '--root', action='store_true', default=False,
                         help='search local file from root instead of current directory')
 update_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,

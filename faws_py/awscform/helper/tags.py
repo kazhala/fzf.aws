@@ -1,9 +1,13 @@
 # get new tags for stacks during update or create
-def get_tags():
+def get_tags(update=False):
     tag_list = []
-    print('Tags help you identify your sub resources')
-    print('A "Name" tag is suggested to enter at the very least')
-    print('Skip enter value to stop entering for tags')
+    if not update:
+        print('Tags help you identify your sub resources')
+        print('A "Name" tag is suggested to enter at the very least')
+        print('Skip enter value to stop entering for tags')
+    else:
+        print('Enter new tags below')
+        print('Skip enter value to stop entering for new tags')
     while True:
         tag_name = input('TagName: ')
         if not tag_name:
