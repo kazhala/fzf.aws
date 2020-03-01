@@ -11,6 +11,7 @@ cloudformation = boto3.client('cloudformation')
 
 
 def create_stack(args):
+    print(args)
     # local flag specified
     if args.local:
         local_path = ''

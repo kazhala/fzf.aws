@@ -40,7 +40,6 @@ new_cmd.add_argument('-l', '--local', action='store_true',
 delete_cmd = subparsers.add_parser(
     'delete', description='delete an existing stack')
 args = parser.parse_args()
-print(args)
 
 try:
     # create a new stack

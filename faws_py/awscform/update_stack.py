@@ -1,7 +1,10 @@
 # update stack operation
 import boto3
-from faws_py.util import search_dict_in_list
+from faws_py.util import search_dict_in_list, is_yaml
 from faws_py.awscform.helper.get_tags import get_tags
+from faws_py.fzf_py import fzf_py
+from faws_py.awscform.helper.process_template import process_yaml_file, process_stack_params
+from faws_py.awscform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 
 cloudformation = boto3.client('cloudformation')
 
@@ -60,5 +63,27 @@ def update_stack(args, stack_name, stack_details):
             Tags=tags
         )
     else:
-        print('Choose a template to upload')
+        # replace existing template
+        # check if the new template should be from local
+        if args.local:
+            local_path = ''
+            if args.path:
+                local_path = args.path[0]
+            else:
+                file_finder_fzf = fzf_py()
+                # use find or fd to find local file
+                # search from root dir if root flag sepcified
+                local_path = file_finder_fzf.get_local_file(args.root)
+        if is_yaml(local_path):
+            file_data = process_yaml_file(local_path)
+            updated_parameters = process_stack_params(
+                file_data['dictYaml']['Parameters'])
+            tags = get_tags()
+            response = cloudformation.update_stack(
+                StackName=stack_name,
+                TemplateBody=file_data['body'],
+                UsePreviousTemplate=False,
+                Parameters=updated_parameters,
+                Tags=tags
+            )
     print(response)
