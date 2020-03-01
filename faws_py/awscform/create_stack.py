@@ -1,7 +1,7 @@
 # awscform create stack operation
 import boto3
 from faws_py.util import is_yaml
-from faws_py.awscform.helper.get_tags import get_tags
+from faws_py.awscform.helper.tags import get_tags
 from faws_py.fzf_py import fzf_py
 from faws_py.awscform.helper.process_template import process_yaml_file, process_stack_params
 from faws_py.awscform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url

@@ -1,7 +1,7 @@
 # update stack operation
 import boto3
 from faws_py.util import search_dict_in_list, is_yaml
-from faws_py.awscform.helper.get_tags import get_tags
+from faws_py.awscform.helper.tags import get_tags, update_tags
 from faws_py.fzf_py import fzf_py
 from faws_py.awscform.helper.process_template import process_yaml_file, process_stack_params
 from faws_py.awscform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
@@ -33,28 +33,12 @@ def update_stack(args, stack_name, stack_details):
         # get tags from user if flag -t
         tags = stack_details['Tags']
         if args.tag:
-            # update existing tags
-            new_tags = []
-            print('Skip the value to use previouse value')
-            print('Enter delete in both field to remove a tag')
-            for tag in tags:
-                tag_key = input(f"Key({tag['Key']}): ")
-                if not tag_key:
-                    tag_key = tag['Key']
-                tag_value = input(f"Value({tag['Value']}): ")
-                if not tag_value:
-                    tag_value = tag['Value']
-                if tag_key == 'delete' and tag_value == 'delete':
-                    continue
-                new_tags.append(
-                    {'Key': tag_key, 'Value': tag_value})
-            tags = new_tags
+            tags = update_tags(tags)
         # create new tags
         if args.newtag:
             new_tags = get_tags()
             for new_tag in new_tags:
                 tags.append(new_tag)
-
         # update the stack
         response = cloudformation.update_stack(
             StackName=stack_name,
@@ -62,6 +46,7 @@ def update_stack(args, stack_name, stack_details):
             Parameters=updated_parameters,
             Tags=tags
         )
+
     else:
         # replace existing template
         # check if the new template should be from local
@@ -74,16 +59,57 @@ def update_stack(args, stack_name, stack_details):
                 # use find or fd to find local file
                 # search from root dir if root flag sepcified
                 local_path = file_finder_fzf.get_local_file(args.root)
-        if is_yaml(local_path):
-            file_data = process_yaml_file(local_path)
-            updated_parameters = process_stack_params(
-                file_data['dictYaml']['Parameters'])
-            tags = get_tags()
-            response = cloudformation.update_stack(
-                StackName=stack_name,
-                TemplateBody=file_data['body'],
-                UsePreviousTemplate=False,
-                Parameters=updated_parameters,
-                Tags=tags
-            )
+            if is_yaml(local_path):
+                file_data = process_yaml_file(local_path)
+                updated_parameters = process_stack_params(
+                    file_data['dictYaml']['Parameters'])
+                # get tags from user if flag -t
+                tags = stack_details['Tags']
+                if args.tag:
+                    tags = update_tags(tags)
+                # create new tags
+                if args.newtag:
+                    new_tags = get_tags()
+                    for new_tag in new_tags:
+                        tags.append(new_tag)
+                response = cloudformation.update_stack(
+                    StackName=stack_name,
+                    TemplateBody=file_data['body'],
+                    UsePreviousTemplate=False,
+                    Parameters=updated_parameters,
+                    Tags=tags
+                )
+
+        # if no local file flag, get from s3
+        else:
+            selected_bucket = get_s3_bucket()
+            # get the s3 file path
+            selected_file = get_s3_file(selected_bucket)
+
+            if is_yaml(selected_file):
+                # read the s3 file
+                file_data = get_file_data(
+                    selected_bucket, selected_file, 'yaml')
+                # get params
+                updated_parameters = process_stack_params(
+                    file_data['Parameters'])
+                # get tags from user if flag -t
+                tags = stack_details['Tags']
+                if args.tag:
+                    tags = update_tags(tags)
+                # create new tags
+                if args.newtag:
+                    new_tags = get_tags()
+                    for new_tag in new_tags:
+                        tags.append(new_tag)
+                # s3 object url
+                template_body_loacation = get_s3_url(
+                    selected_bucket, selected_file)
+                response = cloudformation.update_stack(
+                    StackName=stack_name,
+                    TemplateURL=template_body_loacation,
+                    Parameters=updated_parameters,
+                    UsePreviousTemplate=False,
+                    Tags=tags
+                )
     print(response)
