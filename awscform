@@ -14,7 +14,8 @@ parser = argparse.ArgumentParser(
     description='CRUD operation on aws cloudformation.')
 subparsers = parser.add_subparsers(dest='subparser_name')
 # update command flags
-update_cmd = subparsers.add_parser('update')
+update_cmd = subparsers.add_parser(
+    'update', description='update an existing stack')
 update_cmd.add_argument('-t', '--tag', action='store_true',
                         default=False, help='update the tag during update')
 update_cmd.add_argument('-T', '--newtag', action='store_true',
@@ -28,7 +29,7 @@ update_cmd.add_argument('-l', '--local', action='store_true',
 update_cmd.add_argument('-r', '--replace', action='store_true', default=False,
                         help='replace current template to update')
 # new command flags
-new_cmd = subparsers.add_parser('new')
+new_cmd = subparsers.add_parser('new', description='create a new stack')
 new_cmd.add_argument('-R', '--root', action='store_true', default=False,
                      help='search local file from root instead of current directory')
 new_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
@@ -36,7 +37,8 @@ new_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
 new_cmd.add_argument('-l', '--local', action='store_true',
                      default=False, help='upload local file')
 # delete doesn't have flags
-delete_cmd = subparsers.add_parser('delete')
+delete_cmd = subparsers.add_parser(
+    'delete', description='delete an existing stack')
 args = parser.parse_args()
 print(args)
 
