@@ -54,17 +54,35 @@ recursive='false'
 hidden='false'
 search_from_root='false'
 
-while getopts ":P:hrDmdHl:Rbsup:" opt
+case "$1" in
+  upload)
+    operation_type='upload'
+    shift;;
+  download)
+    operation_type='download'
+    shift;;
+  delete)
+    operation_type='delete'
+    shift;;
+  bucket)
+    operation_type='bucket'
+    shift;;
+  presign)
+    operation_type='presign'
+    shift;;
+esac
+
+while getopts ":p:hrmHP:Rst:" opt
 do
   case "$opt" in
-    P)
+    p)
       # -p expect a path bucket/path
       if [[ -z "$s3_path" ]]; then
         s3_path="$OPTARG"
       elif [[ -z "$target_s3_path" ]]; then
         target_s3_path="$OPTARG"
       fi;;
-    l)
+    P)
       # specify a local file path
       local_path="$OPTARG";;
     r)
@@ -73,30 +91,18 @@ do
     R)
       # search local file/path from root
       search_from_root='true';;
-    D)
-      # remove file -d Delete
-      operation_type='delete';;
     m)
       # mv instead of cp
       operation_cmd='mv';;
-    d)
-      # download file
-      operation_type='download';;
     H)
       hidden='true';;
     h)
       usage
       exit 0;;
-    b)
-      operation_type='bucket';;
     s)
       operation_cmd='sync'
       recursive='true';;
-    u)
-      operation_type='upload';;
-    p)
-      operation_type='presign'
-      recursive='false'
+    t)
       expires_in="$OPTARG"
       break;;
     *)
@@ -108,7 +114,14 @@ done
 
 # if no operation_type detected, display message and echo the s3 path of the selected object
 # don't show the recursive interface, even -r is set
-[[ -z "$operation_type" ]] && recursive='false' && echo 'No operation type flag detected, [-udDb](upload/download/delete/bucket)'
+[[ -z "$operation_type" ]] && recursive='false' && echo 'No operation type command detected, (upload|download|delete|bucket|presign)'
+
+# remove the recursive flag for presign url operation, as we don't want to display folder in s3
+if [[ "$operation_type" == 'presign' ]]; then
+  recursive='false'
+  # set to zero to inform the presign_url_s3 script to use the default timeout which is 3600s
+  [[ -z "$expires_in" ]] && expires_in=0
+fi
 
 # get the bucket path before any operation
 if [[ -z "$s3_path" ]]; then
