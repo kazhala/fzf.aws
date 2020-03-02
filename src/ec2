@@ -5,12 +5,12 @@
 # import helper scripts
 mydir="${0%/*}"
 source "$mydir"/shsrc/confirm.sh
-source "$mydir"/shsrc/awsec2/helper/get_instance.sh
-source "$mydir"/shsrc/awsec2/helper/get_region.sh
-source "$mydir"/shsrc/awsec2/ssh_instance.sh
-source "$mydir"/shsrc/awsec2/stop_instance.sh
-source "$mydir"/shsrc/awsec2/terminate_instance.sh
-source "$mydir"/shsrc/awsec2/usage.sh
+source "$mydir"/shsrc/ec2/helper/get_instance.sh
+source "$mydir"/shsrc/ec2/helper/get_region.sh
+source "$mydir"/shsrc/ec2/ssh_instance.sh
+source "$mydir"/shsrc/ec2/stop_instance.sh
+source "$mydir"/shsrc/ec2/terminate_instance.sh
+source "$mydir"/shsrc/ec2/usage.sh
 
 # default args
 action=''

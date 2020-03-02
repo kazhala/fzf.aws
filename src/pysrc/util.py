@@ -1,4 +1,4 @@
-# common helper functions for awscform
+# common helper functions for cform
 import re
 
 

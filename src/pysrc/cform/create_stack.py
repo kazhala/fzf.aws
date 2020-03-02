@@ -1,10 +1,10 @@
-# awscform create stack operation
+# cform create stack operation
 import boto3
 from pysrc.util import is_yaml
-from pysrc.awscform.helper.tags import get_tags
+from pysrc.cform.helper.tags import get_tags
 from pysrc.fzf_py import fzf_py
-from pysrc.awscform.helper.process_template import process_yaml_file, process_stack_params
-from pysrc.awscform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
+from pysrc.cform.helper.process_template import process_yaml_file, process_stack_params
+from pysrc.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 
 # initialize the cloudformation boto3 client
 cloudformation = boto3.client('cloudformation')
