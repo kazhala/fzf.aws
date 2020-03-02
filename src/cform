@@ -12,7 +12,9 @@ from pysrc.cform.create_stack import create_stack
 
 
 parser = argparse.ArgumentParser(
-    description='CRUD operation on aws cloudformation.')
+    description='CRUD operation on aws cloudformation.',
+    usage='faws cform [-h] {update,new,delete} ...'
+)
 subparsers = parser.add_subparsers(dest='subparser_name')
 # update command flags
 update_cmd = subparsers.add_parser(

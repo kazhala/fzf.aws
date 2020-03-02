@@ -10,9 +10,9 @@ function usage() {
 # if no input display all available commands and show their help
 if [[ -z "$@" ]]; then
   echo "Below are the available supported commands"
-  find "$mydir"/fzfaws -type f -depth 1 | \
+  find "$mydir"/src -type f -depth 1 | \
     awk -F '/' '{print $NF}' | \
-    fzf --preview "$mydir/fzfaws/{} -h"
+    fzf --preview "$mydir/src/{} -h"
   exit 0
 fi
 
