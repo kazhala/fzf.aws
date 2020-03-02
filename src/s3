@@ -108,6 +108,9 @@ if [[ -z "$action_command" ]]; then
   exit 0
 fi
 
+# remove recursive flag for ls command
+[[ "$action_command" == 'ls' ]] && recursive='false'
+
 # remove the recursive flag for presign url operation, as we don't want to display folder in s3
 if [[ "$action_command" == 'presign' ]]; then
   recursive='false'

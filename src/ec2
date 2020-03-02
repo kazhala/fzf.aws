@@ -29,6 +29,9 @@ case "$1" in
   terminate)
     action_command='terminate'
     shift;;
+  ls)
+    action_command='ls'
+    shift;;
 esac
 
 # process flags
@@ -54,7 +57,15 @@ do
   esac
 done
 
-[[ -z "$action_command" ]] && echo "No action_command command detected (ssh|stop|terminate)"
+# display fzf menu for available_commands when no action detected
+if [[ -z "$action_command" ]]; then
+  echo "No action command detected"
+  echo "Below are the available supported commands"
+  available_commands=(ssh stop terminate ls)
+  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "$mydir/ec2 {} -h")
+  usage "$help_commands"
+  exit 0
+fi
 
 # get the instance data
 # ${selected_instance} data format
@@ -74,6 +85,6 @@ elif [[ "$action_command" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status"
 elif [[ "$action_command" == 'terminate' ]]; then
   terminate_instance "$instance_id"
-else
+elif [[ "$action_command" == 'ls' ]]; then
   echo "$selected_instance"
 fi
