@@ -1,40 +1,52 @@
 #!/bin/sh
+# the entry point of fzfaws
 
 # current script directory
 mydir="${0%/*}"
 
+# help message
 function usage() {
   echo "help"
 }
 
-# if no input display all available commands and show their help
+# if no argument are passed, display all available commands and show their help
 if [[ -z "$@" ]]; then
   echo "Below are the available supported commands"
-  find "$mydir"/src -type f -depth 1 | \
+  # display all scripts in src folder and show their help message
+  aws_command=$(find "$mydir"/src -type f -depth 1 | \
     awk -F '/' '{print $NF}' | \
-    fzf --preview "$mydir/src/{} -h"
+    fzf --preview "$mydir/src/{} -h")
+  [[ -z "$aws_command" ]] && exit 0
+  "$mydir/src/$aws_command"
   exit 0
 fi
 
+# process the first argument and run appropriate script
 aws_command=''
 case "$1" in
   s3)
     aws_command='s3';;
   cform)
     aws_command='cform';;
-  help)
-    usage
-    exit 0;;
   pem)
     aws_command='pem';;
   ec2)
     aws_command='ec2';;
+  help)
+    usage
+    exit 0;;
+  -h)
+    usage
+    exit 0;;
   *)
     usage
     exit 1;;
 esac
-# finish processing the action argument
-# remove the command from arg list
+# clean/remove the first processed argument
 shift
 
-echo "$@"
+[[ -z "$aws_command" ]] && exit 1
+
+# run the script based on the first argument
+# pass the rest of the argument to the new script
+"$mydir/src/$aws_command" "$@"
