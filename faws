@@ -7,8 +7,12 @@ function usage() {
   echo "help"
 }
 
+# if no input display all available commands and show their help
 if [[ -z "$@" ]]; then
-  find "$mydir"/src -type f -depth 1 | awk -F '/' '{print $NF}' | fzf --preview "$mydir/src/{} -h"
+  echo "Below are the available supported commands"
+  find "$mydir"/fzfaws -type f -depth 1 | \
+    awk -F '/' '{print $NF}' | \
+    fzf --preview "$mydir/fzfaws/{} -h"
   exit 0
 fi
 

@@ -1,9 +1,9 @@
 # functions related to processing a new template
 import boto3
 import yaml
-from faws_py.fzf_py import fzf_py
+from pysrc.fzf_py import fzf_py
 from botocore.exceptions import ClientError
-from faws_py.util import remove_dict_from_list
+from pysrc.util import remove_dict_from_list
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc

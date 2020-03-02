@@ -5,10 +5,10 @@ import boto3
 import subprocess
 import argparse
 from botocore.exceptions import ClientError
-from faws_py.awscform.delete_stack import delete_stack
-from faws_py.awscform.update_stack import update_stack
-from faws_py.awscform.helper.get_stack import get_stack
-from faws_py.awscform.create_stack import create_stack
+from pysrc.awscform.delete_stack import delete_stack
+from pysrc.awscform.update_stack import update_stack
+from pysrc.awscform.helper.get_stack import get_stack
+from pysrc.awscform.create_stack import create_stack
 
 
 parser = argparse.ArgumentParser(
