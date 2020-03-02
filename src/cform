@@ -55,7 +55,8 @@ try:
             command_fzf.append_fzf(command)
             command_fzf.append_fzf('\n')
         selected_command = command_fzf.execute_fzf(
-            empty_allow=True, print_col=1)
+            empty_allow=True, print_col=1, preview='faws cform {} -h')
+        # display help based on help message
         if selected_command == 'update':
             update_cmd.print_help()
         elif selected_command == 'create':

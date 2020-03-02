@@ -19,14 +19,18 @@ class fzf_py:
         self.fzf_string += new_string
 
     # execute fzf and return formated string
-    def execute_fzf(self, empty_allow=False, print_col=2):
+    def execute_fzf(self, empty_allow=False, print_col=2, preview=None):
         # remove the empty line at the end
         self.fzf_string = str(self.fzf_string).rstrip()
         # piping to fzf and use awk to pick up the second field
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
-        selection = subprocess.Popen(
-            ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        if not preview:
+            selection = subprocess.Popen(
+                ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        else:
+            selection = subprocess.Popen(
+                ('fzf', '--preview', preview), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
         selection_name = subprocess.check_output(
             ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
 
