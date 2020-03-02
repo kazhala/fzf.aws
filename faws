@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# current script directory
+mydir="${0%/*}"
+
+function usage() {
+  echo "help"
+}
+
+if [[ -z "$@" ]]; then
+  find "$mydir"/src -type f -depth 1 | awk -F '/' '{print $3}' | fzf --preview './src/{} -h'
+  exit 0
+fi
+
+aws_command=''
+case "$1" in
+  s3)
+    aws_command='s3';;
+  cform)
+    aws_command='cform';;
+  help)
+    usage
+    exit 0;;
+  pem)
+    aws_command='pem';;
+  ec2)
+    aws_command='ec2';;
+  *)
+    usage
+    exit 1;;
+esac
+# finish processing the action argument
+# remove the command from arg list
+shift
+
+echo "$@"
