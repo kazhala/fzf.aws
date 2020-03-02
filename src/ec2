@@ -1,6 +1,16 @@
 #!/bin/sh
 # aws ec2 script that will list ec2 instances on your default aws account
-# based on flags and perform different actions
+# @params
+# $action_command: the command to run (ssh|stop|terminate|ls)
+# $selected_region: the region if -r set
+# $pem_location: location of the keypair file
+# $selected_instance: selected instance through fzf
+  # $1  $2      $3      $4
+  # id  status  keypair publicIp
+# $instance_id: id of the instance
+# $instance_status: start/stop/terminate/pending etc
+# $instance_key_pem: keypair name
+# $instance_ip_address: publicIp address
 
 # import helper scripts
 mydir="${0%/*}"
