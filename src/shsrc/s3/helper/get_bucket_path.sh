@@ -1,17 +1,17 @@
 # get s3 file path in s3 bucket
 # @params
 # $1: bucket name
-# $2: operation_type
+# $2: action_command
 # $3: recursive_flag
 
 # get the subdirectory path in the bucket to upload
 function get_bucket_path() {
   local path="$1"
-  local operation_type="$2"
+  local action_command="$2"
   local recursive="$3"
   # if download/delete and not recursive, get all files in s3
   # if recursive flag, we want the folder name instead of the file name
-  if [[ "$operation_type" != 'upload' && "$recursive" != 'true' ]]; then
+  if [[ "$action_command" != 'upload' && "$recursive" != 'true' ]]; then
     local selected_path=$(aws s3 ls "$path" --recursive | fzf --exit-0 | awk '{print $4}')
     [[ -z "$selected_path" ]] && return
     path="$bucket/$selected_path"

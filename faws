@@ -14,25 +14,25 @@ if [[ -z "$@" ]]; then
   echo 'No action command detected'
   echo "Below are the available supported commands"
   # display all scripts in src folder and show their help message
-  aws_command=$(find "$mydir"/src -type f -depth 1 | \
+  action_command=$(find "$mydir"/src -type f -depth 1 | \
     awk -F '/' '{print $NF}' | \
     fzf --preview "$mydir/src/{} -h")
-  [[ -z "$aws_command" ]] && exit 0
-  "$mydir/src/$aws_command"
+  [[ -z "$action_command" ]] && exit 0
+  "$mydir/src/$action_command"
   exit 0
 fi
 
 # process the first argument and run appropriate script
-aws_command=''
+action_command=''
 case "$1" in
   s3)
-    aws_command='s3';;
+    action_command='s3';;
   cform)
-    aws_command='cform';;
+    action_command='cform';;
   pem)
-    aws_command='pem';;
+    action_command='pem';;
   ec2)
-    aws_command='ec2';;
+    action_command='ec2';;
   help)
     usage
     exit 0;;
@@ -46,8 +46,8 @@ esac
 # clean/remove the first processed argument
 shift
 
-[[ -z "$aws_command" ]] && exit 1
+[[ -z "$action_command" ]] && exit 1
 
 # run the script based on the first argument
 # pass the rest of the argument to the new script
-"$mydir/src/$aws_command" "$@"
+"$mydir/src/$action_command" "$@"

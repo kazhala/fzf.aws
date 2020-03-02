@@ -1,12 +1,12 @@
 #!/bin/sh
 # perform CRUD operations in s3 interactively
 # @params
-# $operation_type: default to upload, determines what operation(upload/download/delete/bucket) to take
+# $action_command: default to upload, determines what operation(upload/download/delete/bucket) to take
 # $operation_cmd: default to cp, determine what cmd to use in s3 command(cp/mv/sync)
 # $bucket: bucket name
 # $target_bucket: target bucket name
 # $s3_path: s3 bucket path, root would be bucket name, bucket/path
-# $target_s3_path: when operation_type=bucket, the target s3 location for file transfer
+# $target_s3_path: when action_command=bucket, the target s3 location for file transfer
 # $local_path: local file or directory path for download or upload, need to be set by -P flag
 # $recursive: determine if the -r flag is set for recursive operation
 # $hidden: determine if the local file search should include hidden files
@@ -28,7 +28,7 @@ source "$mydir"/shsrc/s3/usage.sh
 
 # default operation_cmd
 operation_cmd='cp'
-operation_type=''
+action_command=''
 local_path=''
 recursive='false'
 hidden='false'
@@ -38,22 +38,22 @@ search_from_root='false'
 # shift to remove the command from the args
 case "$1" in
   upload)
-    operation_type='upload'
+    action_command='upload'
     shift;;
   download)
-    operation_type='download'
+    action_command='download'
     shift;;
   delete)
-    operation_type='delete'
+    action_command='delete'
     shift;;
   bucket)
-    operation_type='bucket'
+    action_command='bucket'
     shift;;
   presign)
-    operation_type='presign'
+    action_command='presign'
     shift;;
   ls)
-    operation_type='ls'
+    action_command='ls'
     shift;;
 esac
 
@@ -82,7 +82,7 @@ do
     H)
       hidden='true';;
     h)
-      usage "$operation_type"
+      usage "$action_command"
       exit 0;;
     s)
       operation_cmd='sync'
@@ -92,14 +92,14 @@ do
       break;;
     *)
       echo "Invalid option: $OPTARG" >&2
-      usage "$operation_type"
+      usage "$action_command"
       exit 1;;
   esac
 done
 
 # if no action commands detected, display fzf menu about all available commands
 # show their help message on selection
-if [[ -z "$operation_type" ]]; then
+if [[ -z "$action_command" ]]; then
   echo "No action command detected"
   echo "Below are the available supported commands"
   available_commands=(upload download delete bucket presign ls)
@@ -109,7 +109,7 @@ if [[ -z "$operation_type" ]]; then
 fi
 
 # remove the recursive flag for presign url operation, as we don't want to display folder in s3
-if [[ "$operation_type" == 'presign' ]]; then
+if [[ "$action_command" == 'presign' ]]; then
   recursive='false'
   # set to zero to inform the presign_url_s3 script to use the default timeout which is 3600s
   [[ -z "$expires_in" ]] && expires_in=0
@@ -121,20 +121,20 @@ if [[ -z "$s3_path" ]]; then
   # get bucekt name
   bucket=$(get_bucket)
   [[ -z "$bucket" ]] && echo "No bucket selected" && exit 1
-  [[ ! -z "$operation_type" ]] && echo "Select a path"
+  [[ ! -z "$action_command" ]] && echo "Select a path"
   # get subfolders in the bucket or root
-  s3_path=$(get_bucket_path "$bucket" "$operation_type" "$recursive")
+  s3_path=$(get_bucket_path "$bucket" "$action_command" "$recursive")
   [[ -z "$s3_path" ]] && echo "No option/path selected" && exit 1
 fi
 
 # process operation type and call different scripts
-if [[ "$operation_type" == 'upload' ]]; then
+if [[ "$action_command" == 'upload' ]]; then
   upload_file_s3 "$operation_cmd" "$s3_path" "$recursive" "$hidden" "$search_from_root" "$local_path"
-elif [[ "$operation_type" == 'download' ]]; then
+elif [[ "$action_command" == 'download' ]]; then
   download_file_s3 "$operation_cmd" "$s3_path" "$recursive" "$hidden" "$search_from_root" "$local_path"
-elif [[ "$operation_type" == 'delete' ]]; then
+elif [[ "$action_command" == 'delete' ]]; then
   delete_file_s3  "$s3_path" "$recursive"
-elif [[ "$operation_type" == 'bucket' ]]; then
+elif [[ "$action_command" == 'bucket' ]]; then
   if [[ -z "$target_s3_path" ]]; then
     echo "Select a target bucket for file transfer between buckets"
     # select a second bucket
@@ -142,13 +142,13 @@ elif [[ "$operation_type" == 'bucket' ]]; then
     [[ -z "$target_bucket" ]] && echo "Target bucket not selected" && exit 1
     echo "Select a path where the file should be $operation_cmd"
     # select second bucket path
-    target_s3_path=$(get_bucket_path "$target_bucket" "$operation_type" 'true')
+    target_s3_path=$(get_bucket_path "$target_bucket" "$action_command" 'true')
     [[ -z "$target_s3_path" ]] && echo "Target path not specified" && exit 1
   fi
   transfer_file_s3 "$operation_cmd" "$s3_path" "$target_s3_path" "$recursive"
-elif [[ "$operation_type" == 'presign' ]]; then
+elif [[ "$action_command" == 'presign' ]]; then
   presign_url_s3 "$s3_path" "$expires_in"
-elif [ "$operation_type" == 'ls' ]; then
+elif [ "$action_command" == 'ls' ]; then
   # just print the path if no operation type set
   echo "s3://$s3_path"
   exit 0

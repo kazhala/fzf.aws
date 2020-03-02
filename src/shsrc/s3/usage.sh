@@ -4,8 +4,8 @@
 
 # help message
 function usage() {
-  local operation_type="$1"
-  if [[ -z "$operation_type" ]]; then
+  local action_command="$1"
+  if [[ -z "$action_command" ]]; then
     echo "usage: faws s3 [-h] {upload,download,delete,bucket,presign} ...\n"
     echo "perform CRUD operation with cp/mv/rm in s3 bucket interactively"
     echo "without positional arguments, it will only print the selected item s3 path\n"
@@ -13,7 +13,7 @@ function usage() {
     echo "  {upload,download,delete,bucket,presign,ls}\n"
     echo "optional arguments:"
     echo "  -h\t\tshow this help message and exit"
-  elif [[ "$operation_type" == 'bucket' ]]; then
+  elif [[ "$action_command" == 'bucket' ]]; then
     echo "usage: faws s3 bucket [-h] [-p] [-m] [-s] [-r]\n"
     echo "transfer file between buckets\n"
     echo "optional arguments:"
@@ -22,28 +22,28 @@ function usage() {
     echo "  -m\t\tuse mv instead of cp command, like cut a file and paste in another bucket"
     echo "  -s\t\tuse sync instead of cp command, recursively copies new and updated files from one bucket to another"
     echo "  -r\t\toperate recursively, set this flag when manipulating folders"
-  elif [[ "$operation_type" == 'delete' ]]; then
+  elif [[ "$action_command" == 'delete' ]]; then
     echo "usage: faws s3 delete [-h] [-p] [-r]\n"
     echo "delete files on a s3 bucket, to delete folder, set -r flag\n"
     echo "optional arguments:"
     echo "  -h\t\tshow this help message and exit"
     echo "  -p PATH\t\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection"
     echo "  -r\t\toperate recursively, set this flag when manipulating folders"
-  elif [[ "$operation_type" == 'ls' ]]; then
+  elif [[ "$action_command" == 'ls' ]]; then
     echo "usage: faws s3 delete [-h]\n"
     echo "list all files in the selected bucket and get the s3 path on selection\n"
     echo "optional arguments:"
     echo "  -h\t\tshow this help message and exit"
-  elif [[ "$operation_type" == 'presign' ]]; then
+  elif [[ "$action_command" == 'presign' ]]; then
     echo "usage: faws s3 presign [-h] [-p] [-t]\n"
     echo "generate a temprary download url for the selected s3 object"
     echo "optional arguments:\n"
     echo "  -h\t\tshow this help message and exit"
     echo "  -p PATH\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection"
     echo "  -t TIME\tspecify the expire time of the url in seconds, default is 3600s"
-  elif [[ "$operation_type" == 'upload' || "$operation_type" == 'download' ]]; then
-    echo "usage: faws s3 "$operation_type" [-h] [-p] [-P] [-m] [-s] [-r] [-R] [-H]\n"
-    echo "$operation_type from/to a selected bucket\n"
+  elif [[ "$action_command" == 'upload' || "$action_command" == 'download' ]]; then
+    echo "usage: faws s3 "$action_command" [-h] [-p] [-P] [-m] [-s] [-r] [-R] [-H]\n"
+    echo "$action_command from/to a selected bucket\n"
     echo "optional arguments:\n"
     echo "  -h\t\tshow this help message and exit"
     echo "  -p PATH\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection"
