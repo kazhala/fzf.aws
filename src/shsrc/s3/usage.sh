@@ -10,7 +10,7 @@ function usage() {
     echo "perform CRUD operation with cp/mv/rm in s3 bucket interactively"
     echo "without positional arguments, it will only print the selected item s3 path\n"
     echo "positional arguments:"
-    echo "  {upload,download,delete,bucket,presign}\n"
+    echo "  {upload,download,delete,bucket,presign,ls}\n"
     echo "optional arguments:"
     echo "  -h\t\tshow this help message and exit"
   elif [[ "$operation_type" == 'bucket' ]]; then
@@ -29,6 +29,11 @@ function usage() {
     echo "  -h\t\tshow this help message and exit"
     echo "  -p PATH\t\tspecify a s3 path (bucketName/path) after this flag and skip s3 bucket/path selection"
     echo "  -r\t\toperate recursively, set this flag when manipulating folders"
+  elif [[ "$operation_type" == 'ls' ]]; then
+    echo "usage: faws s3 delete [-h]\n"
+    echo "list all files in the selected bucket and get the s3 path on selection\n"
+    echo "optional arguments:"
+    echo "  -h\t\tshow this help message and exit"
   elif [[ "$operation_type" == 'presign' ]]; then
     echo "usage: faws s3 presign [-h] [-p] [-t]\n"
     echo "generate a temprary download url for the selected s3 object"

@@ -52,6 +52,9 @@ case "$1" in
   presign)
     operation_type='presign'
     shift;;
+  ls)
+    operation_type='ls'
+    shift;;
 esac
 
 while getopts ":p:hrmHP:Rst:" opt
@@ -94,9 +97,16 @@ do
   esac
 done
 
-# if no operation_type detected, display message and echo the s3 path of the selected object
-# don't show the recursive interface, even -r is set
-[[ -z "$operation_type" ]] && recursive='false' && echo 'No operation type command detected, (upload|download|delete|bucket|presign)'
+# if no action commands detected, display fzf menu about all available commands
+# show their help message on selection
+if [[ -z "$operation_type" ]]; then
+  echo "No action command detected"
+  echo "Below are the available supported commands"
+  available_commands=(upload download delete bucket presign ls)
+  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "$mydir/s3 {} -h")
+  usage "$help_commands"
+  exit 0
+fi
 
 # remove the recursive flag for presign url operation, as we don't want to display folder in s3
 if [[ "$operation_type" == 'presign' ]]; then
@@ -138,7 +148,7 @@ elif [[ "$operation_type" == 'bucket' ]]; then
   transfer_file_s3 "$operation_cmd" "$s3_path" "$target_s3_path" "$recursive"
 elif [[ "$operation_type" == 'presign' ]]; then
   presign_url_s3 "$s3_path" "$expires_in"
-else
+elif [ "$operation_type" == 'ls' ]; then
   # just print the path if no operation type set
   echo "s3://$s3_path"
   exit 0

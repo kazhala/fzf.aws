@@ -11,6 +11,7 @@ function usage() {
 
 # if no argument are passed, display all available commands and show their help
 if [[ -z "$@" ]]; then
+  echo 'No action command detected'
   echo "Below are the available supported commands"
   # display all scripts in src folder and show their help message
   aws_command=$(find "$mydir"/src -type f -depth 1 | \
