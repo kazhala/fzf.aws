@@ -30,7 +30,16 @@ def process_yaml_file(path):
         body = body.read()
         # load yaml into pythong dict
         formated_body = yaml.safe_load(body)
-        return {'body': body, 'dictYaml': formated_body}
+        return {'body': body, 'dictBody': formated_body}
+
+
+# read the json file and return the body
+def process_json_file(path):
+    with open(path, 'r') as body:
+        # read raw body
+        body = body.read()
+        formated_body = json.loads(body)
+        return {'body': body, 'dictBody': formated_body}
 
 
 # process the yaml body

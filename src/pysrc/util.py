@@ -12,6 +12,13 @@ def is_json(file_name):
     return re.match(r'^.*\.json$', file_name)
 
 
+# check if file type is valid cloudformation type
+def check_is_valid(file_name):
+    if not is_yaml(file_name) and not is_json(file_name):
+        print('Selected file is not a valid template file type')
+        exit()
+
+
 # helper function to remove a dict in list
 def remove_dict_from_list(value, target_list, key_name):
     return_list = target_list
