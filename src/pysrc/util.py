@@ -7,6 +7,11 @@ def is_yaml(file_name):
     return re.match(r'^.*\.(yaml|yml)$', file_name)
 
 
+# check if it is json file
+def is_json(file_name):
+    return re.match(r'^.*\.json$', file_name)
+
+
 # helper function to remove a dict in list
 def remove_dict_from_list(value, target_list, key_name):
     return_list = target_list

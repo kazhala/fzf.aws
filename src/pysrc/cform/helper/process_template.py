@@ -1,6 +1,7 @@
 # functions related to processing a new template
 import boto3
 import yaml
+import json
 from pysrc.fzf_py import fzf_py
 from botocore.exceptions import ClientError
 from pysrc.util import remove_dict_from_list
@@ -35,6 +36,11 @@ def process_yaml_file(path):
 # process the yaml body
 def process_yaml_body(file_body):
     return yaml.safe_load(file_body)
+
+
+# process the json body
+def process_json_body(file_body):
+    return json.loads(file_body)
 
 
 # handler if parameter type is a list type

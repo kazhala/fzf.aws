@@ -1,6 +1,6 @@
 # cform create stack operation
 import boto3
-from pysrc.util import is_yaml
+from pysrc.util import is_yaml, is_json
 from pysrc.cform.helper.tags import get_tags
 from pysrc.fzf_py import fzf_py
 from pysrc.cform.helper.process_template import process_yaml_file, process_stack_params
@@ -11,7 +11,6 @@ cloudformation = boto3.client('cloudformation')
 
 
 def create_stack(args):
-    print(args)
     # local flag specified
     if args.local:
         local_path = ''
@@ -42,23 +41,29 @@ def create_stack(args):
         selected_bucket = get_s3_bucket()
         # get the s3 file path
         selected_file = get_s3_file(selected_bucket)
-
+        # if not yaml or json, exit
+        if not is_yaml(selected_file) and not is_json(selected_file):
+            print('Selected file is not a valid template file type')
+            exit()
+        stack_name = input('StackName: ')
+        # read the s3 file
         if is_yaml(selected_file):
-            stack_name = input('StackName: ')
-            # read the s3 file
             file_data = get_file_data(
                 selected_bucket, selected_file, 'yaml')
-            # get params
-            create_parameters = process_stack_params(
-                file_data['Parameters'])
-            tags = get_tags()
-            # s3 object url
-            template_body_loacation = get_s3_url(
-                selected_bucket, selected_file)
-            response = cloudformation.create_stack(
-                StackName=stack_name,
-                TemplateURL=template_body_loacation,
-                Parameters=create_parameters,
-                Tags=tags
-            )
-            print(response)
+        elif is_json(selected_file):
+            file_data = get_file_data(selected_bucket, selected_file, 'json')
+
+        # get params
+        create_parameters = process_stack_params(
+            file_data['Parameters'])
+        tags = get_tags()
+        # s3 object url
+        template_body_loacation = get_s3_url(
+            selected_bucket, selected_file)
+        response = cloudformation.create_stack(
+            StackName=stack_name,
+            TemplateURL=template_body_loacation,
+            Parameters=create_parameters,
+            Tags=tags
+        )
+        print(response)

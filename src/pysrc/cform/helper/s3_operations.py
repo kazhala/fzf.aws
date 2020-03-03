@@ -2,7 +2,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from pysrc.fzf_py import fzf_py
-from pysrc.cform.helper.process_template import process_yaml_body
+from pysrc.cform.helper.process_template import process_yaml_body, process_json_body
 
 s3 = boto3.client('s3')
 # using s3 resource to read the object data for dynamic parameter input
@@ -46,6 +46,8 @@ def get_file_data(bucket, file, file_type):
     body = str(body, 'utf-8')
     if file_type == 'yaml':
         body = process_yaml_body(body)
+    elif file_type == 'json':
+        body = process_json_body(body)
     return body
 
 
