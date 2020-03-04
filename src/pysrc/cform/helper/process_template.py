@@ -16,7 +16,9 @@ ec2 = boto3.client('ec2')
 # aws specific params that require making request
 aws_specific_param = [
     'AWS::EC2::KeyPair::KeyName',
-    'AWS::EC2::SecurityGroup::Id'
+    'AWS::EC2::SecurityGroup::Id',
+    'AWS::EC2::AvailabilityZone::Name',
+    'AWS::EC2::Instance::Id'
 ]
 aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
@@ -61,6 +63,7 @@ def get_list_param_value(type_name):
         response_list = []
         # the list to return the selected values
         return_list = []
+
         if type_name == 'List<AWS::EC2::SecurityGroup::Id>':
             response = ec2.describe_security_groups()
             response_list = response['SecurityGroups']
@@ -87,6 +90,7 @@ def get_list_param_value(type_name):
                 # exit if no more item
                 if len(response_list) == 0:
                     break
+
         return return_list
     except ClientError as e:
         print(e)
@@ -102,6 +106,18 @@ def get_selected_param_value(type_name):
             response = ec2.describe_key_pairs()
             for key in response['KeyPairs']:
                 aws_specific_param_fzf.append_fzf(f"KeyName: {key['KeyName']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
+            response = ec2.describe_security_groups()
+            for sg in response['SecurityGroups']:
+                aws_specific_param_fzf.append_fzf(
+                    f"GroupName: {sg['GroupName']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'AWS::EC2::AvailabilityZone::Name':
+            response = ec2.describe_availability_zones()
+            for zone in response['AvailabilityZones']:
+                aws_specific_param_fzf.append_fzf(
+                    f"AvailabilityZone: {zone['ZoneName']}")
                 aws_specific_param_fzf.append_fzf('\n')
         # get the selection from fzf
         selected_aws_value = aws_specific_param_fzf.execute_fzf(
