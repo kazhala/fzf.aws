@@ -12,6 +12,7 @@ yaml.SafeLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
 
 
 ec2 = boto3.client('ec2')
+route53 = boto3.client('route53')
 
 # aws specific params that require making request
 aws_specific_param = [
@@ -22,6 +23,8 @@ aws_specific_param = [
     'AWS::EC2::SecurityGroup::Id',
     'AWS::EC2::Subnet::Id',
     'AWS::EC2::Volume::Id',
+    'AWS::EC2::VPC::Id',
+    'AWS::Route53::HostedZone::Id'
 ]
 
 aws_specific_param_list = [
@@ -165,6 +168,29 @@ def get_selected_param_value(type_name):
                     aws_specific_param_fzf.append_fzf(2*' ')
                     aws_specific_param_fzf.append_fzf(
                         f"Name: {search_dict_in_list('Name', volume['Tags'], 'Key')['Value']}")
+                aws_specific_param_fzf.append_fzf('\n')
+
+        elif type_name == 'AWS::EC2::VPC::Id':
+            response = ec2.describe_vpcs()
+            for vpc in response['Vpcs']:
+                aws_specific_param_fzf.append_fzf(f"VpcId: {vpc['VpcId']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"InstanceTenancy: {vpc['InstanceTenancy']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"CidrBlock: {vpc['CidrBlock']}")
+                aws_specific_param_fzf.append_fzf('\n')
+
+        elif type_name == 'AWS::Route53::HostedZone::Id':
+            response = route53.list_hosted_zones()
+            print(response)
+            for hosted_zone in response['HostedZones']:
+                aws_specific_param_fzf.append_fzf(
+                    f"HostedZoneId: {hosted_zone['Id']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"Name: {hosted_zone['Name']}")
                 aws_specific_param_fzf.append_fzf('\n')
 
         # get the selection from fzf
