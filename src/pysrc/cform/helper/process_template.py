@@ -117,6 +117,8 @@ def process_stack_params(parameters):
     # prepare array
     create_parameters = []
     for ParameterKey in parameters:
+        # seperater
+        print(80*'-')
         # initialize var
         default_value = ''
         # print some information
@@ -131,6 +133,10 @@ def process_stack_params(parameters):
                 f"AllowedPattern: {parameters[ParameterKey]['AllowedPattern']}")
         parameter_type = parameters[ParameterKey]['Type']
         print(f"Type: {parameter_type}")
+        if parameter_type == 'List<Number>' or parameter_type == 'CommaDelimitedList':
+            print(
+                'For list type parameters, use comma to sperate items(e.g. values: value1, value2)')
+
         # check if default value exists
         if 'Default' in parameters[ParameterKey]:
             default_value = parameters[ParameterKey]['Default']
@@ -174,8 +180,7 @@ def process_stack_params(parameters):
                     ParameterValue = get_list_param_value(parameter_type)
                 else:
                     ParameterValue = input(f'{ParameterKey}: ')
-        # seperater
-        print(80*'-')
+
         if type(ParameterValue) is list:
             ParameterValue = ','.join(ParameterValue)
             create_parameters.append(
