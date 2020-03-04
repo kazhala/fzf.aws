@@ -15,10 +15,12 @@ ec2 = boto3.client('ec2')
 
 # aws specific params that require making request
 aws_specific_param = [
-    'AWS::EC2::KeyPair::KeyName',
-    'AWS::EC2::SecurityGroup::Id',
     'AWS::EC2::AvailabilityZone::Name',
-    'AWS::EC2::Instance::Id'
+    'AWS::EC2::Instance::Id',
+    'AWS::EC2::KeyPair::KeyName',
+    'AWS::EC2::SecurityGroup::GroupName',
+    'AWS::EC2::SecurityGroup::Id',
+    'AWS::EC2::Subnet::Id'
 ]
 aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
@@ -71,7 +73,7 @@ def get_list_param_value(type_name):
             while True:
                 for sg in response_list:
                     aws_list_param_fzf.append_fzf(f"GroupId: {sg['GroupId']}")
-                    aws_list_param_fzf.append_fzf(4*' ')
+                    aws_list_param_fzf.append_fzf(2*' ')
                     aws_list_param_fzf.append_fzf(
                         f"GroupName: {sg['GroupName']}")
                     aws_list_param_fzf.append_fzf('\n')
@@ -111,6 +113,9 @@ def get_selected_param_value(type_name):
             response = ec2.describe_security_groups()
             for sg in response['SecurityGroups']:
                 aws_specific_param_fzf.append_fzf(
+                    f"GroupId: {sg['GroupId']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
                     f"GroupName: {sg['GroupName']}")
                 aws_specific_param_fzf.append_fzf('\n')
         elif type_name == 'AWS::EC2::AvailabilityZone::Name':
@@ -119,6 +124,31 @@ def get_selected_param_value(type_name):
                 aws_specific_param_fzf.append_fzf(
                     f"AvailabilityZone: {zone['ZoneName']}")
                 aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'AWS::EC2::Instance::Id':
+            response = ec2.describe_instances()
+            for instance in response['Reservations']:
+                aws_specific_param_fzf.append_fzf(
+                    f"InstanceId: {instance['Instances'][0]['InstanceId']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'AWS::EC2::SecurityGroup::GroupName':
+            response = ec2.describe_security_groups()
+            for sg in response['SecurityGroups']:
+                aws_specific_param_fzf.append_fzf(
+                    f"GroupName: {sg['GroupName']}")
+                aws_specific_param_fzf.append_fzf('\n')
+        elif type_name == 'AWS::EC2::Subnet::Id':
+            response = ec2.describe_subnets()
+            for subnet in response['Subnets']:
+                aws_specific_param_fzf.append_fzf(
+                    f"SubnetId: {subnet['SubnetId']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"AvailabilityZone: {subnet['AvailabilityZone']}")
+                aws_specific_param_fzf.append_fzf(2*' ')
+                aws_specific_param_fzf.append_fzf(
+                    f"CidrBlock: {subnet['CidrBlock']}")
+                aws_specific_param_fzf.append_fzf('\n')
+
         # get the selection from fzf
         selected_aws_value = aws_specific_param_fzf.execute_fzf(
             empty_allow=True)
