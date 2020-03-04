@@ -4,7 +4,7 @@ import yaml
 import json
 from pysrc.fzf_py import fzf_py
 from botocore.exceptions import ClientError
-from pysrc.util import remove_dict_from_list
+from pysrc.util import remove_dict_from_list, search_dict_in_list, check_dict_value_in_list
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc
@@ -20,8 +20,10 @@ aws_specific_param = [
     'AWS::EC2::KeyPair::KeyName',
     'AWS::EC2::SecurityGroup::GroupName',
     'AWS::EC2::SecurityGroup::Id',
-    'AWS::EC2::Subnet::Id'
+    'AWS::EC2::Subnet::Id',
+    'AWS::EC2::Volume::Id',
 ]
+
 aws_specific_param_list = [
     'List<AWS::EC2::SecurityGroup::Id>'
 ]
@@ -109,6 +111,7 @@ def get_selected_param_value(type_name):
             for key in response['KeyPairs']:
                 aws_specific_param_fzf.append_fzf(f"KeyName: {key['KeyName']}")
                 aws_specific_param_fzf.append_fzf('\n')
+
         elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
             response = ec2.describe_security_groups()
             for sg in response['SecurityGroups']:
@@ -118,24 +121,28 @@ def get_selected_param_value(type_name):
                 aws_specific_param_fzf.append_fzf(
                     f"GroupName: {sg['GroupName']}")
                 aws_specific_param_fzf.append_fzf('\n')
+
         elif type_name == 'AWS::EC2::AvailabilityZone::Name':
             response = ec2.describe_availability_zones()
             for zone in response['AvailabilityZones']:
                 aws_specific_param_fzf.append_fzf(
                     f"AvailabilityZone: {zone['ZoneName']}")
                 aws_specific_param_fzf.append_fzf('\n')
+
         elif type_name == 'AWS::EC2::Instance::Id':
             response = ec2.describe_instances()
             for instance in response['Reservations']:
                 aws_specific_param_fzf.append_fzf(
                     f"InstanceId: {instance['Instances'][0]['InstanceId']}")
                 aws_specific_param_fzf.append_fzf('\n')
+
         elif type_name == 'AWS::EC2::SecurityGroup::GroupName':
             response = ec2.describe_security_groups()
             for sg in response['SecurityGroups']:
                 aws_specific_param_fzf.append_fzf(
                     f"GroupName: {sg['GroupName']}")
                 aws_specific_param_fzf.append_fzf('\n')
+
         elif type_name == 'AWS::EC2::Subnet::Id':
             response = ec2.describe_subnets()
             for subnet in response['Subnets']:
@@ -147,6 +154,17 @@ def get_selected_param_value(type_name):
                 aws_specific_param_fzf.append_fzf(2*' ')
                 aws_specific_param_fzf.append_fzf(
                     f"CidrBlock: {subnet['CidrBlock']}")
+                aws_specific_param_fzf.append_fzf('\n')
+
+        elif type_name == 'AWS::EC2::Volume::Id':
+            response = ec2.describe_volumes()
+            for volume in response['Volumes']:
+                aws_specific_param_fzf.append_fzf(
+                    f"VolumeId: {volume['VolumeId']}"),
+                if 'Tags' in volume and check_dict_value_in_list('Name', volume['Tags'], 'Key'):
+                    aws_specific_param_fzf.append_fzf(2*' ')
+                    aws_specific_param_fzf.append_fzf(
+                        f"Name: {search_dict_in_list('Name', volume['Tags'], 'Key')['Value']}")
                 aws_specific_param_fzf.append_fzf('\n')
 
         # get the selection from fzf

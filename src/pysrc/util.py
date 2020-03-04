@@ -33,6 +33,14 @@ def search_dict_in_list(value, target_list, name):
     return [item for item in target_list if item[name] == value][0]
 
 
+# check if a specific value in dict
+def check_dict_value_in_list(value, target_list, name):
+    for item in target_list:
+        if item[name] == value:
+            return True
+    return False
+
+
 def get_confirmation(message):
     confirm = None
     while confirm != 'y' and confirm != 'n':
