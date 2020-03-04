@@ -115,7 +115,7 @@ def get_selected_param_value(type_name):
                 aws_specific_param_fzf.append_fzf(f"KeyName: {key['KeyName']}")
                 aws_specific_param_fzf.append_fzf('\n')
 
-        elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
+        elif type_name == 'AWS::EC2::SecurityGroup::Id':
             response = ec2.describe_security_groups()
             for sg in response['SecurityGroups']:
                 aws_specific_param_fzf.append_fzf(
