@@ -39,6 +39,8 @@ create_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
                         help='specifie a path where the local file is stored')
 create_cmd.add_argument('-l', '--local', action='store_true',
                         default=False, help='upload local file')
+create_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                        help='Pause the script and wait for create complete signal, max wait time 60mins')
 # delete and ls doesn't have flags
 delete_cmd = subparsers.add_parser(
     'delete', description='delete an existing stack')

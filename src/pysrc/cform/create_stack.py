@@ -72,3 +72,16 @@ def create_stack(args):
             Tags=tags
         )
         print(response)
+
+    if args.wait:
+        waiter = cloudformation.get_waiter('stack_create_complete')
+        print('--------------------------------------------------------------------------------')
+        print("Waiting for stack to be ready...")
+        waiter.wait(
+            StackName=stack_name,
+            WaiterConfig={
+                'Delay': 30,
+                'MaxAttempts': 120
+            }
+        )
+        print('Stack create complete')
