@@ -46,6 +46,8 @@ create_cmd.add_argument('-w', '--wait', action='store_true', default=False,
 # delete and ls doesn't have flags
 delete_cmd = subparsers.add_parser(
     'delete', description='delete an existing stack')
+delete_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                        help='Pause the script and wait for delete complete signal, max wait time 60mins')
 ls_cmd = subparsers.add_parser(
     'ls', description='list and print infomation of the selcted stack')
 args = parser.parse_args()
@@ -82,7 +84,7 @@ try:
             update_stack(
                 args, selected_stack['StackName'], selected_stack['StackDetails'])
         elif args.subparser_name == 'delete':
-            delete_stack(selected_stack['StackName'],
+            delete_stack(args, selected_stack['StackName'],
                          selected_stack['StackDetails'])
         # if no action detected
         elif args.subparser_name == 'ls':

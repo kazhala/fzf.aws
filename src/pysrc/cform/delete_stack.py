@@ -6,7 +6,7 @@ from pysrc.fzf_py import fzf_py
 cloudformation = boto3.client('cloudformation')
 
 
-def delete_stack(stack_name, stack_details):
+def delete_stack(args, stack_name, stack_details):
     # contains retained resource id if status is 'DELETE_FAILED'
     # only 'DELETE_FAILED' state would allow user custom retain resource during deletion
     # otherwise, retain policy would be read from template
@@ -56,3 +56,15 @@ def delete_stack(stack_name, stack_details):
         response = cloudformation.delete_stack(
             StackName=stack_name)
     print(response)
+    if args.wait:
+        waiter = cloudformation.get_waiter('stack_delete_complete')
+        print('--------------------------------------------------------------------------------')
+        print("Waiting for stack to be deleted...")
+        waiter.wait(
+            StackName=stack_name,
+            WaiterConfig={
+                'Delay': 30,
+                'MaxAttempts': 120
+            }
+        )
+        print('Stack deleted')
