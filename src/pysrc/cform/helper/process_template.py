@@ -28,6 +28,7 @@ aws_specific_param = [
 ]
 
 aws_specific_param_list = [
+    'List<AWS::EC2::AvailabilityZone::Name>',
     'List<AWS::EC2::SecurityGroup::Id>'
 ]
 
@@ -61,44 +62,45 @@ def process_json_body(file_body):
     return json.loads(file_body)
 
 
+def loop_list_fzf(response_list, key_name, *arg_keys):
+    # init a fzf object
+    aws_list_param_fzf = fzf_py()
+    return_list = []
+    # keep getting the value until user stop input or no more in list
+    while True:
+        for item in response_list:
+            aws_list_param_fzf.append_fzf(f"{key_name}: {item[key_name]}")
+            for arg in arg_keys:
+                aws_list_param_fzf.append_fzf(2*' ')
+                aws_list_param_fzf.append_fzf(f"{arg}: {item[arg]}")
+            aws_list_param_fzf.append_fzf('\n')
+        # execute fzf
+        selected_aws_value = aws_list_param_fzf.execute_fzf(
+            empty_allow=True)
+        # empty input stop the loop
+        if not selected_aws_value:
+            break
+        return_list.append(selected_aws_value)
+        # remove the selected item from the response_list
+        response_list = remove_dict_from_list(
+            selected_aws_value, response_list, key_name)
+        # clear the string
+        aws_list_param_fzf.fzf_string = ''
+        # exit if no more item
+        if len(response_list) == 0:
+            break
+    return return_list
+
+
 # handler if parameter type is a list type
 def get_list_param_value(type_name):
     try:
-        # init a fzf object
-        aws_list_param_fzf = fzf_py()
-        # a list to keep track of the response items
-        response_list = []
-        # the list to return the selected values
-        return_list = []
-
         if type_name == 'List<AWS::EC2::SecurityGroup::Id>':
             response = ec2.describe_security_groups()
             response_list = response['SecurityGroups']
-            # keep getting the value until user stop input or no more in list
-            while True:
-                for sg in response_list:
-                    aws_list_param_fzf.append_fzf(f"GroupId: {sg['GroupId']}")
-                    aws_list_param_fzf.append_fzf(2*' ')
-                    aws_list_param_fzf.append_fzf(
-                        f"GroupName: {sg['GroupName']}")
-                    aws_list_param_fzf.append_fzf('\n')
-                # execute fzf
-                selected_aws_value = aws_list_param_fzf.execute_fzf(
-                    empty_allow=True)
-                # empty input stop the loop
-                if not selected_aws_value:
-                    break
-                return_list.append(selected_aws_value)
-                # remove the selected item from the response_list
-                response_list = remove_dict_from_list(
-                    selected_aws_value, response_list, 'GroupId')
-                # clear the string
-                aws_list_param_fzf.fzf_string = ''
-                # exit if no more item
-                if len(response_list) == 0:
-                    break
+            return loop_list_fzf(response_list, 'GroupId', 'GroupName')
 
-        return return_list
+        # return return_list
     except ClientError as e:
         print(e)
 
