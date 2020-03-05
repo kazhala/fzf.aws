@@ -68,8 +68,11 @@ def update_stack(args, stack_name, stack_details):
                 file_data = process_json_file(local_path)
 
             # process params
-            updated_parameters = process_stack_params(
-                file_data['dictBody']['Parameters'])
+            if 'Parameters' in file_data['dictBody']:
+                updated_parameters = process_stack_params(
+                    file_data['dictBody']['Parameters'])
+            else:
+                updated_parameters = []
             # get tags from user if flag -t
             tags = stack_details['Tags']
             if args.tag:
@@ -102,8 +105,11 @@ def update_stack(args, stack_name, stack_details):
                     selected_bucket, selected_file, 'json')
 
             # get params
-            updated_parameters = process_stack_params(
-                file_data['Parameters'])
+            if 'Parameters' in file_data:
+                updated_parameters = process_stack_params(
+                    file_data['dictBody']['Parameters'])
+            else:
+                updated_parameters = []
             # get tags from user if flag -t
             tags = stack_details['Tags']
             if args.tag:
