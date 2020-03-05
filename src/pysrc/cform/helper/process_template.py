@@ -29,7 +29,8 @@ aws_specific_param = [
 
 aws_specific_param_list = [
     'List<AWS::EC2::AvailabilityZone::Name>',
-    'List<AWS::EC2::SecurityGroup::Id>'
+    'List<AWS::EC2::Instance::Id>',
+    'List<AWS::EC2::SecurityGroup::Id>',
 ]
 
 
@@ -99,6 +100,18 @@ def get_list_param_value(type_name):
             response = ec2.describe_security_groups()
             response_list = response['SecurityGroups']
             return loop_list_fzf(response_list, 'GroupId', 'GroupName')
+        elif type_name == 'List<AWS::EC2::AvailabilityZone::Name>':
+            response = ec2.describe_availability_zones()
+            response_list = response['AvailabilityZones']
+            return loop_list_fzf(response_list, 'ZoneName')
+        elif type_name == 'List<AWS::EC2::Instance::Id>':
+            response = ec2.describe_instances()
+            raw_response_list = response['Reservations']
+            response_list = []
+            for item in raw_response_list:
+                response_list.append(
+                    {'InstanceId': item['Instances'][0]['InstanceId']})
+            return loop_list_fzf(response_list, 'InstanceId')
 
         # return return_list
     except ClientError as e:
@@ -131,7 +144,7 @@ def get_selected_param_value(type_name):
             response = ec2.describe_availability_zones()
             for zone in response['AvailabilityZones']:
                 aws_specific_param_fzf.append_fzf(
-                    f"AvailabilityZone: {zone['ZoneName']}")
+                    f"ZoneName: {zone['ZoneName']}")
                 aws_specific_param_fzf.append_fzf('\n')
 
         elif type_name == 'AWS::EC2::Instance::Id':
