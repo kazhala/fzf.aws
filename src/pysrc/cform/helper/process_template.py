@@ -32,7 +32,10 @@ aws_specific_param_list = [
     'List<AWS::EC2::Instance::Id>',
     'List<AWS::EC2::SecurityGroup::GroupName>',
     'List<AWS::EC2::SecurityGroup::Id>',
-    'List<AWS::EC2::Subnet::Id>'
+    'List<AWS::EC2::Subnet::Id>',
+    'List<AWS::EC2::Volume::Id>',
+    'List<AWS::EC2::VPC::Id>',
+    'List<AWS::Route53::HostedZone::Id>'
 ]
 
 
@@ -122,8 +125,28 @@ def get_list_param_value(type_name):
             response = ec2.describe_subnets()
             response_list = response['Subnets']
             return loop_list_fzf(response_list, 'SubnetId', 'AvailabilityZone', 'CidrBlock')
+        elif type_name == 'List<AWS::EC2::Volume::Id>':
+            response = ec2.describe_volumes()
+            response_list = []
+            for volume in response['Volumes']:
+                volume_item = {}
+                volume_item['VolumeId'] = volume['VolumeId']
+                if 'Tags' in volume and check_dict_value_in_list('Name', volume['Tags'], 'Key'):
+                    volume_item['Name'] = search_dict_in_list(
+                        'Name', volume['Tags'], 'Key')['Value']
+                else:
+                    volume_item['Name'] = 'N/A'
+                response_list.append(volume_item)
+            return loop_list_fzf(response_list, 'VolumeId', 'Name')
+        elif type_name == 'List<AWS::EC2::VPC::Id>':
+            response = ec2.describe_vpcs()
+            response_list = response['Vpcs']
+            return loop_list_fzf(response_list, 'VpcId', 'InstanceTenancy', 'CidrBlock')
+        elif type_name == 'List<AWS::Route53::HostedZone::Id>':
+            response = route53.list_hosted_zones()
+            response_list = response['HostedZones']
+            return loop_list_fzf(response_list, 'Id', 'Name')
 
-        # return return_list
     except ClientError as e:
         print(e)
 
@@ -209,10 +232,9 @@ def get_selected_param_value(type_name):
 
         elif type_name == 'AWS::Route53::HostedZone::Id':
             response = route53.list_hosted_zones()
-            print(response)
             for hosted_zone in response['HostedZones']:
                 aws_specific_param_fzf.append_fzf(
-                    f"HostedZoneId: {hosted_zone['Id']}")
+                    f"Id: {hosted_zone['Id']}")
                 aws_specific_param_fzf.append_fzf(2*' ')
                 aws_specific_param_fzf.append_fzf(
                     f"Name: {hosted_zone['Name']}")
