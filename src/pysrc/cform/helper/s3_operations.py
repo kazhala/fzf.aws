@@ -1,7 +1,7 @@
 # functions related to getting information from s3
 import boto3
 from botocore.exceptions import ClientError
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 from pysrc.cform.helper.process_template import process_yaml_body, process_json_body
 
 s3 = boto3.client('s3')
@@ -12,7 +12,7 @@ s3_resource = boto3.resource('s3')
 # list all bucket and select one
 def get_s3_bucket():
     response = s3.list_buckets()
-    s3_bucket_fzf = fzf_py()
+    s3_bucket_fzf = PyFzf()
     # prepare fzf string, require each line a bucket
     for bucket in response['Buckets']:
         s3_bucket_fzf.append_fzf(f"bucket: {bucket['Name']}")
@@ -27,7 +27,7 @@ def get_s3_file(bucket):
     response = s3.list_objects(
         Bucket=bucket
     )
-    s3_object_fzf = fzf_py()
+    s3_object_fzf = PyFzf()
     # prepare the fzf input for selecting object
     for s3_object in response['Contents']:
         s3_object_fzf.append_fzf(f"object: {s3_object['Key']}")

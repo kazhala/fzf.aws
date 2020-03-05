@@ -2,7 +2,7 @@
 import boto3
 import yaml
 import json
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 from botocore.exceptions import ClientError
 from pysrc.util import remove_dict_from_list, search_dict_in_list, check_dict_value_in_list
 
@@ -70,7 +70,7 @@ def process_json_body(file_body):
 
 def loop_list_fzf(response_list, key_name, *arg_keys):
     # init a fzf object
-    aws_list_param_fzf = fzf_py()
+    aws_list_param_fzf = PyFzf()
     return_list = []
     # keep getting the value until user stop input or no more in list
     while True:
@@ -155,7 +155,7 @@ def get_list_param_value(type_name):
 def get_selected_param_value(type_name):
     try:
         # init fzf
-        aws_specific_param_fzf = fzf_py()
+        aws_specific_param_fzf = PyFzf()
         selected_aws_value = None
         if type_name == 'AWS::EC2::KeyPair::KeyName':
             response = ec2.describe_key_pairs()
@@ -281,7 +281,7 @@ def process_stack_params(parameters):
             if 'AllowedValues' in parameters[ParameterKey]:
                 print(
                     f'Choose a value for {ParameterKey}(Default: {default_value}):')
-                choose_value_fzf = fzf_py()
+                choose_value_fzf = PyFzf()
                 for allowed_value in parameters[ParameterKey]['AllowedValues']:
                     choose_value_fzf.append_fzf(allowed_value)
                     choose_value_fzf.append_fzf('\n')
@@ -305,7 +305,7 @@ def process_stack_params(parameters):
             # execute fzf if allowed_value array exists
             if 'AllowedValues' in parameters[ParameterKey]:
                 print(f'Choose a value for {ParameterKey}:')
-                choose_value_fzf = fzf_py()
+                choose_value_fzf = PyFzf()
                 for allowed_value in parameters[ParameterKey]['AllowedValues']:
                     choose_value_fzf.append_fzf(allowed_value)
                     choose_value_fzf.append_fzf('\n')

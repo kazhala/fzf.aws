@@ -1,5 +1,5 @@
 import boto3
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 from pysrc.util import search_dict_in_list
 
 cloudformation = boto3.client('cloudformation')
@@ -8,7 +8,7 @@ cloudformation = boto3.client('cloudformation')
 def get_stack():
     # get all the stacks in the default region
     response = cloudformation.describe_stacks()
-    stack_fzf = fzf_py()
+    stack_fzf = PyFzf()
     for stack in response['Stacks']:
         stack_fzf.append_fzf(f"Name: {stack['StackName']}")
         stack_fzf.append_fzf(2*' ')

@@ -2,7 +2,7 @@ import subprocess
 import os
 
 
-class fzf_py:
+class PyFzf:
     """
     Python simple wrapper class for fzf used for fzf.aws, user who uses this class
     will need to pass \n into the append_fzf function inorder to create different entries,

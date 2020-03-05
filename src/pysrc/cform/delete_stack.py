@@ -1,7 +1,7 @@
 # delete stack operation
 import boto3
 from pysrc.util import get_confirmation, remove_dict_from_list
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 
 cloudformation = boto3.client('cloudformation')
 
@@ -19,7 +19,7 @@ def delete_stack(args, stack_name, stack_details):
         # copy the list
         resource_list = response['StackResourceSummaries']
         # init fzf
-        resource_fzf = fzf_py()
+        resource_fzf = PyFzf()
         # conitnue to pop fzf for user to select resource to retain
         while True:
             # prepare fzf string

@@ -2,7 +2,7 @@
 import boto3
 from pysrc.util import is_yaml, is_json, check_is_valid
 from pysrc.cform.helper.tags import get_tags
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 from pysrc.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from pysrc.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 
@@ -18,7 +18,7 @@ def create_stack(args):
         if args.path:
             local_path = args.path[0]
         else:
-            file_finder_fzf = fzf_py()
+            file_finder_fzf = PyFzf()
             # use find or fd to find local file
             # search from root dir if root flag sepcified
             local_path = file_finder_fzf.get_local_file(args.root)

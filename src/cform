@@ -10,7 +10,7 @@ from pysrc.cform.delete_stack import delete_stack
 from pysrc.cform.update_stack import update_stack
 from pysrc.cform.helper.get_stack import get_stack
 from pysrc.cform.create_stack import create_stack
-from pysrc.fzf_py import fzf_py
+from pysrc.pyfzf import PyFzf
 
 
 parser = argparse.ArgumentParser(
@@ -56,7 +56,7 @@ try:
     # if no argument provided, display help message
     if not len(sys.argv) > 1:
         available_commands = ['update', 'create', 'delete', 'ls']
-        command_fzf = fzf_py()
+        command_fzf = PyFzf()
         for command in available_commands:
             command_fzf.append_fzf(command)
             command_fzf.append_fzf('\n')
