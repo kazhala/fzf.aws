@@ -26,7 +26,15 @@ function upload_file_s3() {
       local_path=$(search_file 'folder' "$hidden")
     fi
   fi
-  [[ -z "$local_path" ]] && echo 'No local path selected' && exit 1
+  if [[ -z "$local_path" ]]; then
+    if [[ "$operation_cmd" == 'sync' ]]; then
+      local_path="$PWD/"
+      echo "$local_path will be synced with the selected bucket"
+    else
+      echo "No local path selected"
+      exit 1
+    fi
+  fi
 
   # display dryrun info and get confirmation
   # sync doesn't accpet recursive flag, it perform recursive by default
