@@ -30,7 +30,9 @@ aws_specific_param = [
 aws_specific_param_list = [
     'List<AWS::EC2::AvailabilityZone::Name>',
     'List<AWS::EC2::Instance::Id>',
+    'List<AWS::EC2::SecurityGroup::GroupName>',
     'List<AWS::EC2::SecurityGroup::Id>',
+    'List<AWS::EC2::Subnet::Id>'
 ]
 
 
@@ -96,11 +98,7 @@ def loop_list_fzf(response_list, key_name, *arg_keys):
 # handler if parameter type is a list type
 def get_list_param_value(type_name):
     try:
-        if type_name == 'List<AWS::EC2::SecurityGroup::Id>':
-            response = ec2.describe_security_groups()
-            response_list = response['SecurityGroups']
-            return loop_list_fzf(response_list, 'GroupId', 'GroupName')
-        elif type_name == 'List<AWS::EC2::AvailabilityZone::Name>':
+        if type_name == 'List<AWS::EC2::AvailabilityZone::Name>':
             response = ec2.describe_availability_zones()
             response_list = response['AvailabilityZones']
             return loop_list_fzf(response_list, 'ZoneName')
@@ -112,6 +110,18 @@ def get_list_param_value(type_name):
                 response_list.append(
                     {'InstanceId': item['Instances'][0]['InstanceId']})
             return loop_list_fzf(response_list, 'InstanceId')
+        elif type_name == 'List<AWS::EC2::SecurityGroup::GroupName>':
+            response = ec2.describe_security_groups()
+            response_list = response['SecurityGroups']
+            return loop_list_fzf(response_list, 'GroupName')
+        elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
+            response = ec2.describe_security_groups()
+            response_list = response['SecurityGroups']
+            return loop_list_fzf(response_list, 'GroupId', 'GroupName')
+        elif type_name == 'List<AWS::EC2::Subnet::Id>':
+            response = ec2.describe_subnets()
+            response_list = response['Subnets']
+            return loop_list_fzf(response_list, 'SubnetId', 'AvailabilityZone', 'CidrBlock')
 
         # return return_list
     except ClientError as e:
