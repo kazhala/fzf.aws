@@ -32,8 +32,11 @@ def create_stack(args):
             file_data = process_json_file(local_path)
 
         # get params
-        create_parameters = process_stack_params(
-            file_data['dictBody']['Parameters'])
+        if 'Parameters' in file_data['dictBody']:
+            create_parameters = process_stack_params(
+                file_data['dictBody']['Parameters'])
+        else:
+            create_parameters = []
         tags = get_tags()
         response = cloudformation.create_stack(
             StackName=stack_name,
