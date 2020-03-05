@@ -122,3 +122,16 @@ def update_stack(args, stack_name, stack_details):
                 Tags=tags
             )
     print(response)
+
+    if args.wait:
+        waiter = cloudformation.get_waiter('stack_update_complete')
+        print('--------------------------------------------------------------------------------')
+        print("Waiting for stack to finish update...")
+        waiter.wait(
+            StackName=stack_name,
+            WaiterConfig={
+                'Delay': 30,
+                'MaxAttempts': 120
+            }
+        )
+        print('Stack update complete')

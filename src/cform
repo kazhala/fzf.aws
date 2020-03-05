@@ -31,6 +31,8 @@ update_cmd.add_argument('-l', '--local', action='store_true',
                         default=False, help='upload local file')
 update_cmd.add_argument('-r', '--replace', action='store_true', default=False,
                         help='replace current template to update')
+update_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                        help='Pause the script and wait for update complete signal, max wait time 60mins')
 # create command flags
 create_cmd = subparsers.add_parser('create', description='create a new stack')
 create_cmd.add_argument('-R', '--root', action='store_true', default=False,

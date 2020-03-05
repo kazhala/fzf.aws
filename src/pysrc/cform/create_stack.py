@@ -41,7 +41,6 @@ def create_stack(args):
             Parameters=create_parameters,
             Tags=tags
         )
-        print(response)
 
     # if no local file flag, get from s3
     else:
@@ -71,7 +70,7 @@ def create_stack(args):
             Parameters=create_parameters,
             Tags=tags
         )
-        print(response)
+    print(response)
 
     if args.wait:
         waiter = cloudformation.get_waiter('stack_create_complete')
