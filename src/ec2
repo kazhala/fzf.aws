@@ -98,7 +98,7 @@ instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
 if [[ "$action_command" == 'ssh' ]]; then
   ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location" "$user_name" "$wait_flag"
 elif [[ "$action_command" == 'stop' ]]; then
-  stop_instance "$instance_id" "$instance_status"
+  stop_instance "$instance_id" "$instance_status" "$wait_flag"
 elif [[ "$action_command" == 'terminate' ]]; then
   terminate_instance "$instance_id"
 elif [[ "$action_command" == 'ls' ]]; then
