@@ -2,6 +2,7 @@
 import boto3
 import yaml
 import json
+import re
 from pysrc.pyfzf import PyFzf
 from botocore.exceptions import ClientError
 from pysrc.util import remove_dict_from_list, search_dict_in_list, check_dict_value_in_list
@@ -144,11 +145,22 @@ def get_list_param_value(type_name):
             return loop_list_fzf(response_list, 'VpcId', 'InstanceTenancy', 'CidrBlock')
         elif type_name == 'List<AWS::Route53::HostedZone::Id>':
             response = route53.list_hosted_zones()
-            response_list = response['HostedZones']
+            response_list = process_hosted_zone(response['HostedZones'])
             return loop_list_fzf(response_list, 'Id', 'Name')
 
     except ClientError as e:
         print(e)
+
+
+def process_hosted_zone(hostedzone_list):
+    id_list = []
+    id_pattern = r'/hostedzone/(?P<id>.*)$'
+    for hosted_zone in hostedzone_list:
+        raw_zone_id = re.search(
+            id_pattern, hosted_zone['Id']).group('id')
+        id_list.append(
+            {'Id': raw_zone_id, 'Name': hosted_zone['Name']})
+    return id_list
 
 
 # use fzf to display aws specific parameters
@@ -232,7 +244,8 @@ def get_selected_param_value(type_name):
 
         elif type_name == 'AWS::Route53::HostedZone::Id':
             response = route53.list_hosted_zones()
-            for hosted_zone in response['HostedZones']:
+            response = process_hosted_zone(response['HostedZones'])
+            for hosted_zone in response:
                 aws_specific_param_fzf.append_fzf(
                     f"Id: {hosted_zone['Id']}")
                 aws_specific_param_fzf.append_fzf(2*' ')
