@@ -90,7 +90,7 @@ done
 if [[ -z "$action_command" ]]; then
   echo "No action command detected"
   echo "Below are the available supported commands"
-  available_commands=(ssh stop terminate ls)
+  available_commands=(ssh stop terminate ls reboot start)
   help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "$mydir/ec2 {} -h")
   usage "$help_commands"
   exit 0
