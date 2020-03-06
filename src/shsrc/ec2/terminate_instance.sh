@@ -9,7 +9,7 @@ function terminate_instance() {
   get_confirmation "Instance will be terminated, continue?"
   if [[ "$confirm" == 'y' ]]; then
     aws ec2 terminate-instances --instance-ids "$instance_id" --output text
-    if [[ "$wait_flag" == 'true' ]]; then
+    if [[ -n "$wait_flag" ]]; then
       # wait for instance to be stopped
       echo "Waiting for instance to be terminated"
       aws ec2 wait instance-terminated --instance-ids "$instance_id"

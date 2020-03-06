@@ -31,7 +31,7 @@ action_command=''
 selected_region=''
 pem_location="$AWS_PEM"
 user_name='ec2-user'
-wait_flag='false'
+wait_flag=''
 
 # process the command to use
 # shift to remove the command from the args

@@ -16,7 +16,7 @@ function stop_instance() {
     get_confirmation "Instance will be stopped, continue?"
     if [[ $confirm == 'y' ]]; then
       aws ec2 stop-instances --instance-ids "$instance_id" --output text
-      if [[ "$wait_flag" == 'true' ]]; then
+      if [[ -n "$wait_flag" ]]; then
         # wait for instance to be stopped
         echo "Waiting for instance to be stopped"
         aws ec2 wait instance-stopped --instance-ids "$instance_id"

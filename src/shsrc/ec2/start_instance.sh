@@ -13,7 +13,7 @@ function start_instance() {
     if [[ "$confirm" == 'y' ]]; then
       echo "Starting instance now.."
       aws ec2 start-instances --instance-ids "$instance_id" --output text
-      if [[ "$wait_flag" == 'true' ]]; then
+      if [[ -n "$wait_flag" ]]; then
         echo "Waiting for instance to be ready.."
         aws ec2 wait instance-running --instance-ids "$instance_id"
         echo "Instance is ready, run faws ec2 ssh to connect"
