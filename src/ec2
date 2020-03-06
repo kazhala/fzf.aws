@@ -100,7 +100,7 @@ fi
 # ${selected_instance} data format
 # $1  $2      $3      $4
 # id  status  keypair publicIp
-selected_instance=$(get_instance "$selected_region" "$multi_select")
+selected_instance=$(get_instance "$action_command" "$selected_region" "$multi_select")
 instance_id=$(echo "$selected_instance" | awk '{print $1}')
 instance_status=$(echo "$selected_instance" | awk '{print $2}')
 instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
@@ -125,6 +125,5 @@ elif [[ "$action_command" == 'ls' ]]; then
 elif [[ "$action_command" == 'reboot' ]]; then
   reboot_instance "$instance_id"
 elif [[ "$action_command" == 'start' ]]; then
-  echo "$instance_id"
   start_instance "$instance_id" "$wait_flag"
 fi

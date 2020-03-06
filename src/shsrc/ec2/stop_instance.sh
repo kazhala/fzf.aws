@@ -3,7 +3,6 @@
 # $1: instance_id
 # $3: wait_flag
 
-
 function stop_instance() {
   local instance_id="$1"
   local wait_flag="$2"
