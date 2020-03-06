@@ -27,7 +27,7 @@ function ssh_instance() {
         echo "Waiting for instance to be ready.."
         aws ec2 wait instance-running --instance-ids "$instance_id"
         # cannot directly connect, because we don't have the instance ip adress yet
-        echo "Instance is ready, run the command again to connect"
+        echo "Instance is ready, run faws ssh to connect"
       fi
     fi
   elif [[ "$instance_status" == running ]]; then
