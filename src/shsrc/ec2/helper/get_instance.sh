@@ -10,6 +10,7 @@ function get_instance() {
   # if there is flag, meaning a region other than default is selected
   # request region specific ec2 or using default region
   if [[ -z "$selected_region" ]]; then
+    # set fzf -m flag if multi_select is set
     if [[ -z "$multi_select" ]]; then
       selected_instance=$(aws ec2 describe-instances \
           --query 'Reservations[].Instances[].[InstanceId,State.Name,InstanceType,Tags[?Key==`Name`]|[0].Value,KeyName,PublicDnsName]' \

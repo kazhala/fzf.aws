@@ -105,13 +105,19 @@ instance_id=$(echo "$selected_instance" | awk '{print $1}')
 instance_status=$(echo "$selected_instance" | awk '{print $2}')
 instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
 instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
+
+# if multi_select is set, join all lines into one line and remove trailing spaces
+if [[ -n "$multi_select" ]]; then
+  instance_id=$(echo "$instance_id" | tr '\n' ' ' | awk '{$1=$1;print}')
+fi
+
 # exit if no instance selected
 [[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
 # default action_command, ssh into the instance
 if [[ "$action_command" == 'ssh' ]]; then
   ssh_instance "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location" "$user_name"
 elif [[ "$action_command" == 'stop' ]]; then
-  stop_instance "$instance_id" "$instance_status" "$wait_flag"
+  stop_instance "$instance_id" "$wait_flag"
 elif [[ "$action_command" == 'terminate' ]]; then
   terminate_instance "$instance_id" "$wait_flag"
 elif [[ "$action_command" == 'ls' ]]; then
@@ -119,5 +125,6 @@ elif [[ "$action_command" == 'ls' ]]; then
 elif [[ "$action_command" == 'reboot' ]]; then
   reboot_instance "$instance_id"
 elif [[ "$action_command" == 'start' ]]; then
-  start_instance "$instance_id" "$instance_status" "$wait_flag"
+  echo "$instance_id"
+  start_instance "$instance_id" "$wait_flag"
 fi
