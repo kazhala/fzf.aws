@@ -100,7 +100,7 @@ if [[ "$action_command" == 'ssh' ]]; then
 elif [[ "$action_command" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status" "$wait_flag"
 elif [[ "$action_command" == 'terminate' ]]; then
-  terminate_instance "$instance_id"
+  terminate_instance "$instance_id" "$wait_flag"
 elif [[ "$action_command" == 'ls' ]]; then
   echo "$selected_instance"
 fi
