@@ -32,6 +32,7 @@ selected_region=''
 pem_location="$AWS_PEM"
 user_name='ec2-user'
 wait_flag=''
+multi_select=''
 
 # process the command to use
 # shift to remove the command from the args
@@ -57,7 +58,7 @@ case "$1" in
 esac
 
 # process flags
-while getopts ":rhp:u:w" opt
+while getopts ":rhp:u:wm" opt
 do
   case "$opt" in
     r)
@@ -76,6 +77,8 @@ do
       user_name="$OPTARG";;
     w)
       wait_flag='true';;
+    m)
+      multi_select='true';;
     *)
       echo "Invalid option $OPTARG" >&2
       usage "$action_command"
@@ -97,7 +100,7 @@ fi
 # ${selected_instance} data format
 # $1  $2      $3      $4
 # id  status  keypair publicIp
-selected_instance=$(get_instance "$selected_region")
+selected_instance=$(get_instance "$selected_region" "$multi_select")
 instance_id=$(echo "$selected_instance" | awk '{print $1}')
 instance_status=$(echo "$selected_instance" | awk '{print $2}')
 instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
