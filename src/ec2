@@ -26,6 +26,7 @@ source "$mydir"/shsrc/ec2/usage.sh
 action_command=''
 selected_region=''
 pem_location="$AWS_PEM"
+user_name='ec2-user'
 
 # process the command to use
 # shift to remove the command from the args
@@ -45,7 +46,7 @@ case "$1" in
 esac
 
 # process flags
-while getopts ":rhp:" opt
+while getopts ":rhp:u:" opt
 do
   case "$opt" in
     r)
@@ -60,6 +61,8 @@ do
       # display usage and exit
       usage "$action_command"
       exit 0;;
+    u)
+      user_name="$OPTARG";;
     *)
       echo "Invalid option $OPTARG" >&2
       usage "$action_command"
@@ -90,7 +93,7 @@ instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
 [[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
 # default action_command, ssh into the instance
 if [[ "$action_command" == 'ssh' ]]; then
-  ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location"
+  ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location" "$user_name"
 elif [[ "$action_command" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status"
 elif [[ "$action_command" == 'terminate' ]]; then
