@@ -7,6 +7,7 @@
 # $4: instance_ip_address
 # $5: pem dir, dir where the key pair is at
 # $6: ami username of the ssh instance
+# $7: wait flag
 
 function ssh_instance() {
   local instance_id="$1"
@@ -15,12 +16,19 @@ function ssh_instance() {
   local instance_ip_address="$4"
   local key_pem_path="$5"
   local user_name="$6"
+  local wait_flag="$7"
   # start the instance if it is stopped
   if [[ "$instance_status" == stopped ]]; then
     get_confirmation "Instance is currently stopped, start instance?"
     if [[ "$confirm" == 'y' ]]; then
       echo "Starting instance now.."
       aws ec2 start-instances --instance-ids "$instance_id" --output text
+      if [[ "$wait_flag" == 'true' ]]; then
+        echo "Waiting for instance to be ready.."
+        aws ec2 wait instance-running --instance-ids "$instance_id"
+        # cannot directly connect, because we don't have the instance ip adress yet
+        echo "Instance is ready, run the command again to connect"
+      fi
     fi
   elif [[ "$instance_status" == running ]]; then
     echo "Instance is running, ready to connect"
