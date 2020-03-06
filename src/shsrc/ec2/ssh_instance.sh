@@ -1,39 +1,24 @@
-# ssh to selected ec2 instance
-# or use to start the instance if the instance is stopped
+# ssh into the selected ec2 instance
 # @params
-# $1: instance_id
-# $2: instance_status
-# $3: instance_key_pem
-# $4: instance_ip_address
-# $5: pem dir, dir where the key pair is at
-# $6: ami username of the ssh instance
-# $7: wait flag
+# $1: instance_status
+# $2: instance_key_pem
+# $3: instance_ip_address
+# $4: pem dir, dir where the key pair is at
+# $5: ami username of the ssh instance
 
 function ssh_instance() {
-  local instance_id="$1"
-  local instance_status="$2"
-  local instance_key_pem="$3"
-  local instance_ip_address="$4"
-  local key_pem_path="$5"
-  local user_name="$6"
-  local wait_flag="$7"
+  local instance_status="$1"
+  local instance_key_pem="$2"
+  local instance_ip_address="$3"
+  local pem_location="$4"
+  local user_name="$5"
   # start the instance if it is stopped
   if [[ "$instance_status" == stopped ]]; then
-    get_confirmation "Instance is currently stopped, start instance?"
-    if [[ "$confirm" == 'y' ]]; then
-      echo "Starting instance now.."
-      aws ec2 start-instances --instance-ids "$instance_id" --output text
-      if [[ "$wait_flag" == 'true' ]]; then
-        echo "Waiting for instance to be ready.."
-        aws ec2 wait instance-running --instance-ids "$instance_id"
-        # cannot directly connect, because we don't have the instance ip adress yet
-        echo "Instance is ready, run faws ssh to connect"
-      fi
-    fi
+    echo "Instance is currently stopped, run faws ec2 start to start the instance"
   elif [[ "$instance_status" == running ]]; then
     echo "Instance is running, ready to connect"
     # go to the folder where the key pem files are stored
-    cd "$key_pem_path"
+    cd "$pem_location"
     # chec if key pem exists
     if [[ -f "$instance_key_pem" ]]; then
       ssh -i "$instance_key_pem" "$user_name"@"$instance_ip_address"

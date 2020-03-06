@@ -23,6 +23,7 @@ source "$mydir"/shsrc/ec2/ssh_instance.sh
 source "$mydir"/shsrc/ec2/stop_instance.sh
 source "$mydir"/shsrc/ec2/terminate_instance.sh
 source "$mydir"/shsrc/ec2/reboot_instance.sh
+source "$mydir"/shsrc/ec2/start_instance.sh
 source "$mydir"/shsrc/ec2/usage.sh
 
 # default args
@@ -49,6 +50,9 @@ case "$1" in
     shift;;
   reboot)
     action_command='reboot'
+    shift;;
+  start)
+    action_command='start'
     shift;;
 esac
 
@@ -102,7 +106,7 @@ instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
 [[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
 # default action_command, ssh into the instance
 if [[ "$action_command" == 'ssh' ]]; then
-  ssh_instance "$instance_id" "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location" "$user_name" "$wait_flag"
+  ssh_instance "$instance_status" "$instance_key_pem" "$instance_ip_address" "$pem_location" "$user_name"
 elif [[ "$action_command" == 'stop' ]]; then
   stop_instance "$instance_id" "$instance_status" "$wait_flag"
 elif [[ "$action_command" == 'terminate' ]]; then
@@ -111,4 +115,6 @@ elif [[ "$action_command" == 'ls' ]]; then
   echo "$selected_instance"
 elif [[ "$action_command" == 'reboot' ]]; then
   reboot_instance "$instance_id"
+elif [[ "$action_command" == 'start' ]]; then
+  start_instance "$instance_id" "$instance_status" "$wait_flag"
 fi
