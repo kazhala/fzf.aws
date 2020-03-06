@@ -4,6 +4,8 @@
 # $action_command: the command to run (ssh|stop|terminate|ls)
 # $selected_region: the region if -r set
 # $pem_location: location of the keypair file
+# $user_name: username used to ssh into the instance
+# $wait_flag: wait for command completion (instance running|stopped|terminated)
 # $selected_instance: selected instance through fzf
   # $1  $2      $3      $4
   # id  status  keypair publicIp
