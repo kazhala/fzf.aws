@@ -16,15 +16,15 @@
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/shsrc/confirm.sh
-source "$mydir"/shsrc/ec2/helper/get_instance.sh
-source "$mydir"/shsrc/ec2/helper/get_region.sh
-source "$mydir"/shsrc/ec2/ssh_instance.sh
-source "$mydir"/shsrc/ec2/stop_instance.sh
-source "$mydir"/shsrc/ec2/terminate_instance.sh
-source "$mydir"/shsrc/ec2/reboot_instance.sh
-source "$mydir"/shsrc/ec2/start_instance.sh
-source "$mydir"/shsrc/ec2/usage.sh
+source "$mydir"/shfaws/confirm.sh
+source "$mydir"/shfaws/ec2/helper/get_instance.sh
+source "$mydir"/shfaws/ec2/helper/get_region.sh
+source "$mydir"/shfaws/ec2/ssh_instance.sh
+source "$mydir"/shfaws/ec2/stop_instance.sh
+source "$mydir"/shfaws/ec2/terminate_instance.sh
+source "$mydir"/shfaws/ec2/reboot_instance.sh
+source "$mydir"/shfaws/ec2/start_instance.sh
+source "$mydir"/shfaws/ec2/usage.sh
 
 [[ -z "$FAWS_KEY_LOCATION" ]] && FAWS_KEY_LOCATION="$HOME/.ssh"
 

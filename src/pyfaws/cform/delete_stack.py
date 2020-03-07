@@ -1,7 +1,7 @@
 # delete stack operation
 import boto3
-from pysrc.util import get_confirmation, remove_dict_from_list
-from pysrc.pyfzf import PyFzf
+from pyfaws.util import get_confirmation, remove_dict_from_list
+from pyfaws.pyfzf import PyFzf
 
 cloudformation = boto3.client('cloudformation')
 

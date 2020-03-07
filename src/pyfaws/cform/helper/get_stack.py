@@ -1,6 +1,6 @@
 import boto3
-from pysrc.pyfzf import PyFzf
-from pysrc.util import search_dict_in_list
+from pyfaws.pyfzf import PyFzf
+from pyfaws.util import search_dict_in_list
 
 cloudformation = boto3.client('cloudformation')
 

@@ -3,9 +3,9 @@ import boto3
 import yaml
 import json
 import re
-from pysrc.pyfzf import PyFzf
+from pyfaws.pyfzf import PyFzf
 from botocore.exceptions import ClientError
-from pysrc.util import remove_dict_from_list, search_dict_in_list, check_dict_value_in_list
+from pyfaws.util import remove_dict_from_list, search_dict_in_list, check_dict_value_in_list
 
 # make yaml class ignore all undefined tags and keep parsing
 # yaml doesn't understand all the !Ref, !FindInMap etc

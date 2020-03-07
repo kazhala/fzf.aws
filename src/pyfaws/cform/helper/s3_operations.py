@@ -1,8 +1,8 @@
 # functions related to getting information from s3
 import boto3
 from botocore.exceptions import ClientError
-from pysrc.pyfzf import PyFzf
-from pysrc.cform.helper.process_template import process_yaml_body, process_json_body
+from pyfaws.pyfzf import PyFzf
+from pyfaws.cform.helper.process_template import process_yaml_body, process_json_body
 
 s3 = boto3.client('s3')
 # using s3 resource to read the object data for dynamic parameter input

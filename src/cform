@@ -6,11 +6,11 @@ import subprocess
 import argparse
 import sys
 from botocore.exceptions import ClientError
-from pysrc.cform.delete_stack import delete_stack
-from pysrc.cform.update_stack import update_stack
-from pysrc.cform.helper.get_stack import get_stack
-from pysrc.cform.create_stack import create_stack
-from pysrc.pyfzf import PyFzf
+from pyfaws.cform.delete_stack import delete_stack
+from pyfaws.cform.update_stack import update_stack
+from pyfaws.cform.helper.get_stack import get_stack
+from pyfaws.cform.create_stack import create_stack
+from pyfaws.pyfzf import PyFzf
 
 
 parser = argparse.ArgumentParser(

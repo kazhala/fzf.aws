@@ -15,16 +15,16 @@
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/shsrc/confirm.sh
-source "$mydir"/shsrc/search_file.sh
-source "$mydir"/shsrc/s3/helper/get_bucket.sh
-source "$mydir"/shsrc/s3/helper/get_bucket_path.sh
-source "$mydir"/shsrc/s3/upload_file_s3.sh
-source "$mydir"/shsrc/s3/delete_file_s3.sh
-source "$mydir"/shsrc/s3/download_file_s3.sh
-source "$mydir"/shsrc/s3/transfer_file_s3.sh
-source "$mydir"/shsrc/s3/presign_url_s3.sh
-source "$mydir"/shsrc/s3/usage.sh
+source "$mydir"/shfaws/confirm.sh
+source "$mydir"/shfaws/search_file.sh
+source "$mydir"/shfaws/s3/helper/get_bucket.sh
+source "$mydir"/shfaws/s3/helper/get_bucket_path.sh
+source "$mydir"/shfaws/s3/upload_file_s3.sh
+source "$mydir"/shfaws/s3/delete_file_s3.sh
+source "$mydir"/shfaws/s3/download_file_s3.sh
+source "$mydir"/shfaws/s3/transfer_file_s3.sh
+source "$mydir"/shfaws/s3/presign_url_s3.sh
+source "$mydir"/shfaws/s3/usage.sh
 
 # default operation_cmd
 operation_cmd='cp'

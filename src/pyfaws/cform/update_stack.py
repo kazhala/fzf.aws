@@ -1,10 +1,10 @@
 # update stack operation
 import boto3
-from pysrc.util import search_dict_in_list, is_yaml, check_is_valid, is_json
-from pysrc.cform.helper.tags import get_tags, update_tags
-from pysrc.pyfzf import PyFzf
-from pysrc.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
-from pysrc.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
+from pyfaws.util import search_dict_in_list, is_yaml, check_is_valid, is_json
+from pyfaws.cform.helper.tags import get_tags, update_tags
+from pyfaws.pyfzf import PyFzf
+from pyfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
+from pyfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 
 cloudformation = boto3.client('cloudformation')
 
