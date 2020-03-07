@@ -75,7 +75,7 @@ do
     r)
       # -r set a region to use, otherwise default region will be used
       echo "Select a region"
-      selected_region=$(get_region)
+      selected_region="$(get_region)"
       [[ -z "${selected_region}" ]] && echo "No region selected" && exit 1;;
     p)
       # user specified path for pem file
@@ -104,7 +104,7 @@ if [[ -z "${action_command}" ]]; then
   echo "No action command detected"
   echo "Below are the available supported commands"
   available_commands=(ssh stop terminate ls reboot start)
-  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "${mydir}/ec2 {} -h")
+  help_commands="$(printf '%s\n' "${available_commands[@]}" | fzf --preview "${mydir}/ec2 {} -h")"
   usage "${help_commands}"
   exit 0
 fi
@@ -113,15 +113,15 @@ fi
 # ${selected_instance} data format
 # $1  $2      $3      $4
 # id  status  keypair publicIp
-selected_instance=$(get_instance "${action_command}" "${selected_region}" "${multi_select}")
-instance_id=$(echo "${selected_instance}" | awk '{print $1}')
-instance_status=$(echo "${selected_instance}" | awk '{print $2}')
-instance_key_pem=$(echo "${selected_instance}" | awk '{print $3 ".pem"}')
-instance_ip_address=$(echo "${selected_instance}" | awk '{print $4}')
+selected_instance="$(get_instance "${action_command}" "${selected_region}" "${multi_select}")"
+instance_id="$(echo "${selected_instance}" | awk '{print $1}')"
+instance_status="$(echo "${selected_instance}" | awk '{print $2}')"
+instance_key_pem="$(echo "${selected_instance}" | awk '{print $3 ".pem"}')"
+instance_ip_address="$(echo "${selected_instance}" | awk '{print $4}')"
 
 # if multi_select is set, join all lines into one line and remove trailing spaces
 if [[ -n "${multi_select}" ]]; then
-  instance_id=$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')
+  instance_id="$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')"
 fi
 
 [[ -z "${selected_instance}" ]] && echo "No instance selected, exiting.." && exit 1

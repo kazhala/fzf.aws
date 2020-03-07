@@ -20,8 +20,8 @@ if [[ -z "$@" ]]; then
   echo 'No action command detected'
   echo "Below are the available supported commands"
   # display all scripts in src folder and show their help message in fzf preview
-  action_command=$(find "${mydir}"/src -type f -depth 1 | \
-    awk -F '/' '{print $NF}' | fzf --preview "${mydir}/src/{} -h")
+  action_command="$(find "${mydir}"/src -type f -depth 1 | \
+    awk -F '/' '{print $NF}' | fzf --preview "${mydir}/src/{} -h")"
   [[ -z "${action_command}" ]] && exit 0
   if [[ "${action_command}" == 'keypair' ]]; then
     "${mydir}/src/${action_command}" -h

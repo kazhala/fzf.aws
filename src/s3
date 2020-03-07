@@ -109,7 +109,7 @@ if [[ -z "${action_command}" ]]; then
   echo "No action command detected"
   echo "Below are the available supported commands"
   available_commands=(upload download delete bucket presign ls)
-  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "${mydir}/s3 {} -h")
+  help_commands="$(printf '%s\n' "${available_commands[@]}" | fzf --preview "${mydir}/s3 {} -h")"
   usage "$help_commands"
   exit 0
 fi
@@ -128,11 +128,11 @@ fi
 if [[ -z "${s3_path}" ]]; then
   echo "Select a bucket"
   # get bucekt name
-  bucket=$(get_bucket)
+  bucket="$(get_bucket)"
   [[ -z "${bucket}" ]] && echo "No bucket selected" && exit 1
   [[ ! -z "${action_command}" ]] && echo "Select a path"
   # get subfolders in the bucket or root
-  s3_path=$(get_bucket_path "${bucket}" "${action_command}" "${recursive}")
+  s3_path="$(get_bucket_path "${bucket}" "${action_command}" "${recursive}")"
   [[ -z "${s3_path}" ]] && echo "No option/path selected" && exit 1
 fi
 
