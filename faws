@@ -29,8 +29,8 @@ case "$1" in
     action_command='s3';;
   cform)
     action_command='cform';;
-  pem)
-    action_command='pem';;
+  keypair)
+    action_command='keypair';;
   ec2)
     action_command='ec2';;
   help)
