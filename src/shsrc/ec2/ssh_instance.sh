@@ -10,7 +10,7 @@ function ssh_instance() {
   local instance_status="$1"
   local instance_key_pem="$2"
   local instance_ip_address="$3"
-  local pem_location="$4"
+  local key_location="$4"
   local user_name="$5"
   # start the instance if it is stopped
   if [[ "$instance_status" == stopped ]]; then
@@ -18,7 +18,7 @@ function ssh_instance() {
   elif [[ "$instance_status" == running ]]; then
     echo "Instance is running, ready to connect"
     # go to the folder where the key pem files are stored
-    cd "$pem_location"
+    cd "$key_location"
     # chec if key pem exists
     if [[ -f "$instance_key_pem" ]]; then
       ssh -i "$instance_key_pem" "$user_name"@"$instance_ip_address"
