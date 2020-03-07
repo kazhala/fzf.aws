@@ -3,11 +3,12 @@
 # Main entry script of fzf.aws, used to route command to appropriate scripts
 # @params
 # Globals
+#   $mydir: the current directory of this script
 #   $action_command: the command that decide which script to run
 # Arguments
 #   command: commands to run ec2/cform/keypair/s3 etc
+#   $opt: options flag
 
-# the directory of this script
 mydir="${0%/*}"
 
 function usage() {
@@ -19,13 +20,13 @@ if [[ -z "$@" ]]; then
   echo 'No action command detected'
   echo "Below are the available supported commands"
   # display all scripts in src folder and show their help message in fzf preview
-  action_command=$(find "$mydir"/src -type f -depth 1 | \
-    awk -F '/' '{print $NF}' | fzf --preview "$mydir/src/{} -h")
-  [[ -z "$action_command" ]] && exit 0
-  if [[ "$action_command" == 'keypair' ]]; then
+  action_command=$(find "${mydir}"/src -type f -depth 1 | \
+    awk -F '/' '{print $NF}' | fzf --preview "${mydir}/src/{} -h")
+  [[ -z "${action_command}" ]] && exit 0
+  if [[ "${action_command}" == 'keypair' ]]; then
     "${mydir}/src/${action_command}" -h
   else
-    "$mydir/src/$action_command"
+    "${mydir}/src/${action_command}"
   fi
   exit 0
 fi
@@ -54,8 +55,8 @@ esac
 # clean/remove the first processed argument
 shift
 
-[[ -z "$action_command" ]] && exit 1
+[[ -z "${action_command}" ]] && exit 1
 
 # run the script based on the first argument
 # pass the rest of the argument to the new script
-"$mydir/src/$action_command" "$@"
+"${mydir}/src/${action_command}" "$@"

@@ -1,52 +1,62 @@
-#!/bin/sh
+#!/bin/bash
+#
+# Automate the keypair commands, change perission and move to ssh keys dir
+# @params
+# Globals
+#		$mydir: the current directory of the script
+#   $FAWS_KEY_LOCATION: env variable that determines where to move the keypair
+#   $DOWNLOAD_LOCATION: env variable of where the keypair is downloaded
+#   $key_pair_file: the filename of the key_pair_file that would be moved
+# Arguments
+#		$opt: options
+
 shopt -s nullglob
 
-# import helper scripts
+# import helper functions
 mydir="${0%/*}"
-source "$mydir"/shfaws/confirm.sh
-source "$mydir"/shfaws/keypair/usage.sh
+source "${mydir}"/shfaws/confirm.sh
+source "${mydir}"/shfaws/keypair/usage.sh
 
 # process flags
 while getopts ":h" opt
 do
-  case "$opt" in
+  case "${opt}" in
     h)
-      # display usage and exit
       usage
       exit 0;;
     *)
-      echo "Invalid option $OPTARG" >&2
+      echo "Invalid option ${OPTARG}" >&2
       usage
       exit 1;;
   esac
 done
 
 # check variable existence
-if [[ -z "$FAWS_KEY_LOCATION" ]]; then
-  echo "{FAWS_KEY_LOCATION} not found, $HOME/.ssh directory will be used"
-  echo "If you wish to use a different location other than $HOME/.ssh, run faws configure, instructions in README.md"
-  FAWS_KEY_LOCATION="$HOME/.ssh"
+if [[ -z "${FAWS_KEY_LOCATION}" ]]; then
+  echo "{FAWS_KEY_LOCATION} not found, ${HOME}/.ssh directory will be used"
+  echo "If you wish to use a different location other than ${HOME}/.ssh, run faws configure, instructions in README.md"
+  FAWS_KEY_LOCATION="${HOME}/.ssh"
 fi
-if [[ -z "$DOWNLOAD_LOCATION" ]]; then
-  echo "{DOWNLOAD_LOCATION} not found, $HOME/Downloads directory will be used"
-  echo "If you wish to use a different location other than $HOME/Downloads, run faws configure, instructions in README.md"
-  DOWNLOAD_LOCATION="$HOME/Downloads"
+if [[ -z "${DOWNLOAD_LOCATION}" ]]; then
+  echo "{DOWNLOAD_LOCATION} not found, ${HOME}/Downloads directory will be used"
+  echo "If you wish to use a different location other than ${HOME}/Downloads, run faws configure, instructions in README.md"
+  DOWNLOAD_LOCATION="${HOME}/Downloads"
 fi
 
-cd "$DOWNLOAD_LOCATION"
+cd "${DOWNLOAD_LOCATION}"
 for f in *
 do
   # process all pem files
-  key_pair_file=$(echo $f | awk -F "." '{
+  key_pair_file=$(echo ${f} | awk -F "." '{
     if ($2 == "pem") {
       print $0
     }
   }')
-  [[ -z "$key_pair_file" ]] && continue
-  get_confirmation "$DOWNLOAD_LOCATION/$key_pair_file will be moved to $FAWS_KEY_LOCATION/key_pair_file, Confirm?"
-  if [[ "$confirm" == 'y' ]]; then
-    chmod 400 "$key_pair_file"
-    mv -v "$key_pair_file" "$FAWS_KEY_LOCATION/$key_pair_file"
+  [[ -z "${key_pair_file}" ]] && continue
+  get_confirmation "${DOWNLOAD_LOCATION}/${key_pair_file} will be moved to ${FAWS_KEY_LOCATION}/key_pair_file, Confirm?"
+  if [[ "${confirm}" == 'y' ]]; then
+    chmod 400 "${key_pair_file}"
+    mv -v "${key_pair_file}" "${FAWS_KEY_LOCATION}/${key_pair_file}"
   fi
   unset pem_file
 done
