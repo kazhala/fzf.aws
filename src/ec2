@@ -1,37 +1,45 @@
-#!/bin/sh
-# aws ec2 script that will list ec2 instances on your default aws account
+#!/bin/bash
+#
+# aws ec2 script that will handle all actions related to ec2
+#
 # @params
-# $action_command: the command to run (ssh|stop|terminate|ls)
-# $selected_region: the region if -r set
-# $key_location: location of the keypair file
-# $user_name: username used to ssh into the instance
-# $wait_flag: wait for command completion (instance running|stopped|terminated)
-# $selected_instance: selected instance through fzf
-  # $1  $2      $3      $4
-  # id  status  keypair publicIp
-# $instance_id: id of the instance
-# $instance_status: start/stop/terminate/pending etc
-# $instance_key_pem: keypair name
-# $instance_ip_address: publicIp address
+# Globals
+#		${action_command}: the command to run(ssh|stop|terminate|ls|reboot)
+#   ${selected_region}: the region if -r set
+#   ${key_location}: location of the keypair file
+#   ${user_name}: username used to ssh into the instance
+#   ${wait_flag}: wait for command completion (instance running|stopped|terminated)
+#   ${selected_instance}: selected instance through fzf
+#     $1  $2      $3      $4
+#     id  status  keypair publicIp
+#   ${instance_id}: id of the instance
+#   ${instance_status}: start/stop/terminate/pending etc
+#   $instance_key_pem: instance keypair name
+#   ${instance_ip_address}: instance publicIp address
+#   ${multi_select}: wheter to enable multi_select
+#   ${stop_hibernate}: flag to determine if stop hibernate
+# Arguments
+#		command: what action to take
+#   $opt: options
 
 # import helper scripts
 mydir="${0%/*}"
-source "$mydir"/shfaws/confirm.sh
-source "$mydir"/shfaws/ec2/helper/get_instance.sh
-source "$mydir"/shfaws/ec2/helper/get_region.sh
-source "$mydir"/shfaws/ec2/ssh_instance.sh
-source "$mydir"/shfaws/ec2/stop_instance.sh
-source "$mydir"/shfaws/ec2/terminate_instance.sh
-source "$mydir"/shfaws/ec2/reboot_instance.sh
-source "$mydir"/shfaws/ec2/start_instance.sh
-source "$mydir"/shfaws/ec2/usage.sh
+source "${mydir}"/shfaws/confirm.sh
+source "${mydir}"/shfaws/ec2/helper/get_instance.sh
+source "${mydir}"/shfaws/ec2/helper/get_region.sh
+source "${mydir}"/shfaws/ec2/ssh_instance.sh
+source "${mydir}"/shfaws/ec2/stop_instance.sh
+source "${mydir}"/shfaws/ec2/terminate_instance.sh
+source "${mydir}"/shfaws/ec2/reboot_instance.sh
+source "${mydir}"/shfaws/ec2/start_instance.sh
+source "${mydir}"/shfaws/ec2/usage.sh
 
-[[ -z "$FAWS_KEY_LOCATION" ]] && FAWS_KEY_LOCATION="$HOME/.ssh"
+[[ -z "${FAWS_KEY_LOCATION}" ]] && FAWS_KEY_LOCATION="${HOME}/.ssh"
 
 # default args
 action_command=''
 selected_region=''
-key_location="$FAWS_KEY_LOCATION"
+key_location="${FAWS_KEY_LOCATION}"
 user_name='ec2-user'
 wait_flag=''
 multi_select=''
@@ -63,21 +71,21 @@ esac
 # process flags
 while getopts ":rhp:u:wmH" opt
 do
-  case "$opt" in
+  case "${opt}" in
     r)
       # -r set a region to use, otherwise default region will be used
       echo "Select a region"
       selected_region=$(get_region)
-      [[ -z "$selected_region" ]] && echo "No region selected" && exit 1;;
+      [[ -z "${selected_region}" ]] && echo "No region selected" && exit 1;;
     p)
       # user specified path for pem file
-      key_location="$OPTARG";;
+      key_location="${OPTARG}";;
     h)
       # display usage and exit
-      usage "$action_command"
+      usage "${action_command}"
       exit 0;;
     u)
-      user_name="$OPTARG";;
+      user_name="${OPTARG}";;
     w)
       wait_flag='true';;
     m)
@@ -85,19 +93,19 @@ do
     H)
       stop_hibernate='true';;
     *)
-      echo "Invalid option $OPTARG" >&2
-      usage "$action_command"
+      echo "Invalid option ${OPTARG}" >&2
+      usage "${action_command}"
       exit 1;;
   esac
 done
 
 # display fzf menu for available_commands when no action detected
-if [[ -z "$action_command" ]]; then
+if [[ -z "${action_command}" ]]; then
   echo "No action command detected"
   echo "Below are the available supported commands"
   available_commands=(ssh stop terminate ls reboot start)
-  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "$mydir/ec2 {} -h")
-  usage "$help_commands"
+  help_commands=$(printf '%s\n' "${available_commands[@]}" | fzf --preview "${mydir}/ec2 {} -h")
+  usage "${help_commands}"
   exit 0
 fi
 
@@ -105,30 +113,29 @@ fi
 # ${selected_instance} data format
 # $1  $2      $3      $4
 # id  status  keypair publicIp
-selected_instance=$(get_instance "$action_command" "$selected_region" "$multi_select")
-instance_id=$(echo "$selected_instance" | awk '{print $1}')
-instance_status=$(echo "$selected_instance" | awk '{print $2}')
-instance_key_pem=$(echo "$selected_instance" | awk '{print $3 ".pem"}')
-instance_ip_address=$(echo "$selected_instance" | awk '{print $4}')
+selected_instance=$(get_instance "${action_command}" "${selected_region}" "${multi_select}")
+instance_id=$(echo "${selected_instance}" | awk '{print $1}')
+instance_status=$(echo "${selected_instance}" | awk '{print $2}')
+instance_key_pem=$(echo "${selected_instance}" | awk '{print $3 ".pem"}')
+instance_ip_address=$(echo "${selected_instance}" | awk '{print $4}')
 
 # if multi_select is set, join all lines into one line and remove trailing spaces
-if [[ -n "$multi_select" ]]; then
-  instance_id=$(echo "$instance_id" | tr '\n' ' ' | awk '{$1=$1;print}')
+if [[ -n "${multi_select}" ]]; then
+  instance_id=$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')
 fi
 
-# exit if no instance selected
-[[ -z "$selected_instance" ]] && echo "No instance selected, exiting.." && exit 1
-# default action_command, ssh into the instance
-if [[ "$action_command" == 'ssh' ]]; then
-  ssh_instance "$instance_status" "$instance_key_pem" "$instance_ip_address" "$key_location" "$user_name"
-elif [[ "$action_command" == 'stop' ]]; then
-  stop_instance "$instance_id" "$wait_flag" "$stop_hibernate"
-elif [[ "$action_command" == 'terminate' ]]; then
-  terminate_instance "$instance_id" "$wait_flag"
-elif [[ "$action_command" == 'ls' ]]; then
-  echo "$selected_instance"
-elif [[ "$action_command" == 'reboot' ]]; then
-  reboot_instance "$instance_id"
-elif [[ "$action_command" == 'start' ]]; then
-  start_instance "$instance_id" "$wait_flag"
+[[ -z "${selected_instance}" ]] && echo "No instance selected, exiting.." && exit 1
+
+if [[ "${action_command}" == 'ssh' ]]; then
+  ssh_instance "${instance_status}" "$instance_key_pem" "${instance_ip_address}" "${key_location}" "${user_name}"
+elif [[ "${action_command}" == 'stop' ]]; then
+  stop_instance "${instance_id}" "${wait_flag}" "${stop_hibernate}"
+elif [[ "${action_command}" == 'terminate' ]]; then
+  terminate_instance "${instance_id}" "${wait_flag}"
+elif [[ "${action_command}" == 'ls' ]]; then
+  echo "${selected_instance}"
+elif [[ "${action_command}" == 'reboot' ]]; then
+  reboot_instance "${instance_id}"
+elif [[ "${action_command}" == 'start' ]]; then
+  start_instance "${instance_id}" "${wait_flag}"
 fi
