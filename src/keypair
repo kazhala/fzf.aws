@@ -13,13 +13,11 @@ do
     h)
       # display usage and exit
       usage
-      exit 0
-      ;;
+      exit 0;;
     *)
       echo "Invalid option $OPTARG" >&2
       usage
-      exit 1
-      ;;
+      exit 1;;
   esac
 done
 

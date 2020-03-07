@@ -35,6 +35,7 @@ key_location="$FAWS_KEY_LOCATION"
 user_name='ec2-user'
 wait_flag=''
 multi_select=''
+stop_hibernate=''
 
 # process the command to use
 # shift to remove the command from the args
@@ -60,7 +61,7 @@ case "$1" in
 esac
 
 # process flags
-while getopts ":rhp:u:wm" opt
+while getopts ":rhp:u:wmH" opt
 do
   case "$opt" in
     r)
@@ -81,6 +82,8 @@ do
       wait_flag='true';;
     m)
       multi_select='true';;
+    H)
+      stop_hibernate='true';;
     *)
       echo "Invalid option $OPTARG" >&2
       usage "$action_command"
@@ -119,7 +122,7 @@ fi
 if [[ "$action_command" == 'ssh' ]]; then
   ssh_instance "$instance_status" "$instance_key_pem" "$instance_ip_address" "$key_location" "$user_name"
 elif [[ "$action_command" == 'stop' ]]; then
-  stop_instance "$instance_id" "$wait_flag"
+  stop_instance "$instance_id" "$wait_flag" "$stop_hibernate"
 elif [[ "$action_command" == 'terminate' ]]; then
   terminate_instance "$instance_id" "$wait_flag"
 elif [[ "$action_command" == 'ls' ]]; then

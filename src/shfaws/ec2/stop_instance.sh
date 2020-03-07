@@ -1,14 +1,21 @@
 # stop the selected instance
 # @params
 # $1: instance_id
-# $3: wait_flag
+# $2: wait_flag
+# $3: stop_hibernate
 
 function stop_instance() {
   local instance_id="$1"
   local wait_flag="$2"
+  local stop_hibernate="$3"
   get_confirmation "Instance will be stopped, continue?"
   if [[ "$confirm" == 'y' ]]; then
-    aws ec2 stop-instances --instance-ids $instance_id --output text
+    if [[ -z "$stop_hibernate" ]]; then
+      aws ec2 stop-instances --instance-ids $instance_id --output text
+    else
+      aws ec2 stop-instances --hibernate --instance-ids $instance_id --output text
+    fi
+
     if [[ -n "$wait_flag" ]]; then
       # wait for instance to be stopped
       echo "Waiting for instance to be stopped"
