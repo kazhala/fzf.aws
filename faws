@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Main entry script of fzf.aws, used to route command to appropriate scripts
+#
 # @params
 # Globals
 #   $mydir: the current directory of this script

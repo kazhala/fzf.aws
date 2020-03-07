@@ -3,12 +3,12 @@
 # Automate the keypair commands, change perission and move to ssh keys dir
 # @params
 # Globals
-#		$mydir: the current directory of the script
+#   $mydir: the current directory of the script
 #   $FAWS_KEY_LOCATION: env variable that determines where to move the keypair
 #   $DOWNLOAD_LOCATION: env variable of where the keypair is downloaded
 #   $key_pair_file: the filename of the key_pair_file that would be moved
 # Arguments
-#		$opt: options
+#   $opt: options
 
 shopt -s nullglob
 

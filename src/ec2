@@ -4,7 +4,7 @@
 #
 # @params
 # Globals
-#		${action_command}: the command to run(ssh|stop|terminate|ls|reboot)
+#   ${action_command}: the command to run(ssh|stop|terminate|ls|reboot)
 #   ${selected_region}: the region if -r set
 #   ${key_location}: location of the keypair file
 #   ${user_name}: username used to ssh into the instance
@@ -19,7 +19,7 @@
 #   ${multi_select}: wheter to enable multi_select
 #   ${stop_hibernate}: flag to determine if stop hibernate
 # Arguments
-#		command: what action to take
+#   command: what action to take
 #   $opt: options
 
 # import helper scripts
