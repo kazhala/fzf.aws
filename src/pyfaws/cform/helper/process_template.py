@@ -276,6 +276,10 @@ def get_user_input(parameters, ParameterKey, parameter_type, value_type=None, de
                     f'{ParameterKey}(Original: {default}): ')
     if not user_input and default:
         return default
+    elif user_input == "''":
+        return ''
+    elif user_input == '""':
+        return ''
     else:
         return user_input
 

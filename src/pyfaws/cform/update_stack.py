@@ -20,8 +20,12 @@ def update_stack(args, stack_name, stack_details):
             # take new values
             parameter_value = input(
                 f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
-            # push to list
-            if not parameter_value:
+            if parameter_value == '""' or parameter_value == "''":
+                updated_parameters.append({
+                    'ParameterKey': parameter['ParameterKey'],
+                    'ParameterValue': ''
+                })
+            elif not parameter_value:
                 updated_parameters.append({
                     'ParameterKey': parameter['ParameterKey'],
                     'UsePreviousValue': True
