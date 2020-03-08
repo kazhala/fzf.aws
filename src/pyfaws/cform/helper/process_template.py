@@ -73,30 +73,13 @@ def loop_list_fzf(response_list, key_name, *arg_keys):
     # init a fzf object
     aws_list_param_fzf = PyFzf()
     return_list = []
-    # keep getting the value until user stop input or no more in list
-    while True:
-        for item in response_list:
-            aws_list_param_fzf.append_fzf(f"{key_name}: {item[key_name]}")
-            for arg in arg_keys:
-                aws_list_param_fzf.append_fzf(2*' ')
-                aws_list_param_fzf.append_fzf(f"{arg}: {item[arg]}")
-            aws_list_param_fzf.append_fzf('\n')
-        # execute fzf
-        selected_aws_value = aws_list_param_fzf.execute_fzf(
-            empty_allow=True)
-        # empty input stop the loop
-        if not selected_aws_value:
-            break
-        return_list.append(selected_aws_value)
-        # remove the selected item from the response_list
-        response_list = remove_dict_from_list(
-            selected_aws_value, response_list, key_name)
-        # clear the string
-        aws_list_param_fzf.fzf_string = ''
-        # exit if no more item
-        if len(response_list) == 0:
-            break
-    return return_list
+    for item in response_list:
+        aws_list_param_fzf.append_fzf(f"{key_name}: {item[key_name]}")
+        for arg in arg_keys:
+            aws_list_param_fzf.append_fzf(2*' ')
+            aws_list_param_fzf.append_fzf(f"{arg}: {item[arg]}")
+        aws_list_param_fzf.append_fzf('\n')
+    return aws_list_param_fzf.execute_fzf(empty_allow=True, multi_select=True)
 
 
 # handler if parameter type is a list type
