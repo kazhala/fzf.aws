@@ -95,37 +95,38 @@ def get_list_param_value(type_name):
             response_list = []
             for item in raw_response_list:
                 response_list.append(
-                    {'InstanceId': item['Instances'][0]['InstanceId']})
-            return loop_list_fzf(response_list, 'InstanceId')
+                    {'InstanceId': item['Instances'][0]['InstanceId'], 'Name': get_name_tag(item['Instances'][0])})
+            return loop_list_fzf(response_list, 'InstanceId', 'Name')
         elif type_name == 'List<AWS::EC2::SecurityGroup::GroupName>':
             response = ec2.describe_security_groups()
             response_list = response['SecurityGroups']
+            for sg in response_list:
+                sg['Name'] = get_name_tag(sg)
             return loop_list_fzf(response_list, 'GroupName')
         elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
             response = ec2.describe_security_groups()
             response_list = response['SecurityGroups']
-            return loop_list_fzf(response_list, 'GroupId', 'GroupName')
+            for sg in response_list:
+                sg['Name'] = get_name_tag(sg)
+            return loop_list_fzf(response_list, 'GroupId', 'GroupName', 'Name')
         elif type_name == 'List<AWS::EC2::Subnet::Id>':
             response = ec2.describe_subnets()
             response_list = response['Subnets']
-            return loop_list_fzf(response_list, 'SubnetId', 'AvailabilityZone', 'CidrBlock')
+            for subnet in response_list:
+                subnet['Name'] = get_name_tag(subnet)
+            return loop_list_fzf(response_list, 'SubnetId', 'AvailabilityZone', 'CidrBlock', 'Name')
         elif type_name == 'List<AWS::EC2::Volume::Id>':
             response = ec2.describe_volumes()
-            response_list = []
-            for volume in response['Volumes']:
-                volume_item = {}
-                volume_item['VolumeId'] = volume['VolumeId']
-                if 'Tags' in volume and check_dict_value_in_list('Name', volume['Tags'], 'Key'):
-                    volume_item['Name'] = search_dict_in_list(
-                        'Name', volume['Tags'], 'Key')['Value']
-                else:
-                    volume_item['Name'] = 'N/A'
-                response_list.append(volume_item)
+            response_list = response['Volumes']
+            for volume in response_list:
+                volume['Name'] = get_name_tag(volume)
             return loop_list_fzf(response_list, 'VolumeId', 'Name')
         elif type_name == 'List<AWS::EC2::VPC::Id>':
             response = ec2.describe_vpcs()
             response_list = response['Vpcs']
-            return loop_list_fzf(response_list, 'VpcId', 'InstanceTenancy', 'CidrBlock')
+            for vpc in response_list:
+                vpc['Name'] = get_name_tag(vpc)
+            return loop_list_fzf(response_list, 'VpcId', 'IsDefault', 'CidrBlock', 'Name')
         elif type_name == 'List<AWS::Route53::HostedZone::Id>':
             response = route53.list_hosted_zones()
             response_list = process_hosted_zone(response['HostedZones'])
@@ -133,6 +134,15 @@ def get_list_param_value(type_name):
 
     except ClientError as e:
         print(e)
+
+
+# get the name tag for the item
+def get_name_tag(list_item):
+    if 'Tags' in list_item and check_dict_value_in_list('Name', list_item['Tags'], 'Key'):
+        return search_dict_in_list(
+            'Name', list_item['Tags'], 'Key')['Value']
+    else:
+        return 'N/A'
 
 
 def process_hosted_zone(hostedzone_list):

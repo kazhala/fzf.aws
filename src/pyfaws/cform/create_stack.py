@@ -38,12 +38,13 @@ def create_stack(args):
         else:
             create_parameters = []
         tags = get_tags()
-        response = cloudformation.create_stack(
-            StackName=stack_name,
-            TemplateBody=file_data['body'],
-            Parameters=create_parameters,
-            Tags=tags
-        )
+        print(create_parameters)
+        # response = cloudformation.create_stack(
+        #     StackName=stack_name,
+        #     TemplateBody=file_data['body'],
+        #     Parameters=create_parameters,
+        #     Tags=tags
+        # )
 
     # if no local file flag, get from s3
     else:
