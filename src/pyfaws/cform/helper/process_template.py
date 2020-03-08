@@ -261,8 +261,47 @@ def get_selected_param_value(type_name):
         print(e)
 
 
+def get_user_input(parameters, ParameterKey, parameter_type, value_type=None, default=None):
+    # execute fzf if allowed_value array exists
+    if 'AllowedValues' in parameters[ParameterKey]:
+        if not value_type:
+            print(f'Choose a value for {ParameterKey}:')
+        elif value_type == 'Default':
+            print(
+                f'Choose a value for {ParameterKey}(Default: {default}):')
+        elif value_type == 'Original':
+            print(
+                f'Choose a value for {ParameterKey}(Original: {default}):')
+        choose_value_fzf = PyFzf()
+        for allowed_value in parameters[ParameterKey]['AllowedValues']:
+            choose_value_fzf.append_fzf(allowed_value)
+            choose_value_fzf.append_fzf('\n')
+        user_input = choose_value_fzf.execute_fzf(
+            empty_allow=True, print_col=1)
+    else:
+        if parameter_type in aws_specific_param:
+            user_input = get_selected_param_value(parameter_type)
+        elif parameter_type in aws_specific_param_list:
+            user_input = get_list_param_value(parameter_type)
+        else:
+            if not value_type:
+                user_input = input(f'{ParameterKey}: ')
+            elif value_type == 'Default':
+                user_input = input(
+                    f'{ParameterKey}(Default: {default}): ')
+            elif value_type == 'Original':
+                user_input = input(
+                    f'{ParameterKey}(Original: {default}): ')
+    if not user_input and default:
+        return default
+    else:
+        return user_input
+
+
 # process the template file parameters
-def process_stack_params(parameters):
+def process_stack_params(parameters, oldParameters=None):
+    if not oldParameters:
+        oldParameters = dict()
     print('Enter parameters specified in your template below')
     # prepare array
     create_parameters = []
@@ -287,49 +326,23 @@ def process_stack_params(parameters):
             print(
                 'For list type parameters, use comma to sperate items(e.g. values: value1, value2)')
 
-        # check if default value exists
-        if 'Default' in parameters[ParameterKey]:
+        # update with replace current stack
+        if check_dict_value_in_list(ParameterKey, oldParameters, 'ParameterKey'):
+            original_value = search_dict_in_list(
+                ParameterKey, oldParameters, 'ParameterKey')['ParameterValue']
+            ParameterValue = get_user_input(
+                parameters, ParameterKey, parameter_type, 'Original', original_value)
+
+        # if default value exist
+        elif 'Default' in parameters[ParameterKey]:
             default_value = parameters[ParameterKey]['Default']
-            # check if fzf could be execute to display selection
-            if 'AllowedValues' in parameters[ParameterKey]:
-                print(
-                    f'Choose a value for {ParameterKey}(Default: {default_value}):')
-                choose_value_fzf = PyFzf()
-                for allowed_value in parameters[ParameterKey]['AllowedValues']:
-                    choose_value_fzf.append_fzf(allowed_value)
-                    choose_value_fzf.append_fzf('\n')
-                user_input = choose_value_fzf.execute_fzf(empty_allow=True)
-            else:
-                if parameter_type in aws_specific_param:
-                    user_input = get_selected_param_value(parameter_type)
-                elif parameter_type in aws_specific_param_list:
-                    user_input = get_list_param_value(parameter_type)
-                else:
-                    user_input = input(
-                        f'{ParameterKey}(Default: {default_value}): ')
-            # check if user_input, add default value
-            if not user_input:
-                ParameterValue = default_value
-            else:
-                ParameterValue = user_input
+            ParameterValue = get_user_input(
+                parameters, ParameterKey, parameter_type, 'Default', default_value)
 
         # no default value
         else:
-            # execute fzf if allowed_value array exists
-            if 'AllowedValues' in parameters[ParameterKey]:
-                print(f'Choose a value for {ParameterKey}:')
-                choose_value_fzf = PyFzf()
-                for allowed_value in parameters[ParameterKey]['AllowedValues']:
-                    choose_value_fzf.append_fzf(allowed_value)
-                    choose_value_fzf.append_fzf('\n')
-                ParameterValue = choose_value_fzf.execute_fzf()
-            else:
-                if parameter_type in aws_specific_param:
-                    ParameterValue = get_selected_param_value(parameter_type)
-                elif parameter_type in aws_specific_param_list:
-                    ParameterValue = get_list_param_value(parameter_type)
-                else:
-                    ParameterValue = input(f'{ParameterKey}: ')
+            ParameterValue = get_user_input(
+                parameters, ParameterKey, parameter_type)
 
         if type(ParameterValue) is list:
             ParameterValue = ','.join(ParameterValue)

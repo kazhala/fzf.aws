@@ -70,7 +70,7 @@ def update_stack(args, stack_name, stack_details):
             # process params
             if 'Parameters' in file_data['dictBody']:
                 updated_parameters = process_stack_params(
-                    file_data['dictBody']['Parameters'])
+                    file_data['dictBody']['Parameters'], stack_details['Parameters'])
             else:
                 updated_parameters = []
             # get tags from user if flag -t
@@ -107,7 +107,7 @@ def update_stack(args, stack_name, stack_details):
             # get params
             if 'Parameters' in file_data:
                 updated_parameters = process_stack_params(
-                    file_data['dictBody']['Parameters'])
+                    file_data['dictBody']['Parameters'], stack_details['Parameters'])
             else:
                 updated_parameters = []
             # get tags from user if flag -t
