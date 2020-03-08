@@ -247,14 +247,11 @@ def get_selected_param_value(type_name):
 def get_user_input(parameters, ParameterKey, parameter_type, value_type=None, default=None):
     # execute fzf if allowed_value array exists
     if 'AllowedValues' in parameters[ParameterKey]:
-        if not value_type:
+        if value_type:
+            print(
+                f"Choose a value for {ParameterKey}({value_type}: {default})")
+        else:
             print(f'Choose a value for {ParameterKey}:')
-        elif value_type == 'Default':
-            print(
-                f'Choose a value for {ParameterKey}(Default: {default}):')
-        elif value_type == 'Original':
-            print(
-                f'Choose a value for {ParameterKey}(Original: {default}):')
         choose_value_fzf = PyFzf()
         for allowed_value in parameters[ParameterKey]['AllowedValues']:
             choose_value_fzf.append_fzf(allowed_value)
@@ -263,6 +260,8 @@ def get_user_input(parameters, ParameterKey, parameter_type, value_type=None, de
             empty_allow=True, print_col=1)
     else:
         if parameter_type in aws_specific_param:
+            if value_type:
+                print(f"{value_type}: {default}")
             user_input = get_selected_param_value(parameter_type)
         elif parameter_type in aws_specific_param_list:
             user_input = get_list_param_value(parameter_type)
