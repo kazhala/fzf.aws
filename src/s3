@@ -51,22 +51,28 @@ wild_pattern=''
 case "$1" in
   upload)
     action_command='upload'
-    shift;;
+    shift
+    ;;
   download)
     action_command='download'
-    shift;;
+    shift
+    ;;
   delete)
     action_command='delete'
-    shift;;
+    shift
+    ;;
   bucket)
     action_command='bucket'
-    shift;;
+    shift
+    ;;
   presign)
     action_command='presign'
-    shift;;
+    shift
+    ;;
   ls)
     action_command='ls'
-    shift;;
+    shift
+    ;;
 esac
 
 while getopts ":p:hrmHP:Rst:e:i:" opt
@@ -82,26 +88,34 @@ do
       ;;
     P)
       # specify a local file path
-      local_path="${OPTARG}";;
+      local_path="${OPTARG}"
+      ;;
     r)
       # set recursive flag
-      recursive='true';;
+      recursive='true'
+      ;;
     R)
       # search local file/path from root
-      search_from_root='true';;
+      search_from_root='true'
+      ;;
     m)
       # mv instead of cp
-      operation_cmd='mv';;
+      operation_cmd='mv'
+      ;;
     H)
-      hidden='true';;
+      hidden='true'
+      ;;
     h)
       usage "${action_command}"
-      exit 0;;
+      exit 0
+      ;;
     s)
       operation_cmd='sync'
-      recursive='true';;
+      recursive='true'
+      ;;
     t)
-      expires_in="${OPTARG}";;
+      expires_in="${OPTARG}"
+      ;;
     i)
       if [[ -z "${wild_pattern}" ]]; then
         wild_pattern="--include ${OPTARG}"
@@ -119,7 +133,8 @@ do
     *)
       echo "Invalid option: ${OPTARG}" >&2
       usage "${action_command}"
-      exit 1;;
+      exit 1
+      ;;
   esac
 done
 
