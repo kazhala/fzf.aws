@@ -18,7 +18,7 @@ function usage() {
     echo -e "optional arguments:"
     echo -e "  -h\t\tshow this help message and exit"
   elif [[ "${action_command}" == 'bucket' ]]; then
-    echo -e "usage: faws s3 bucket [-h] [-p] [-m] [-s] [-r]\n"
+    echo -e "usage: faws s3 bucket [-h] [-p] [-m] [-s] [-r] [-i] [-e]\n"
     echo -e "transfer file between buckets\n"
     echo -e "optional arguments:"
     echo -e "  -h\t\tshow this help message and exit"

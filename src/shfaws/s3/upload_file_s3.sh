@@ -9,6 +9,7 @@
 #   $4: hidden flag
 #   $5: search from root flag
 #   $6: local path
+#   $7: wild_pattern
 # Outputs:
 #   None
 #######################################
@@ -19,6 +20,7 @@ function upload_file_s3() {
   local hidden=$4
   local search_from_root=$5
   local local_path=$6
+  local wild_pattern=$7
 
   [[ -n "${search_from_root}" ]] && cd "${HOME}"
   # get local file path
@@ -45,17 +47,17 @@ function upload_file_s3() {
   # display dryrun info and get confirmation
   # sync doesn't accpet recursive flag, it perform recursive by default
   if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun
+    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun ${wild_pattern}
   else
-    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun --recursive
+    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun --recursive ${wild_pattern}
   fi
   get_confirmation "Confirm?"
   # upload to s3
   if [[ "${confirm}" == 'y' ]]; then
     if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}"
+      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" ${wild_pattern}
     else
-      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --recursive
+      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --recursive ${wild_pattern}
     fi
   fi
   exit 0
