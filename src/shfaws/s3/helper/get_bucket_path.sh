@@ -7,7 +7,7 @@
 #   $2: action_command
 #   $3: recursive_flag
 # Outputs:
-#   None
+#   path: s3 path without bucket name
 #######################################
 function get_bucket_path() {
   local path="$1"
@@ -17,9 +17,8 @@ function get_bucket_path() {
   # if download/delete and not recursive, get all files in s3
   # if recursive flag, we want the folder name instead of the file name
   if [[ "${action_command}" != 'upload' && -z "${recursive}" ]]; then
-    local selected_path=$(aws s3 ls "$path" --recursive | fzf -m --exit-0 | awk -v bucket="${path}" '{print bucket "/" $4}')
-    [[ -z "${selected_path}" ]] && return
-    echo "${selected_path}"
+    path=$(aws s3 ls "$path" --recursive | fzf -m --exit-0 | awk -v bucket="${path}" '{print bucket "/" $4}')
+    echo "${path}"
   else
     # display options through fzf for better expereince and control
     local option="interactively: interactively select path through s3\n"

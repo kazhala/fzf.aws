@@ -24,8 +24,10 @@ function presign_url_s3() {
         aws s3 presign "s3://${line}" --expires-in "${expires_in}"
       fi
     done <<< "${s3_path}"
+    exit 0
   else
     echo "number specified by [-U number] is not a number, please specify [0-9]"
     echo "using 0 will use the default timeout 3600s [-U 0]"
+    exit 1
   fi
 }

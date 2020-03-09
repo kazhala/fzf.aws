@@ -16,7 +16,6 @@
 #   ${instance_status}: start/stop/terminate/pending etc
 #   $instance_key_pem: instance keypair name
 #   ${instance_ip_address}: instance publicIp address
-#   ${multi_select}: wheter to enable multi_select
 #   ${stop_hibernate}: flag to determine if stop hibernate
 # Arguments
 #   command: what action to take
@@ -42,7 +41,6 @@ selected_region=''
 key_location="${FAWS_KEY_LOCATION}"
 user_name='ec2-user'
 wait_flag=''
-multi_select=''
 stop_hibernate=''
 
 # process the command to use
@@ -69,7 +67,7 @@ case "$1" in
 esac
 
 # process flags
-while getopts ":rhp:u:wmH" opt
+while getopts ":rhp:u:wH" opt
 do
   case "${opt}" in
     r)
@@ -88,8 +86,6 @@ do
       user_name="${OPTARG}";;
     w)
       wait_flag='true';;
-    m)
-      multi_select='true';;
     H)
       stop_hibernate='true';;
     *)
@@ -113,16 +109,14 @@ fi
 # ${selected_instance} data format
 # $1  $2      $3      $4
 # id  status  keypair publicIp
-selected_instance="$(get_instance "${action_command}" "${selected_region}" "${multi_select}")"
+selected_instance="$(get_instance "${action_command}" "${selected_region}")"
 instance_id="$(echo "${selected_instance}" | awk '{print $1}')"
 instance_status="$(echo "${selected_instance}" | awk '{print $2}')"
 instance_key_pem="$(echo "${selected_instance}" | awk '{print $3 ".pem"}')"
 instance_ip_address="$(echo "${selected_instance}" | awk '{print $4}')"
 
-# if multi_select is set, join all lines into one line and remove trailing spaces
-if [[ -n "${multi_select}" ]]; then
-  instance_id="$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')"
-fi
+# join all lines into one line and remove trailing spaces
+instance_id="$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')"
 
 [[ -z "${selected_instance}" ]] && echo "No instance selected, exiting.." && exit 1
 

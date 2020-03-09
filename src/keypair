@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Automate the keypair commands, change perission and move to ssh keys dir
+#
 # @params
 # Globals
 #   $mydir: the current directory of the script
