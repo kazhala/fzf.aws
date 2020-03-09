@@ -6,7 +6,7 @@
 #   $1: folder/file if folder search folder else search file
 #   $2: include hidden file for fd commands?
 # Outputs:
-#   None
+#   local_path: local file path
 #######################################
 function search_file() {
   local file_type=$1
@@ -22,25 +22,25 @@ function search_file() {
       # if hidden flag, search for hidden file
       if [[ -z "${hidden}" ]]
       then
-        local_path="$(fd --type f | fzf)"
+        local_path="$(fd --type f | fzf -m --exit-0)"
       else
-        local_path="$(fd --type f -H | fzf)"
+        local_path="$(fd --type f -H | fzf -m --exit-0)"
       fi
     else
       # if hidden flag, search for hidden dir
       if [[ -z "${hidden}" ]]
       then
-        local_path="$(fd --type d | fzf)"
+        local_path="$(fd --type d | fzf --exit-0)"
       else
-        local_path="$(fd --type d -H | fzf)"
+        local_path="$(fd --type d -H | fzf --exit-0)"
       fi
     fi
   else
     if [[ "${file_type}" != 'folder' ]]
     then
-      local_path="$(find * -type f | fzf)"
+      local_path="$(find * -type f | fzf -m --exit-0)"
     else
-      local_path="$(find * -type d | fzf)"
+      local_path="$(find * -type d | fzf --exit-0)"
     fi
   fi
   echo "${local_path}"

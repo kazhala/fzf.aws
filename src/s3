@@ -199,6 +199,8 @@ case "${action_command}" in
     presign_url_s3 "${s3_path}" "${expires_in}"
     ;;
   ls)
-    echo "s3://${s3_path}"
+    while IFS= read -r line; do
+      echo "s3://${line}"
+    done <<< "${s3_path}"
     ;;
 esac

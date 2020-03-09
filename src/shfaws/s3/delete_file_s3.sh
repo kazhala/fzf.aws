@@ -15,21 +15,27 @@ function delete_file_s3() {
   local recursive=$2
   local wild_pattern=$3
 
-  # dryrun and get confirmation
-  if [[ -z "${recursive}" ]]; then
-    aws s3 "${operation_cmd}" "s3://${s3_path}" --dryrun ${wild_pattern}
-  else
-    aws s3 "${operation_cmd}" "s3://${s3_path}" --dryrun --recursive ${wild_pattern}
-  fi
+  while IFS= read -r line; do
+    # dryrun and get confirmation
+    if [[ -z "${recursive}" ]]; then
+      aws s3 "${operation_cmd}" "s3://${line}" --dryrun ${wild_pattern}
+    else
+      aws s3 "${operation_cmd}" "s3://${line}" --dryrun --recursive ${wild_pattern}
+    fi
+  done <<< "${s3_path}"
+
   get_confirmation "Confirm?"
 
-  # delete the file
-  if [[ "${confirm}" == 'y' ]]; then
-    if [[ -z "$recursive" ]]; then
-      aws s3 "${operation_cmd}" "s3://${s3_path}" ${wild_pattern}
-    else
-      aws s3 "${operation_cmd}" "s3://${s3_path}" --recursive ${wild_pattern}
+  while IFS= read -r line; do
+    # delete the file
+    if [[ "${confirm}" == 'y' ]]; then
+      if [[ -z "$recursive" ]]; then
+        aws s3 "${operation_cmd}" "s3://${line}" ${wild_pattern}
+      else
+        aws s3 "${operation_cmd}" "s3://${line}" --recursive ${wild_pattern}
+      fi
     fi
-  fi
+  done <<< "${s3_path}"
   exit 0
 }
+

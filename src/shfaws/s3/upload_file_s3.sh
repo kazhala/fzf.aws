@@ -44,21 +44,25 @@ function upload_file_s3() {
     fi
   fi
 
-  # display dryrun info and get confirmation
-  # sync doesn't accpet recursive flag, it perform recursive by default
-  if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun ${wild_pattern}
-  else
-    aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --dryrun --recursive ${wild_pattern}
-  fi
-  get_confirmation "Confirm?"
-  # upload to s3
-  if [[ "${confirm}" == 'y' ]]; then
+  while IFS= read -r line; do
+    # display dryrun info and get confirmation
+    # sync doesn't accpet recursive flag, it perform recursive by default
     if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" ${wild_pattern}
+      aws s3 "${operation_cmd}" "${line}" "s3://${s3_path}" --dryrun ${wild_pattern}
     else
-      aws s3 "${operation_cmd}" "${local_path}" "s3://${s3_path}" --recursive ${wild_pattern}
+      aws s3 "${operation_cmd}" "${line}" "s3://${s3_path}" --dryrun --recursive ${wild_pattern}
     fi
-  fi
+  done <<< "${local_path}"
+  get_confirmation "Confirm?"
+  while IFS= read -r line; do
+    # upload to s3
+    if [[ "${confirm}" == 'y' ]]; then
+      if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
+        aws s3 "${operation_cmd}" "${line}" "s3://${s3_path}" ${wild_pattern}
+      else
+        aws s3 "${operation_cmd}" "${line}" "s3://${s3_path}" --recursive ${wild_pattern}
+      fi
+    fi
+  done <<< "${local_path}"
   exit 0
 }

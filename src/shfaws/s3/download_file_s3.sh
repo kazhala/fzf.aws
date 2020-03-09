@@ -4,7 +4,7 @@
 #   None
 # Arguments:
 #   $1: operation_cmd cp/mv/rm
-#   $2: s3 path to upload
+#   $2: s3 path to download
 #   $3: recursive flag
 #   $4: hidden flag
 #   $5: search from root flag
@@ -36,22 +36,26 @@ function download_file_s3() {
   fi
   echo "File will be downloaded to directory ${PWD}"
 
-  # dryrun and get confirmation
-  # sync doesn't accpet recursive flag, it perform recursive by default
-  if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-    aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" --dryrun ${wild_pattern}
-  else
-    aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" --dryrun --recursive ${wild_pattern}
-  fi
-  get_confirmation "Confirm?"
-  # download from s3
-  if [[ "${confirm}" == 'y' ]]
-  then
+  while IFS= read -r line; do
+    # dryrun and get confirmation
+    # sync doesn't accpet recursive flag, it perform recursive by default
     if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
-      aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" ${wild_pattern}
+      aws s3 "${operation_cmd}" "s3://${line}" "${local_path}" --dryrun ${wild_pattern}
     else
-      aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" --recursive ${wild_pattern}
+      aws s3 "${operation_cmd}" "s3://${line}" "${local_path}" --dryrun --recursive ${wild_pattern}
     fi
-  fi
+  done <<< "${s3_path}"
+  get_confirmation "Confirm?"
+  while IFS= read -r line; do
+    # download from s3
+    if [[ "${confirm}" == 'y' ]]
+    then
+      if [[ -z "${recursive}" || "${operation_cmd}" == 'sync' ]]; then
+        aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" ${wild_pattern}
+      else
+        aws s3 "${operation_cmd}" "s3://${s3_path}" "${local_path}" --recursive ${wild_pattern}
+      fi
+    fi
+  done <<< "${s3_path}"
   exit 0
 }

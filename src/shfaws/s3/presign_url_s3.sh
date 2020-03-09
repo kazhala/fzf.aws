@@ -16,12 +16,14 @@ function presign_url_s3() {
   # want error to apper in this case
   if [[ -n "${expires_in}" ]] && [ "${expires_in}" -eq "${expires_in}" ] 2>/dev/null
   then
-    # if 0, use default timeout 3600seconds
-    if [[ "${expires_in}" -eq 0 ]]; then
-      aws s3 presign "s3://${s3_path}"
-    else
-      aws s3 presign "s3://${s3_path}" --expires-in "${expires_in}"
-    fi
+    while IFS= read -r line; do
+      # if 0, use default timeout 3600seconds
+      if [[ "${expires_in}" -eq 0 ]]; then
+        aws s3 presign "s3://${line}"
+      else
+        aws s3 presign "s3://${line}" --expires-in "${expires_in}"
+      fi
+    done <<< "${s3_path}"
   else
     echo "number specified by [-U number] is not a number, please specify [0-9]"
     echo "using 0 will use the default timeout 3600s [-U 0]"
