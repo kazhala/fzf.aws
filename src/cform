@@ -53,8 +53,10 @@ ls_cmd = subparsers.add_parser(
     'ls', description='list and print infomation of the selcted stack')
 drift_cmd = subparsers.add_parser(
     'drift', description='drift detection on the stack/resources')
-drift_cmd.add_argument('-i', '--id', nargs=1, action='store', default=None,
-                       help='Drift detection id, used to check results on the driftection')
+drift_cmd.add_argument('-i', '--info', action='store_true', default=False,
+                       help='Check the current drift status')
+drift_cmd.add_argument('-s', '--select', action='store_true', default=False,
+                       help='select individual resource or resources to detect drift')
 args = parser.parse_args()
 
 try:
