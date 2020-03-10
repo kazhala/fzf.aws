@@ -62,7 +62,7 @@ args = parser.parse_args()
 try:
     # if no argument provided, display help message
     if not len(sys.argv) > 1:
-        available_commands = ['update', 'create', 'delete', 'ls']
+        available_commands = ['update', 'create', 'delete', 'ls', 'drift']
         command_fzf = PyFzf()
         for command in available_commands:
             command_fzf.append_fzf(command)
