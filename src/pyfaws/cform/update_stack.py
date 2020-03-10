@@ -1,5 +1,6 @@
 # update stack operation
 import boto3
+import json
 from pyfaws.util import search_dict_in_list, is_yaml, check_is_valid, is_json
 from pyfaws.cform.helper.tags import get_tags, update_tags
 from pyfaws.pyfzf import PyFzf
@@ -131,7 +132,9 @@ def update_stack(args, stack_name, stack_details):
                 UsePreviousTemplate=False,
                 Tags=tags
             )
-    print(response)
+    response.pop('ResponseMetadata', None)
+    print(json.dumps(response, indent=4, default=str))
+    print('Stack update initiated')
 
     if args.wait:
         waiter = cloudformation.get_waiter('stack_update_complete')

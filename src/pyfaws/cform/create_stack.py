@@ -1,5 +1,6 @@
 # cform create stack operation
 import boto3
+import json
 from pyfaws.util import is_yaml, is_json, check_is_valid
 from pyfaws.cform.helper.tags import get_tags
 from pyfaws.pyfzf import PyFzf
@@ -73,7 +74,9 @@ def create_stack(args):
             Parameters=create_parameters,
             Tags=tags
         )
-    print(response)
+    response.pop('ResponseMetadata', None)
+    print(json.dumps(response, indent=4, default=str))
+    print('Stack creation initiated')
 
     if args.wait:
         waiter = cloudformation.get_waiter('stack_create_complete')

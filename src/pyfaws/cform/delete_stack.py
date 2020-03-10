@@ -1,5 +1,6 @@
 # delete stack operation
 import boto3
+import json
 from pyfaws.util import get_confirmation, remove_dict_from_list
 from pyfaws.pyfzf import PyFzf
 from pyfaws.cform.helper.process_template import process_list_fzf
@@ -32,7 +33,9 @@ def delete_stack(args, stack_name, stack_details):
     else:
         response = cloudformation.delete_stack(
             StackName=stack_name)
-    print(response)
+    response.pop('ResponseMetadata', None)
+    print(json.dumps(response, indent=4, default=str))
+    print('Stack deletion initiated')
 
     # wait for completion
     if args.wait:
