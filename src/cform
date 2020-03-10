@@ -10,6 +10,7 @@ from pyfaws.cform.delete_stack import delete_stack
 from pyfaws.cform.update_stack import update_stack
 from pyfaws.cform.helper.get_stack import get_stack
 from pyfaws.cform.create_stack import create_stack
+from pyfaws.cform.drift_stack import drift_stack
 from pyfaws.pyfzf import PyFzf
 
 
@@ -50,6 +51,10 @@ delete_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                         help='Pause the script and wait for delete complete signal, max wait time 60mins')
 ls_cmd = subparsers.add_parser(
     'ls', description='list and print infomation of the selcted stack')
+drift_cmd = subparsers.add_parser(
+    'drift', description='drift detection on the stack/resources')
+drift_cmd.add_argument('-i', '--id', nargs=1, action='store', default=None,
+                       help='Drift detection id, used to check results on the driftection')
 args = parser.parse_args()
 
 try:
@@ -89,6 +94,9 @@ try:
         # if no action detected
         elif args.subparser_name == 'ls':
             print(selected_stack['StackDetails'])
+        elif args.subparser_name == 'drift':
+            drift_stack(
+                args, selected_stack['StackName'])
 
 except subprocess.CalledProcessError as e:
     print('No selection made')

@@ -77,3 +77,16 @@ class PyFzf:
             return True
         except:
             return False
+
+    # process a list of dict and put into fzf menu
+    def process_list(self, response_list, key_name, *arg_keys, multi_select=False, gap=2):
+        for item in response_list:
+            self.append_fzf(f"{key_name}: {item[key_name]}")
+            for arg in arg_keys:
+                self.append_fzf(gap*' ')
+                self.append_fzf(f"{arg}: {item[arg]}")
+            self.append_fzf('\n')
+        if multi_select:
+            return self.execute_fzf(empty_allow=True, multi_select=True)
+        else:
+            return self.execute_fzf(empty_allow=True)
