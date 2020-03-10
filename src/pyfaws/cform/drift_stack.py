@@ -1,6 +1,7 @@
 # drift detection on the stack/resources
 import boto3
 import json
+import time
 from pyfaws.pyfzf import PyFzf
 
 cloudformation = boto3.client('cloudformation')
@@ -32,3 +33,27 @@ def drift_stack(args, stack_name):
             f"LogicalResourceId: {response['StackResourceDrift']['LogicalResourceId']}")
         print(
             f"StackResourceDriftStatus: {response['StackResourceDrift']['StackResourceDriftStatus']}")
+    else:
+        response = cloudformation.detect_stack_drift(
+            StackName=stack_name,
+            LogicalResourceIds=logical_id_list
+        )
+        drift_id = response['StackDriftDetectionId']
+        print(f"DriftDetectionId: {drift_id}")
+        print('Wating for drift detection to complete..')
+        while True:
+            time.sleep(10)
+            response = cloudformation.describe_stack_drift_detection_status(
+                StackDriftDetectionId=drift_id
+            )
+            if response['DetectionStatus'] != 'DETECTION_IN_PROGRESS':
+                break
+        response['ResponseMetadata'] = None
+        print(json.dumps(response, indent=4, sort_keys=True, default=str))
+        print(80*'-')
+        if response['DetectionStatus'] == 'DETECTION_COMPLETE':
+            print(f"StackDriftStatus: {response['StackDriftStatus']}")
+            print(
+                f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
+        else:
+            print('Detection failed')
