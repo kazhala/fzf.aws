@@ -7,13 +7,23 @@ from pyfaws.pyfzf import PyFzf
 cloudformation = boto3.client('cloudformation')
 
 
-def drift_stack(args, stack_name):
+def drift_stack(args, stack_name, stack_details):
+    print(json.dumps(
+        stack_details['DriftInformation'], indent=4, default=str))
+    print(80*'-')
+
     response = cloudformation.describe_stack_resources(
         StackName=stack_name,
     )
     response_list = response['StackResources']
 
-    if not args.select:
+    if args.info:
+        response = cloudformation.describe_stack_resource_drifts(
+            StackName=stack_name,
+        )
+        response.pop('ResponseMetadata', None)
+        print(json.dumps(response, indent=4, default=str))
+    elif not args.select:
         response = cloudformation.detect_stack_drift(
             StackName=stack_name
         )
@@ -29,8 +39,7 @@ def drift_stack(args, stack_name):
                                            'LogicalResourceId', 'ResourceType', 'Drift', multi_select=True, gap=4)
 
         if len(logical_id_list) < 1:
-            print(
-                'No resources selected, to check the entire stack drift status, add -a flag')
+            print('No resources selected')
             exit()
         elif len(logical_id_list) == 1:
             # get individual resource drift status

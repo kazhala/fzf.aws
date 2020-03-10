@@ -98,7 +98,7 @@ try:
             print(selected_stack['StackDetails'])
         elif args.subparser_name == 'drift':
             drift_stack(
-                args, selected_stack['StackName'])
+                args, selected_stack['StackName'], selected_stack['StackDetails'])
 
 except subprocess.CalledProcessError as e:
     print('No selection made')

@@ -76,6 +76,7 @@ def create_stack(args):
         )
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
+    print(80*'-')
     print('Stack creation initiated')
 
     if args.wait:

@@ -134,6 +134,7 @@ def update_stack(args, stack_name, stack_details):
             )
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
+    print(80*'-')
     print('Stack update initiated')
 
     if args.wait:

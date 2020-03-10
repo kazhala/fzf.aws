@@ -33,8 +33,6 @@ def delete_stack(args, stack_name, stack_details):
     else:
         response = cloudformation.delete_stack(
             StackName=stack_name)
-    response.pop('ResponseMetadata', None)
-    print(json.dumps(response, indent=4, default=str))
     print('Stack deletion initiated')
 
     # wait for completion
