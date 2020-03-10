@@ -120,16 +120,23 @@ instance_id="$(echo "${instance_id}" | tr '\n' ' ' | awk '{$1=$1;print}')"
 
 [[ -z "${selected_instance}" ]] && echo "No instance selected, exiting.." && exit 1
 
-if [[ "${action_command}" == 'ssh' ]]; then
-  ssh_instance "${instance_status}" "$instance_key_pem" "${instance_ip_address}" "${key_location}" "${user_name}"
-elif [[ "${action_command}" == 'stop' ]]; then
-  stop_instance "${instance_id}" "${wait_flag}" "${stop_hibernate}"
-elif [[ "${action_command}" == 'terminate' ]]; then
-  terminate_instance "${instance_id}" "${wait_flag}"
-elif [[ "${action_command}" == 'ls' ]]; then
-  echo "${selected_instance}"
-elif [[ "${action_command}" == 'reboot' ]]; then
-  reboot_instance "${instance_id}"
-elif [[ "${action_command}" == 'start' ]]; then
-  start_instance "${instance_id}" "${wait_flag}"
-fi
+case "${action_command}" in
+  ssh)
+    ssh_instance "${instance_status}" "$instance_key_pem" "${instance_ip_address}" "${key_location}" "${user_name}"
+    ;;
+  stop)
+    stop_instance "${instance_id}" "${wait_flag}" "${stop_hibernate}"
+    ;;
+  terminate)
+    terminate_instance "${instance_id}" "${wait_flag}"
+    ;;
+  ls)
+    echo "${selected_instance}"
+    ;;
+  reboot)
+    reboot_instance "${instance_id}"
+    ;;
+  start)
+    start_instance "${instance_id}" "${wait_flag}"
+    ;;
+esac
