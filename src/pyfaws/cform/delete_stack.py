@@ -2,6 +2,7 @@
 import boto3
 from pyfaws.util import get_confirmation, remove_dict_from_list
 from pyfaws.pyfzf import PyFzf
+from pyfaws.cform.helper.process_template import process_list_fzf
 
 cloudformation = boto3.client('cloudformation')
 
@@ -17,34 +18,10 @@ def delete_stack(args, stack_name, stack_details):
         response = cloudformation.list_stack_resources(
             StackName=stack_name)
         # copy the list
-        resource_list = response['StackResourceSummaries']
-        # init fzf
-        resource_fzf = PyFzf()
-        # conitnue to pop fzf for user to select resource to retain
-        while True:
-            # prepare fzf string
-            for resource in resource_list:
-                resource_fzf.append_fzf(
-                    f"ResourceLogicalId: {resource['LogicalResourceId']}")
-                resource_fzf.append_fzf(2*' ')
-                resource_fzf.append_fzf(
-                    f"ResourceType: {resource['ResourceType']}")
-                resource_fzf.append_fzf(2*' ')
-                resource_fzf.append_fzf(
-                    f"PhysicalId: {resource['PhysicalResourceId']}")
-                resource_fzf.append_fzf('\n')
-            # get selected id
-            selected_id = resource_fzf.execute_fzf(empty_allow=True)
-            if not selected_id:
-                break
-            logical_id_list.append(selected_id)
-            # remove the selected entry
-            resource_list = remove_dict_from_list(
-                selected_id, resource_list, 'LogicalResourceId')
-            if len(resource_list) < 1:
-                break
-            # clear fzf_string
-            resource_fzf.fzf_string = ''
+        response_list = response['StackResourceSummaries']
+        logical_id_list = process_list_fzf(
+            response_list, 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId', multi_select=True)
+
     confirm = get_confirmation(
         f"Are you sure you want to delete the stack '{stack_name}'?(y/n): ")
     if confirm == 'n':
@@ -56,6 +33,8 @@ def delete_stack(args, stack_name, stack_details):
         response = cloudformation.delete_stack(
             StackName=stack_name)
     print(response)
+
+    # wait for completion
     if args.wait:
         waiter = cloudformation.get_waiter('stack_delete_complete')
         print('--------------------------------------------------------------------------------')
