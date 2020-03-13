@@ -11,12 +11,13 @@ from pyfaws.cform.update_stack import update_stack
 from pyfaws.cform.helper.get_stack import get_stack
 from pyfaws.cform.create_stack import create_stack
 from pyfaws.cform.drift_stack import drift_stack
+from pyfaws.cform.changeset_stack import changeset_stack
 from pyfaws.pyfzf import PyFzf
 
 
 parser = argparse.ArgumentParser(
     description='CRUD operation on aws cloudformation.',
-    usage='faws cform [-h] {update,create,delete} ...'
+    usage='faws cform [-h] {update,create,delete,drift,changeset} ...'
 )
 subparsers = parser.add_subparsers(dest='subparser_name')
 # update command flags
@@ -104,6 +105,9 @@ try:
             print(selected_stack['StackDetails'])
         elif args.subparser_name == 'drift':
             drift_stack(
+                args, selected_stack['StackName'], selected_stack['StackDetails'])
+        elif args.subparser_name == 'changeset':
+            changeset_stack(
                 args, selected_stack['StackName'], selected_stack['StackDetails'])
 
 except subprocess.CalledProcessError as e:
