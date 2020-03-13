@@ -43,12 +43,21 @@ def create_stack(args):
 
         # three different types
         try:
-            response = cloudformation.create_stack(
-                StackName=stack_name,
-                TemplateBody=file_data['body'],
-                Parameters=create_parameters,
-                Tags=tags,
-            )
+            if not args.capabilities:
+                response = cloudformation.create_stack(
+                    StackName=stack_name,
+                    TemplateBody=file_data['body'],
+                    Parameters=create_parameters,
+                    Tags=tags,
+                )
+            else:
+                response = cloudformation.create_stack(
+                    StackName=stack_name,
+                    TemplateBody=file_data['body'],
+                    Parameters=create_parameters,
+                    Tags=tags,
+                    Capabilities=get_capabilities()
+                )
         except cloudformation.exceptions.InsufficientCapabilitiesException as e:
             response = cloudformation.create_stack(
                 StackName=stack_name,
@@ -81,12 +90,21 @@ def create_stack(args):
         template_body_loacation = get_s3_url(
             selected_bucket, selected_file)
         try:
-            response = cloudformation.create_stack(
-                StackName=stack_name,
-                TemplateURL=template_body_loacation,
-                Parameters=create_parameters,
-                Tags=tags
-            )
+            if not args.capabilities:
+                response = cloudformation.create_stack(
+                    StackName=stack_name,
+                    TemplateURL=template_body_loacation,
+                    Parameters=create_parameters,
+                    Tags=tags
+                )
+            else:
+                response = cloudformation.create_stack(
+                    StackName=stack_name,
+                    TemplateURL=template_body_loacation,
+                    Parameters=create_parameters,
+                    Tags=tags,
+                    Capabilities=get_capabilities()
+                )
         except cloudformation.exceptions.InsufficientCapabilitiesException as e:
             response = cloudformation.create_stack(
                 StackName=stack_name,

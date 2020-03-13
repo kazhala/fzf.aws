@@ -47,12 +47,21 @@ def update_stack(args, stack_name, stack_details):
                 tags.append(new_tag)
         # update the stack
         try:
-            response = cloudformation.update_stack(
-                StackName=stack_name,
-                UsePreviousTemplate=True,
-                Parameters=updated_parameters,
-                Tags=tags
-            )
+            if not args.capabilities:
+                response = cloudformation.update_stack(
+                    StackName=stack_name,
+                    UsePreviousTemplate=True,
+                    Parameters=updated_parameters,
+                    Tags=tags
+                )
+            else:
+                response = cloudformation.update_stack(
+                    StackName=stack_name,
+                    UsePreviousTemplate=True,
+                    Parameters=updated_parameters,
+                    Tags=tags,
+                    Capabilities=get_capabilities()
+                )
         except cloudformation.exceptions.InsufficientCapabilitiesException as e:
             response = cloudformation.update_stack(
                 StackName=stack_name,
@@ -96,13 +105,23 @@ def update_stack(args, stack_name, stack_details):
                 for new_tag in new_tags:
                     tags.append(new_tag)
             try:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    TemplateBody=file_data['body'],
-                    UsePreviousTemplate=False,
-                    Parameters=updated_parameters,
-                    Tags=tags
-                )
+                if not args.capabilities:
+                    response = cloudformation.update_stack(
+                        StackName=stack_name,
+                        TemplateBody=file_data['body'],
+                        UsePreviousTemplate=False,
+                        Parameters=updated_parameters,
+                        Tags=tags
+                    )
+                else:
+                    response = cloudformation.update_stack(
+                        StackName=stack_name,
+                        TemplateBody=file_data['body'],
+                        UsePreviousTemplate=False,
+                        Parameters=updated_parameters,
+                        Tags=tags,
+                        Capabilities=get_capabilities()
+                    )
             except cloudformation.exceptions.InsufficientCapabilitiesException as e:
                 response = cloudformation.update_stack(
                     StackName=stack_name,
@@ -146,13 +165,23 @@ def update_stack(args, stack_name, stack_details):
             template_body_loacation = get_s3_url(
                 selected_bucket, selected_file)
             try:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    TemplateURL=template_body_loacation,
-                    Parameters=updated_parameters,
-                    UsePreviousTemplate=False,
-                    Tags=tags
-                )
+                if not args.capabilities:
+                    response = cloudformation.update_stack(
+                        StackName=stack_name,
+                        TemplateURL=template_body_loacation,
+                        Parameters=updated_parameters,
+                        UsePreviousTemplate=False,
+                        Tags=tags
+                    )
+                else:
+                    response = cloudformation.update_stack(
+                        StackName=stack_name,
+                        TemplateURL=template_body_loacation,
+                        Parameters=updated_parameters,
+                        UsePreviousTemplate=False,
+                        Tags=tags,
+                        Capabilities=get_capabilities()
+                    )
             except cloudformation.exceptions.InsufficientCapabilitiesException as e:
                 response = cloudformation.update_stack(
                     StackName=stack_name,

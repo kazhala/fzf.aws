@@ -34,6 +34,8 @@ update_cmd.add_argument('-r', '--replace', action='store_true', default=False,
                         help='replace current template to update')
 update_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                         help='Pause the script and wait for update complete signal, max wait time 60mins')
+update_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
+                        help='Select capabilities to acknowledge during stack update')
 # create command flags
 create_cmd = subparsers.add_parser('create', description='create a new stack')
 create_cmd.add_argument('-R', '--root', action='store_true', default=False,
@@ -44,6 +46,8 @@ create_cmd.add_argument('-l', '--local', action='store_true',
                         default=False, help='upload local file')
 create_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                         help='Pause the script and wait for create complete signal, max wait time 60mins')
+create_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
+                        help='Select capabilities to acknowledge during stack creation')
 # delete and ls doesn't have flags
 delete_cmd = subparsers.add_parser(
     'delete', description='delete an existing stack')
@@ -57,6 +61,8 @@ drift_cmd.add_argument('-i', '--info', action='store_true', default=False,
                        help='Check the current drift status')
 drift_cmd.add_argument('-s', '--select', action='store_true', default=False,
                        help='select individual resource or resources to detect drift')
+changeset_cmd = subparsers.add_parser(
+    'changeset', description='create a change set for the selected stack')
 args = parser.parse_args()
 
 try:
