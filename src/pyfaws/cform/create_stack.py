@@ -6,6 +6,7 @@ from pyfaws.cform.helper.tags import get_tags
 from pyfaws.pyfzf import PyFzf
 from pyfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from pyfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
+from pyfaws.cform.helper.get_capabilities import get_capabilities
 
 # initialize the cloudformation boto3 client
 cloudformation = boto3.client('cloudformation')
@@ -39,12 +40,23 @@ def create_stack(args):
         else:
             create_parameters = []
         tags = get_tags()
-        response = cloudformation.create_stack(
-            StackName=stack_name,
-            TemplateBody=file_data['body'],
-            Parameters=create_parameters,
-            Tags=tags
-        )
+
+        # three different types
+        try:
+            response = cloudformation.create_stack(
+                StackName=stack_name,
+                TemplateBody=file_data['body'],
+                Parameters=create_parameters,
+                Tags=tags,
+            )
+        except cloudformation.exceptions.InsufficientCapabilitiesException as e:
+            response = cloudformation.create_stack(
+                StackName=stack_name,
+                TemplateBody=file_data['body'],
+                Parameters=create_parameters,
+                Tags=tags,
+                Capabilities=get_capabilities()
+            )
 
     # if no local file flag, get from s3
     else:
@@ -68,12 +80,22 @@ def create_stack(args):
         # s3 object url
         template_body_loacation = get_s3_url(
             selected_bucket, selected_file)
-        response = cloudformation.create_stack(
-            StackName=stack_name,
-            TemplateURL=template_body_loacation,
-            Parameters=create_parameters,
-            Tags=tags
-        )
+        try:
+            response = cloudformation.create_stack(
+                StackName=stack_name,
+                TemplateURL=template_body_loacation,
+                Parameters=create_parameters,
+                Tags=tags
+            )
+        except cloudformation.exceptions.InsufficientCapabilitiesException as e:
+            response = cloudformation.create_stack(
+                StackName=stack_name,
+                TemplateURL=template_body_loacation,
+                Parameters=create_parameters,
+                Tags=tags,
+                Capabilities=get_capabilities()
+            )
+
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
     print(80*'-')
