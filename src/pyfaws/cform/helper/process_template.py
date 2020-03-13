@@ -304,10 +304,10 @@ def process_stack_params(parameters, oldParameters=None):
                 parameters, ParameterKey, parameter_type)
 
         if type(ParameterValue) is list:
-            ParameterValue = ','.join(ParameterValue)
+            ParameterValue = ','.join(str(ParameterValue))
             create_parameters.append(
                 {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
         else:
             create_parameters.append(
-                {'ParameterKey': ParameterKey, 'ParameterValue': ParameterValue})
+                {'ParameterKey': ParameterKey, 'ParameterValue': str(ParameterValue)})
     return create_parameters
