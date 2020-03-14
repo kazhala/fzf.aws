@@ -2,6 +2,7 @@
 import boto3
 import json
 from pyfaws.pyfzf import PyFzf
+from pyfaws.cform.update_stack import update_stack
 
 cloudformation = boto3.client('cloudformation')
 
@@ -28,3 +29,7 @@ def changeset_stack(args, stack_name, stack_details):
                 StackName=stack_name
             )
             print(response)
+    else:
+        update_details = update_stack(args, stack_name, stack_details)
+        print(update_details)
+

@@ -6,7 +6,7 @@ from pyfaws.cform.helper.tags import get_tags, update_tags
 from pyfaws.pyfzf import PyFzf
 from pyfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from pyfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
-from pyfaws.cform.helper.get_capabilities import get_capabilities
+from pyfaws.cform.helper.get_capabilities import execute_with_capabilities
 
 cloudformation = boto3.client('cloudformation')
 
@@ -15,28 +15,29 @@ def update_stack(args, stack_name, stack_details):
     # check to use current template or replace current template
     if not args.replace:
         print('Enter new parameter values, skip to use original value')
-        parameters = stack_details['Parameters']
         updated_parameters = []
+        if 'Parameters' in stack_details:
+            parameters = stack_details['Parameters']
 
-        for parameter in parameters:
             # take new values
-            parameter_value = input(
-                f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
-            if parameter_value == '""' or parameter_value == "''":
-                updated_parameters.append({
-                    'ParameterKey': parameter['ParameterKey'],
-                    'ParameterValue': ''
-                })
-            elif not parameter_value:
-                updated_parameters.append({
-                    'ParameterKey': parameter['ParameterKey'],
-                    'UsePreviousValue': True
-                })
-            else:
-                updated_parameters.append({
-                    'ParameterKey': parameter['ParameterKey'],
-                    'ParameterValue': parameter_value
-                })
+            for parameter in parameters:
+                parameter_value = input(
+                    f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
+                if parameter_value == '""' or parameter_value == "''":
+                    updated_parameters.append({
+                        'ParameterKey': parameter['ParameterKey'],
+                        'ParameterValue': ''
+                    })
+                elif not parameter_value:
+                    updated_parameters.append({
+                        'ParameterKey': parameter['ParameterKey'],
+                        'UsePreviousValue': True
+                    })
+                else:
+                    updated_parameters.append({
+                        'ParameterKey': parameter['ParameterKey'],
+                        'ParameterValue': parameter_value
+                    })
 
         # get tags from user if flag -t
         tags = stack_details['Tags']
@@ -45,31 +46,20 @@ def update_stack(args, stack_name, stack_details):
             new_tags = get_tags(update=True)
             for new_tag in new_tags:
                 tags.append(new_tag)
+
+        # return the data if this function is called through changeset_stack
+        if args.subparser_name == 'changeset':
+            return {'parameters': updated_parameters, 'tags': tags}
+
         # update the stack
-        try:
-            if not args.capabilities:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    UsePreviousTemplate=True,
-                    Parameters=updated_parameters,
-                    Tags=tags
-                )
-            else:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    UsePreviousTemplate=True,
-                    Parameters=updated_parameters,
-                    Tags=tags,
-                    Capabilities=get_capabilities()
-                )
-        except cloudformation.exceptions.InsufficientCapabilitiesException as e:
-            response = cloudformation.update_stack(
-                StackName=stack_name,
-                UsePreviousTemplate=True,
-                Parameters=updated_parameters,
-                Tags=tags,
-                Capabilities=get_capabilities()
-            )
+        response = execute_with_capabilities(
+            args=args,
+            cloudformation_action=cloudformation.update_stack,
+            StackName=stack_name,
+            UsePreviousTemplate=True,
+            Parameters=updated_parameters,
+            Tags=tags
+        )
 
     else:
         # replace existing template
@@ -104,33 +94,16 @@ def update_stack(args, stack_name, stack_details):
                 new_tags = get_tags(update=True)
                 for new_tag in new_tags:
                     tags.append(new_tag)
-            try:
-                if not args.capabilities:
-                    response = cloudformation.update_stack(
-                        StackName=stack_name,
-                        TemplateBody=file_data['body'],
-                        UsePreviousTemplate=False,
-                        Parameters=updated_parameters,
-                        Tags=tags
-                    )
-                else:
-                    response = cloudformation.update_stack(
-                        StackName=stack_name,
-                        TemplateBody=file_data['body'],
-                        UsePreviousTemplate=False,
-                        Parameters=updated_parameters,
-                        Tags=tags,
-                        Capabilities=get_capabilities()
-                    )
-            except cloudformation.exceptions.InsufficientCapabilitiesException as e:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    TemplateBody=file_data['body'],
-                    UsePreviousTemplate=False,
-                    Parameters=updated_parameters,
-                    Tags=tags,
-                    Capabilities=get_capabilities()
-                )
+
+            response = execute_with_capabilities(
+                args=args,
+                cloudformation_action=cloudformation.update_stack,
+                StackName=stack_name,
+                TemplateBody=file_data['body'],
+                UsePreviousTemplate=False,
+                Parameters=updated_parameters,
+                Tags=tags,
+            )
 
         # if no local file flag, get from s3
         else:
@@ -164,33 +137,15 @@ def update_stack(args, stack_name, stack_details):
             # s3 object url
             template_body_loacation = get_s3_url(
                 selected_bucket, selected_file)
-            try:
-                if not args.capabilities:
-                    response = cloudformation.update_stack(
-                        StackName=stack_name,
-                        TemplateURL=template_body_loacation,
-                        Parameters=updated_parameters,
-                        UsePreviousTemplate=False,
-                        Tags=tags
-                    )
-                else:
-                    response = cloudformation.update_stack(
-                        StackName=stack_name,
-                        TemplateURL=template_body_loacation,
-                        Parameters=updated_parameters,
-                        UsePreviousTemplate=False,
-                        Tags=tags,
-                        Capabilities=get_capabilities()
-                    )
-            except cloudformation.exceptions.InsufficientCapabilitiesException as e:
-                response = cloudformation.update_stack(
-                    StackName=stack_name,
-                    TemplateURL=template_body_loacation,
-                    Parameters=updated_parameters,
-                    UsePreviousTemplate=False,
-                    Tags=tags,
-                    Capabilities=get_capabilities()
-                )
+            response = execute_with_capabilities(
+                args=args,
+                cloudformation_action=cloudformation.update_stack,
+                StackName=stack_name,
+                TemplateURL=template_body_loacation,
+                Parameters=updated_parameters,
+                UsePreviousTemplate=False,
+                Tags=tags,
+            )
 
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
