@@ -49,7 +49,7 @@ def update_stack(args, stack_name, stack_details):
 
         # return the data if this function is called through changeset_stack
         if args.subparser_name == 'changeset':
-            return {'parameters': updated_parameters, 'tags': tags}
+            return {'Parameters': updated_parameters, 'Tags': tags}
 
         # update the stack
         response = cloudformation_with_capabilities(

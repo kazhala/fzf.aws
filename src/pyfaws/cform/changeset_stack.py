@@ -3,6 +3,7 @@ import boto3
 import json
 from pyfaws.pyfzf import PyFzf
 from pyfaws.cform.update_stack import update_stack
+from pyfaws.cform.helper.get_capabilities import cloudformation_with_capabilities
 
 cloudformation = boto3.client('cloudformation')
 
@@ -30,6 +31,23 @@ def changeset_stack(args, stack_name, stack_details):
             )
             print(response)
     else:
+        changeset_name = input('Enter name of this changeset: ')
+        if not changeset_name:
+            raise Exception('No changeset name specified')
+        changeset_description = input('Description: ')
+        # since is almost same operation as update stack
+        # let update_stack handle it, but return update details instead of execute
         update_details = update_stack(args, stack_name, stack_details)
-        print(update_details)
+        if not args.replace:
+            response = cloudformation_with_capabilities(
+                args=args,
+                cloudformation_action=cloudformation.create_change_set,
+                StackName=stack_name,
+                UsePreviousTemplate=True,
+                Parameters=update_details['Parameters'],
+                Tags=update_details['Tags'],
+                ChangeSetName=changeset_name,
+                Description=changeset_description
+            )
+        print(response)
 
