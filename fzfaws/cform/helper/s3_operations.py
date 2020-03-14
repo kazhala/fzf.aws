@@ -2,7 +2,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_template import process_yaml_body, process_json_body
+from fzfaws.cform.helper.process_file import process_json_body, process_yaml_body
 
 s3 = boto3.client('s3')
 # using s3 resource to read the object data for dynamic parameter input

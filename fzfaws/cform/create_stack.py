@@ -2,18 +2,17 @@
 
 create cloudformation stack through both s3 bucket url or local file upload
 """
-import boto3
 import json
 from fzfaws.utils.util import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
+from fzfaws.cform.helper.process_template import process_stack_params
+from fzfaws.cform.helper.process_file import process_json_file, process_yaml_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
+from fzfaws.utils.exceptions import NoNameEntered
 
-cloudformation = boto3.client('cloudformation')
 
-
-def create_stack(args):
+def create_stack(args, cloudformation):
     """handle the creation of the cloudformation stack
 
     Args:
@@ -49,7 +48,7 @@ def create_stack(args):
 
         response = cloudformation.execute_with_capabilities(
             args=args,
-            cloudformation_action=cloudformation.create_stack,
+            cloudformation_action=cloudformation.client.create_stack,
             StackName=stack_name,
             TemplateBody=file_data['body'],
             Parameters=create_parameters,
@@ -62,6 +61,8 @@ def create_stack(args):
         selected_file = get_s3_file(selected_bucket)
         check_is_valid(selected_file)
         stack_name = input('StackName: ')
+        if not stack_name:
+            raise NoNameEntered('No name entered')
         # read the s3 file
         if is_yaml(selected_file):
             file_data = get_file_data(
@@ -77,7 +78,7 @@ def create_stack(args):
             selected_bucket, selected_file)
         response = cloudformation.execute_with_capabilities(
             args=args,
-            cloudformation_action=cloudformation.create_stack,
+            cloudformation_action=cloudformation.client.create_stack,
             StackName=stack_name,
             TemplateURL=template_body_loacation,
             Parameters=create_parameters,
@@ -90,14 +91,7 @@ def create_stack(args):
     print('Stack creation initiated')
 
     if args.wait:
-        waiter = cloudformation.get_waiter('stack_create_complete')
-        print('--------------------------------------------------------------------------------')
         print("Waiting for stack to be ready...")
-        waiter.wait(
-            StackName=stack_name,
-            WaiterConfig={
-                'Delay': 30,
-                'MaxAttempts': 120
-            }
-        )
+        cloudformation.set_stack(stack_name)
+        cloudformation.wait('stack_create_complete')
         print('Stack create complete')

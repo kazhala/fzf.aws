@@ -133,7 +133,7 @@ def cform(raw_args):
         cloudformation = Cloudformation()
 
         if args.subparser_name == 'create':
-            create_stack(args)
+            create_stack(args, cloudformation)
 
         else:
             cloudformation.get_stack()

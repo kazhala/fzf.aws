@@ -12,7 +12,11 @@ from fzfaws.utils.util import search_dict_in_list
 class Cloudformation:
     """Cloudformation class to interact with boto3.client('cloudformaiton')
 
-
+    handles operations directly related to boto3.client
+    Attributes:
+        client: boto3 client
+        stack_name: then name of the selected stack
+        stack_details: a dict containing response from boto3
     """
 
     def __init__(self, region=None, profile=None):
@@ -21,6 +25,7 @@ class Cloudformation:
         self.stack_details = None
 
     def get_stack(self):
+        """stores the selected stack into the instance"""
         response = self.client.describe_stacks()
         fzf = Pyfzf()
         self.stack_name = fzf.process_list(
@@ -29,6 +34,17 @@ class Cloudformation:
             self.stack_name, response['Stacks'], 'StackName')
 
     def wait(self, waiter_name, delay=15, attempts=240, **kwargs):
+        """wait for the operation to be completed
+
+        Args:
+            waiter_name: string, name from boto3 waiter
+            delay: number, how long between each attempt
+            attempts: number, max attempts, usually 60mins, so 30 * 120
+            **kwargs: rest of args for specific waiters like changeset waiter require ChangeSetName
+        Returns:
+            None
+            will pause the program until finish or error raised
+        """
         waiter = self.client.get_waiter(waiter_name)
         print(80*'-')
         waiter.wait(
@@ -39,6 +55,10 @@ class Cloudformation:
             },
             **kwargs
         )
+
+    def set_stack(self, name):
+        """used for create stack where there is no stack name to begin with"""
+        self.stack_name = name
 
     def execute_with_capabilities(self, args, cloudformation_action, **kwargs):
         """execute the cloudformation_action with capabilities handled
@@ -59,13 +79,13 @@ class Cloudformation:
                 response = cloudformation_action(**kwargs)
             else:
                 response = cloudformation_action(
-                    **kwargs, Capabilities=self.get_capabilities())
+                    **kwargs, Capabilities=self._get_capabilities())
         except self.client.exceptions.InsufficientCapabilitiesException as e:
             response = cloudformation_action(
-                **kwargs, Capabilities=self.get_capabilities())
+                **kwargs, Capabilities=self._get_capabilities())
         return response
 
-    def get_capabilities(self):
+    def _get_capabilities(self):
         """display help message and let user select capabilities"""
         fzf = Pyfzf()
         fzf.append_fzf('CAPABILITY_IAM\n')

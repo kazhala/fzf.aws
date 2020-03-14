@@ -6,7 +6,8 @@ import json
 from fzfaws.utils.util import search_dict_in_list, is_yaml, check_is_valid, is_json
 from fzfaws.cform.helper.tags import get_tags, update_tags
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
+from fzfaws.cform.helper.process_template import process_stack_params
+from fzfaws.cform.helper.process_file import process_yaml_file, process_json_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 
 
