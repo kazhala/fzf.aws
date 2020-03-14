@@ -107,7 +107,8 @@ def cform(raw_args):
     try:
         # if no argument provided, display help message through fzf
         if not raw_args:
-            available_commands = ['update', 'create', 'delete', 'ls', 'drift']
+            available_commands = ['update', 'create',
+                                  'delete', 'ls', 'drift', 'changeset']
             fzf = Pyfzf()
             for command in available_commands:
                 fzf.append_fzf(command)
@@ -122,6 +123,10 @@ def cform(raw_args):
                 delete_cmd.print_help()
             elif selected_command == 'ls':
                 ls_cmd.print_help()
+            elif selected_command == 'drift':
+                drift_cmd.print_help()
+            elif selected_command == 'changeset':
+                changeset_cmd.print_help()
             exit()
 
         if args.subparser_name == 'create':
