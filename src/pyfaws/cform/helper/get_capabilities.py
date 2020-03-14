@@ -18,7 +18,7 @@ def get_capabilities():
     return fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True)
 
 
-def execute_with_capabilities(args, cloudformation_action, **kwargs):
+def cloudformation_with_capabilities(args, cloudformation_action, **kwargs):
     try:
         if not args.capabilities:
             response = cloudformation_action(**kwargs)

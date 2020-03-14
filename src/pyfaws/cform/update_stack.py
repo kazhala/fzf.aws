@@ -6,7 +6,7 @@ from pyfaws.cform.helper.tags import get_tags, update_tags
 from pyfaws.pyfzf import PyFzf
 from pyfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from pyfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
-from pyfaws.cform.helper.get_capabilities import execute_with_capabilities
+from pyfaws.cform.helper.get_capabilities import cloudformation_with_capabilities
 
 cloudformation = boto3.client('cloudformation')
 
@@ -52,7 +52,7 @@ def update_stack(args, stack_name, stack_details):
             return {'parameters': updated_parameters, 'tags': tags}
 
         # update the stack
-        response = execute_with_capabilities(
+        response = cloudformation_with_capabilities(
             args=args,
             cloudformation_action=cloudformation.update_stack,
             StackName=stack_name,
@@ -95,7 +95,7 @@ def update_stack(args, stack_name, stack_details):
                 for new_tag in new_tags:
                     tags.append(new_tag)
 
-            response = execute_with_capabilities(
+            response = cloudformation_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.update_stack,
                 StackName=stack_name,
@@ -137,7 +137,7 @@ def update_stack(args, stack_name, stack_details):
             # s3 object url
             template_body_loacation = get_s3_url(
                 selected_bucket, selected_file)
-            response = execute_with_capabilities(
+            response = cloudformation_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.update_stack,
                 StackName=stack_name,
