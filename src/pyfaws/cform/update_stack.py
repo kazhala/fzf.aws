@@ -95,6 +95,9 @@ def update_stack(args, stack_name, stack_details):
                 for new_tag in new_tags:
                     tags.append(new_tag)
 
+            if args.subparser_name == 'changeset':
+                return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateBody': file_data['body']}
+
             response = cloudformation_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.update_stack,
@@ -137,6 +140,10 @@ def update_stack(args, stack_name, stack_details):
             # s3 object url
             template_body_loacation = get_s3_url(
                 selected_bucket, selected_file)
+
+            if args.subparser_name == 'changeset':
+                return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateURL': template_body_loacation}
+
             response = cloudformation_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.update_stack,

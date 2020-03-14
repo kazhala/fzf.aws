@@ -22,14 +22,17 @@ def changeset_stack(args, stack_name, stack_details):
                 ChangeSetName=selected_changeset,
                 StackName=stack_name,
             )
-            response.pop('ResponseMetadata', None)
-            print(json.dumps(response, indent=4, default=str))
+            print('StackName: %s' % (stack_name))
+            print('ChangeSetName: %s' % (selected_changeset))
+            print('Changes:')
+            print(json.dumps(response['Changes'], indent=4, default=str))
         elif args.execute:
             response = cloudformation.execute_change_set(
                 ChangeSetName=selected_changeset,
                 StackName=stack_name
             )
             print(response)
+
     else:
         changeset_name = input('Enter name of this changeset: ')
         if not changeset_name:
@@ -49,5 +52,31 @@ def changeset_stack(args, stack_name, stack_details):
                 ChangeSetName=changeset_name,
                 Description=changeset_description
             )
+        else:
+            if args.local:
+                response = cloudformation_with_capabilities(
+                    args=args,
+                    cloudformation_action=cloudformation.create_change_set,
+                    StackName=stack_name,
+                    TemplateBody=update_details['TemplateBody'],
+                    UsePreviousTemplate=False,
+                    Parameters=update_details['Parameters'],
+                    Tags=update_details['Tags'],
+                    ChangeSetName=changeset_name,
+                    Description=changeset_description
+                )
+            else:
+                response = cloudformation_with_capabilities(
+                    args=args,
+                    cloudformation_action=cloudformation.create_change_set,
+                    StackName=stack_name,
+                    TemplateURL=update_details['TemplateURL'],
+                    UsePreviousTemplate=False,
+                    Parameters=update_details['Parameters'],
+                    Tags=update_details['Tags'],
+                    ChangeSetName=changeset_name,
+                    Description=changeset_description
+                )
+
         print(response)
 
