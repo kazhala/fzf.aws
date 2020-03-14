@@ -8,7 +8,6 @@ from fzfaws.cform.helper.tags import get_tags, update_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
-from fzfaws.cform.helper.get_capabilities import cloudformation_with_capabilities
 
 
 def update_stack(args, cloudformation):
@@ -62,7 +61,7 @@ def update_stack(args, cloudformation):
         if args.subparser_name == 'changeset':
             return {'Parameters': updated_parameters, 'Tags': tags}
 
-        response = cloudformation_with_capabilities(
+        response = cloudformation.execute_with_capabilities(
             args=args,
             cloudformation_action=cloudformation.client.update_stack,
             StackName=cloudformation.stack_name,
@@ -106,7 +105,7 @@ def update_stack(args, cloudformation):
             if args.subparser_name == 'changeset':
                 return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateBody': file_data['body']}
 
-            response = cloudformation_with_capabilities(
+            response = cloudformation.execute_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.client.update_stack,
                 StackName=cloudformation.stack_name,
@@ -149,7 +148,7 @@ def update_stack(args, cloudformation):
             if args.subparser_name == 'changeset':
                 return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateURL': template_body_loacation}
 
-            response = cloudformation_with_capabilities(
+            response = cloudformation.execute_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.client.update_stack,
                 StackName=cloudformation.stack_name,

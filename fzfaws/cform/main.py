@@ -17,6 +17,7 @@ from fzfaws.cform.drift_stack import drift_stack
 from fzfaws.cform.changeset_stack import changeset_stack
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.cform import Cloudformation
+from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 
 
 def cform(raw_args):
@@ -153,5 +154,9 @@ def cform(raw_args):
         print(e)
     except KeyboardInterrupt:
         print('\nExit')
+    except NoSelectionMade as e:
+        print(e)
+    except NoNameEntered as e:
+        print(e)
     except Exception as e:
         print(e)

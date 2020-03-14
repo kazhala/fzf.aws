@@ -1,5 +1,6 @@
 import subprocess
 import os
+from fzfaws.utils.exceptions import NoSelectionMade
 
 
 class Pyfzf:
@@ -43,7 +44,7 @@ class Pyfzf:
             ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
 
         if not selection_name and not empty_allow:
-            raise Exception('Empty selection, exiting..')
+            raise NoSelectionMade('Empty selection, exiting..')
 
         if multi_select:
             # multi_select would return everything seperate by \n
@@ -79,7 +80,7 @@ class Pyfzf:
             return False
 
     # process a list of dict and put into fzf menu
-    def process_list(self, response_list, key_name, *arg_keys, multi_select=False, gap=2):
+    def process_list(self, response_list, key_name, *arg_keys, multi_select=False, gap=2, empty_allow=True):
         for item in response_list:
             self.append_fzf(f"{key_name}: {item[key_name]}")
             for arg in arg_keys:
@@ -87,6 +88,6 @@ class Pyfzf:
                 self.append_fzf(f"{arg}: {item[arg]}")
             self.append_fzf('\n')
         if multi_select:
-            return self.execute_fzf(empty_allow=True, multi_select=True)
+            return self.execute_fzf(empty_allow=empty_allow, multi_select=True)
         else:
-            return self.execute_fzf(empty_allow=True)
+            return self.execute_fzf(empty_allow=empty_allow)

@@ -4,8 +4,8 @@ Typical usage example:
     faws <command> --options
 """
 import sys
-from fzfaws.utils.exceptions.no_command import NoCommandFound
 from fzfaws.cform.main import cform
+from fzfaws.utils.exceptions import NoCommandFound
 
 
 def main():

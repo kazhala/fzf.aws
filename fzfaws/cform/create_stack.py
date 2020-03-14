@@ -9,7 +9,6 @@ from fzfaws.cform.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_template import process_yaml_file, process_stack_params, process_json_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
-from fzfaws.cform.helper.get_capabilities import get_capabilities, cloudformation_with_capabilities
 
 cloudformation = boto3.client('cloudformation')
 
@@ -48,7 +47,7 @@ def create_stack(args):
             create_parameters = []
         tags = get_tags()
 
-        response = cloudformation_with_capabilities(
+        response = cloudformation.execute_with_capabilities(
             args=args,
             cloudformation_action=cloudformation.create_stack,
             StackName=stack_name,
@@ -76,7 +75,7 @@ def create_stack(args):
         # s3 object url
         template_body_loacation = get_s3_url(
             selected_bucket, selected_file)
-        response = cloudformation_with_capabilities(
+        response = cloudformation.execute_with_capabilities(
             args=args,
             cloudformation_action=cloudformation.create_stack,
             StackName=stack_name,

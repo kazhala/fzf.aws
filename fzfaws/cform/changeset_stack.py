@@ -5,7 +5,7 @@ create/view changeset of the cloudformation stacks
 import json
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.update_stack import update_stack
-from fzfaws.cform.helper.get_capabilities import cloudformation_with_capabilities
+from fzfaws.utils.exceptions import NoNameEntered
 
 
 def describe_changes(cloudformation, changeset_name):
@@ -63,14 +63,14 @@ def changeset_stack(args, cloudformation):
     else:
         changeset_name = input('Enter name of this changeset: ')
         if not changeset_name:
-            raise Exception('No changeset name specified')
+            raise NoNameEntered('No changeset name specified')
         changeset_description = input('Description: ')
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
         update_details = update_stack(args, cloudformation)
 
         if not args.replace:
-            response = cloudformation_with_capabilities(
+            response = cloudformation.execute_with_capabilities(
                 args=args,
                 cloudformation_action=cloudformation.client.create_change_set,
                 StackName=cloudformation.stack_name,
@@ -82,7 +82,7 @@ def changeset_stack(args, cloudformation):
             )
         else:
             if args.local:
-                response = cloudformation_with_capabilities(
+                response = cloudformation.execute_with_capabilities(
                     args=args,
                     cloudformation_action=cloudformation.client.create_change_set,
                     StackName=cloudformation.stack_name,
@@ -94,7 +94,7 @@ def changeset_stack(args, cloudformation):
                     Description=changeset_description
                 )
             else:
-                response = cloudformation_with_capabilities(
+                response = cloudformation.execute_with_capabilities(
                     args=args,
                     cloudformation_action=cloudformation.client.create_change_set,
                     StackName=cloudformation.stack_name,
