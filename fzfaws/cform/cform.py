@@ -28,7 +28,7 @@ class Cloudformation:
         self.stack_details = search_dict_in_list(
             self.stack_name, response['Stacks'], 'StackName')
 
-    def wait(self, waiter_name, delay=15, attempts=240):
+    def wait(self, waiter_name, delay=15, attempts=240, **kwargs):
         waiter = self.client.get_waiter(waiter_name)
         print(80*'-')
         waiter.wait(
@@ -36,7 +36,8 @@ class Cloudformation:
             WaiterConfig={
                 'Delay': delay,
                 'MaxAttempts': attempts
-            }
+            },
+            **kwargs
         )
 
     def execute_with_capabilities(self, args, cloudformation_action, **kwargs):

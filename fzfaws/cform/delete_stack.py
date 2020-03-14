@@ -48,14 +48,5 @@ def delete_stack(args, cloudformation):
 
     # wait for completion
     if args.wait:
-        waiter = cloudformation.client.get_waiter('stack_delete_complete')
-        print('--------------------------------------------------------------------------------')
-        print("Waiting for stack to be deleted...")
-        waiter.wait(
-            StackName=cloudformation.stack_name,
-            WaiterConfig={
-                'Delay': 30,
-                'MaxAttempts': 120
-            }
-        )
+        cloudformation.wait('stack_delete_complete')
         print('Stack deleted')

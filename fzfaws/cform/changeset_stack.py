@@ -112,18 +112,7 @@ def changeset_stack(args, cloudformation):
         print('Changeset create initiated')
 
         if args.wait:
-            waiter = cloudformation.client.get_waiter(
-                'change_set_create_complete')
-            print(
-                '--------------------------------------------------------------------------------')
-            print("Waiting for changeset to be created...")
-            waiter.wait(
-                StackName=cloudformation.stack_name,
-                ChangeSetName=changeset_name,
-                WaiterConfig={
-                    'Delay': 30,
-                    'MaxAttempts': 120
-                }
-            )
+            cloudformation.wait('change_set_create_complete',
+                                ChangeSetName=changeset_name)
             print('Changeset created')
             describe_changes(cloudformation, changeset_name)
