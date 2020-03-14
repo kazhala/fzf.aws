@@ -8,6 +8,17 @@ from pyfaws.cform.helper.get_capabilities import cloudformation_with_capabilitie
 cloudformation = boto3.client('cloudformation')
 
 
+def describe_changes(stack_name, changeset_name):
+    response = cloudformation.describe_change_set(
+        ChangeSetName=changeset_name,
+        StackName=stack_name,
+    )
+    print('StackName: %s' % (stack_name))
+    print('ChangeSetName: %s' % (changeset_name))
+    print('Changes:')
+    print(json.dumps(response['Changes'], indent=4, default=str))
+
+
 def changeset_stack(args, stack_name, stack_details):
     if args.info or args.execute:
         fzf = PyFzf()
@@ -15,17 +26,14 @@ def changeset_stack(args, stack_name, stack_details):
             StackName=stack_name
         )
         response_list = response['Summaries']
+        # get the changeset name
         selected_changeset = fzf.process_list(response_list, 'ChangeSetName', 'StackName',
                                               'ExecutionStatus', 'Status', 'Description')
+
         if args.info:
-            response = cloudformation.describe_change_set(
-                ChangeSetName=selected_changeset,
-                StackName=stack_name,
-            )
-            print('StackName: %s' % (stack_name))
-            print('ChangeSetName: %s' % (selected_changeset))
-            print('Changes:')
-            print(json.dumps(response['Changes'], indent=4, default=str))
+            describe_changes(stack_name, selected_changeset)
+
+        # execute the change set
         elif args.execute:
             response = cloudformation.execute_change_set(
                 ChangeSetName=selected_changeset,
@@ -41,6 +49,7 @@ def changeset_stack(args, stack_name, stack_details):
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
         update_details = update_stack(args, stack_name, stack_details)
+
         if not args.replace:
             response = cloudformation_with_capabilities(
                 args=args,
@@ -78,5 +87,23 @@ def changeset_stack(args, stack_name, stack_details):
                     Description=changeset_description
                 )
 
-        print(response)
+        response.pop('ResponseMetadata', None)
+        print(json.dumps(response, indent=4, default=str))
+        print(80*'-')
+        print('Changeset create initiated')
 
+        if args.wait:
+            waiter = cloudformation.get_waiter('change_set_create_complete')
+            print(
+                '--------------------------------------------------------------------------------')
+            print("Waiting for changeset to be created...")
+            waiter.wait(
+                StackName=stack_name,
+                ChangeSetName=changeset_name,
+                WaiterConfig={
+                    'Delay': 30,
+                    'MaxAttempts': 120
+                }
+            )
+            print('Changeset created')
+            describe_changes(stack_name, changeset_name)
