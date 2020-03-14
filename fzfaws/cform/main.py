@@ -12,11 +12,11 @@ import sys
 from botocore.exceptions import ClientError
 from fzfaws.cform.delete_stack import delete_stack
 from fzfaws.cform.update_stack import update_stack
-from fzfaws.cform.helper.get_stack import get_stack
 from fzfaws.cform.create_stack import create_stack
 from fzfaws.cform.drift_stack import drift_stack
 from fzfaws.cform.changeset_stack import changeset_stack
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.cform.cform import Cloudformation
 
 
 def cform(raw_args):
@@ -129,27 +129,23 @@ def cform(raw_args):
                 changeset_cmd.print_help()
             exit()
 
+        cloudformation = Cloudformation()
+
         if args.subparser_name == 'create':
             create_stack(args)
 
         else:
-            # get the selected_stack {'StackName': str, 'StackDetails': {}}
-            selected_stack = get_stack()
+            cloudformation.get_stack()
             if args.subparser_name == 'update':
-                update_stack(
-                    args, selected_stack['StackName'], selected_stack['StackDetails'])
+                update_stack(args, cloudformation)
             elif args.subparser_name == 'delete':
-                delete_stack(args, selected_stack['StackName'],
-                             selected_stack['StackDetails'])
+                delete_stack(args, cloudformation)
             elif args.subparser_name == 'ls':
-                print(json.dumps(
-                    selected_stack['StackDetails'], indent=4, default=str))
+                print(json.dumps(cloudformation.stack_details, indent=4, default=str))
             elif args.subparser_name == 'drift':
-                drift_stack(
-                    args, selected_stack['StackName'], selected_stack['StackDetails'])
+                drift_stack(args, cloudformation)
             elif args.subparser_name == 'changeset':
-                changeset_stack(
-                    args, selected_stack['StackName'], selected_stack['StackDetails'])
+                changeset_stack(args, cloudformation)
 
     except subprocess.CalledProcessError as e:
         print('No selection made')

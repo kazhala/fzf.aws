@@ -2,46 +2,42 @@
 
 detect drift status of the selected cloudformations stack
 """
-import boto3
 import json
 import time
 from fzfaws.utils.pyfzf import Pyfzf
 
-cloudformation = boto3.client('cloudformation')
 
-
-def drift_stack(args, stack_name, stack_details):
+def drift_stack(args, cloudformation):
     """perform actions on stack drift
 
     Args:
         args: argparser args
-        stack_name: string, name of the stack
-        stack_details: dict, raw response from boto3
+        cloudformation: instance of the Cloudformation class
     Returns:
         None
     """
 
     print(json.dumps(
-        stack_details['DriftInformation'], indent=4, default=str))
+        cloudformation.stack_details['DriftInformation'], indent=4, default=str))
     print(80*'-')
 
-    response = cloudformation.describe_stack_resources(
-        StackName=stack_name,
+    response = cloudformation.client.describe_stack_resources(
+        StackName=cloudformation.stack_name,
     )
     response_list = response['StackResources']
 
     if args.info:
-        response = cloudformation.describe_stack_resource_drifts(
-            StackName=stack_name,
+        response = cloudformation.client.describe_stack_resource_drifts(
+            StackName=cloudformation.stack_name,
         )
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
     elif not args.select:
-        response = cloudformation.detect_stack_drift(
-            StackName=stack_name
+        response = cloudformation.client.detect_stack_drift(
+            StackName=cloudformation.stack_name
         )
         drift_id = response['StackDriftDetectionId']
-        wait_drift_result(drift_id)
+        wait_drift_result(cloudformation, drift_id)
 
     else:
         # prepare fzf
@@ -56,8 +52,8 @@ def drift_stack(args, stack_name, stack_details):
             exit()
         elif len(logical_id_list) == 1:
             # get individual resource drift status
-            response = cloudformation.detect_stack_resource_drift(
-                StackName=stack_name,
+            response = cloudformation.client.detect_stack_resource_drift(
+                StackName=cloudformation.stack_name,
                 LogicalResourceId=logical_id_list[0]
             )
             print(json.dumps(response['StackResourceDrift'],
@@ -70,20 +66,21 @@ def drift_stack(args, stack_name, stack_details):
 
         else:
             # get all selected resource status
-            response = cloudformation.detect_stack_drift(
-                StackName=stack_name,
+            response = cloudformation.client.detect_stack_drift(
+                StackName=cloudformation.stack_name,
                 LogicalResourceIds=logical_id_list
             )
             drift_id = response['StackDriftDetectionId']
-            wait_drift_result(drift_id)
+            wait_drift_result(cloudformation, drift_id)
 
 
-def wait_drift_result(drift_id):
+def wait_drift_result(cloudformation, drift_id):
     """Wait for the drift detection result
 
     aws doesn't provide wait condition, thus creating my own
 
     Args:
+        cloudformation: instance of the Cloudformation class
         drift_id: string, drift detection id from the boto3 response
     Returns:
         None
@@ -94,7 +91,7 @@ def wait_drift_result(drift_id):
 
     while True:
         time.sleep(5)
-        response = cloudformation.describe_stack_drift_detection_status(
+        response = cloudformation.client.describe_stack_drift_detection_status(
             StackDriftDetectionId=drift_id
         )
         if response['DetectionStatus'] != 'DETECTION_IN_PROGRESS':
