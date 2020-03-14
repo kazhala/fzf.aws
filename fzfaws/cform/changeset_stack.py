@@ -112,6 +112,7 @@ def changeset_stack(args, cloudformation):
         print('Changeset create initiated')
 
         if args.wait:
+            print('Wating for changset to be created..')
             cloudformation.wait('change_set_create_complete',
                                 ChangeSetName=changeset_name)
             print('Changeset created')

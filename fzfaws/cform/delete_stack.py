@@ -48,5 +48,6 @@ def delete_stack(args, cloudformation):
 
     # wait for completion
     if args.wait:
+        print('Wating for stack to be deleted..')
         cloudformation.wait('stack_delete_complete')
         print('Stack deleted')

@@ -164,5 +164,6 @@ def update_stack(args, cloudformation):
     print('Stack update initiated')
 
     if args.wait:
+        print('Wating for stack to be updated..')
         cloudformation.wait('stack_update_complete')
         print('Stack update complete')
