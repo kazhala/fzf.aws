@@ -5,6 +5,7 @@ Typical usage example:
 """
 import sys
 from fzfaws.cform.main import cform
+from fzfaws.ec2.main import ec2
 from fzfaws.utils.exceptions import NoCommandFound
 
 
@@ -12,7 +13,6 @@ def main():
     """Entry function of the fzf.aws module"""
 
     try:
-        # exit if no command found
         if len(sys.argv) < 2:
             raise NoCommandFound()
         available_routes = ['cform', 'ec2', 'keypair', 's3']
@@ -21,6 +21,8 @@ def main():
             raise NoCommandFound()
         if action_command == 'cform':
             cform(sys.argv[2:])
+        elif action_command == 'ec2':
+            ec2(sys.argv[2:])
 
     # display help message
     # did'n use argparse at the entry level thus creating similar help message

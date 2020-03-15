@@ -4,11 +4,9 @@ process the raw_args passed in from __main__.py which is sys.argv[2:]
 read sub command {update,create,delete,drift,changeset} and route
 actions to appropriate functions
 """
-import boto3
 import json
 import subprocess
 import argparse
-import sys
 from botocore.exceptions import ClientError
 from fzfaws.cform.delete_stack import delete_stack
 from fzfaws.cform.update_stack import update_stack
@@ -39,7 +37,7 @@ def cform(raw_args):
         usage='faws cform [-h] {update,create,delete,drift,changeset} ...'
     )
     subparsers = parser.add_subparsers(dest='subparser_name')
-    # sub commands
+
     update_cmd = subparsers.add_parser(
         'update', description='update an existing stack')
     update_cmd.add_argument('-t', '--tag', action='store_true',
@@ -154,6 +152,4 @@ def cform(raw_args):
     except NoSelectionMade as e:
         print(e)
     except NoNameEntered as e:
-        print(e)
-    except Exception as e:
         print(e)
