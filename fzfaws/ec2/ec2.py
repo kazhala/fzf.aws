@@ -78,7 +78,7 @@ class EC2:
             print('InstanceId: %s  Name: %s' %
                   (instance['InstanceId'], instance['Name']))
 
-    def wait(self, waiter_name, delay=15, attempts=240):
+    def wait(self, waiter_name, delay=15, attempts=40):
         """wait for the operation to be completed
 
         Args:

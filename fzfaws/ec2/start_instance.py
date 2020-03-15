@@ -32,7 +32,11 @@ def start_instance(args):
         print(80*'-')
         print('Instance start initiated')
 
-        if args.wait:
+        if args.check:
+            print('Wating for instance to be running and 2/2 status checked..')
+            ec2.wait('instance_status_ok')
+            print('Instance is ready')
+        elif args.wait:
             print('Wating for instance to be running...')
             ec2.wait('instance_running')
-            print('Instance ready')
+            print('Instance is running')

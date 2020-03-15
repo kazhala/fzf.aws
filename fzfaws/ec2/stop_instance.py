@@ -1,6 +1,6 @@
-"""contains main function for stopping the instance
+"""Stop the selected instances
 
-Stop the selected instances
+contains main function for stopping the instance
 """
 import json
 from fzfaws.ec2.ec2 import EC2
