@@ -61,4 +61,4 @@ class EC2:
                 self.instance_list.append(search_dict_in_list(
                     instance, response_list, 'InstanceId'))
         self.instance = search_dict_in_list(
-            selected_instance_id[0], response_list, 'InstanceId')
+            selected_instance_id, response_list, 'InstanceId')
