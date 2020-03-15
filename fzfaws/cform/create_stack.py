@@ -3,7 +3,7 @@
 create cloudformation stack through both s3 bucket url or local file upload
 """
 import json
-from fzfaws.utils.util import is_yaml, is_json, check_is_valid
+from fzfaws.cform.helper.file_validation import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_json_file, process_yaml_file

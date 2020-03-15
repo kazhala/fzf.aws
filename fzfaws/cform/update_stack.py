@@ -3,7 +3,8 @@
 perform updates to cloudformation
 """
 import json
-from fzfaws.utils.util import search_dict_in_list, is_yaml, check_is_valid, is_json
+from fzfaws.utils.util import search_dict_in_list
+from fzfaws.cform.helper.file_validation import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags, update_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_file, process_json_file
@@ -12,7 +13,7 @@ from fzfaws.cform.cform import Cloudformation
 from fzfaws.cform.helper.paramprocessor import ParamProcessor
 
 
-def update_stack(args, cloudformation):
+def update_stack(args):
     """handle the update of cloudformation stacks
 
     Args:
