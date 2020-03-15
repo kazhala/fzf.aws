@@ -40,6 +40,8 @@ def ec2(raw_args):
                          help='specify a different path than config for the location of the key pem file')
     ssh_cmd.add_argument('-u', '--user', nargs=1, action='store', default=['ec2-user'],
                          help='specify a different username used to ssh into the instance, default is ec2-user')
+    ssh_cmd.add_argument('-A', '--bastion', action='store_true', default=False,
+                         help='Add this flag when you are connecting to a bastion host using ssh forwarding')
     start_cmd = subparsers.add_parser(
         'start', description='start the selected instance/instances')
     start_cmd.add_argument('-r', '--region', action='store_true', default=False,

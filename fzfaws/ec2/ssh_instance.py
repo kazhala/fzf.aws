@@ -36,11 +36,18 @@ def ssh_instance(args):
         ssh_key = '%s/%s.pem' % (ssh_key_location, ec2.instance['KeyName'])
         # check for file existence
         if os.path.isfile(ssh_key):
-            ssh = subprocess.Popen(
-                ['ssh', '-i', ssh_key, '%s@%s' %
-                    (args.user[0], ec2.instance['PublicDnsName'])],
-                shell=False,
-            )
+            if args.bastion:
+                ssh = subprocess.Popen(
+                    ['ssh', '-A', '-i', ssh_key, '%s@%s' %
+                        (args.user[0], ec2.instance['PublicDnsName'])],
+                    shell=False,
+                )
+            else:
+                ssh = subprocess.Popen(
+                    ['ssh', '-i', ssh_key, '%s@%s' %
+                        (args.user[0], ec2.instance['PublicDnsName'])],
+                    shell=False,
+                )
             stdoutdata, stderrdata = ssh.communicate()
             if stdoutdata:
                 print(stdoutdata)
