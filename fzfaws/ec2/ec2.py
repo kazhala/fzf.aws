@@ -38,7 +38,7 @@ class EC2:
             response['Regions'], 'RegionName', empty_allow=False)
         self.client = boto3.client('ec2', region_name=region)
 
-    def set_ec2_instance(self, muti_select=True):
+    def set_ec2_instance(self, multi_select=True):
         """list all ec2 in the current selected region
 
         store the selected instance details in the instance attribute
@@ -58,8 +58,8 @@ class EC2:
                 'PublicIpAddress': instance['Instances'][0]['PublicIpAddress'] if 'PublicIpAddress' in instance['Instances'][0] else 'N/A'
             })
         selected_instance_ids = fzf.process_list(
-            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress', empty_allow=False, multi_select=muti_select)
-        if muti_select:
+            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress', empty_allow=False, multi_select=multi_select)
+        if multi_select:
             self.instance_ids = selected_instance_ids
             for instance in self.instance_ids:
                 self.instance_list.append(search_dict_in_list(

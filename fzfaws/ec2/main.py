@@ -9,6 +9,7 @@ import argparse
 from botocore.exceptions import ClientError
 from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.ec2.ec2 import EC2
 from fzfaws.ec2.ssh_instance import ssh_instance
 from fzfaws.ec2.start_instance import start_instance
 from fzfaws.ec2.stop_instance import stop_instance
@@ -71,6 +72,10 @@ def ec2(raw_args):
                                help='select a different region rather than using the default region')
     terminate_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                                help='pause the program and wait for instance to be terminated')
+    ls_cmd = subparsers.add_parser(
+        'ls', description='print the information of the selected instance')
+    ls_cmd.add_argument('-r', '--region', action='store_true', default=False,
+                        help='select a different region rather than using the default region')
     args = parser.parse_args(raw_args)
 
     try:
@@ -97,6 +102,12 @@ def ec2(raw_args):
             reboot_instance(args)
         elif args.subparser_name == 'terminate':
             terminate_instance(args)
+        elif args.subparser_name == 'ls':
+            ec2 = EC2()
+            if args.region:
+                ec2.set_ec2_region()
+            ec2.set_ec2_instance(multi_select=False)
+            print(json.dumps(ec2.instance, indent=4, default=str))
 
     except subprocess.CalledProcessError as e:
         print('No selection made')
