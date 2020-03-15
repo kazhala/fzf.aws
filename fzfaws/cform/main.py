@@ -16,8 +16,8 @@ from fzfaws.cform.create_stack import create_stack
 from fzfaws.cform.drift_stack import drift_stack
 from fzfaws.cform.changeset_stack import changeset_stack
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.cform import Cloudformation
 from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
+from fzfaws.cform.cform import Cloudformation
 
 
 def cform(raw_args):
@@ -130,23 +130,20 @@ def cform(raw_args):
                 changeset_cmd.print_help()
             exit()
 
-        cloudformation = Cloudformation()
-
         if args.subparser_name == 'create':
-            create_stack(args, cloudformation)
-
-        else:
+            create_stack(args)
+        elif args.subparser_name == 'update':
+            update_stack(args)
+        elif args.subparser_name == 'delete':
+            delete_stack(args)
+        elif args.subparser_name == 'ls':
+            cloudformation = Cloudformation()
             cloudformation.get_stack()
-            if args.subparser_name == 'update':
-                update_stack(args, cloudformation)
-            elif args.subparser_name == 'delete':
-                delete_stack(args, cloudformation)
-            elif args.subparser_name == 'ls':
-                print(json.dumps(cloudformation.stack_details, indent=4, default=str))
-            elif args.subparser_name == 'drift':
-                drift_stack(args, cloudformation)
-            elif args.subparser_name == 'changeset':
-                changeset_stack(args, cloudformation)
+            print(json.dumps(cloudformation.stack_details, indent=4, default=str))
+        elif args.subparser_name == 'drift':
+            drift_stack(args)
+        elif args.subparser_name == 'changeset':
+            changeset_stack(args)
 
     except subprocess.CalledProcessError as e:
         print('No selection made')

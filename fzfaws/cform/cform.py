@@ -56,10 +56,6 @@ class Cloudformation:
             **kwargs
         )
 
-    def set_stack(self, name):
-        """used for create stack where there is no stack name to begin with"""
-        self.stack_name = name
-
     def execute_with_capabilities(self, args, cloudformation_action, **kwargs):
         """execute the cloudformation_action with capabilities handled
 

@@ -5,9 +5,10 @@ delete operations on the selected cloudformation stack
 import json
 from fzfaws.utils.util import get_confirmation, remove_dict_from_list
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.cform.cform import Cloudformation
 
 
-def delete_stack(args, cloudformation):
+def delete_stack(args):
     """handle deltion of the stack
 
     Two situation, normal deletion and retained deletion.
@@ -21,6 +22,9 @@ def delete_stack(args, cloudformation):
     Returns:
         None
     """
+
+    cloudformation = Cloudformation()
+    cloudformation.get_stack()
 
     logical_id_list = []
     if cloudformation.stack_details['StackStatus'] == 'DELETE_FAILED':

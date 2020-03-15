@@ -6,9 +6,10 @@ import json
 from fzfaws.utils.util import search_dict_in_list, is_yaml, check_is_valid, is_json
 from fzfaws.cform.helper.tags import get_tags, update_tags
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_template import process_stack_params
 from fzfaws.cform.helper.process_file import process_yaml_file, process_json_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
+from fzfaws.cform.cform import Cloudformation
+from fzfaws.cform.helper.paramprocessor import ParamProcessor
 
 
 def update_stack(args, cloudformation):
@@ -23,6 +24,9 @@ def update_stack(args, cloudformation):
         example:
             {'Parameters': value, 'Tags': value, 'TemplateBody': value, 'TemplateURL': value}
     """
+
+    cloudformation = Cloudformation()
+    cloudformation.get_stack()
 
     # check to use current template or replace current template
     if not args.replace:
@@ -91,8 +95,10 @@ def update_stack(args, cloudformation):
 
             # process params
             if 'Parameters' in file_data['dictBody']:
-                updated_parameters = process_stack_params(
-                    file_data['dictBody']['Parameters'], cloudformation.stack_details['Parameters'])
+                paramprocessor = ParamProcessor(
+                    file_data['dictBody']['Parameters'])
+                paramprocessor.process_stack_params()
+                updated_parameters = paramprocessor.processed_params()
             else:
                 updated_parameters = []
 
@@ -132,8 +138,9 @@ def update_stack(args, cloudformation):
 
             # get params
             if 'Parameters' in file_data:
-                updated_parameters = process_stack_params(
-                    file_data['Parameters'], cloudformation.stack_details['Parameters'])
+                paramprocessor = ParamProcessor(file_data['Parameters'])
+                paramprocessor.process_stack_params()
+                updated_parameters = paramprocessor.processed_params
             else:
                 updated_parameters = []
 

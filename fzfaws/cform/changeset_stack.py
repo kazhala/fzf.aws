@@ -6,6 +6,7 @@ import json
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.update_stack import update_stack
 from fzfaws.utils.exceptions import NoNameEntered
+from fzfaws.cform.cform import Cloudformation
 
 
 def describe_changes(cloudformation, changeset_name):
@@ -28,7 +29,7 @@ def describe_changes(cloudformation, changeset_name):
     print(json.dumps(response['Changes'], indent=4, default=str))
 
 
-def changeset_stack(args, cloudformation):
+def changeset_stack(args):
     """handle changeset actions
 
     Args:
@@ -37,6 +38,9 @@ def changeset_stack(args, cloudformation):
     Returns:
         None
     """
+
+    cloudformation = Cloudformation()
+    cloudformation.get_stack()
 
     # if not creating new changeset
     if args.info or args.execute:

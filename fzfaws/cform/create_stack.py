@@ -6,13 +6,14 @@ import json
 from fzfaws.utils.util import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_template import process_stack_params
 from fzfaws.cform.helper.process_file import process_json_file, process_yaml_file
 from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 from fzfaws.utils.exceptions import NoNameEntered
+from fzfaws.cform.cform import Cloudformation
+from fzfaws.cform.helper.paramprocessor import ParamProcessor
 
 
-def create_stack(args, cloudformation):
+def create_stack(args):
     """handle the creation of the cloudformation stack
 
     Args:
@@ -20,6 +21,9 @@ def create_stack(args, cloudformation):
     Returns:
         None
     """
+
+    cloudformation = Cloudformation()
+
     # local flag specified
     if args.local:
         local_path = ''
@@ -40,8 +44,10 @@ def create_stack(args, cloudformation):
 
         # get params
         if 'Parameters' in file_data['dictBody']:
-            create_parameters = process_stack_params(
+            paramprocessor = ParamProcessor(
                 file_data['dictBody']['Parameters'])
+            paramprocessor.process_stack_params()
+            create_parameters = paramprocessor.processed_params
         else:
             create_parameters = []
         tags = get_tags()
@@ -70,8 +76,10 @@ def create_stack(args, cloudformation):
         elif is_json(selected_file):
             file_data = get_file_data(selected_bucket, selected_file, 'json')
 
-        create_parameters = process_stack_params(
-            file_data['Parameters'])
+        if 'Parameters' in file_data:
+            paramprocessor = ParamProcessor(file_data['Parameters'])
+            paramprocessor.process_stack_params()
+            create_parameters = paramprocessor.processed_params
         tags = get_tags()
         # s3 object url
         template_body_loacation = get_s3_url(
@@ -92,6 +100,6 @@ def create_stack(args, cloudformation):
 
     if args.wait:
         print("Waiting for stack to be ready...")
-        cloudformation.set_stack(stack_name)
+        cloudformation.stack_name = stack_name
         cloudformation.wait('stack_create_complete')
         print('Stack create complete')

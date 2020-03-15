@@ -46,3 +46,12 @@ def get_confirmation(message):
     while confirm != 'y' and confirm != 'n':
         confirm = input(message).lower()
     return confirm
+
+
+def get_name_tag(list_item):
+    """get the name tag of the item"""
+    if 'Tags' in list_item and check_dict_value_in_list('Name', list_item['Tags'], 'Key'):
+        return search_dict_in_list(
+            'Name', list_item['Tags'], 'Key')['Value']
+    else:
+        return 'N/A'
