@@ -8,9 +8,9 @@ from fzfaws.cform.helper.file_validation import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags, update_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_file, process_json_file
-from fzfaws.cform.helper.s3_operations import get_s3_bucket, get_s3_file, get_file_data, get_s3_url
 from fzfaws.cform.cform import Cloudformation
 from fzfaws.cform.helper.paramprocessor import ParamProcessor
+from fzfaws.s3.s3 import S3
 
 
 def update_stack(args):
@@ -125,19 +125,12 @@ def update_stack(args):
 
         # if no local file flag, get from s3
         else:
-            selected_bucket = get_s3_bucket()
-            selected_file = get_s3_file(selected_bucket)
+            s3 = S3()
+            s3.get_s3_bucket()
+            s3.get_s3_object()
+            check_is_valid(s3.object)
 
-            # validate file type
-            check_is_valid(selected_file)
-            if is_yaml(selected_file):
-                file_data = get_file_data(
-                    selected_bucket, selected_file, 'yaml')
-            elif is_json(selected_file):
-                file_data = get_file_data(
-                    selected_bucket, selected_file, 'json')
-
-            # get params
+            file_data = s3.get_object_data()
             if 'Parameters' in file_data:
                 paramprocessor = ParamProcessor(file_data['Parameters'])
                 paramprocessor.process_stack_params()
@@ -151,8 +144,8 @@ def update_stack(args):
                 new_tags = get_tags(update=True)
                 for new_tag in new_tags:
                     tags.append(new_tag)
-            template_body_loacation = get_s3_url(
-                selected_bucket, selected_file)
+
+            template_body_loacation = s3.get_object_url()
 
             if args.subparser_name == 'changeset':
                 return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateURL': template_body_loacation}

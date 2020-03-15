@@ -13,6 +13,7 @@ class Cloudformation:
     """Cloudformation class to interact with boto3.client('cloudformaiton')
 
     handles operations directly related to boto3.client
+
     Attributes:
         client: boto3 client
         stack_name: then name of the selected stack

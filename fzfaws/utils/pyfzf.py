@@ -31,7 +31,6 @@ class Pyfzf:
         """
         self.fzf_string += new_string
 
-    # execute fzf and return formated string
     def execute_fzf(self, empty_allow=False, print_col=2, preview=None, multi_select=False):
         """execute fzf and return formated string
 
