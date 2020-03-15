@@ -21,11 +21,19 @@ def start_instance(args):
         ec2.get_ec2_region()
     ec2.get_ec2_instance()
 
-    instance_ids = ec2.get_ec2_ids()
+    ec2.print_instance_details()
     if get_confirmation('Above instance/instances will be started, continue?'):
         print('Starting instance now..')
         response = ec2.client.start_instances(
-            InstanceIds=instance_ids,
+            InstanceIds=ec2.instance_ids,
         )
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
+        print(80*'-')
+        print('Instance/Instances start initiated')
+
+        if args.wait:
+            print('Wating for instance/instances to be running...')
+            ec2.wait('instance_running')
+            print('Instance/Instances are ready')
+

@@ -47,7 +47,6 @@ class Cloudformation:
             will pause the program until finish or error raised
         """
         waiter = self.client.get_waiter(waiter_name)
-        print(80*'-')
         waiter.wait(
             StackName=self.stack_name,
             WaiterConfig={
