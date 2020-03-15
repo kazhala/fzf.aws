@@ -27,7 +27,7 @@ def get_confirmation(message):
     confirm = None
     while confirm != 'y' and confirm != 'n':
         confirm = input(message).lower()
-    return confirm
+    return True if confirm == 'y' else False
 
 
 def get_name_tag(list_item):
