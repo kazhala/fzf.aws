@@ -38,7 +38,7 @@ def ec2(raw_args):
                          help='select a different region rather than using the default region')
     ssh_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
                          help='specify a different path than config for the location of the key pem file')
-    ssh_cmd.add_argument('-u', '--user', nargs=1, action='store', default='ec2-user',
+    ssh_cmd.add_argument('-u', '--user', nargs=1, action='store', default=['ec2-user'],
                          help='specify a different username used to ssh into the instance, default is ec2-user')
     start_cmd = subparsers.add_parser(
         'start', description='start the selected instance/instances')

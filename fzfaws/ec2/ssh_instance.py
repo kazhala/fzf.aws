@@ -38,7 +38,7 @@ def ssh_instance(args):
         if os.path.isfile(ssh_key):
             ssh = subprocess.Popen(
                 ['ssh', '-i', ssh_key, '%s@%s' %
-                    (args.user, ec2.instance['PublicDnsName'])],
+                    (args.user[0], ec2.instance['PublicDnsName'])],
                 shell=False,
             )
             stdoutdata, stderrdata = ssh.communicate()
