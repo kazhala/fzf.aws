@@ -53,7 +53,7 @@ class EC2:
                 'InstanceType': instance['Instances'][0]['InstanceType'],
                 'Status': instance['Instances'][0]['State']['Name'],
                 'Name': get_name_tag(instance['Instances'][0]),
-                'KeyName': instance['Instances'][0]['KeyName'],
+                'KeyName': instance['Instances'][0]['KeyName'] if 'KeyName' in instance['Instances'][0] else 'N/A',
                 'PublicDnsName': instance['Instances'][0]['PublicDnsName'] if instance['Instances'][0]['PublicDnsName'] else 'N/A',
                 'PublicIpAddress': instance['Instances'][0]['PublicIpAddress'] if 'PublicIpAddress' in instance['Instances'][0] else 'N/A'
             })

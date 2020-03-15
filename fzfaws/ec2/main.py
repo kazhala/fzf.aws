@@ -13,6 +13,7 @@ from fzfaws.ec2.ssh_instance import ssh_instance
 from fzfaws.ec2.start_instance import start_instance
 from fzfaws.ec2.stop_instance import stop_instance
 from fzfaws.ec2.reboot_instance import reboot_instance
+from fzfaws.ec2.terminate_instance import terminate_instance
 
 
 def ec2(raw_args):
@@ -64,6 +65,12 @@ def ec2(raw_args):
         'reboot', description='reboot the selected instance/instances')
     reboot_cmd.add_argument('-r', '--region', action='store_true', default=False,
                             help='select a different region rather than using the default region')
+    terminate_cmd = subparsers.add_parser(
+        'terminate', description='Terminate the selected instance/instances')
+    terminate_cmd.add_argument('-r', '--region', action='store_true', default=False,
+                               help='select a different region rather than using the default region')
+    terminate_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                               help='pause the program and wait for instance to be terminated')
     args = parser.parse_args(raw_args)
 
     try:
@@ -88,6 +95,8 @@ def ec2(raw_args):
             stop_instance(args)
         elif args.subparser_name == 'reboot':
             reboot_instance(args)
+        elif args.subparser_name == 'terminate':
+            terminate_instance(args)
 
     except subprocess.CalledProcessError as e:
         print('No selection made')
