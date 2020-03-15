@@ -39,7 +39,7 @@ def delete_stack(args):
             response_list, 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId', multi_select=True)
 
     if not get_confirmation(
-            f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?(y/n): "):
+            f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"):
         exit()
     if len(logical_id_list) > 0:
         response = cloudformation.client.delete_stack(

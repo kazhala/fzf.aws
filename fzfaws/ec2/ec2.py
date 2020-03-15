@@ -60,5 +60,19 @@ class EC2:
             for instance in selected_instance_id:
                 self.instance_list.append(search_dict_in_list(
                     instance, response_list, 'InstanceId'))
-        self.instance = search_dict_in_list(
-            selected_instance_id, response_list, 'InstanceId')
+        else:
+            self.instance = search_dict_in_list(
+                selected_instance_id, response_list, 'InstanceId')
+
+    def get_ec2_ids(self):
+        """return list of ec2 ids and display information
+
+        call this method before calling boto3 to do any ec2 opeartion
+        Display indiviual details and return a list
+        """
+        instance_ids = []
+        for instance in self.instance_list:
+            instance_ids.append(instance['InstanceId'])
+            print('InstanceId: %s  Name: %s' %
+                  (instance['InstanceId'], instance['Name']))
+        return instance_ids

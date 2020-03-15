@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.ec2.ssh_instance import ssh_instance
+from fzfaws.ec2.start_instance import start_instance
 
 
 def ec2(raw_args):
@@ -39,6 +40,12 @@ def ec2(raw_args):
                          help='specify a different path than config for the location of the key pem file')
     ssh_cmd.add_argument('-u', '--user', nargs=1, action='store', default='ec2-user',
                          help='specify a different username used to ssh into the instance, default is ec2-user')
+    start_cmd = subparsers.add_parser(
+        'start', description='start the selected instance/instances')
+    start_cmd.add_argument('-r', '--region', action='store_true', default=False,
+                           help='select a different region rather than using the default region')
+    start_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                           help='pause the program and wait for the instance to be started')
     args = parser.parse_args(raw_args)
 
     try:
@@ -57,7 +64,8 @@ def ec2(raw_args):
 
         if args.subparser_name == 'ssh':
             ssh_instance(args)
-
+        elif args.subparser_name == 'start':
+            start_instance(args)
     except subprocess.CalledProcessError as e:
         print('No selection made')
     except ClientError as e:

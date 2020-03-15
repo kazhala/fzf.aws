@@ -26,7 +26,7 @@ def check_dict_value_in_list(value, target_list, name):
 def get_confirmation(message):
     confirm = None
     while confirm != 'y' and confirm != 'n':
-        confirm = input(message).lower()
+        confirm = input("%s(y/n): " % message).lower()
     return True if confirm == 'y' else False
 
 
