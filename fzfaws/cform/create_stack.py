@@ -32,7 +32,7 @@ def create_stack(args):
             local_path = args.path[0]
         else:
             fzf = Pyfzf()
-            local_path = fzf.get_local_file(args.root)
+            local_path = fzf.get_local_file(args.root, cloudformation=True)
 
         # double check file type
         check_is_valid(local_path)
