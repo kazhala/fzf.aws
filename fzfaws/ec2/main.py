@@ -55,6 +55,8 @@ def ec2(raw_args):
                           help='select a different region rather than using the default region')
     stop_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                           help='pause the program and wait for the instance to be started')
+    stop_cmd.add_argument('-h', '--hibernate', action='store_true', default=False,
+                          help='stop instance hibernate, note: will work only if your instance support hibernate stop')
     args = parser.parse_args(raw_args)
 
     try:

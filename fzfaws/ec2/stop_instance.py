@@ -25,7 +25,8 @@ def stop_instance(args):
     if get_confirmation('Above instance will be stopped, continue?'):
         print('Stopping instance now..')
         response = ec2.client.stop_instances(
-            InstanceIds=ec2.instance_ids
+            InstanceIds=ec2.instance_ids,
+            Hibernate=args.hibernate
         )
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
