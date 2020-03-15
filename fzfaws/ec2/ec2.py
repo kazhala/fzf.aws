@@ -25,7 +25,7 @@ class EC2:
         self.instance_list = []
         self.instance_ids = []
 
-    def get_ec2_region(self):
+    def set_ec2_region(self):
         """get ec2 supported region
 
         list region and use fzf to store region in the instance
@@ -38,7 +38,7 @@ class EC2:
             response['Regions'], 'RegionName', empty_allow=False)
         self.client = boto3.client('ec2', region_name=region)
 
-    def get_ec2_instance(self, muti_select=True):
+    def set_ec2_instance(self, muti_select=True):
         """list all ec2 in the current selected region
 
         store the selected instance details in the instance attribute

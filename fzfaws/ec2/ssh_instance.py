@@ -22,8 +22,8 @@ def ssh_instance(args):
     ec2 = EC2()
 
     if args.region:
-        ec2.get_ec2_region()
-    ec2.get_ec2_instance(muti_select=False)
+        ec2.set_ec2_region()
+    ec2.set_ec2_instance(muti_select=False)
 
     if ec2.instance['Status'] == 'stopped':
         print('Instance is currently stopped, run faws ec2 start to start the instance')

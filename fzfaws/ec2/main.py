@@ -11,6 +11,7 @@ from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.ec2.ssh_instance import ssh_instance
 from fzfaws.ec2.start_instance import start_instance
+from fzfaws.ec2.stop_instance import stop_instance
 
 
 def ec2(raw_args):
@@ -48,6 +49,12 @@ def ec2(raw_args):
                            help='select a different region rather than using the default region')
     start_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                            help='pause the program and wait for the instance to be started')
+    stop_cmd = subparsers.add_parser(
+        'stop', description='stop the selected instance/instances')
+    stop_cmd.add_argument('-r', '--region', action='store_true', default=False,
+                          help='select a different region rather than using the default region')
+    stop_cmd.add_argument('-w', '--wait', action='store_true', default=False,
+                          help='pause the program and wait for the instance to be started')
     args = parser.parse_args(raw_args)
 
     try:
@@ -68,6 +75,9 @@ def ec2(raw_args):
             ssh_instance(args)
         elif args.subparser_name == 'start':
             start_instance(args)
+        elif args.subparser_name == 'stop':
+            stop_instance(args)
+
     except subprocess.CalledProcessError as e:
         print('No selection made')
     except ClientError as e:
