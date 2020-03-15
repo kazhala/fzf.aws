@@ -54,10 +54,11 @@ class EC2:
                 'Status': instance['Instances'][0]['State']['Name'],
                 'Name': get_name_tag(instance['Instances'][0]),
                 'KeyName': instance['Instances'][0]['KeyName'],
-                'PublicDnsName': instance['Instances'][0]['PublicDnsName'] if instance['Instances'][0]['PublicDnsName'] else 'N/A'
+                'PublicDnsName': instance['Instances'][0]['PublicDnsName'] if instance['Instances'][0]['PublicDnsName'] else 'N/A',
+                'PublicIpAddress': instance['Instances'][0]['PublicIpAddress'] if 'PublicIpAddress' in instance['Instances'][0] else 'N/A'
             })
         selected_instance_ids = fzf.process_list(
-            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', empty_allow=False, multi_select=muti_select)
+            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress', empty_allow=False, multi_select=muti_select)
         if muti_select:
             self.instance_ids = selected_instance_ids
             for instance in self.instance_ids:

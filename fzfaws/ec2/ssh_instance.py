@@ -36,21 +36,23 @@ def ssh_instance(args):
         ssh_key = '%s/%s.pem' % (ssh_key_location, ec2.instance['KeyName'])
         # check for file existence
         if os.path.isfile(ssh_key):
+            cmd_list = ['ssh']
             if args.bastion:
-                ssh = subprocess.Popen(
-                    ['ssh', '-A', '-i', ssh_key, '%s@%s' %
-                        (args.user[0], ec2.instance['PublicDnsName'])],
-                    shell=False,
-                )
-            else:
-                ssh = subprocess.Popen(
-                    ['ssh', '-i', ssh_key, '%s@%s' %
-                        (args.user[0], ec2.instance['PublicDnsName'])],
-                    shell=False,
-                )
+                cmd_list.append('-A')
+            # if for custom VPC doesn't have public dns name, use public ip address
+            cmd_list.extend(['-i', ssh_key, '%s@%s' % (args.user[0], ec2.instance['PublicDnsName']
+                                                       if ec2.instance['PublicDnsName'] != 'N/A' else ec2.instance['PublicIpAddress'])])
+            ssh = subprocess.Popen(
+                cmd_list,
+                shell=False,
+            )
+            # allow user input
             stdoutdata, stderrdata = ssh.communicate()
-            if stdoutdata:
-                print(stdoutdata)
+            if stderrdata or stdoutdata:
+                if stdoutdata:
+                    print(stdoutdata)
+                if stderrdata:
+                    print(stderrdata)
         else:
             print('Key pair not detected in the specified directory')
 
