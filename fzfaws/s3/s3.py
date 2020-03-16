@@ -4,6 +4,7 @@ A centralized position to initial boto3.client('s3'), better
 management if user decide to change region or use different profile
 """
 import boto3
+from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
 from fzfaws.cform.helper.file_validation import is_yaml, is_json
@@ -27,6 +28,7 @@ class S3:
         self.bucket_name = None
         self.object = None
         self.file_type = None
+        self.path = ''
 
     def set_s3_bucket(self):
         """list bucket through fzf and let user select a bucket"""
@@ -34,6 +36,32 @@ class S3:
         fzf = Pyfzf()
         self.bucket_name = fzf.process_list(
             response['Buckets'], 'Name', empty_allow=False)
+
+    def set_s3_path(self):
+        """set 'path' of s3 to upload or download
+
+        s3 folders are not actually folder, found this path listing on
+        https://github.com/boto/boto3/issues/134#issuecomment-116766812
+        """
+        paginator = self.client.get_paginator('list_objects')
+        self.path = ''
+        fzf = Pyfzf()
+        try:
+            # interactively search down 'folders' in s3
+            while True:
+                for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.path, Delimiter='/'):
+                    for prefix in result.get('CommonPrefixes'):
+                        fzf.append_fzf(prefix.get('Prefix'))
+                        fzf.append_fzf('\n')
+                selected_path = fzf.execute_fzf(empty_allow=True, print_col=1)
+                if not selected_path:
+                    raise
+                self.path = selected_path
+                # reset fzf string
+                fzf.fzf_string = ''
+        except:
+            print('S3 file path is set to %s' %
+                  (self.path if self.path else 'root'))
 
     def set_s3_object(self):
         """list object within a bucket and let user select a object.

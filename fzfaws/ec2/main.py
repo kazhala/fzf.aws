@@ -26,7 +26,8 @@ def ec2(raw_args):
         subprocess.CalledProcessError: When user exit the fzf subshell by ctrl-c
         ClientError: aws boto3 exceptions
         KeyboardInterrupt: ctrl-c during python operations
-        Exception: catch the rest
+        NoNameEntered: when the required name entry is empty
+        NoSelectionMade: when required fzf selection is not made
     """
     parser = argparse.ArgumentParser(
         description='Perform actions on the selected instance',

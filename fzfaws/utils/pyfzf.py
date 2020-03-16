@@ -98,7 +98,7 @@ class Pyfzf:
             the file path of the selected file
         """
         if search_from_root:
-            home_path = os.environ['HOME']
+            home_path = os.path.expanduser('~')
             os.chdir(home_path)
         if self._check_fd():
             if cloudformation:
