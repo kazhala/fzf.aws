@@ -34,6 +34,8 @@ def s3(raw_args):
                             default=False, help='search local file from root directory')
     upload_cmd.add_argument('-r', '--region', action='store_true', default=False,
                             help='use a different region other than the default region')
+    upload_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
+                            help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
     args = parser.parse_args(raw_args)
 
     if not raw_args:

@@ -14,3 +14,8 @@ class NoSelectionMade(Exception):
 class NoNameEntered(Exception):
     """When there is no name specified"""
     pass
+
+
+class InvalidS3PathPattern(Exception):
+    """The input s3 path set by -p is invalid format"""
+    pass

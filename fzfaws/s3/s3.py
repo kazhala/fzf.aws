@@ -4,6 +4,7 @@ A centralized position to initial boto3.client('s3'), better
 management if user decide to change region or use different profile
 """
 import boto3
+import re
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
@@ -28,7 +29,7 @@ class S3:
         self.bucket_name = None
         self.object = None
         self.file_type = None
-        self.path = ''
+        self.bucket_path = ''
 
     def set_s3_bucket(self):
         """list bucket through fzf and let user select a bucket"""
@@ -44,24 +45,24 @@ class S3:
         https://github.com/boto/boto3/issues/134#issuecomment-116766812
         """
         paginator = self.client.get_paginator('list_objects')
-        self.path = ''
+        self.bucket_path = ''
         fzf = Pyfzf()
         try:
             # interactively search down 'folders' in s3
             while True:
-                for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.path, Delimiter='/'):
+                for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter='/'):
                     for prefix in result.get('CommonPrefixes'):
                         fzf.append_fzf(prefix.get('Prefix'))
                         fzf.append_fzf('\n')
                 selected_path = fzf.execute_fzf(empty_allow=True, print_col=1)
                 if not selected_path:
                     raise
-                self.path = selected_path
+                self.bucket_path = selected_path
                 # reset fzf string
                 fzf.fzf_string = ''
         except:
             print('S3 file path is set to %s' %
-                  (self.path if self.path else 'root'))
+                  (self.bucket_path if self.bucket_path else 'root'))
 
     def set_s3_object(self):
         """list object within a bucket and let user select a object.
@@ -96,3 +97,7 @@ class S3:
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response['LocationConstraint']
         return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.object)
+
+    def validate_input_path(self, user_input):
+        path_pattern = r"^(.*/)+.*$"
+        return re.match(path_pattern, user_input)
