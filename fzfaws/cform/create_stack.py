@@ -64,8 +64,8 @@ def create_stack(args):
     # if no local file flag, get from s3
     else:
         s3 = S3()
-        s3.get_s3_bucket()
-        s3.get_s3_object()
+        s3.set_s3_bucket()
+        s3.set_s3_object()
         check_is_valid(s3.object)
         stack_name = input('StackName: ')
         if not stack_name:

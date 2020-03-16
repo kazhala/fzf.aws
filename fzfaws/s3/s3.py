@@ -28,14 +28,14 @@ class S3:
         self.object = None
         self.file_type = None
 
-    def get_s3_bucket(self):
+    def set_s3_bucket(self):
         """list bucket through fzf and let user select a bucket"""
         response = self.client.list_buckets()
         fzf = Pyfzf()
         self.bucket_name = fzf.process_list(
             response['Buckets'], 'Name', empty_allow=False)
 
-    def get_s3_object(self):
+    def set_s3_object(self):
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
