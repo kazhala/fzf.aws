@@ -88,6 +88,16 @@ def ec2(raw_args):
             empty_allow=True, print_col=1, preview='faws ec2 {} -h')
         if selected_command == 'ssh':
             ssh_cmd.print_help()
+        elif selected_command == 'start':
+            start_cmd.print_help()
+        elif selected_command == 'stop':
+            stop_cmd.print_help()
+        elif selected_command == 'reboot':
+            reboot_cmd.print_help()
+        elif selected_command == 'terminate':
+            terminate_cmd.print_help()
+        elif selected_command == 'ls':
+            ls_cmd.print_help()
         exit()
 
     if args.subparser_name == 'ssh':
