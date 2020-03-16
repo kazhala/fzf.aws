@@ -81,7 +81,8 @@ def ec2(raw_args):
     try:
         # if no argument provided, display help message through fzf
         if not raw_args:
-            available_commands = ['ssh']
+            available_commands = ['ssh', 'start',
+                                  'stop', 'terminate', 'reboot', 'ls']
             fzf = Pyfzf()
             for command in available_commands:
                 fzf.append_fzf(command)
