@@ -6,8 +6,6 @@ read sub command {ssh,start,stop} and route actions to appropriate functions
 import json
 import subprocess
 import argparse
-from botocore.exceptions import ClientError
-from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.ec2.ec2 import EC2
 from fzfaws.ec2.ssh_instance import ssh_instance
@@ -78,45 +76,33 @@ def ec2(raw_args):
                         help='select a different region rather than using the default region')
     args = parser.parse_args(raw_args)
 
-    try:
-        # if no argument provided, display help message through fzf
-        if not raw_args:
-            available_commands = ['ssh', 'start',
-                                  'stop', 'terminate', 'reboot', 'ls']
-            fzf = Pyfzf()
-            for command in available_commands:
-                fzf.append_fzf(command)
-                fzf.append_fzf('\n')
-            selected_command = fzf.execute_fzf(
-                empty_allow=True, print_col=1, preview='faws ec2 {} -h')
-            if selected_command == 'ssh':
-                ssh_cmd.print_help()
-            exit()
+    # if no argument provided, display help message through fzf
+    if not raw_args:
+        available_commands = ['ssh', 'start',
+                              'stop', 'terminate', 'reboot', 'ls']
+        fzf = Pyfzf()
+        for command in available_commands:
+            fzf.append_fzf(command)
+            fzf.append_fzf('\n')
+        selected_command = fzf.execute_fzf(
+            empty_allow=True, print_col=1, preview='faws ec2 {} -h')
+        if selected_command == 'ssh':
+            ssh_cmd.print_help()
+        exit()
 
-        if args.subparser_name == 'ssh':
-            ssh_instance(args)
-        elif args.subparser_name == 'start':
-            start_instance(args)
-        elif args.subparser_name == 'stop':
-            stop_instance(args)
-        elif args.subparser_name == 'reboot':
-            reboot_instance(args)
-        elif args.subparser_name == 'terminate':
-            terminate_instance(args)
-        elif args.subparser_name == 'ls':
-            ec2 = EC2()
-            if args.region:
-                ec2.set_ec2_region()
-            ec2.set_ec2_instance(multi_select=False)
-            print(json.dumps(ec2.instance, indent=4, default=str))
-
-    except subprocess.CalledProcessError as e:
-        print('No selection made')
-    except ClientError as e:
-        print(e)
-    except KeyboardInterrupt:
-        print('\nExit')
-    except NoSelectionMade as e:
-        print(e)
-    except NoNameEntered as e:
-        print(e)
+    if args.subparser_name == 'ssh':
+        ssh_instance(args)
+    elif args.subparser_name == 'start':
+        start_instance(args)
+    elif args.subparser_name == 'stop':
+        stop_instance(args)
+    elif args.subparser_name == 'reboot':
+        reboot_instance(args)
+    elif args.subparser_name == 'terminate':
+        terminate_instance(args)
+    elif args.subparser_name == 'ls':
+        ec2 = EC2()
+        if args.region:
+            ec2.set_ec2_region()
+        ec2.set_ec2_instance(multi_select=False)
+        print(json.dumps(ec2.instance, indent=4, default=str))

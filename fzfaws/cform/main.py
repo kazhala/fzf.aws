@@ -7,14 +7,12 @@ actions to appropriate functions
 import json
 import subprocess
 import argparse
-from botocore.exceptions import ClientError
 from fzfaws.cform.delete_stack import delete_stack
 from fzfaws.cform.update_stack import update_stack
 from fzfaws.cform.create_stack import create_stack
 from fzfaws.cform.drift_stack import drift_stack
 from fzfaws.cform.changeset_stack import changeset_stack
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.exceptions import NoSelectionMade, NoNameEntered
 from fzfaws.cform.cform import Cloudformation
 
 
@@ -103,53 +101,41 @@ def cform(raw_args):
                                help='Execute update based on selected changeset')
     args = parser.parse_args(raw_args)
 
-    try:
-        # if no argument provided, display help message through fzf
-        if not raw_args:
-            available_commands = ['update', 'create',
-                                  'delete', 'ls', 'drift', 'changeset']
-            fzf = Pyfzf()
-            for command in available_commands:
-                fzf.append_fzf(command)
-                fzf.append_fzf('\n')
-            selected_command = fzf.execute_fzf(
-                empty_allow=True, print_col=1, preview='faws cform {} -h')
-            if selected_command == 'update':
-                update_cmd.print_help()
-            elif selected_command == 'create':
-                create_cmd.print_help()
-            elif selected_command == 'delete':
-                delete_cmd.print_help()
-            elif selected_command == 'ls':
-                ls_cmd.print_help()
-            elif selected_command == 'drift':
-                drift_cmd.print_help()
-            elif selected_command == 'changeset':
-                changeset_cmd.print_help()
-            exit()
+    # if no argument provided, display help message through fzf
+    if not raw_args:
+        available_commands = ['update', 'create',
+                              'delete', 'ls', 'drift', 'changeset']
+        fzf = Pyfzf()
+        for command in available_commands:
+            fzf.append_fzf(command)
+            fzf.append_fzf('\n')
+        selected_command = fzf.execute_fzf(
+            empty_allow=True, print_col=1, preview='faws cform {} -h')
+        if selected_command == 'update':
+            update_cmd.print_help()
+        elif selected_command == 'create':
+            create_cmd.print_help()
+        elif selected_command == 'delete':
+            delete_cmd.print_help()
+        elif selected_command == 'ls':
+            ls_cmd.print_help()
+        elif selected_command == 'drift':
+            drift_cmd.print_help()
+        elif selected_command == 'changeset':
+            changeset_cmd.print_help()
+        exit()
 
-        if args.subparser_name == 'create':
-            create_stack(args)
-        elif args.subparser_name == 'update':
-            update_stack(args)
-        elif args.subparser_name == 'delete':
-            delete_stack(args)
-        elif args.subparser_name == 'ls':
-            cloudformation = Cloudformation()
-            cloudformation.get_stack()
-            print(json.dumps(cloudformation.stack_details, indent=4, default=str))
-        elif args.subparser_name == 'drift':
-            drift_stack(args)
-        elif args.subparser_name == 'changeset':
-            changeset_stack(args)
-
-    except subprocess.CalledProcessError as e:
-        print('No selection made')
-    except ClientError as e:
-        print(e)
-    except KeyboardInterrupt:
-        print('\nExit')
-    except NoSelectionMade as e:
-        print(e)
-    except NoNameEntered as e:
-        print(e)
+    if args.subparser_name == 'create':
+        create_stack(args)
+    elif args.subparser_name == 'update':
+        update_stack(args)
+    elif args.subparser_name == 'delete':
+        delete_stack(args)
+    elif args.subparser_name == 'ls':
+        cloudformation = Cloudformation()
+        cloudformation.get_stack()
+        print(json.dumps(cloudformation.stack_details, indent=4, default=str))
+    elif args.subparser_name == 'drift':
+        drift_stack(args)
+    elif args.subparser_name == 'changeset':
+        changeset_stack(args)

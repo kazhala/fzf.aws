@@ -4,9 +4,12 @@ Typical usage example:
     faws <command> --options
 """
 import sys
+import subprocess
+from botocore.exceptions import ClientError
+from fzfaws.utils.exceptions import NoCommandFound, NoNameEntered, NoSelectionMade
 from fzfaws.cform.main import cform
 from fzfaws.ec2.main import ec2
-from fzfaws.utils.exceptions import NoCommandFound
+from fzfaws.s3.main import s3
 
 
 def main():
@@ -23,6 +26,8 @@ def main():
             cform(sys.argv[2:])
         elif action_command == 'ec2':
             ec2(sys.argv[2:])
+        elif action_command == 's3':
+            s3(sys.argv[2:])
 
     # display help message
     # did'n use argparse at the entry level thus creating similar help message
@@ -33,7 +38,16 @@ def main():
         print('  {cform,ec2,keypair,s3}\n')
         print('optional arguments:')
         print('  -h, --help            show this help message and exit')
-    except Exception as e:
+    except NoSelectionMade:
+        print('No selection was made')
+        print('Exit..')
+    except NoNameEntered:
+        print('No name was entered for the operation')
+        print('Current operation require a name input, please re-run the operation')
+        print('Exiting..')
+    except KeyboardInterrupt:
+        print('\nExit')
+    except (ClientError, Exception) as e:
         print(e)
 
 
