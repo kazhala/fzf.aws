@@ -40,6 +40,10 @@ def s3(raw_args):
                             default=False, help='upload a directory to s3 bucket recursivly')
     upload_cmd.add_argument('-s', '--sync', action='store_true',
                             default=False, help='use the aws cli s3 sync operation')
+    upload_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to exclude a number of patterns')
+    upload_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to include files after excluding')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
