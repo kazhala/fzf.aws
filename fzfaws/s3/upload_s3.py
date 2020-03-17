@@ -39,7 +39,10 @@ def upload_s3(args):
         s3.set_s3_path()
 
     fzf = Pyfzf()
-    local_path = fzf.get_local_file(args.root)
+    if args.local:
+        local_path = args.local[0]
+    else:
+        local_path = fzf.get_local_file(args.root)
     s3.set_s3_key(local_path)
     print('%s will be uploaded to %s/%s' %
           (local_path, s3.bucket_name, s3.bucket_path))

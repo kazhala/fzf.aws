@@ -36,6 +36,8 @@ def s3(raw_args):
                             help='use a different region other than the default region')
     upload_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
                             help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
+    upload_cmd.add_argument('-P', '--local', nargs=1, action='store', default=None,
+                            help='specify the path of a local file to upload')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
