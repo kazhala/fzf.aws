@@ -30,14 +30,7 @@ def delete_stack(args):
     if cloudformation.stack_details['StackStatus'] == 'DELETE_FAILED':
         print(
             'The stack is in the failed state, specify any resource to skip during deletion')
-        response = cloudformation.client.list_stack_resources(
-            StackName=cloudformation.stack_name)
-        # copy the list
-        response_list = response['StackResourceSummaries']
-        fzf = Pyfzf()
-        fzf.process_list(
-            response_list, 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId')
-        logical_id_list = fzf.execute_fzf(multi_select=True)
+        logical_id_list = cloudformation.get_stack_resources()
 
     if not get_confirmation(
             f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"):

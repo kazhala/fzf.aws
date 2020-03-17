@@ -38,6 +38,18 @@ class Cloudformation:
         self.stack_details = search_dict_in_list(
             self.stack_name, stack_list, 'StackName')
 
+    def get_stack_resources(self):
+        """list all stack logical resources
+
+        return the selected list of logical resources
+        """
+        fzf = Pyfzf()
+        paginator = self.client.get_paginator('list_stack_resources')
+        for result in paginator.paginate(StackName=self.stack_name):
+            fzf.process_list(
+                result.get('StackResourceSummaries'), 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId')
+        return fzf.execute_fzf(multi_select=True)
+
     def wait(self, waiter_name, delay=15, attempts=240, **kwargs):
         """wait for the operation to be completed
 
