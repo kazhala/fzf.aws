@@ -47,6 +47,8 @@ def main():
         print('Exiting..')
     except KeyboardInterrupt:
         print('\nExit')
+    except subprocess.SubprocessError:
+        print('Empty selection')
     except (ClientError, Exception) as e:
         print(e)
 

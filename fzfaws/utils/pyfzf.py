@@ -83,7 +83,7 @@ class Pyfzf:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').rstrip()
 
-    def get_local_file(self, search_from_root=False, cloudformation=False):
+    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False):
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -101,14 +101,20 @@ class Pyfzf:
             home_path = os.path.expanduser('~')
             os.chdir(home_path)
         if self._check_fd():
-            if cloudformation:
+            if directory:
+                list_file = subprocess.Popen(
+                    ('fd', '--type', 'd'), stdout=subprocess.PIPE)
+            elif cloudformation:
                 list_file = subprocess.Popen(
                     ('fd', '--type', 'f', '--regex', r'(yaml|yml|json)$'), stdout=subprocess.PIPE)
             else:
                 list_file = subprocess.Popen(
                     ('fd', '--type', 'f'), stdout=subprocess.PIPE)
         else:
-            if cloudformation:
+            if directory:
+                list_file = subprocess.Popen(
+                    'find * -type d', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
+            elif cloudformation:
                 list_file = subprocess.Popen(
                     ('find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'),
                     stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
