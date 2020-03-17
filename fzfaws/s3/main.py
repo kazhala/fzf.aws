@@ -8,6 +8,7 @@ import json
 import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.s3.upload_s3 import upload_s3
+from fzfaws.s3.download_s3 import download_s3
 
 
 def s3(raw_args):
@@ -46,6 +47,24 @@ def s3(raw_args):
                             help='specify a bash style globbing pattern to include files after excluding')
     upload_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                             help='when fd is installed, add this flag to include hidden files in the search')
+    download_cmd = subparsers.add_parser(
+        'download', description='download a file/directory from s3 to local')
+    download_cmd.add_argument('-R', '--root', action='store_true', default=False,
+                              help='search local directory from root directory')
+    download_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
+                              help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
+    download_cmd.add_argument('-P', '--local', nargs=1, action='store', default=None,
+                              help='specify the path of a local file to download')
+    download_cmd.add_argument('-r', '--recursive', action='store_true',
+                              default=False, help='download a directory from s3 recursivly')
+    download_cmd.add_argument('-s', '--sync', action='store_true',
+                              default=False, help='use the aws cli s3 sync operation')
+    download_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
+                              help='specify a bash style globbing pattern to exclude a number of patterns')
+    download_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
+                              help='specify a bash style globbing pattern to include files after excluding')
+    download_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
+                              help='when fd is installed, add this flag to include hidden files in the search')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -58,7 +77,12 @@ def s3(raw_args):
             empty_allow=True, print_col=1, preview='faws s3 {} -h')
         if selected_command == 'upload':
             upload_cmd.print_help()
+        elif selected_command == 'download':
+            download_cmd.print_help()
         exit()
 
     if args.subparser_name == 'upload':
         upload_s3(args)
+    elif args.subparser_name == 'download':
+        download_s3(args.path[0], args.local[0], args.recursive, args.root,
+                    args.sync, args.exclude, args.include, args.hidden)
