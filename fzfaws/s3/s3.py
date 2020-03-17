@@ -83,11 +83,14 @@ class S3:
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
+        using paginator to get all results
         """
-        response = self.client.list_objects(Bucket=self.bucket_name)
         fzf = Pyfzf()
-        self.object = fzf.process_list(
-            response['Contents'], 'Key', empty_allow=False)
+        paginator = self.client.get_paginator('list_objects')
+        for result in paginator.paginate(Bucket=self.bucket_name):
+            for obj in result.get('Contents'):
+                fzf.append_fzf('Key: %s\n' % obj.get('Key'))
+        self.object = fzf.execute_fzf()
         if is_yaml(self.object):
             self.file_type = 'yaml'
         elif is_json(self.object):
@@ -97,6 +100,7 @@ class S3:
         """read the s3 object
 
         read the s3 object file and if is yaml/json file_type, load the file into dict
+        currently is only used for cloudformation
         """
         s3_object = self.resource.Object(self.bucket_name, self.object)
         body = s3_object.get()['Body'].read()
@@ -119,6 +123,8 @@ class S3:
         check if the current s3 path ends with '/'
         if not, pass, since is already a valid path
         if yes, append the local file name to the s3 path as the key
+
+        if recursive is set, append '/' to last if '/' does not exist
         """
         if recursive:
             if not self.bucket_path:
