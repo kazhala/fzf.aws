@@ -48,7 +48,7 @@ class S3:
         set both bucket and path directly
 
         Args:
-            path: string, format(Bucket/ or Bucket/path/to/upload)
+            path: string, format(Bucket/ or Bucket/path/to/operate)
         """
         if self._validate_input_path(path):
             self.bucket_name = path.split('/')[0]
@@ -111,9 +111,9 @@ class S3:
         fzf = Pyfzf()
         paginator = self.client.get_paginator('list_objects')
         for result in paginator.paginate(Bucket=self.bucket_name):
-            for obj in result.get('Contents'):
-                fzf.append_fzf('Key: %s\n' % obj.get('Key'))
+            fzf.process_list(result.get('Contents'), 'Key')
         self.object = fzf.execute_fzf()
+        self.bucket_path = self.object
 
     def get_object_data(self, file_type=None):
         """read the s3 object

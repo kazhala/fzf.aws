@@ -8,6 +8,7 @@ from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
+from fzfaws.s3.helper.sync_s3 import sync_s3
 
 
 def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False):
@@ -28,6 +29,34 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
     Returns:
         None
     Exceptions:
-        InvalidS3PathPattern: when the specifed s3 path is invalid pattern
+        InvalidS3PathPattern: when the specified s3 path is invalid pattern
     """
-    print('download')
+
+    s3 = S3()
+    if path:
+        s3.set_bucket_and_path(path)
+        # if only the bucket is specified
+        # still need to process the bucket path
+        if not s3.bucket_path:
+            if recursive or sync:
+                s3.set_s3_path()
+            else:
+                s3.set_s3_object()
+    else:
+        s3.set_s3_bucket()
+        if recursive or sync:
+            s3.set_s3_path()
+        else:
+            s3.set_s3_object()
+
+    fzf = Pyfzf()
+    if local:
+        local_path = local
+    else:
+        recursive = True if recursive or sync else False
+        local_path = fzf.get_local_file(
+            root, directory=recursive, hidden=hidden, empty_allow=True)
+
+    if sync:
+        sync_s3(exclude=exclude, include=include, from_path='s3://%s/%s' %
+                (s3.bucket_name, s3.bucket_path), to_path=local_path)

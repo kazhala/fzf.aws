@@ -9,6 +9,7 @@ from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
+from fzfaws.s3.helper.sync_s3 import sync_s3
 
 
 def upload_s3(args):
@@ -21,7 +22,7 @@ def upload_s3(args):
     Returns:
         None
     Exceptions:
-        InvalidS3PathPattern: when the specifed s3 path is invalid pattern
+        InvalidS3PathPattern: when the specified s3 path is invalid pattern
     """
 
     s3 = S3()
@@ -40,34 +41,8 @@ def upload_s3(args):
             args.root, directory=recursive, hidden=args.hidden, empty_allow=True)
 
     if args.sync:
-        # add in the exclude flag and include flag into the command list
-        exclude_list = []
-        include_list = []
-        for pattern in args.exclude:
-            if not exclude_list:
-                exclude_list.append('--exclude')
-            exclude_list.append(pattern)
-        for pattern in args.include:
-            if not include_list:
-                include_list.append('--include')
-            include_list.append(pattern)
-
-        cmd_list = ['aws', 's3', 'sync', local_path, 's3://%s/%s' %
-                    (s3.bucket_name, s3.bucket_path)]
-        cmd_list.extend(exclude_list)
-        cmd_list.extend(include_list)
-        cmd_list.append('--dryrun')
-
-        # use subprocess to call aws cli with s3 sync as boto3 doesn't have sync
-        # it's even slower if try reproduce the sync behavior with boto3 implemented here
-        sync_dry = subprocess.Popen(cmd_list)
-        sync_dry.communicate()
-        if get_confirmation('Confirm?'):
-            cmd_list.pop()
-            sync = subprocess.Popen(cmd_list)
-            sync.communicate()
-            print('%s synced it s3://%s/%s' %
-                  (local_path, s3.bucket_name, s3.bucket_path))
+        sync_s3(exclude=args.exclude, include=args.include, from_path=local_path,
+                to_path='s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
 
     elif args.recursive:
         upload_list = []
