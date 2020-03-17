@@ -38,6 +38,8 @@ def s3(raw_args):
                             help='specify the path of a local file to upload')
     upload_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='upload a directory to s3 bucket recursivly')
+    upload_cmd.add_argument('-s', '--sync', action='store_true',
+                            default=False, help='use the aws cli s3 sync operation')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
