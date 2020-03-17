@@ -2,7 +2,6 @@
 
 upload local files/directories to s3
 """
-import json
 import os
 import fnmatch
 import subprocess
@@ -22,22 +21,12 @@ def upload_s3(args):
     Returns:
         None
     Exceptions:
-        InvalidS3PathPattern: when the -p flag specifed s3 path is invalid pattern
+        InvalidS3PathPattern: when the specifed s3 path is invalid pattern
     """
-    print(args)
 
     s3 = S3()
     if args.path:
-        try:
-            if s3.validate_input_path(args.path[0]):
-                s3.bucket_name = args.path[0].split('/')[0]
-                s3.bucket_path = '/'.join(args.path[0].split('/')[1:])
-            else:
-                raise InvalidS3PathPattern
-        except InvalidS3PathPattern:
-            print(
-                'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/to/upload)')
-            exit()
+        s3.set_bucket_and_path(args.path[0])
     else:
         s3.set_s3_bucket()
         s3.set_s3_path()
@@ -49,7 +38,6 @@ def upload_s3(args):
         recursive = True if args.recursive or args.sync else False
         local_path = fzf.get_local_file(
             args.root, directory=recursive, hidden=args.hidden, empty_allow=True)
-        print(local_path)
 
     if args.sync:
         # add in the exclude flag and include flag into the command list

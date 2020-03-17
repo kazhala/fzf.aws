@@ -9,6 +9,7 @@ import re
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
+from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 
 class S3:
@@ -39,6 +40,21 @@ class S3:
         fzf = Pyfzf()
         fzf.process_list(response['Buckets'], 'Name')
         self.bucket_name = fzf.execute_fzf()
+
+    def set_bucket_and_path(self, path):
+        """method to set both bucket and path
+
+        use this method to skip fzf selection and
+        set both bucket and path directly
+
+        Args:
+            path: string, format(Bucket/ or Bucket/path/to/upload)
+        """
+        if self._validate_input_path(path):
+            self.bucket_name = path.split('/')[0]
+            self.bucket_path = '/'.join(path.split('/')[1:])
+        else:
+            raise InvalidS3PathPattern
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download
@@ -147,7 +163,7 @@ class S3:
             else:
                 return self.bucket_path
 
-    def validate_input_path(self, user_input):
+    def _validate_input_path(self, user_input):
         """validate if the user input path is valid format"""
         path_pattern = r"^(.*/)+.*$"
         return re.match(path_pattern, user_input)
