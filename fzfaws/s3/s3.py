@@ -79,7 +79,7 @@ class S3:
                 print('S3 file path is set to %s' %
                       (self.bucket_path if self.bucket_path else 'root'))
 
-    def set_s3_key(self, local_path):
+    def get_s3_destination_key(self, local_path, recursive=False):
         """set the s3 key for upload destination
 
         check if the current s3 path ends with '/'
@@ -87,13 +87,18 @@ class S3:
         if yes, append the local file name to the s3 path as the key
         """
         if not self.bucket_path:
-            self.bucket_path = local_path.split('/')[-1]
+            # if operation is at root level, return the file name
+            return local_path.split('/')[-1]
         elif self.bucket_path[-1] == '/':
+            # if specified s3 path, append the file name
             key = local_path.split('/')[-1]
-            self.bucket_path += key
+            return self.bucket_path + key
         else:
-            pass
-        print(self.bucket_path)
+            if not recursive:
+                return self.bucket_path
+            else:
+                key = local_path.split('/')[-1]
+                return self.bucket_path + '/' + key
 
     def set_s3_object(self):
         """list object within a bucket and let user select a object.

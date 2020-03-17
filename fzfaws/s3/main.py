@@ -32,13 +32,11 @@ def s3(raw_args):
         'upload', description='upload a local file/directory to s3 bucket')
     upload_cmd.add_argument('-R', '--root', action='store_true',
                             default=False, help='search local file from root directory')
-    upload_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                            help='use a different region other than the default region')
     upload_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
                             help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
     upload_cmd.add_argument('-P', '--local', nargs=1, action='store', default=None,
                             help='specify the path of a local file to upload')
-    upload_cmd.add_argument('-d', '--directory', action='store_true',
+    upload_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='upload a directory to s3 bucket recursivly')
     args = parser.parse_args(raw_args)
 

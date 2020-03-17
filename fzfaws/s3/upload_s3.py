@@ -42,11 +42,17 @@ def upload_s3(args):
     if args.local:
         local_path = args.local[0]
     else:
-        local_path = fzf.get_local_file(args.root, directory=args.directory)
-    s3.set_s3_key(local_path)
-    print('%s will be uploaded to %s/%s' %
-          (local_path, s3.bucket_name, s3.bucket_path))
-    if get_confirmation('Confirm?'):
-        response = s3.client.upload_file(
-            local_path, s3.bucket_name, s3.bucket_path)
-        print('File uploaded')
+        local_path = fzf.get_local_file(args.root, directory=args.recursive)
+
+    if args.recursive:
+        print(s3.get_s3_destination_key(local_path, recursive=True))
+    else:
+        # get the formated s3 destination
+        destination_key = s3.get_s3_destination_key(local_path)
+        print('%s will be uploaded to %s/%s' %
+              (local_path, s3.bucket_name, destination_key))
+
+        if get_confirmation('Confirm?'):
+            response = s3.client.upload_file(
+                local_path, s3.bucket_name, destination_key)
+            print('File uploaded')
