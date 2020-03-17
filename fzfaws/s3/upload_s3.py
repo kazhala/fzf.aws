@@ -3,6 +3,7 @@
 upload local files/directories to s3
 """
 import json
+import os
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
@@ -45,7 +46,24 @@ def upload_s3(args):
         local_path = fzf.get_local_file(args.root, directory=args.recursive)
 
     if args.recursive:
-        print(s3.get_s3_destination_key(local_path, recursive=True))
+        upload_list = []
+        for root, dirs, files in os.walk(local_path):
+            for filename in files:
+                full_path = os.path.join(root, filename)
+                relative_path = os.path.relpath(full_path, local_path)
+                destination_key = s3.get_s3_destination_key(
+                    relative_path, recursive=True)
+                print('(dryrung) upload: %s to s3://%s/%s' %
+                      (relative_path, s3.bucket_name, destination_key))
+                upload_list.append(
+                    {'local': full_path, 'bucket': s3.bucket_name, 'key': destination_key, 'relative': relative_path})
+
+        if get_confirmation('Confirm?'):
+            for item in upload_list:
+                print('Uploading %s' % item['relative'])
+                s3.client.upload_file(
+                    item['local'], item['bucket'], item['key'])
+
     else:
         # get the formated s3 destination
         destination_key = s3.get_s3_destination_key(local_path)

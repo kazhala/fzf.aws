@@ -86,19 +86,23 @@ class S3:
         if not, pass, since is already a valid path
         if yes, append the local file name to the s3 path as the key
         """
-        if not self.bucket_path:
-            # if operation is at root level, return the file name
-            return local_path.split('/')[-1]
-        elif self.bucket_path[-1] == '/':
-            # if specified s3 path, append the file name
-            key = local_path.split('/')[-1]
-            return self.bucket_path + key
-        else:
-            if not recursive:
-                return self.bucket_path
+        if recursive:
+            if not self.bucket_path:
+                return local_path
+            elif self.bucket_path[-1] != '/':
+                return self.bucket_path + '/' + local_path
             else:
+                return self.bucket_path + local_path
+        else:
+            if not self.bucket_path:
+                # if operation is at root level, return the file name
+                return local_path.split('/')[-1]
+            elif self.bucket_path[-1] == '/':
+                # if specified s3 path, append the file name
                 key = local_path.split('/')[-1]
-                return self.bucket_path + '/' + key
+                return self.bucket_path + key
+            else:
+                return self.bucket_path
 
     def set_s3_object(self):
         """list object within a bucket and let user select a object.

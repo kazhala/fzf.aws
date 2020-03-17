@@ -124,10 +124,7 @@ class Pyfzf:
         selected_file_path = subprocess.check_output(
             ('fzf'), stdin=list_file.stdout)
         if search_from_root:
-            if directory:
-                return f"{str(selected_file_path, 'utf-8').rstrip()}"
-            else:
-                return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
+            return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
         else:
             return f"{str(selected_file_path, 'utf-8').rstrip()}"
 
