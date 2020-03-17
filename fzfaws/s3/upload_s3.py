@@ -48,7 +48,8 @@ def upload_s3(args):
     else:
         recursive = True if args.recursive or args.sync else False
         local_path = fzf.get_local_file(
-            args.root, directory=recursive, hidden=args.hidden)
+            args.root, directory=recursive, hidden=args.hidden, empty_allow=True)
+        print(local_path)
 
     if args.sync:
         # add in the exclude flag and include flag into the command list

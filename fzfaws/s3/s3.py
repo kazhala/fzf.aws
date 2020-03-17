@@ -21,6 +21,9 @@ class S3:
         resource: boto3 resource
         bucket_name: name of the selected bucket to interact
         object: path of the object to process
+        bucket_path: path of where the operation should happen
+            Note: use get_s3_destination_key() to obtain the destination key
+            This attribute may not be valid destination key
     """
 
     def __init__(self):

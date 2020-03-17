@@ -83,7 +83,7 @@ class Pyfzf:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').rstrip()
 
-    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False):
+    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False):
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -126,8 +126,15 @@ class Pyfzf:
             else:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
-        selected_file_path = subprocess.check_output(
-            ('fzf'), stdin=list_file.stdout)
+        try:
+            selected_file_path = subprocess.check_output(
+                ('fzf'), stdin=list_file.stdout)
+        except subprocess.CalledProcessError:
+            if not empty_allow:
+                raise
+            else:
+                selected_file_path = os.getcwd()
+                return selected_file_path
         return f"{str(selected_file_path, 'utf-8').rstrip()}"
 
     def _check_fd(self):
