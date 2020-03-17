@@ -4,6 +4,7 @@ upload local files/directories to s3
 """
 import json
 import os
+import fnmatch
 import subprocess
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
@@ -84,12 +85,25 @@ def upload_s3(args):
             for filename in files:
                 full_path = os.path.join(root, filename)
                 relative_path = os.path.relpath(full_path, local_path)
-                destination_key = s3.get_s3_destination_key(
-                    relative_path, recursive=True)
-                print('(dryrung) upload: %s to s3://%s/%s' %
-                      (relative_path, s3.bucket_name, destination_key))
-                upload_list.append(
-                    {'local': full_path, 'bucket': s3.bucket_name, 'key': destination_key, 'relative': relative_path})
+
+                should_exclude = False
+                # validate the relative_path against exclude list
+                for pattern in args.exclude:
+                    if fnmatch.fnmatch(relative_path, pattern):
+                        should_exclude = True
+                # validate against include list if it is previouse denied
+                if should_exclude:
+                    for pattern in args.include:
+                        if fnmatch.fnmatch(relative_path, pattern):
+                            should_exclude = False
+
+                if not should_exclude:
+                    destination_key = s3.get_s3_destination_key(
+                        relative_path, recursive=True)
+                    print('(dryrun) upload: %s to s3://%s/%s' %
+                          (relative_path, s3.bucket_name, destination_key))
+                    upload_list.append(
+                        {'local': full_path, 'bucket': s3.bucket_name, 'key': destination_key, 'relative': relative_path})
 
         if get_confirmation('Confirm?'):
             for item in upload_list:

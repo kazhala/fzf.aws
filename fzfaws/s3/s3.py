@@ -79,31 +79,6 @@ class S3:
                 print('S3 file path is set to %s' %
                       (self.bucket_path if self.bucket_path else 'root'))
 
-    def get_s3_destination_key(self, local_path, recursive=False):
-        """set the s3 key for upload destination
-
-        check if the current s3 path ends with '/'
-        if not, pass, since is already a valid path
-        if yes, append the local file name to the s3 path as the key
-        """
-        if recursive:
-            if not self.bucket_path:
-                return local_path
-            elif self.bucket_path[-1] != '/':
-                return self.bucket_path + '/' + local_path
-            else:
-                return self.bucket_path + local_path
-        else:
-            if not self.bucket_path:
-                # if operation is at root level, return the file name
-                return local_path.split('/')[-1]
-            elif self.bucket_path[-1] == '/':
-                # if specified s3 path, append the file name
-                key = local_path.split('/')[-1]
-                return self.bucket_path + key
-            else:
-                return self.bucket_path
-
     def set_s3_object(self):
         """list object within a bucket and let user select a object.
 
@@ -137,6 +112,31 @@ class S3:
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response['LocationConstraint']
         return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.object)
+
+    def get_s3_destination_key(self, local_path, recursive=False):
+        """set the s3 key for upload destination
+
+        check if the current s3 path ends with '/'
+        if not, pass, since is already a valid path
+        if yes, append the local file name to the s3 path as the key
+        """
+        if recursive:
+            if not self.bucket_path:
+                return local_path
+            elif self.bucket_path[-1] != '/':
+                return self.bucket_path + '/' + local_path
+            else:
+                return self.bucket_path + local_path
+        else:
+            if not self.bucket_path:
+                # if operation is at root level, return the file name
+                return local_path.split('/')[-1]
+            elif self.bucket_path[-1] == '/':
+                # if specified s3 path, append the file name
+                key = local_path.split('/')[-1]
+                return self.bucket_path + key
+            else:
+                return self.bucket_path
 
     def validate_input_path(self, user_input):
         """validate if the user input path is valid format"""

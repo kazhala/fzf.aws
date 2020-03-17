@@ -123,9 +123,6 @@ class Pyfzf:
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         selected_file_path = subprocess.check_output(
             ('fzf'), stdin=list_file.stdout)
-        # if search_from_root:
-        #     return f"{home_path}/{str(selected_file_path, 'utf-8').rstrip()}"
-        # else:
         return f"{str(selected_file_path, 'utf-8').rstrip()}"
 
     def _check_fd(self):
