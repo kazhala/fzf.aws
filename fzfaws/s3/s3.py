@@ -43,26 +43,57 @@ class S3:
 
         s3 folders are not actually folder, found this path listing on
         https://github.com/boto/boto3/issues/134#issuecomment-116766812
+
+        Exceptions:
+            TypeError: would raise when there is no more path to iterate
+            Would indicate an end to the loop and print out user current
+            selected path
         """
-        paginator = self.client.get_paginator('list_objects')
-        self.bucket_path = ''
-        fzf = Pyfzf()
-        try:
-            # interactively search down 'folders' in s3
-            while True:
-                for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter='/'):
-                    for prefix in result.get('CommonPrefixes'):
-                        fzf.append_fzf(prefix.get('Prefix'))
-                        fzf.append_fzf('\n')
-                selected_path = fzf.execute_fzf(empty_allow=True, print_col=1)
-                if not selected_path:
-                    raise
-                self.bucket_path = selected_path
-                # reset fzf string
-                fzf.fzf_string = ''
-        except:
-            print('S3 file path is set to %s' %
-                  (self.bucket_path if self.bucket_path else 'root'))
+        selected_option = self._get_path_option()
+        if selected_option == 'input':
+            self.bucket_path = input('Input the path(newname or newpath/): ')
+        elif selected_option == 'root':
+            print('S3 file path is set to root')
+        elif selected_option == 'append' or selected_option == 'interactively':
+            paginator = self.client.get_paginator('list_objects')
+            fzf = Pyfzf()
+            try:
+                # interactively search down 'folders' in s3
+                while True:
+                    for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter='/'):
+                        for prefix in result.get('CommonPrefixes'):
+                            fzf.append_fzf(prefix.get('Prefix'))
+                            fzf.append_fzf('\n')
+                    selected_path = fzf.execute_fzf(
+                        empty_allow=True, print_col=1)
+                    if not selected_path:
+                        raise
+                    self.bucket_path = selected_path
+                    # reset fzf string
+                    fzf.fzf_string = ''
+            except:
+                if selected_option == 'append':
+                    new_path = input(
+                        'Input the new path to append(newname or newpath/): ')
+                    self.bucket_path += new_path
+                print('S3 file path is set to %s' %
+                      (self.bucket_path if self.bucket_path else 'root'))
+
+    def set_s3_key(self, local_path):
+        """set the s3 key for upload destination
+
+        check if the current s3 path ends with '/'
+        if not, pass, since is already a valid path
+        if yes, append the local file name to the s3 path as the key
+        """
+        if not self.bucket_path:
+            self.bucket_path = local_path.split('/')[-1]
+        elif self.bucket_path[-1] == '/':
+            key = local_path.split('/')[-1]
+            self.bucket_path += key
+        else:
+            pass
+        print(self.bucket_path)
 
     def set_s3_object(self):
         """list object within a bucket and let user select a object.
@@ -99,5 +130,18 @@ class S3:
         return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.object)
 
     def validate_input_path(self, user_input):
+        """validate if the user input path is valid format"""
         path_pattern = r"^(.*/)+.*$"
         return re.match(path_pattern, user_input)
+
+    def _get_path_option(self):
+        """pop up fzf for user to select what to do with the path"""
+        print('Please select which level of the bucket would you like to operate in')
+        fzf = Pyfzf()
+        fzf.append_fzf('root: operate on the root level of the bucket\n')
+        fzf.append_fzf(
+            'interactively: interactively select a path through s3\n')
+        fzf.append_fzf('input: manully input the path/name\n')
+        fzf.append_fzf(
+            'append: interactively select a path and then input new path/name to append')
+        return fzf.execute_fzf(print_col=1).split(':')[0]
