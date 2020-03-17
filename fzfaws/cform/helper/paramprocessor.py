@@ -164,19 +164,19 @@ class ParamProcessor:
             response = self.ec2.describe_key_pairs()
             response_list = response['KeyPairs']
             fzf.process_list(response_list, 'KeyName')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::SecurityGroup::Id':
             response = self.ec2.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response['SecurityGroups']:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupId', 'GroupName', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::AvailabilityZone::Name':
             response = self.ec2.describe_availability_zones()
             response_list = response['AvailabilityZones']
             fzf.process_list(response_list, 'ZoneName')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Instance::Id':
             response = self.ec2.describe_instances()
             response_list = []
@@ -186,14 +186,14 @@ class ParamProcessor:
                     'Name': get_name_tag(instance['Instances'][0])
                 })
             fzf.process_list(response_list, 'InstanceId', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::SecurityGroup::GroupName':
             response = self.ec2.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response['SecurityGroups']:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupName', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Subnet::Id':
             response = self.ec2.describe_subnets()
             response_list = response['Subnets']
@@ -201,14 +201,14 @@ class ParamProcessor:
                 subnet['Name'] = get_name_tag(subnet)
             fzf.process_list(response_list, 'SubnetId',
                              'AvailabilityZone', 'CidrBlock', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Volume::Id':
             response = self.ec2.describe_volumes()
             response_list = response['Volumes']
             for volume in response['Volumes']:
                 volume['Name'] = get_name_tag(volume)
             fzf.process_list(response_list, 'VolumeId', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::VPC::Id':
             response = self.ec2.describe_vpcs()
             response_list = response['Vpcs']
@@ -216,12 +216,12 @@ class ParamProcessor:
                 vpc['Name'] = get_name_tag(vpc)
             fzf.process_list(response_list, 'VpcId',
                              'IsDefault', 'CidrBlock', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::Route53::HostedZone::Id':
             response = self.route53.list_hosted_zones()
             response_list = self._process_hosted_zone(response['HostedZones'])
             fzf.process_list(response_list, 'Id', 'Name')
-            return fzf.execute_fzf()
+            return fzf.execute_fzf(empty_allow=True)
 
     # handler if parameter type is a list type
 
@@ -241,7 +241,7 @@ class ParamProcessor:
             response = self.ec2.describe_availability_zones()
             response_list = response['AvailabilityZones']
             fzf.process_list(response_list, 'ZoneName')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Instance::Id>':
             response = self.ec2.describe_instances()
             raw_response_list = response['Reservations']
@@ -250,21 +250,21 @@ class ParamProcessor:
                 response_list.append(
                     {'InstanceId': item['Instances'][0]['InstanceId'], 'Name': get_name_tag(item['Instances'][0])})
             fzf.process_list(response_list, 'InstanceId', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::SecurityGroup::GroupName>':
             response = self.ec2.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response_list:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupName')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
             response = self.ec2.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response_list:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupId', 'GroupName', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Subnet::Id>':
             response = self.ec2.describe_subnets()
             response_list = response['Subnets']
@@ -272,14 +272,14 @@ class ParamProcessor:
                 subnet['Name'] = get_name_tag(subnet)
             fzf.process_list(response_list, 'SubnetId',
                              'AvailabilityZone', 'CidrBlock', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Volume::Id>':
             response = self.ec2.describe_volumes()
             response_list = response['Volumes']
             for volume in response_list:
                 volume['Name'] = get_name_tag(volume)
             fzf.process_list(response_list, 'VolumeId', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::VPC::Id>':
             response = self.ec2.describe_vpcs()
             response_list = response['Vpcs']
@@ -287,12 +287,12 @@ class ParamProcessor:
                 vpc['Name'] = get_name_tag(vpc)
             fzf.process_list(response_list, 'VpcId',
                              'IsDefault', 'CidrBlock', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::Route53::HostedZone::Id>':
             response = self.route53.list_hosted_zones()
             response_list = self._process_hosted_zone(response['HostedZones'])
             fzf.process_list(response_list, 'Id', 'Name')
-            return fzf.execute_fzf(multi_select=True)
+            return fzf.execute_fzf(multi_select=True, empty_allow=True)
 
     def _process_hosted_zone(self, hostedzone_list):
         """process hostedzone as the response is not raw id"""
