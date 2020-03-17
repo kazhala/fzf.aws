@@ -35,8 +35,9 @@ def delete_stack(args):
         # copy the list
         response_list = response['StackResourceSummaries']
         fzf = Pyfzf()
-        logical_id_list = fzf.process_list(
-            response_list, 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId', multi_select=True)
+        fzf.process_list(
+            response_list, 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId')
+        logical_id_list = fzf.execute_fzf(multi_select=True)
 
     if not get_confirmation(
             f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"):

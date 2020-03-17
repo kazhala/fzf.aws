@@ -27,12 +27,16 @@ class Cloudformation:
 
     def get_stack(self):
         """stores the selected stack into the instance"""
-        response = self.client.describe_stacks()
         fzf = Pyfzf()
-        self.stack_name = fzf.process_list(
-            response['Stacks'], 'StackName', 'StackStatus', 'Description', empty_allow=False)
+        stack_list = []
+        paginator = self.client.get_paginator('describe_stacks')
+        for result in paginator.paginate():
+            stack_list.extend(result['Stacks'])
+            fzf.process_list(result['Stacks'], 'StackName',
+                             'StackStatus', 'Description')
+        self.stack_name = fzf.execute_fzf(empty_allow=False)
         self.stack_details = search_dict_in_list(
-            self.stack_name, response['Stacks'], 'StackName')
+            self.stack_name, stack_list, 'StackName')
 
     def wait(self, waiter_name, delay=15, attempts=240, **kwargs):
         """wait for the operation to be completed

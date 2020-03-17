@@ -48,8 +48,9 @@ def drift_stack(args):
         for resource in response_list:
             resource['Drift'] = resource['DriftInformation']['StackResourceDriftStatus']
         fzf = Pyfzf()
-        logical_id_list = fzf.process_list(response['StackResources'],
-                                           'LogicalResourceId', 'ResourceType', 'Drift', multi_select=True, gap=4)
+        fzf.process_list(response['StackResources'],
+                         'LogicalResourceId', 'ResourceType', 'Drift', gap=4)
+        logical_id_list = fzf.execute_fzf(multi_select=True)
 
         if len(logical_id_list) < 1:
             print('No resources selected')

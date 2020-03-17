@@ -34,8 +34,9 @@ class EC2:
             AllRegions=True
         )
         fzf = Pyfzf()
-        region = fzf.process_list(
-            response['Regions'], 'RegionName', empty_allow=False)
+        fzf.process_list(
+            response['Regions'], 'RegionName')
+        region = fzf.execute_fzf()
         self.client = boto3.client('ec2', region_name=region)
 
     def set_ec2_instance(self, multi_select=True):
@@ -57,8 +58,9 @@ class EC2:
                 'PublicDnsName': instance['Instances'][0]['PublicDnsName'] if instance['Instances'][0]['PublicDnsName'] else 'N/A',
                 'PublicIpAddress': instance['Instances'][0]['PublicIpAddress'] if 'PublicIpAddress' in instance['Instances'][0] else 'N/A'
             })
-        selected_instance_ids = fzf.process_list(
-            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress', empty_allow=False, multi_select=multi_select)
+        fzf.process_list(
+            response_list, 'InstanceId', 'Status', 'InstanceType', 'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress')
+        selected_instance_ids = fzf.execute_fzf(multi_select=multi_select)
         if multi_select:
             self.instance_ids = selected_instance_ids
             for instance in self.instance_ids:

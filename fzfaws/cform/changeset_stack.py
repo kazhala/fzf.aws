@@ -50,8 +50,9 @@ def changeset_stack(args):
         )
         response_list = response['Summaries']
         # get the changeset name
-        selected_changeset = fzf.process_list(response_list, 'ChangeSetName', 'StackName',
-                                              'ExecutionStatus', 'Status', 'Description')
+        fzf.process_list(response_list, 'ChangeSetName', 'StackName',
+                         'ExecutionStatus', 'Status', 'Description')
+        selected_changeset = fzf.execute_fzf()
 
         if args.info:
             describe_changes(cloudformation, selected_changeset)

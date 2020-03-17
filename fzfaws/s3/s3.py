@@ -5,6 +5,7 @@ management if user decide to change region or use different profile
 """
 import boto3
 import re
+# TODO: use session to list user profile
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
@@ -35,8 +36,8 @@ class S3:
         """list bucket through fzf and let user select a bucket"""
         response = self.client.list_buckets()
         fzf = Pyfzf()
-        self.bucket_name = fzf.process_list(
-            response['Buckets'], 'Name', empty_allow=False)
+        fzf.process_list(response['Buckets'], 'Name')
+        self.bucket_name = fzf.execute_fzf()
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download

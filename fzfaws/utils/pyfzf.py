@@ -138,33 +138,28 @@ class Pyfzf:
         except:
             return False
 
-    def process_list(self, response_list, key_name, *arg_keys, multi_select=False, gap=2, empty_allow=True):
-        """process list passed in and formatted into fzf
+    def process_list(self, response_list, key_name, *arg_keys, gap=2):
+        """process list passed in and formatted for fzf
 
-        processes the list passed into it and print the key_name and *arg_keys into
-        the fzf menu and return the selected value
+        processes the list passed into it and prepare the fzf operation
+        Note: you will need to invoke fzf.execute_fzf() to pop the fzf
 
         Args:
             response_list: list, the list to process
             key_name: string, key in response_list to print
             *arg_keys: specify any numbers of key to print
-            multi_select: bool, allow multi_select
             gap: number, gap between text
-            empty_allow: bool, if empty selection is allowed
         Returns:
             A string which contains the value from response_list[key_name]
         Example:
             list = [{'Name': 1, 'Mame': 2}, {'Name': 2, 'Mame': 3}]
-            print(fzf.process_list(list, 'Name', 'Mame', gap=4))
+            fzf.process_list(list, 'Name', 'Mame', gap=4)
+            fzf.execute_fzf(empty_allow=False)
             if first entry is selected, it will return 1
         """
         for item in response_list:
-            self.append_fzf(f"{key_name}: {item[key_name]}")
+            self.append_fzf(f"{key_name}: {item.get(key_name)}")
             for arg in arg_keys:
                 self.append_fzf(gap*' ')
-                self.append_fzf(f"{arg}: {item[arg]}")
+                self.append_fzf(f"{arg}: {item.get(arg)}")
             self.append_fzf('\n')
-        if multi_select:
-            return self.execute_fzf(empty_allow=empty_allow, multi_select=True)
-        else:
-            return self.execute_fzf(empty_allow=empty_allow)
