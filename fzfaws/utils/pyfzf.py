@@ -83,7 +83,7 @@ class Pyfzf:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').rstrip()
 
-    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False):
+    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False):
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -101,16 +101,21 @@ class Pyfzf:
             home_path = os.path.expanduser('~')
             os.chdir(home_path)
         if self._check_fd():
+            cmd_list = []
             if directory:
-                list_file = subprocess.Popen(
-                    ('fd', '--type', 'd'), stdout=subprocess.PIPE)
+                cmd_list.extend(['fd', '--type', 'd'])
             elif cloudformation:
-                list_file = subprocess.Popen(
-                    ('fd', '--type', 'f', '--regex', r'(yaml|yml|json)$'), stdout=subprocess.PIPE)
+                cmd_list.extend(
+                    ['fd', '--type', 'f', '--regex', r'(yaml|yml|json)$'])
             else:
-                list_file = subprocess.Popen(
-                    ('fd', '--type', 'f'), stdout=subprocess.PIPE)
+                cmd_list.extend(['fd', '--type', 'f'])
+            if hidden:
+                cmd_list.append('-H')
+            list_file = subprocess.Popen(cmd_list, stdout=subprocess.PIPE)
+
         else:
+            # set shell=True so that it won't interpret the glob before executing the command
+            # TODO: find another way to use shell=False
             if directory:
                 list_file = subprocess.Popen(
                     'find * -type d', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)

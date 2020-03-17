@@ -44,6 +44,8 @@ def s3(raw_args):
                             help='specify a bash style globbing pattern to exclude a number of patterns')
     upload_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
                             help='specify a bash style globbing pattern to include files after excluding')
+    upload_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
+                            help='when fd is installed, add this flag to include hidden files in the search')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
