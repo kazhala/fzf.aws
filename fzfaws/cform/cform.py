@@ -25,7 +25,7 @@ class Cloudformation:
         self.stack_name = None
         self.stack_details = None
 
-    def get_stack(self):
+    def set_stack(self):
         """stores the selected stack into the instance"""
         fzf = Pyfzf()
         stack_list = []

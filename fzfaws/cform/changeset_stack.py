@@ -40,7 +40,7 @@ def changeset_stack(args):
     """
 
     cloudformation = Cloudformation()
-    cloudformation.get_stack()
+    cloudformation.set_stack()
 
     # if not creating new changeset
     if args.info or args.execute:

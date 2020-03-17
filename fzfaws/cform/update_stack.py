@@ -27,7 +27,7 @@ def update_stack(args):
     """
 
     cloudformation = Cloudformation()
-    cloudformation.get_stack()
+    cloudformation.set_stack()
 
     # check to use current template or replace current template
     if not args.replace:

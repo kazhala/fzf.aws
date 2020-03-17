@@ -19,7 +19,7 @@ def drift_stack(args):
     """
 
     cloudformation = Cloudformation()
-    cloudformation.get_stack()
+    cloudformation.set_stack()
 
     print(json.dumps(
         cloudformation.stack_details['DriftInformation'], indent=4, default=str))

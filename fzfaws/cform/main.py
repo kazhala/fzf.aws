@@ -133,7 +133,7 @@ def cform(raw_args):
         delete_stack(args)
     elif args.subparser_name == 'ls':
         cloudformation = Cloudformation()
-        cloudformation.get_stack()
+        cloudformation.set_stack()
         print(json.dumps(cloudformation.stack_details, indent=4, default=str))
     elif args.subparser_name == 'drift':
         drift_stack(args)

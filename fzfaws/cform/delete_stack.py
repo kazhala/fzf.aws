@@ -24,7 +24,7 @@ def delete_stack(args):
     """
 
     cloudformation = Cloudformation()
-    cloudformation.get_stack()
+    cloudformation.set_stack()
 
     logical_id_list = []
     if cloudformation.stack_details['StackStatus'] == 'DELETE_FAILED':
