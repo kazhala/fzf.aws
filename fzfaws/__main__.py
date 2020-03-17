@@ -6,7 +6,7 @@ Typical usage example:
 import sys
 import subprocess
 from botocore.exceptions import ClientError
-from fzfaws.utils.exceptions import NoCommandFound, NoNameEntered, NoSelectionMade
+from fzfaws.utils.exceptions import NoCommandFound, NoNameEntered, NoSelectionMade, InvalidFileType
 from fzfaws.cform.main import cform
 from fzfaws.ec2.main import ec2
 from fzfaws.s3.main import s3
@@ -44,6 +44,9 @@ def main():
     except NoNameEntered:
         print('No name was entered for the operation')
         print('Current operation require a name input, please re-run the operation')
+        print('Exiting..')
+    except InvalidFileType:
+        print('Selected file is not a valid template file type')
         print('Exiting..')
     except KeyboardInterrupt:
         print('\nExit')

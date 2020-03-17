@@ -19,3 +19,8 @@ class NoNameEntered(Exception):
 class InvalidS3PathPattern(Exception):
     """The input s3 path set by -p is invalid format"""
     pass
+
+
+class InvalidFileType(Exception):
+    """The file type is not accepted file type"""
+    pass

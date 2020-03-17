@@ -7,7 +7,7 @@ from fzfaws.cform.helper.file_validation import is_yaml, is_json, check_is_valid
 from fzfaws.cform.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_json_file, process_yaml_file
-from fzfaws.utils.exceptions import NoNameEntered
+from fzfaws.utils.exceptions import NoNameEntered, InvalidFileType
 from fzfaws.cform.cform import Cloudformation
 from fzfaws.cform.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
@@ -66,12 +66,18 @@ def create_stack(args):
         s3 = S3()
         s3.set_s3_bucket()
         s3.set_s3_object()
+        if is_yaml(s3.object):
+            file_type = 'yaml'
+        elif is_json(s3.object):
+            file_type = 'json'
+
         check_is_valid(s3.object)
+
         stack_name = input('StackName: ')
         if not stack_name:
             raise NoNameEntered('No name entered')
 
-        file_data = s3.get_object_data()
+        file_data = s3.get_object_data(file_type)
         if 'Parameters' in file_data:
             paramprocessor = ParamProcessor(file_data['Parameters'])
             paramprocessor.process_stack_params()

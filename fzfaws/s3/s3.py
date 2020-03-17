@@ -9,7 +9,6 @@ import re
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
-from fzfaws.cform.helper.file_validation import is_yaml, is_json
 
 
 class S3:
@@ -29,7 +28,6 @@ class S3:
         self.resource = boto3.resource('s3')
         self.bucket_name = None
         self.object = None
-        self.file_type = None
         self.bucket_path = ''
 
     def set_s3_bucket(self):
@@ -44,6 +42,11 @@ class S3:
 
         s3 folders are not actually folder, found this path listing on
         https://github.com/boto/boto3/issues/134#issuecomment-116766812
+
+        This method would set the 'path' for s3 however the self.bucket_path cannot be used
+        as the destination of upload immediately. This only set the path
+        without handling different upload sceanario. Please use the
+        get_s3_destination_key after set_s3_path to obtain the correct destination key
 
         Exceptions:
             TypeError: would raise when there is no more path to iterate
@@ -92,12 +95,8 @@ class S3:
             for obj in result.get('Contents'):
                 fzf.append_fzf('Key: %s\n' % obj.get('Key'))
         self.object = fzf.execute_fzf()
-        if is_yaml(self.object):
-            self.file_type = 'yaml'
-        elif is_json(self.object):
-            self.file_type = 'json'
 
-    def get_object_data(self):
+    def get_object_data(self, file_type=None):
         """read the s3 object
 
         read the s3 object file and if is yaml/json file_type, load the file into dict
@@ -106,9 +105,9 @@ class S3:
         s3_object = self.resource.Object(self.bucket_name, self.object)
         body = s3_object.get()['Body'].read()
         body = str(body, 'utf-8')
-        if self.file_type == 'yaml':
+        if file_type == 'yaml':
             body = process_yaml_body(body)
-        elif self.file_type == 'json':
+        elif file_type == 'json':
             body = process_json_body(body)
         return body
 

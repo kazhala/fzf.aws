@@ -1,19 +1,23 @@
 """helper functions for file name validations"""
 import re
+from fzfaws.utils.exceptions import InvalidFileType
 
 
-# check if it is yaml file
 def is_yaml(file_name):
+    """check if it is yaml file"""
     return re.match(r'^.*\.(yaml|yml)$', file_name)
 
 
-# check if it is json file
 def is_json(file_name):
+    """check if it is json file"""
     return re.match(r'^.*\.json$', file_name)
 
 
-# check if file type is valid cloudformation type
 def check_is_valid(file_name):
+    """check if the file is json or yaml
+
+    Exceptions:
+        InvalidFileType: when the file is not json or yaml
+    """
     if not is_yaml(file_name) and not is_json(file_name):
-        print('Selected file is not a valid template file type')
-        exit()
+        raise InvalidFileType
