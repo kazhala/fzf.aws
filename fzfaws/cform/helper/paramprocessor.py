@@ -74,10 +74,10 @@ class ParamProcessor:
                 print(
                     'For list type parameters, use comma to sperate items(e.g. values: value1, value2)')
 
-            if check_dict_value_in_list(parameter_key, self.original_params, 'parameter_key'):
+            if check_dict_value_in_list(parameter_key, self.original_params, 'ParameterKey'):
                 # update with replace current stack flag
                 original_value = search_dict_in_list(
-                    parameter_key, self.original_params, 'parameter_key')['ParameterValue']
+                    parameter_key, self.original_params, 'ParameterKey')['ParameterValue']
                 parameter_value = self._get_user_input(
                     parameter_key, parameter_type, 'Original', original_value)
             elif 'Default' in self.params[parameter_key]:
@@ -127,9 +127,13 @@ class ParamProcessor:
         else:
             if parameter_type in self._aws_specific_param:
                 if value_type:
-                    print(f"{value_type}: {default}")
+                    print(
+                        f"Choose a value for {parameter_key}({value_type}: {default})")
                 user_input = self._get_selected_param_value(parameter_type)
             elif parameter_type in self._aws_specific_list_param:
+                if value_type:
+                    print(
+                        f"Choose a value for {parameter_key}({value_type}: {default})")
                 user_input = self._get_list_param_value(parameter_type)
             else:
                 if not value_type:

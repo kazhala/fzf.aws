@@ -98,7 +98,7 @@ def update_stack(args):
             # process params
             if 'Parameters' in file_data['dictBody']:
                 paramprocessor = ParamProcessor(
-                    file_data['dictBody']['Parameters'])
+                    file_data['dictBody']['Parameters'], cloudformation.stack_details.get('Parameters'))
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:

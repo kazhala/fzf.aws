@@ -18,7 +18,7 @@ def search_dict_in_list(value, target_list, name):
 # check if a specific value in dict
 def check_dict_value_in_list(value, target_list, name):
     for item in target_list:
-        if item[name] == value:
+        if item.get(name) == value:
             return True
     return False
 
