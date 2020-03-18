@@ -10,6 +10,7 @@ from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
+from fzfaws.s3.helper.exclude_file import exclude_file
 
 
 def upload_s3(args):
@@ -51,18 +52,7 @@ def upload_s3(args):
                 full_path = os.path.join(root, filename)
                 relative_path = os.path.relpath(full_path, local_path)
 
-                should_exclude = False
-                # validate the relative_path against exclude list
-                for pattern in args.exclude:
-                    if fnmatch.fnmatch(relative_path, pattern):
-                        should_exclude = True
-                # validate against include list if it is previouse denied
-                if should_exclude:
-                    for pattern in args.include:
-                        if fnmatch.fnmatch(relative_path, pattern):
-                            should_exclude = False
-
-                if not should_exclude:
+                if not exclude_file(args.exclude, args.include, relative_path):
                     destination_key = s3.get_s3_destination_key(
                         relative_path, recursive=True)
                     print('(dryrun) upload: %s to s3://%s/%s' %

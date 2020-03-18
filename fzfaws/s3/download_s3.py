@@ -10,6 +10,7 @@ from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
+from fzfaws.s3.helper.exclude_file import exclude_file
 
 
 def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False):
@@ -62,7 +63,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
                 (s3.bucket_name, s3.bucket_path), to_path=local_path)
     elif recursive:
         download_list = download_dir(s3.client, s3.bucket_name, s3.bucket_path,
-                                     local_path, root=s3.bucket_path, download_list=[])
+                                     local_path, root=s3.bucket_path, download_list=[], exclude=exclude, include=include)
         if get_confirmation('Confirm?'):
             for s3_key, dest_pathname in download_list:
                 if not os.path.exists(os.path.dirname(dest_pathname)):
@@ -88,7 +89,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
                   (s3.bucket_name, s3.bucket_path, local_path))
 
 
-def download_dir(client, bucket, bucket_path, local_path, root='', download_list=[]):
+def download_dir(client, bucket, bucket_path, local_path, root='', download_list=[], exclude=[], include=[]):
     """download directory from s3 recursivly
 
     reference: https://stackoverflow.com/a/33350380
@@ -114,10 +115,12 @@ def download_dir(client, bucket, bucket_path, local_path, root='', download_list
         if result.get('CommonPrefixes') is not None:
             for subdir in result.get('CommonPrefixes'):
                 download_list = download_dir(client, bucket, subdir.get(
-                    'Prefix'), local_path, root, download_list)
+                    'Prefix'), local_path, root, download_list, exclude, include)
         for file in result.get('Contents', []):
             if file.get('Key').endswith('/') or not file.get('Key'):
                 # user created dir in S3 will appear in the result and is not downloadable
+                continue
+            if exclude_file(exclude, include, file.get('Key')):
                 continue
             if not root:
                 dest_pathname = os.path.join(local_path, file.get('Key'))
