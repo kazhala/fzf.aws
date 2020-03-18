@@ -3,6 +3,7 @@
 Contains the main function to handle the download operation from s3
 """
 import fnmatch
+import os
 import subprocess
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
@@ -53,10 +54,24 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
     if local:
         local_path = local
     else:
-        recursive = True if recursive or sync else False
         local_path = fzf.get_local_file(
-            root, directory=recursive, hidden=hidden, empty_allow=True)
+            root, directory=True, hidden=hidden, empty_allow=True)
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path='s3://%s/%s' %
                 (s3.bucket_name, s3.bucket_path), to_path=local_path)
+    elif recursive:
+        pass
+    else:
+        # s3 require a local file name, copy the name of the s3 key
+        local_path = os.path.join(local_path, s3.bucket_path.split('/')[-1])
+        # due the face without recursive flag s3.bucket_path is set by s3.set_s3_object
+        # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
+        print('(dryrung) download: s3://%s/%s to %s' %
+              (s3.bucket_name, s3.bucket_path, local_path))
+        if get_confirmation('Confirm?'):
+            print('Downloading s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
+            response = s3.client.download_file(
+                s3.bucket_name, s3.bucket_path, local_path)
+            print('s3://%s/%s downloaded to %s' %
+                  (s3.bucket_name, s3.bucket_path, local_path))

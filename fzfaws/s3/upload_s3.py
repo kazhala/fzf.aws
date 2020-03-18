@@ -83,6 +83,8 @@ def upload_s3(args):
               (local_path, s3.bucket_name, destination_key))
 
         if get_confirmation('Confirm?'):
+            print('Uploading %s' % local_path)
             response = s3.client.upload_file(
                 local_path, s3.bucket_name, destination_key)
-            print('%s uploaded' % local_path)
+            print('%s uploaded to s3://%s/%s' %
+                  (local_path, s3.bucket_name, destination_key))
