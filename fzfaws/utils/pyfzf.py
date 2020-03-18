@@ -38,6 +38,7 @@ class Pyfzf:
             empty_allow: bool, determine if empty selection is allowed
             print_col: number, which column to print after selection, starts with 1
                 more details about preview, see fzf documentation
+                use -1 to print everythin except first column, useful when you have filenames with spaces
             preview: string, display preview for each entry, require shell script string
             multi_select: bool, if multi select is allowed
         Returns:
@@ -70,8 +71,13 @@ class Pyfzf:
             else:
                 selection = subprocess.Popen(
                     ('fzf', '-m', '--preview', preview), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
-        selection_name = subprocess.check_output(
-            ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
+
+        if print_col == -1:
+            selection_name = subprocess.check_output(
+                ('awk', '{$1=""; print}'), stdin=selection.stdout)
+        else:
+            selection_name = subprocess.check_output(
+                ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
 
         if not selection_name and not empty_allow:
             raise NoSelectionMade('Empty selection, exiting..')
@@ -81,7 +87,7 @@ class Pyfzf:
             return str(selection_name, 'utf-8').splitlines()
         else:
             # conver the byte to string and remove the empty trailing line
-            return str(selection_name, 'utf-8').rstrip()
+            return str(selection_name, 'utf-8').strip()
 
     def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False):
         """get local files through fzf
@@ -94,9 +100,14 @@ class Pyfzf:
             search_from_root: bool, whether to search from root dir
             cloudformation: bool, if this is triggered by cloudformation operations
                 only json and yaml will be populated
+            directory: bool, search directory
+            hidden: include hidden files/folders with search using fd
+            empty_allow: bool, allow empty selection, if set, use current directory
         Returns:
             the file path of the selected file
         """
+        if empty_allow:
+            print('Exit without select will use the current directory')
         if search_from_root:
             home_path = os.path.expanduser('~')
             os.chdir(home_path)
@@ -134,8 +145,11 @@ class Pyfzf:
                 raise
             else:
                 selected_file_path = os.getcwd()
+                print('%s will be used' % selected_file_path)
                 return selected_file_path
-        return f"{str(selected_file_path, 'utf-8').rstrip()}"
+        selected_file_path = str(selected_file_path, 'utf-8').rstrip()
+        print('%s will be used' % selected_file_path)
+        return selected_file_path
 
     def _check_fd(self):
         """check if fd is intalled on the machine"""

@@ -88,7 +88,7 @@ class S3:
                             fzf.append_fzf(prefix.get('Prefix'))
                             fzf.append_fzf('\n')
                     selected_path = fzf.execute_fzf(
-                        empty_allow=True, print_col=1)
+                        empty_allow=True, print_col=0)
                     if not selected_path:
                         raise
                     self.bucket_path = selected_path
@@ -112,7 +112,7 @@ class S3:
         paginator = self.client.get_paginator('list_objects')
         for result in paginator.paginate(Bucket=self.bucket_name):
             fzf.process_list(result.get('Contents'), 'Key')
-        self.object = fzf.execute_fzf()
+        self.object = fzf.execute_fzf(print_col=-1)
         self.bucket_path = self.object
 
     def get_object_data(self, file_type=None):
