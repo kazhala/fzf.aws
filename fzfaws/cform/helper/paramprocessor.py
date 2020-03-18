@@ -91,7 +91,7 @@ class ParamProcessor:
                     parameter_key, parameter_type)
 
             if type(parameter_value) is list:
-                parameter_value = ','.join(str(parameter_value))
+                parameter_value = ','.join(parameter_value)
                 self.processed_params.append(
                     {'ParameterKey': parameter_key, 'ParameterValue': parameter_value})
             else:

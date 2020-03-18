@@ -100,7 +100,7 @@ def update_stack(args):
                 paramprocessor = ParamProcessor(
                     file_data['dictBody']['Parameters'])
                 paramprocessor.process_stack_params()
-                updated_parameters = paramprocessor.processed_params()
+                updated_parameters = paramprocessor.processed_params
             else:
                 updated_parameters = []
 
