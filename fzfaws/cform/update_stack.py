@@ -138,7 +138,8 @@ def update_stack(args):
 
             file_data = s3.get_object_data(file_type)
             if 'Parameters' in file_data:
-                paramprocessor = ParamProcessor(file_data['Parameters'])
+                paramprocessor = ParamProcessor(
+                    file_data['Parameters'], cloudformation.stack_details.get('Parameters'))
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:
