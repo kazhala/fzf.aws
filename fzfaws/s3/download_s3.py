@@ -89,6 +89,26 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
 
 
 def download_dir(client, bucket, bucket_path, local_path, root='', download_list=[]):
+    """download directory from s3 recursivly
+
+    reference: https://stackoverflow.com/a/33350380
+    recursivly call download_dir to reach the bottom level and append the file path
+    to the download_list
+
+    process the destination when root is not bucket root
+
+    Args:
+        client: boto3.client('s3')
+        bucket: string, name of the bucket
+        bucket_path: string, which path to download or the current recursive path
+        local_path: string, local destination root folder
+        root: where the download begin, '' means bucket root
+        download_list: list, list of file to download
+    Returns:
+        download_list: return the list of file to download. The loop contains a tuple
+        that coould be iterate over
+    """
+
     paginator = client.get_paginator('list_objects')
     for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=bucket_path):
         if result.get('CommonPrefixes') is not None:
