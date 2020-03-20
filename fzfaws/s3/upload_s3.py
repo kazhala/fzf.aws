@@ -64,9 +64,14 @@ def upload_s3(args):
 
         if get_confirmation('Confirm?'):
             for item in upload_list:
-                print('Uploading %s' % item['relative'])
                 s3.client.upload_file(
                     item['local'], item['bucket'], item['key'])
+                transfer = S3Transfer(s3.client)
+                transfer.upload_file(item['local'], item['bucket'], item['key'],
+                                     callback=S3Progress(item['local']))
+                # S3Progress will remove previous line, hence print a empty line
+                # to preserve previouse info
+                print(' ')
 
     else:
         # get the formated s3 destination
