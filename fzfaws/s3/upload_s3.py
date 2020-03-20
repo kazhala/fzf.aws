@@ -3,6 +3,7 @@
 upload local files/directories to s3
 """
 import os
+import sys
 import fnmatch
 import subprocess
 from s3transfer import S3Transfer
@@ -72,6 +73,9 @@ def upload_s3(args):
                 # S3Progress will remove previous line, hence print a empty line
                 # to preserve previouse info
                 print(' ')
+            # remove the previouse empty line
+            sys.stdout.write("\033[K")
+            print('%s uploaded' % local_path)
 
     else:
         # get the formated s3 destination

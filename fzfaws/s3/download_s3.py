@@ -4,13 +4,16 @@ Contains the main function to handle the download operation from s3
 """
 import fnmatch
 import os
+import sys
 import subprocess
+from s3transfer import S3Transfer
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
+from fzfaws.s3.helper.s3progress import S3Progress
 
 
 def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False):
@@ -68,24 +71,31 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
             for s3_key, dest_pathname in download_list:
                 if not os.path.exists(os.path.dirname(dest_pathname)):
                     os.makedirs(os.path.dirname(dest_pathname))
-                print('Downloading s3://%s/%s to %s' %
-                      (s3.bucket_name, s3_key, dest_pathname))
-                s3.client.download_file(s3.bucket_name, s3_key, dest_pathname)
+                transfer = S3Transfer(s3.client)
+                transfer.download_file(s3.bucket_name, s3_key, dest_pathname, callback=S3Progress(
+                    s3_key, s3.bucket_name, s3.client))
+                # S3Progress will remove previous line, hence print a empty line
+                # to preserve previouse info
+                print(' ')
+
+            # remove the previouse empty line
+            sys.stdout.write("\033[K")
             print('s3://%s/%s downloaded to %s' %
                   (s3.bucket_name, s3.bucket_path, local_path))
 
     else:
         # s3 require a local file name, copy the name of the s3 key
         local_path = os.path.join(local_path, s3.bucket_path.split('/')[-1])
-        # due the face without recursive flag s3.bucket_path is set by s3.set_s3_object
+        # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
         # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
         print('(dryrun) download: s3://%s/%s to %s' %
               (s3.bucket_name, s3.bucket_path, local_path))
         if get_confirmation('Confirm?'):
             print('Downloading s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
-            response = s3.client.download_file(
-                s3.bucket_name, s3.bucket_path, local_path)
-            print('s3://%s/%s downloaded to %s' %
+            transfer = S3Transfer(s3.client)
+            transfer.download_file(s3.bucket_name, s3.bucket_path, local_path, callback=S3Progress(
+                s3.bucket_path, s3.bucket_name, s3.client))
+            print('\ns3://%s/%s downloaded to %s' %
                   (s3.bucket_name, s3.bucket_path, local_path))
 
 
