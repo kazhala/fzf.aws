@@ -5,12 +5,14 @@ upload local files/directories to s3
 import os
 import fnmatch
 import subprocess
+from s3transfer import S3Transfer
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
+from fzfaws.s3.helper.s3progress import S3Progress
 
 
 def upload_s3(args):
@@ -39,7 +41,7 @@ def upload_s3(args):
     else:
         recursive = True if args.recursive or args.sync else False
         local_path = fzf.get_local_file(
-            args.root, directory=recursive, hidden=args.hidden, empty_allow=True)
+            args.root, directory=recursive, hidden=args.hidden, empty_allow=recursive)
 
     if args.sync:
         sync_s3(exclude=args.exclude, include=args.include, from_path=local_path,
@@ -74,7 +76,8 @@ def upload_s3(args):
 
         if get_confirmation('Confirm?'):
             print('Uploading %s' % local_path)
-            response = s3.client.upload_file(
-                local_path, s3.bucket_name, destination_key)
-            print('%s uploaded to s3://%s/%s' %
+            transfer = S3Transfer(s3.client)
+            transfer.upload_file(local_path, s3.bucket_name, destination_key,
+                                 callback=S3Progress(local_path))
+            print('\n%s uploaded to s3://%s/%s' %
                   (local_path, s3.bucket_name, destination_key))
