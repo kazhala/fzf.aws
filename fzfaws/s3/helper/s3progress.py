@@ -13,6 +13,21 @@ class S3Progress(object):
     helper class for displaying s3 upload/download/copy percentage
     Upload: spcify the filename only
     Download/Copy: require a bucket and client parameter as well as the filename
+
+    This class should be used within the callback of the S3Transfer class from boto
+    reference:
+        https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html
+        https://stackoverflow.com/a/41855380
+
+    Attributes:
+        _filename: string, either a s3 key or local file path
+        _seen_so_far: number, how much have transfered
+        _lock: object, multi thread lock
+        _size: number, total size of the fil
+    Example:
+        transfer = S3Transfer(boto3.client('s3'))
+        transfer.upload_file('/tmp/myfile', 'bucket', 'key',
+                             callback=S3Progress('/tmp/myfile'))
     """
 
     def __init__(self, filename, bucket=None, client=None):

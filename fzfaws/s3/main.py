@@ -9,6 +9,7 @@ import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.s3.upload_s3 import upload_s3
 from fzfaws.s3.download_s3 import download_s3
+from fzfaws.s3.bucket_s3 import bucket_s3
 
 
 def s3(raw_args):
@@ -65,6 +66,18 @@ def s3(raw_args):
                               help='specify a bash style globbing pattern to include files after excluding')
     download_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                               help='when fd is installed, add this flag to include hidden files in the search')
+    bucket_cmd = subparsers.add_parser(
+        'bucket', description='move file/directory between s3 buckets')
+    bucket_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
+                            help='spcify 1 or 2 path for the from bucket and to bucket respectively')
+    bucket_cmd.add_argument('-r', '--recursive', action='store_true', default=False,
+                            help='move bucket object respectively')
+    bucket_cmd.add_argument('-s', '--sync', action='store_true', default=False,
+                            help='use the aws cli s3 sync operation')
+    bucket_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to exclude a number of patterns')
+    bucket_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to include files after excluding')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -88,3 +101,8 @@ def s3(raw_args):
         local = args.local[0] if args.local else None
         download_s3(path, local, args.recursive, args.root,
                     args.sync, args.exclude, args.include, args.hidden)
+    elif args.subparser_name == 'bucket':
+        from_path = args.path[0] if args.path else None
+        to_path = args.path[1] if len(args.path) > 1 else None
+        bucket_s3(from_path, to_path, args.recursive,
+                  args.sync, args.exclude, args.include)
