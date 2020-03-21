@@ -65,7 +65,7 @@ def upload_s3(args):
         if get_confirmation('Confirm?'):
             for item in upload_list:
                 print('upload: %s to s3://%s/%s' %
-                      (relative_path, s3.bucket_name, destination_key))
+                      (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(item['local'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local']))
