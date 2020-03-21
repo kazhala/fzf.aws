@@ -29,6 +29,7 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
 
     s3 = S3()
 
+    # initialise variables to avoid directly using s3 instance since processing 2 buckets
     target_bucket = None
     target_path = ''
     dest_bucket = None
@@ -80,6 +81,26 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
                     s3_key, target_bucket, s3.client))
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
+    else:
+        # set the s3 instance name and path the destination bucket
+        s3.bucket_name = dest_bucket
+        s3.bucket_path = dest_path
+        # process the target key path and get the destination key path
+        s3_key = s3.get_s3_destination_key(target_path)
+        print('(dryrun) copy: s3://%s/%s to s3://%s/%s' %
+              (target_bucket, target_path, dest_bucket, s3_key))
+        if get_confirmation('Confirm?'):
+            print('copy: s3://%s/%s to s3://%s/%s' %
+                  (target_bucket, target_path, dest_bucket, s3_key))
+            copy_source = {
+                'Bucket': target_bucket,
+                'Key': target_path
+            }
+            s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
+                target_path, target_bucket, s3.client
+            ))
+            # remove the progress bar
+            sys.stdout.write('\033[2K\033[1G')
 
 
 def process_path_param(path, s3, search_folder):
