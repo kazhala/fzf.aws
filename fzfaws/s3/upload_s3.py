@@ -64,18 +64,13 @@ def upload_s3(args):
 
         if get_confirmation('Confirm?'):
             for item in upload_list:
-                s3.client.upload_file(
-                    item['local'], item['bucket'], item['key'])
+                print('upload: %s to s3://%s/%s' %
+                      (relative_path, s3.bucket_name, destination_key))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(item['local'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local']))
-                # S3Progress will remove previous line, hence print a empty line
-                # to preserve previouse info
-                print(' ')
-            # remove the previouse empty line
-            sys.stdout.write("\033[K")
-            print('%s uploaded' % local_path)
-
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
     else:
         # get the formated s3 destination
         destination_key = s3.get_s3_destination_key(local_path)
@@ -83,9 +78,10 @@ def upload_s3(args):
               (local_path, s3.bucket_name, destination_key))
 
         if get_confirmation('Confirm?'):
-            print('Uploading %s' % local_path)
+            print('upload: %s to s3://%s/%s' %
+                  (local_path, s3.bucket_name, destination_key))
             transfer = S3Transfer(s3.client)
             transfer.upload_file(local_path, s3.bucket_name, destination_key,
                                  callback=S3Progress(local_path))
-            print('\n%s uploaded to s3://%s/%s' %
-                  (local_path, s3.bucket_name, destination_key))
+            # remove the progress bar
+            sys.stdout.write('\033[2K\033[1G')
