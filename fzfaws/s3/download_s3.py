@@ -70,17 +70,13 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
             for s3_key, dest_pathname in download_list:
                 if not os.path.exists(os.path.dirname(dest_pathname)):
                     os.makedirs(os.path.dirname(dest_pathname))
+                print('download: s3://%s/%s to %s' %
+                      (s3.bucket_name, s3_key, dest_pathname))
                 transfer = S3Transfer(s3.client)
                 transfer.download_file(s3.bucket_name, s3_key, dest_pathname, callback=S3Progress(
                     s3_key, s3.bucket_name, s3.client))
-                # S3Progress will remove previous line, hence print a empty line
-                # to preserve previouse info
-                print(' ')
-
-            # remove the previouse empty line
-            sys.stdout.write("\033[K")
-            print('s3://%s/%s downloaded to %s' %
-                  (s3.bucket_name, s3.bucket_path, local_path))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
 
     else:
         # s3 require a local file name, copy the name of the s3 key
@@ -90,12 +86,13 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
         print('(dryrun) download: s3://%s/%s to %s' %
               (s3.bucket_name, s3.bucket_path, local_path))
         if get_confirmation('Confirm?'):
-            print('Downloading s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
+            print('download: s3://%s/%s to %s' %
+                  (s3.bucket_name, s3.bucket_path, local_path))
             transfer = S3Transfer(s3.client)
             transfer.download_file(s3.bucket_name, s3.bucket_path, local_path, callback=S3Progress(
                 s3.bucket_path, s3.bucket_name, s3.client))
-            print('\ns3://%s/%s downloaded to %s' %
-                  (s3.bucket_name, s3.bucket_path, local_path))
+            # remove the progress bar
+            sys.stdout.write('\033[2K\033[1G')
 
 
 def download_dir(client, bucket, bucket_path, local_path, root='', download_list=[], exclude=[], include=[]):

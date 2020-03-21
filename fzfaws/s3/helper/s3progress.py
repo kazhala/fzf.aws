@@ -50,10 +50,12 @@ class S3Progress(object):
         # to a single filename.
         with self._lock:
             self._seen_so_far += bytes_amount
-            percentage = (self._seen_so_far / self._size) * 100
+            if self._size == 0:
+                percentage = 100
+            else:
+                percentage = (self._seen_so_far / self._size) * 100
             sys.stdout.write(
                 "\r%s  %s / %s  (%.2f%%)" % (
                     self._filename, self._seen_so_far, self._size,
                     percentage))
             sys.stdout.flush()
-            sys.stdout.write("\033[K")
