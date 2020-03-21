@@ -8,7 +8,6 @@ import fnmatch
 import subprocess
 from s3transfer import S3Transfer
 from fzfaws.s3.s3 import S3
-from fzfaws.utils.exceptions import InvalidS3PathPattern
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3

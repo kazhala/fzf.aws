@@ -49,6 +49,8 @@ class S3:
 
         Args:
             path: string, format(Bucket/ or Bucket/path/to/operate)
+        Exceptions:
+            InvalidS3PathPattern: when the specified s3 path is invalid pattern
         """
         if self._validate_input_path(path):
             self.bucket_name = path.split('/')[0]
