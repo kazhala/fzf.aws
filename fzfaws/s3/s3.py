@@ -110,12 +110,16 @@ class S3:
         stores the file path and the filetype into the instance attributes
         using paginator to get all results
         """
-        fzf = Pyfzf()
-        paginator = self.client.get_paginator('list_objects')
-        for result in paginator.paginate(Bucket=self.bucket_name):
-            fzf.process_list(result.get('Contents'), 'Key')
-        self.object = fzf.execute_fzf(print_col=-1)
-        self.bucket_path = self.object
+        try:
+            fzf = Pyfzf()
+            paginator = self.client.get_paginator('list_objects')
+            for result in paginator.paginate(Bucket=self.bucket_name):
+                fzf.process_list(result.get('Contents'), 'Key')
+            self.object = fzf.execute_fzf(print_col=-1)
+            self.bucket_path = self.object
+        except:
+            print('Bucket is empty')
+            exit()
 
     def get_object_data(self, file_type=None):
         """read the s3 object
