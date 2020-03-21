@@ -2,8 +2,13 @@
 
 contains the main function for moving object between buckets
 """
+import os
+import sys
 from fzfaws.s3.s3 import S3
 from fzfaws.s3.helper.sync_s3 import sync_s3
+from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
+from fzfaws.utils.util import get_confirmation
+from fzfaws.s3.helper.s3progress import S3Progress
 
 
 def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude=[], include=[]):
@@ -60,6 +65,21 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
     if sync:
         sync_s3(exclude, include, 's3://%s/%s' % (target_bucket,
                                                   target_path), 's3://%s/%s' % (dest_bucket, dest_path))
+    elif recursive:
+        file_list = walk_s3_folder(s3.client, target_bucket, target_path, target_path, [
+        ], exclude, include, 'bucket', dest_path, dest_bucket)
+        if get_confirmation('Confirm?'):
+            for s3_key, dest_pathname in file_list:
+                print('copy: s3://%s/%s to s3://%s/%s' %
+                      (target_bucket, s3_key, dest_bucket, dest_pathname))
+                copy_source = {
+                    'Bucket': target_bucket,
+                    'Key': s3_key
+                }
+                s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
+                    s3_key, target_bucket, s3.client))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
 
 
 def process_path_param(path, s3, search_folder):
