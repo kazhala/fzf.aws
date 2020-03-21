@@ -10,6 +10,7 @@ from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.s3.upload_s3 import upload_s3
 from fzfaws.s3.download_s3 import download_s3
 from fzfaws.s3.bucket_s3 import bucket_s3
+from fzfaws.s3.delete_s3 import delete_s3
 
 
 def s3(raw_args):
@@ -78,6 +79,16 @@ def s3(raw_args):
                             help='specify a bash style globbing pattern to exclude a number of patterns')
     bucket_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
                             help='specify a bash style globbing pattern to include files after excluding')
+    delete_cmd = subparsers.add_parser(
+        'delete', description='delete file/directory on the s3 bucket')
+    delete_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
+                            help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
+    delete_cmd.add_argument('-r', '--recursive', action='store_true',
+                            default=False, help='download a directory from s3 recursivly')
+    delete_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to exclude a number of patterns')
+    delete_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
+                            help='specify a bash style globbing pattern to include files after excluding')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -106,3 +117,6 @@ def s3(raw_args):
         to_path = args.path[1] if len(args.path) > 1 else None
         bucket_s3(from_path, to_path, args.recursive,
                   args.sync, args.exclude, args.include)
+    elif args.subparser_name == 'delete':
+        path = args.path[0] if args.path else None
+        delete_s3(path, args.recursive, args.exclude, args.include)

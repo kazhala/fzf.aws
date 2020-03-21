@@ -56,5 +56,8 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
             elif operation == 'bucket':
                 print('(dryrun) copy: s3://%s/%s to s3://%s/%s' %
                       (bucket, file.get('Key'), target_bucket, dest_pathname))
+            elif operation == 'delete':
+                print('(dryrun) delete: s3://%s/%s' %
+                      (bucket, file.get('Key')))
             file_list.append((file.get('Key'), dest_pathname))
     return file_list

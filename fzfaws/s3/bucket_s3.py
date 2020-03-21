@@ -110,6 +110,8 @@ def process_path_param(path, s3, search_folder):
         path: string, raw path from the argument
         s3: object, s3 instance from the S3 class
         search_folder: bool, search folder or file
+    Returns:
+        A tuple consisting of the bucketname and bucket path
     """
     s3.set_bucket_and_path(path)
     if not s3.bucket_path:
