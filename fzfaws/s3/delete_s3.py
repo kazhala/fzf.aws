@@ -50,6 +50,7 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
                 s3.client.delete_object(
                     Bucket=s3.bucket_name,
                     Key=s3_key,
+                    MFA=mfa
                 )
     else:
         # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
@@ -59,11 +60,8 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
         if get_confirmation('Confirm?'):
             print('delete: s3://%s/%s' %
                   (s3.bucket_name, s3.bucket_path))
-            response = s3.client.delete_object(
+            s3.client.delete_object(
                 Bucket=s3.bucket_name,
                 Key=s3.bucket_path,
                 MFA=mfa
             )
-            if mfa:
-                response.pop('ResponseMetaData', None)
-                print(response)
