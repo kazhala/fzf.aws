@@ -7,7 +7,7 @@ from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
 
 
-def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
+def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', version=False):
     """delete file/directory on the selected s3 bucket
 
     Args:
@@ -39,7 +39,20 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
         else:
             s3.set_s3_object()
 
-    if recursive:
+    if version:
+        version_id = s3.get_object_version(delete=True)
+        print('(dryrun) delete: s3://%s/%s with version %s' %
+              (s3.bucket_name, s3.bucket_path, version_id))
+        if get_confirmation('Confirm?'):
+            print('delete: s3://%s/%s with version %s' %
+                  (s3.bucket_name, s3.bucket_path, version_id))
+            s3.client.delete_object(
+                Bucket=s3.bucket_name,
+                Key=s3.bucket_path,
+                MFA=mfa,
+                VersionId=version_id
+            )
+    elif recursive:
         file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
         ], exclude, include, 'delete')
         if get_confirmation('Confirm?'):
@@ -50,7 +63,6 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
                 s3.client.delete_object(
                     Bucket=s3.bucket_name,
                     Key=s3_key,
-                    MFA=mfa
                 )
     else:
         # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
@@ -63,5 +75,4 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
             s3.client.delete_object(
                 Bucket=s3.bucket_name,
                 Key=s3.bucket_path,
-                MFA=mfa
             )

@@ -121,6 +121,40 @@ class S3:
             print('Bucket is empty')
             exit()
 
+    def get_object_version(self, bucket=None, key=None, delete=False):
+        """list object versions through fzf
+
+        Args:
+            bucket: string, if not set, class instance's bucket_name would be used
+            key: string, if not set, class instance's bucket_path would be used
+            delete: bool, allow to choose delete marker
+        Returns:
+            version_id: string, the version id user selected
+        """
+        bucket = bucket if bucket else self.bucket_name
+        key = key if key else self.bucket_path
+        version_list = []
+        paginator = self.client.get_paginator('list_object_versions')
+        for result in paginator.paginate(Bucket=bucket, Prefix=key):
+            for version in result.get('Versions'):
+                version_list.append({
+                    'VersionId': version.get('VersionId'),
+                    'IsLatest': version.get('IsLatest'),
+                    'DeleteMarker': False,
+                    'LastModified': version.get('LastModified'),
+                })
+            for marker in result.get('DeleteMarkers'):
+                version_list.append({
+                    'VersionId': version.get('VersionId'),
+                    'IsLatest': version.get('IsLatest'),
+                    'DeleteMarker': True,
+                    'LastModified': version.get('LastModified'),
+                })
+        fzf = Pyfzf()
+        fzf.process_list(version_list, 'VersionId', 'IsLatest',
+                         'DeleteMarker', 'LastModified')
+        return fzf.execute_fzf()
+
     def get_object_data(self, file_type=None):
         """read the s3 object
 
