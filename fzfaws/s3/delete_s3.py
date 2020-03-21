@@ -7,7 +7,7 @@ from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
 
 
-def delete_s3(path=None, recursive=False, exclude=[], include=[]):
+def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa=''):
     """delete file/directory on the selected s3 bucket
 
     Args:
@@ -59,7 +59,11 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[]):
         if get_confirmation('Confirm?'):
             print('delete: s3://%s/%s' %
                   (s3.bucket_name, s3.bucket_path))
-            s3.client.delete_object(
+            response = s3.client.delete_object(
                 Bucket=s3.bucket_name,
-                Key=s3.bucket_path
+                Key=s3.bucket_path,
+                MFA=mfa
             )
+            if mfa:
+                response.pop('ResponseMetaData', None)
+                print(response)

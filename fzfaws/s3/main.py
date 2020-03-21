@@ -44,9 +44,9 @@ def s3(raw_args):
     upload_cmd.add_argument('-s', '--sync', action='store_true',
                             default=False, help='use the aws cli s3 sync operation')
     upload_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to exclude a number of patterns')
+                            help='specify a number of bash style globbing pattern to exclude a number of patterns')
     upload_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to include files after excluding')
+                            help='specify a number of bash style globbing pattern to include files after excluding')
     upload_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                             help='when fd is installed, add this flag to include hidden files in the search')
     download_cmd = subparsers.add_parser(
@@ -62,9 +62,9 @@ def s3(raw_args):
     download_cmd.add_argument('-s', '--sync', action='store_true',
                               default=False, help='use the aws cli s3 sync operation')
     download_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
-                              help='specify a bash style globbing pattern to exclude a number of patterns')
+                              help='specify a number of bash style globbing pattern to exclude a number of patterns')
     download_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
-                              help='specify a bash style globbing pattern to include files after excluding')
+                              help='specify a number of bash style globbing pattern to include files after excluding')
     download_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                               help='when fd is installed, add this flag to include hidden files in the search')
     bucket_cmd = subparsers.add_parser(
@@ -76,9 +76,9 @@ def s3(raw_args):
     bucket_cmd.add_argument('-s', '--sync', action='store_true', default=False,
                             help='use the aws cli s3 sync operation')
     bucket_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to exclude a number of patterns')
+                            help='specify a number of bash style globbing pattern to exclude a number of patterns')
     bucket_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to include files after excluding')
+                            help='specify a number of bash style globbing pattern to include files after excluding')
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
     delete_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
@@ -86,9 +86,13 @@ def s3(raw_args):
     delete_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='download a directory from s3 recursivly')
     delete_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to exclude a number of patterns')
+                            help='specify a number of bash style globbing pattern to exclude a number of patterns')
     delete_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
-                            help='specify a bash style globbing pattern to include files after excluding')
+                            help='specify a number of bash style globbing pattern to include files after excluding')
+    delete_cmd.add_argument('-m', '--mfa', nargs=2, action='store', default=[],
+                            help='Two argument needed to be specifies, the authentication device\'s serial number ' +
+                            'and the value that is displayed on your authentication device. ' +
+                            'Required to permanently delete a versioned object if versioning is configured with MFA delete enabled')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -119,4 +123,5 @@ def s3(raw_args):
                   args.sync, args.exclude, args.include)
     elif args.subparser_name == 'delete':
         path = args.path[0] if args.path else None
-        delete_s3(path, args.recursive, args.exclude, args.include)
+        mfa = ' '.join(args.mfa)
+        delete_s3(path, args.recursive, args.exclude, args.include, mfa)
