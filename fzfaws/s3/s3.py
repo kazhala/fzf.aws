@@ -157,15 +157,15 @@ class S3:
                 })
             for marker in result.get('DeleteMarkers', []):
                 version_list.append({
-                    'VersionId': version.get('VersionId'),
-                    'IsLatest': version.get('IsLatest'),
+                    'VersionId': marker.get('VersionId'),
+                    'IsLatest': marker.get('IsLatest'),
                     'DeleteMarker': True,
-                    'LastModified': version.get('LastModified'),
+                    'LastModified': marker.get('LastModified'),
                 })
         fzf = Pyfzf()
         fzf.process_list(version_list, 'VersionId', 'IsLatest',
                          'DeleteMarker', 'LastModified')
-        return fzf.execute_fzf()
+        return fzf.execute_fzf(multi_select=delete)
 
     def get_object_data(self, file_type=None):
         """read the s3 object
