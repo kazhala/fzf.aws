@@ -38,7 +38,7 @@ class Pyfzf:
             empty_allow: bool, determine if empty selection is allowed
             print_col: number, which column to print after selection, starts with 1
                 more details about preview, see fzf documentation
-                use -1 to print everythin except first column, useful when you have filenames with spaces
+                use -1 to print everything except first column, useful when you have filenames with spaces
             preview: string, display preview for each entry, require shell script string
             multi_select: bool, if multi select is allowed
         Returns:

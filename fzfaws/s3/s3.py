@@ -104,19 +104,31 @@ class S3:
                 print('S3 file path is set to %s' %
                       (self.bucket_path if self.bucket_path else 'root'))
 
-    def set_s3_object(self):
+    def set_s3_object(self, version=False):
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
         using paginator to get all results
         """
         try:
-            fzf = Pyfzf()
-            paginator = self.client.get_paginator('list_objects')
-            for result in paginator.paginate(Bucket=self.bucket_name):
-                fzf.process_list(result.get('Contents'), 'Key')
-            self.object = fzf.execute_fzf(print_col=-1)
-            self.bucket_path = self.object
+            if not version:
+                fzf = Pyfzf()
+                paginator = self.client.get_paginator('list_objects')
+                for result in paginator.paginate(Bucket=self.bucket_name):
+                    fzf.process_list(result.get('Contents'), 'Key')
+                self.object = fzf.execute_fzf(print_col=-1)
+                self.bucket_path = self.object
+            else:
+                fzf = Pyfzf()
+                key_list = []
+                paginator = self.client.get_paginator('list_object_versions')
+                for result in paginator.paginate(Bucket=self.bucket_name):
+                    for version in result.get('Versions'):
+                        key_object = {'Key': version.get('Key')}
+                        if key_object not in key_list:
+                            key_list.append(key_object)
+                fzf.process_list(key_list, 'Key')
+                self.bucket_path = fzf.execute_fzf(print_col=-1)
         except:
             print('Bucket is empty')
             exit()
@@ -136,14 +148,14 @@ class S3:
         version_list = []
         paginator = self.client.get_paginator('list_object_versions')
         for result in paginator.paginate(Bucket=bucket, Prefix=key):
-            for version in result.get('Versions'):
+            for version in result.get('Versions', []):
                 version_list.append({
                     'VersionId': version.get('VersionId'),
                     'IsLatest': version.get('IsLatest'),
                     'DeleteMarker': False,
                     'LastModified': version.get('LastModified'),
                 })
-            for marker in result.get('DeleteMarkers'):
+            for marker in result.get('DeleteMarkers', []):
                 version_list.append({
                     'VersionId': version.get('VersionId'),
                     'IsLatest': version.get('IsLatest'),
