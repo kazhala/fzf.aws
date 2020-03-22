@@ -95,8 +95,8 @@ def s3(raw_args):
                             'Required to permanently delete a versioned object if versioning is configured with MFA delete enabled')
     delete_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='choose an or multiple object versions to delete')
-    delete_cmd.add_argument('-a', '--all', action='store_true', default=False,
-                            help='delete all versioned object of a object')
+    delete_cmd.add_argument('-V', '--allversion', action='store_true', default=False,
+                            help='delete a versioned object completely including all versions and delete markes')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -129,4 +129,4 @@ def s3(raw_args):
         path = args.path[0] if args.path else None
         mfa = ' '.join(args.mfa)
         delete_s3(path, args.recursive, args.exclude,
-                  args.include, mfa, args.version)
+                  args.include, mfa, args.version, args.allversion)

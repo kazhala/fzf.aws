@@ -7,7 +7,7 @@ from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
 
 
-def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', version=False):
+def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False):
     """delete file/directory on the selected s3 bucket
 
     Args:
@@ -25,6 +25,9 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
 
     s3 = S3()
 
+    if allversion:
+        version = True
+
     if path:
         s3.set_bucket_and_path(path)
         if not s3.bucket_path:
@@ -40,7 +43,7 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
             s3.set_s3_path()
 
     if version:
-        version_ids = s3.get_object_version(delete=True)
+        version_ids = s3.get_object_version(delete=True, select_all=allversion)
         for version_id in version_ids:
             print('(dryrun) delete: s3://%s/%s with version %s' %
                   (s3.bucket_name, s3.bucket_path, version_id))

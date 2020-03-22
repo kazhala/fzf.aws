@@ -133,7 +133,7 @@ class S3:
             print('Bucket is empty')
             exit()
 
-    def get_object_version(self, bucket=None, key=None, delete=False):
+    def get_object_version(self, bucket=None, key=None, delete=False, select_all=False):
         """list object versions through fzf
 
         Args:
@@ -162,10 +162,13 @@ class S3:
                     'DeleteMarker': True,
                     'LastModified': marker.get('LastModified'),
                 })
-        fzf = Pyfzf()
-        fzf.process_list(version_list, 'VersionId', 'IsLatest',
-                         'DeleteMarker', 'LastModified')
-        return fzf.execute_fzf(multi_select=delete)
+        if not select_all:
+            fzf = Pyfzf()
+            fzf.process_list(version_list, 'VersionId', 'IsLatest',
+                             'DeleteMarker', 'LastModified')
+            return fzf.execute_fzf(multi_select=delete)
+        else:
+            return [version.get('VersionId') for version in version_list]
 
     def get_object_data(self, file_type=None):
         """read the s3 object
