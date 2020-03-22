@@ -81,7 +81,6 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
 
     else:
         for s3_path in s3.path_list:
-            # s3 require a local file name, copy the name of the s3 key
             destination_path = os.path.join(
                 local_path, s3_path.split('/')[-1])
             # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
