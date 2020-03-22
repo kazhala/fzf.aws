@@ -16,6 +16,10 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
         recursive: bool, operate recursivly, set to true when deleting folders
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include after exclude
+        mfa: string, mfa serial number(arn from aws) and code seperate by a string
+            only used for mfa and version enabled object
+        version: bool, pick version/versions to delete
+        allversion: bool, skip selection of version, delete all versions
     Returns:
         None
     Exceptions:
@@ -70,6 +74,7 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                         Bucket=s3.bucket_name,
                         Key=s3_key,
                     )
+
     elif version:
         version_ids = s3.get_object_version(delete=True, select_all=allversion)
         for version_id in version_ids:
