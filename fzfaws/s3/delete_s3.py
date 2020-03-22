@@ -38,13 +38,13 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
             if recursive:
                 s3.set_s3_path()
             else:
-                s3.set_s3_object(version=version)
+                s3.set_s3_object(version=version, multi_select=True)
     else:
         s3.set_s3_bucket()
         if recursive:
             s3.set_s3_path()
         else:
-            s3.set_s3_object(version=version)
+            s3.set_s3_object(version=version, multi_select=True)
 
     if recursive:
         file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
@@ -93,12 +93,14 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
     else:
         # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
         # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
-        print('(dryrun) delete: s3://%s/%s' %
-              (s3.bucket_name, s3.bucket_path))
+        for s3_path in s3.path_list:
+            print('(dryrun) delete: s3://%s/%s' %
+                  (s3.bucket_name, s3_path))
         if get_confirmation('Confirm?'):
-            print('delete: s3://%s/%s' %
-                  (s3.bucket_name, s3.bucket_path))
-            s3.client.delete_object(
-                Bucket=s3.bucket_name,
-                Key=s3.bucket_path,
-            )
+            for s3_path in s3.path_list:
+                print('delete: s3://%s/%s' %
+                      (s3.bucket_name, s3_path))
+                s3.client.delete_object(
+                    Bucket=s3.bucket_name,
+                    Key=s3_path,
+                )
