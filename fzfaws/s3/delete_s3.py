@@ -76,20 +76,21 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                     )
 
     elif version:
-        version_ids = s3.get_object_version(delete=True, select_all=allversion)
-        for version_id in version_ids:
+        versions = s3.get_object_version(delete=True, select_all=allversion)
+        for version in versions:
             print('(dryrun) delete: s3://%s/%s with version %s' %
-                  (s3.bucket_name, s3.bucket_path, version_id))
+                  (s3.bucket_name, version.get('Key'), version.get('VersionId')))
         if get_confirmation('Confirm?'):
-            for version_id in version_ids:
+            for version in versions:
                 print('delete: s3://%s/%s with version %s' %
-                      (s3.bucket_name, s3.bucket_path, version_id))
+                      (s3.bucket_name, version.get('Key'), version.get('VersionId')))
                 s3.client.delete_object(
                     Bucket=s3.bucket_name,
-                    Key=s3.bucket_path,
+                    Key=version.get('Key'),
                     MFA=mfa,
-                    VersionId=version_id
+                    VersionId=version.get('VersionId')
                 )
+
     else:
         # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
         # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key

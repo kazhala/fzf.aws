@@ -5,6 +5,7 @@ management if user decide to change region or use different profile
 """
 import boto3
 import re
+import json
 # TODO: use session to list user profile
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
@@ -158,31 +159,47 @@ class S3:
             version_id: string, the version id user selected
         """
         bucket = bucket if bucket else self.bucket_name
-        key = key if key else self.bucket_path
-        version_list = []
-        paginator = self.client.get_paginator('list_object_versions')
-        for result in paginator.paginate(Bucket=bucket, Prefix=key):
-            for version in result.get('Versions', []):
-                version_list.append({
-                    'VersionId': version.get('VersionId'),
-                    'IsLatest': version.get('IsLatest'),
-                    'DeleteMarker': False,
-                    'LastModified': version.get('LastModified'),
-                })
-            for marker in result.get('DeleteMarkers', []):
-                version_list.append({
-                    'VersionId': marker.get('VersionId'),
-                    'IsLatest': marker.get('IsLatest'),
-                    'DeleteMarker': True,
-                    'LastModified': marker.get('LastModified'),
-                })
-        if not select_all:
-            fzf = Pyfzf()
-            fzf.process_list(version_list, 'VersionId', 'IsLatest',
-                             'DeleteMarker', 'LastModified')
-            return fzf.execute_fzf(multi_select=delete)
+        key_list = []
+        if key:
+            key_list.append(key)
         else:
-            return [version.get('VersionId') for version in version_list]
+            key_list.extend(self.path_list)
+        selected_versions = []
+        for key in key_list:
+            version_list = []
+            paginator = self.client.get_paginator('list_object_versions')
+            for result in paginator.paginate(Bucket=bucket, Prefix=key):
+                for version in result.get('Versions', []):
+                    version_list.append({
+                        'VersionId': version.get('VersionId'),
+                        'Key': version.get('Key'),
+                        'IsLatest': version.get('IsLatest'),
+                        'DeleteMarker': False,
+                        'LastModified': version.get('LastModified'),
+                    })
+                for marker in result.get('DeleteMarkers', []):
+                    version_list.append({
+                        'VersionId': marker.get('VersionId'),
+                        'Key': version.get('Key'),
+                        'IsLatest': marker.get('IsLatest'),
+                        'DeleteMarker': True,
+                        'LastModified': marker.get('LastModified'),
+                    })
+            if not select_all:
+                fzf = Pyfzf()
+                fzf.process_list(version_list, 'VersionId', 'Key', 'IsLatest',
+                                 'DeleteMarker', 'LastModified')
+                if delete:
+                    for result in fzf.execute_fzf(multi_select=True):
+                        selected_versions.append(
+                            {'Key': key, 'VersionId': result})
+                else:
+                    selected_versions.append(
+                        {'Key': key, 'VersionId': fzf.execute_fzf()})
+            else:
+                selected_versions.extend(
+                    [{'Key': key, 'VersionId': version.get('VersionId')} for version in version_list])
+        return selected_versions
 
     def get_object_data(self, file_type=None):
         """read the s3 object
