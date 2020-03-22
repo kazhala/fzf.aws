@@ -28,35 +28,20 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
     if path:
         s3.set_bucket_and_path(path)
         if not s3.bucket_path:
-            if recursive:
-                s3.set_s3_path()
-            else:
+            if not recursive or version:
                 s3.set_s3_object(version=version)
+            else:
+                s3.set_s3_path()
     else:
         s3.set_s3_bucket()
-        if recursive:
-            s3.set_s3_path()
-        else:
+        if not recursive or version:
             s3.set_s3_object(version=version)
+        else:
+            s3.set_s3_path()
 
-    if recursive:
-        file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
-        ], exclude, include, 'delete')
-        if get_confirmation('Confirm?'):
-            # destiname here is completely useless, only for looping purpose
-            for s3_key, destname in file_list:
-                print('delete: s3://%s/%s' %
-                      (s3.bucket_name, s3_key))
-                s3.client.delete_object(
-                    Bucket=s3.bucket_name,
-                    Key=s3_key,
-                )
-    elif version:
+    if version:
         version_ids = s3.get_object_version(delete=True)
         for version_id in version_ids:
-            if version_id == 'null':
-                print(
-                    'NOTE: Selected object does not have versioning enabled, but you could still proceed to delete it')
             print('(dryrun) delete: s3://%s/%s with version %s' %
                   (s3.bucket_name, s3.bucket_path, version_id))
         if get_confirmation('Confirm?'):
@@ -68,6 +53,18 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                     Key=s3.bucket_path,
                     MFA=mfa,
                     VersionId=version_id
+                )
+    elif recursive:
+        file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
+        ], exclude, include, 'delete')
+        if get_confirmation('Confirm?'):
+            # destiname here is completely useless, only for looping purpose
+            for s3_key, destname in file_list:
+                print('delete: s3://%s/%s' %
+                      (s3.bucket_name, s3_key))
+                s3.client.delete_object(
+                    Bucket=s3.bucket_name,
+                    Key=s3_key,
                 )
     else:
         # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object

@@ -94,7 +94,9 @@ def s3(raw_args):
                             'and the value that is displayed on your authentication device. ' +
                             'Required to permanently delete a versioned object if versioning is configured with MFA delete enabled')
     delete_cmd.add_argument('-v', '--version', action='store_true', default=False,
-                            help='choose a object version and delete')
+                            help='choose an or multiple object versions to delete')
+    delete_cmd.add_argument('-a', '--all', action='store_true', default=False,
+                            help='delete all versioned object of a object')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
