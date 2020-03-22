@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False):
+def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False, version=False):
     """download files/'directory' from s3
 
     handles sync, download file and download recursive
@@ -46,13 +46,16 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
             if recursive or sync:
                 s3.set_s3_path()
             else:
-                s3.set_s3_object(multi_select=True)
+                s3.set_s3_object(multi_select=True, version=version)
     else:
         s3.set_s3_bucket()
         if recursive or sync:
             s3.set_s3_path()
         else:
-            s3.set_s3_object(multi_select=True)
+            s3.set_s3_object(multi_select=True, version=version)
+
+    if version:
+        obj_versions = s3.get_object_version()
 
     fzf = Pyfzf()
     if local:
@@ -76,6 +79,24 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
                 transfer = S3Transfer(s3.client)
                 transfer.download_file(s3.bucket_name, s3_key, dest_pathname, callback=S3Progress(
                     s3_key, s3.bucket_name, s3.client))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
+    elif version:
+        for obj_version in obj_versions:
+            destination_path = os.path.join(
+                local_path, obj_version.get('Key').split('/')[-1])
+            print('(dryrun) download: s3://%s/%s to %s with version %s' %
+                  (s3.bucket_name, obj_version.get('Key'), destination_path, obj_version.get('VersionId')))
+        if get_confirmation('Confirm'):
+            for obj_version in obj_versions:
+                destination_path = os.path.join(
+                    local_path, obj_version.get('Key').split('/')[-1])
+                print('download: s3://%s/%s to %s with version %s' %
+                      (s3.bucket_name, obj_version.get('Key'), destination_path, obj_version.get('VersionId')))
+                transfer = S3Transfer(s3.client)
+                transfer.download_file(s3.bucket_name, obj_version.get(
+                    'Key'), destination_path, extra_args={'VersionId': obj_version.get('VersionId')},
+                    callback=S3Progress(obj_version.get('Key'), s3.bucket_name, s3.client, obj_version.get('VersionId')))
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 

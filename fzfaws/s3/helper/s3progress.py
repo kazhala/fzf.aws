@@ -30,18 +30,29 @@ class S3Progress(object):
                              callback=S3Progress('/tmp/myfile'))
     """
 
-    def __init__(self, filename, bucket=None, client=None):
+    def __init__(self, filename, bucket=None, client=None, version_id='null'):
         """constructor
 
         skip the bucket and client param to use it for upload
         otherwise if specified, would be download/copy between buckets
+
+        Args:
+            filename: string, name of the file or s3 key
+            bucket: string, name of the bucket
+            client: object, boto3 s3 client
+            version_id: string, if specified, would reference specific version
+                'null' as default because boto3 return unversioned object with version_id null
         """
         self._filename = filename
         self._seen_so_far = 0
         self._lock = threading.Lock()
         if bucket and client:
-            self._size = client.head_object(
-                Bucket=bucket, Key=filename).get('ContentLength')
+            if version_id == 'null':
+                self._size = client.head_object(
+                    Bucket=bucket, Key=filename).get('ContentLength')
+            else:
+                self._size = client.head_object(
+                    Bucket=bucket, Key=filename, VersionId=version_id).get('ContentLength')
         else:
             self._size = float(os.path.getsize(filename))
 

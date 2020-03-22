@@ -76,19 +76,20 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                     )
 
     elif version:
-        versions = s3.get_object_version(delete=True, select_all=allversion)
-        for version in versions:
+        obj_versions = s3.get_object_version(
+            delete=True, select_all=allversion)
+        for obj_version in obj_versions:
             print('(dryrun) delete: s3://%s/%s with version %s' %
-                  (s3.bucket_name, version.get('Key'), version.get('VersionId')))
+                  (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
         if get_confirmation('Confirm?'):
-            for version in versions:
+            for obj_version in obj_versions:
                 print('delete: s3://%s/%s with version %s' %
-                      (s3.bucket_name, version.get('Key'), version.get('VersionId')))
+                      (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
                 s3.client.delete_object(
                     Bucket=s3.bucket_name,
-                    Key=version.get('Key'),
+                    Key=obj_version.get('Key'),
                     MFA=mfa,
-                    VersionId=version.get('VersionId')
+                    VersionId=obj_version.get('VersionId')
                 )
 
     else:

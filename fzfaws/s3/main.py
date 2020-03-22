@@ -67,6 +67,8 @@ def s3(raw_args):
                               help='specify a number of bash style globbing pattern to include files after excluding')
     download_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                               help='when fd is installed, add this flag to include hidden files in the search')
+    download_cmd.add_argument('-v', '--version', action='store_true', default=False,
+                              help='choose a version of the object and download')
     bucket_cmd = subparsers.add_parser(
         'bucket', description='move file/directory between s3 buckets')
     bucket_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
@@ -125,7 +127,7 @@ def s3(raw_args):
         path = args.path[0] if args.path else None
         local = args.local[0] if args.local else None
         download_s3(path, local, args.recursive, args.root,
-                    args.sync, args.exclude, args.include, args.hidden)
+                    args.sync, args.exclude, args.include, args.hidden, args.version)
     elif args.subparser_name == 'bucket':
         from_path = args.path[0] if args.path else None
         to_path = args.path[1] if len(args.path) > 1 else None
