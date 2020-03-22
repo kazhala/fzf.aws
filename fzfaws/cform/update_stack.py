@@ -128,7 +128,7 @@ def update_stack(args):
         else:
             s3 = S3()
             s3.set_s3_bucket()
-            s3.set_s3_path()
+            s3.set_s3_object()
             if is_yaml(s3.bucket_path):
                 file_type = 'yaml'
             elif is_json(s3.bucket_path):
