@@ -89,7 +89,7 @@ class Pyfzf:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').strip()
 
-    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False):
+    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False, multi_select=False):
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -138,8 +138,12 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
-            selected_file_path = subprocess.check_output(
-                ('fzf'), stdin=list_file.stdout)
+            if multi_select:
+                selected_file_path = subprocess.check_output(
+                    ('fzf', '-m'), stdin=list_file.stdout)
+            else:
+                selected_file_path = subprocess.check_output(
+                    ('fzf'), stdin=list_file.stdout)
         except subprocess.CalledProcessError:
             if not empty_allow:
                 raise
@@ -147,9 +151,11 @@ class Pyfzf:
                 selected_file_path = os.getcwd()
                 print('%s will be used' % selected_file_path)
                 return selected_file_path
-        selected_file_path = str(selected_file_path, 'utf-8').rstrip()
-        print('%s will be used' % selected_file_path)
-        return selected_file_path
+        if multi_select:
+            # multi_select would return everything seperate by \n
+            return str(selected_file_path, 'utf-8').splitlines()
+        else:
+            return str(selected_file_path, 'utf-8').strip()
 
     def _check_fd(self):
         """check if fd is intalled on the machine"""

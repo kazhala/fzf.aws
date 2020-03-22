@@ -15,13 +15,21 @@ from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
 
 
-def upload_s3(args):
+def upload_s3(path=None, local=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[]):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
 
     Args:
-        args: argparse args
+        path: string, s3 bucket path for upload destination
+            formate: bucket/pathname
+        local: list, list of local file to upload
+        recursive: bool, upload directory
+        hidden: bool, include hidden file during local file search
+        root: bool, search local file from root
+        sync: bool, use s3 cli sync operation
+        exclude: list, list of glob pattern to exclude
+        include: list, list of glob pattern to include after exclude
     Returns:
         None
     Exceptions:
@@ -29,32 +37,31 @@ def upload_s3(args):
     """
 
     s3 = S3()
-    if args.path:
-        s3.set_bucket_and_path(args.path[0])
+    if path:
+        s3.set_bucket_and_path(path)
     else:
         s3.set_s3_bucket()
         s3.set_s3_path()
 
     fzf = Pyfzf()
-    if args.local:
-        local_path = args.local[0]
-    else:
-        recursive = True if args.recursive or args.sync else False
-        local_path = fzf.get_local_file(
-            args.root, directory=recursive, hidden=args.hidden, empty_allow=recursive)
+    if not local:
+        recursive = True if recursive or sync else False
+        multi_select = True if not recursive else False
+        local = fzf.get_local_file(
+            search_from_root=root, directory=recursive, hidden=hidden, empty_allow=recursive, multi_select=multi_select)
 
-    if args.sync:
-        sync_s3(exclude=args.exclude, include=args.include, from_path=local_path,
+    if sync:
+        sync_s3(exclude=exclude, include=include, from_path=local,
                 to_path='s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
 
-    elif args.recursive:
+    elif recursive:
         upload_list = []
-        for root, dirs, files in os.walk(local_path):
+        for root, dirs, files in os.walk(local):
             for filename in files:
                 full_path = os.path.join(root, filename)
-                relative_path = os.path.relpath(full_path, local_path)
+                relative_path = os.path.relpath(full_path, local)
 
-                if not exclude_file(args.exclude, args.include, relative_path):
+                if not exclude_file(exclude, include, relative_path):
                     destination_key = s3.get_s3_destination_key(
                         relative_path, recursive=True)
                     print('(dryrun) upload: %s to s3://%s/%s' %
@@ -72,16 +79,19 @@ def upload_s3(args):
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
     else:
-        # get the formated s3 destination
-        destination_key = s3.get_s3_destination_key(local_path)
-        print('(dryrung) upload: %s to s3://%s/%s' %
-              (local_path, s3.bucket_name, destination_key))
+        for filepath in local:
+            # get the formated s3 destination
+            destination_key = s3.get_s3_destination_key(filepath)
+            print('(dryrung) upload: %s to s3://%s/%s' %
+                  (filepath, s3.bucket_name, destination_key))
 
         if get_confirmation('Confirm?'):
-            print('upload: %s to s3://%s/%s' %
-                  (local_path, s3.bucket_name, destination_key))
-            transfer = S3Transfer(s3.client)
-            transfer.upload_file(local_path, s3.bucket_name, destination_key,
-                                 callback=S3Progress(local_path))
-            # remove the progress bar
-            sys.stdout.write('\033[2K\033[1G')
+            for filepath in local:
+                destination_key = s3.get_s3_destination_key(filepath)
+                print('upload: %s to s3://%s/%s' %
+                      (filepath, s3.bucket_name, destination_key))
+                transfer = S3Transfer(s3.client)
+                transfer.upload_file(filepath, s3.bucket_name, destination_key,
+                                     callback=S3Progress(filepath))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
