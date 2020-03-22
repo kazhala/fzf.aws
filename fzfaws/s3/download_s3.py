@@ -46,13 +46,13 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
             if recursive or sync:
                 s3.set_s3_path()
             else:
-                s3.set_s3_object()
+                s3.set_s3_object(multi_select=True)
     else:
         s3.set_s3_bucket()
         if recursive or sync:
             s3.set_s3_path()
         else:
-            s3.set_s3_object()
+            s3.set_s3_object(multi_select=True)
 
     fzf = Pyfzf()
     if local:
@@ -80,17 +80,22 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
                 sys.stdout.write('\033[2K\033[1G')
 
     else:
-        # s3 require a local file name, copy the name of the s3 key
-        local_path = os.path.join(local_path, s3.bucket_path.split('/')[-1])
-        # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
-        # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
-        print('(dryrun) download: s3://%s/%s to %s' %
-              (s3.bucket_name, s3.bucket_path, local_path))
+        for s3_path in s3.path_list:
+            # s3 require a local file name, copy the name of the s3 key
+            destination_path = os.path.join(
+                local_path, s3_path.split('/')[-1])
+            # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
+            # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
+            print('(dryrun) download: s3://%s/%s to %s' %
+                  (s3.bucket_name, s3.bucket_path, destination_path))
         if get_confirmation('Confirm?'):
-            print('download: s3://%s/%s to %s' %
-                  (s3.bucket_name, s3.bucket_path, local_path))
-            transfer = S3Transfer(s3.client)
-            transfer.download_file(s3.bucket_name, s3.bucket_path, local_path, callback=S3Progress(
-                s3.bucket_path, s3.bucket_name, s3.client))
-            # remove the progress bar
-            sys.stdout.write('\033[2K\033[1G')
+            for s3_path in s3.path_list:
+                destination_path = os.path.join(
+                    local_path, s3_path.split('/')[-1])
+                print('download: s3://%s/%s to %s' %
+                      (s3.bucket_name, s3_path, destination_path))
+                transfer = S3Transfer(s3.client)
+                transfer.download_file(s3.bucket_name, s3_path, destination_path, callback=S3Progress(
+                    s3_path, s3.bucket_name, s3.client))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')

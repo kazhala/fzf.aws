@@ -84,7 +84,7 @@ class Pyfzf:
 
         if multi_select:
             # multi_select would return everything seperate by \n
-            return str(selection_name, 'utf-8').splitlines()
+            return str(selection_name, 'utf-8').replace(" ", "").splitlines()
         else:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').strip()

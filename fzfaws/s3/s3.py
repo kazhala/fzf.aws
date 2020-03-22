@@ -123,7 +123,11 @@ class S3:
                 paginator = self.client.get_paginator('list_objects')
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     fzf.process_list(result.get('Contents'), 'Key')
-                self.bucket_path = fzf.execute_fzf(print_col=-1)
+                if multi_select:
+                    self.path_list = fzf.execute_fzf(
+                        print_col=-1, multi_select=True)
+                else:
+                    self.bucket_path = fzf.execute_fzf(print_col=-1)
             else:
                 fzf = Pyfzf()
                 key_list = []
@@ -134,7 +138,11 @@ class S3:
                         if key_object not in key_list:
                             key_list.append(key_object)
                 fzf.process_list(key_list, 'Key')
-                self.bucket_path = fzf.execute_fzf(print_col=-1)
+                if multi_select:
+                    self.path_list = fzf.execute_fzf(
+                        print_col=-1, multi_select=True)
+                else:
+                    self.bucket_path = fzf.execute_fzf(print_col=-1)
         except:
             print('Bucket is empty')
             exit()

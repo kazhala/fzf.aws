@@ -46,6 +46,7 @@ def upload_s3(path=None, local=[], recursive=False, hidden=False, root=False, sy
     fzf = Pyfzf()
     if not local:
         recursive = True if recursive or sync else False
+        # don't allow multi_select for recursive operation
         multi_select = True if not recursive else False
         local = fzf.get_local_file(
             search_from_root=root, directory=recursive, hidden=hidden, empty_allow=recursive, multi_select=multi_select)
