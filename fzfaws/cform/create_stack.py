@@ -66,12 +66,12 @@ def create_stack(args):
         s3 = S3()
         s3.set_s3_bucket()
         s3.set_s3_object()
-        if is_yaml(s3.object):
+        if is_yaml(s3.bucket_path):
             file_type = 'yaml'
-        elif is_json(s3.object):
+        elif is_json(s3.bucket_path):
             file_type = 'json'
 
-        check_is_valid(s3.object)
+        check_is_valid(s3.bucket_path)
 
         stack_name = input('StackName: ')
         if not stack_name:

@@ -128,13 +128,13 @@ def update_stack(args):
         else:
             s3 = S3()
             s3.set_s3_bucket()
-            s3.set_s3_object()
-            if is_yaml(s3.object):
+            s3.set_s3_path()
+            if is_yaml(s3.bucket_path):
                 file_type = 'yaml'
-            elif is_json(s3.object):
+            elif is_json(s3.bucket_path):
                 file_type = 'json'
 
-            check_is_valid(s3.object)
+            check_is_valid(s3.bucket_path)
 
             file_data = s3.get_object_data(file_type)
             if 'Parameters' in file_data:

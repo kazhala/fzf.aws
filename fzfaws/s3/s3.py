@@ -18,21 +18,21 @@ class S3:
     handles operations directly related to boto3
 
     Attributes:
-        client: boto3 client
-        resource: boto3 resource
-        bucket_name: name of the selected bucket to interact
-        object: path of the object to process
-        bucket_path: path of where the operation should happen
-            Note: use get_s3_destination_key() to obtain the destination key
-            This attribute may not be valid destination key
+        client: object, boto3 client
+        resource: object, boto3 resource
+        bucket_name: string, name of the selected bucket to interact
+        bucket_path: string, path of where the operation should happen
+            Note: this attribute may not be a valid s3 key, if recusive operation, is only a sub prefix of s3
+            To obtain the destination key during recursive operation, call get_s3_destination_key
+        path_list: list, list of s3 path, would be set when multi_select of set_s3_object is used
     """
 
     def __init__(self):
         self.client = boto3.client('s3')
         self.resource = boto3.resource('s3')
         self.bucket_name = None
-        self.object = None
         self.bucket_path = ''
+        self.path_list = []
 
     def set_s3_bucket(self):
         """list bucket through fzf and let user select a bucket"""
@@ -104,11 +104,18 @@ class S3:
                 print('S3 file path is set to %s' %
                       (self.bucket_path if self.bucket_path else 'root'))
 
-    def set_s3_object(self, version=False):
+    def set_s3_object(self, version=False, multi_select=False):
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
         using paginator to get all results
+
+        Args:
+            version: bool, enable version find
+                when this set to true, the object search would search through 'list_object_versions'
+                rather than list_objects so that user could still find the object even after
+                they deleted the object
+            multi_select: bool, enable multi_select
         """
         try:
             if not version:
@@ -116,8 +123,7 @@ class S3:
                 paginator = self.client.get_paginator('list_objects')
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     fzf.process_list(result.get('Contents'), 'Key')
-                self.object = fzf.execute_fzf(print_col=-1)
-                self.bucket_path = self.object
+                self.bucket_path = fzf.execute_fzf(print_col=-1)
             else:
                 fzf = Pyfzf()
                 key_list = []
@@ -176,7 +182,7 @@ class S3:
         read the s3 object file and if is yaml/json file_type, load the file into dict
         currently is only used for cloudformation
         """
-        s3_object = self.resource.Object(self.bucket_name, self.object)
+        s3_object = self.resource.Object(self.bucket_name, self.bucket_path)
         body = s3_object.get()['Body'].read()
         body = str(body, 'utf-8')
         if file_type == 'yaml':
@@ -189,7 +195,7 @@ class S3:
         """return the object url of the current selected object"""
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response['LocationConstraint']
-        return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.object)
+        return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.bucket_path)
 
     def get_s3_destination_key(self, local_path, recursive=False):
         """set the s3 key for upload destination
