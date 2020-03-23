@@ -6,7 +6,7 @@ import os
 from fzfaws.s3.helper.exclude_file import exclude_file
 
 
-def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[], include=[], operation='download', target_path='/', target_bucket=''):
+def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[], include=[], operation='download', destination_path='/', destination_bucket=''):
     """download directory from s3 recursivly
 
     reference: https://stackoverflow.com/a/33350380
@@ -19,9 +19,17 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
         client: boto3.client('s3')
         bucket: string, name of the bucket
         bucket_path: string, which path to download or the current recursive path
-        local_path: string, local destination root folder
-        root: where the download begin, '' means bucket root
-        file_list: list, list of file to download
+        root: string, the current operation root
+            when calling walk_s3_folder(), set root to bucket_path
+        file_list: list, accumulated list of file to download
+        exclude: list, list of glob pattern to exclude
+        include: list, list of glob pattern to include after exclude
+        operation: string, current operation type
+            Print different information based on operation type
+            download/bucket/delete
+        destination_path: string, the destination root path
+        destination_bucket: string, the destination bucket name
+            Only set this for operation='bucket'
     Returns:
         file_list: return the list of file to download. The loop contains a tuple
         that coould be iterate over
@@ -32,7 +40,7 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
         if result.get('CommonPrefixes') is not None:
             for subdir in result.get('CommonPrefixes'):
                 file_list = walk_s3_folder(client, bucket, subdir.get(
-                    'Prefix'), root, file_list, exclude, include, operation, target_path, target_bucket)
+                    'Prefix'), root, file_list, exclude, include, operation, destination_path, destination_bucket)
         for file in result.get('Contents', []):
             if file.get('Key').endswith('/') or not file.get('Key'):
                 # user created dir in S3 console will appear in the result and is not downloadable
@@ -40,7 +48,7 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
             if exclude_file(exclude, include, file.get('Key')):
                 continue
             if not root:
-                dest_pathname = os.path.join(target_path, file.get('Key'))
+                dest_pathname = os.path.join(destination_path, file.get('Key'))
             else:
                 # strip off the root if the root is not root of the bucket
                 # with this, downloading sub folders like bucket/aws
@@ -49,13 +57,13 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
                 # nested folders within bucket/aws will still be created in the target directory
                 # doing this because aws cli does it, do not want to change the behavior
                 strip_root_path = '/'.join(file.get('Key').split('/')[1:])
-                dest_pathname = os.path.join(target_path, strip_root_path)
+                dest_pathname = os.path.join(destination_path, strip_root_path)
             if operation == 'download':
                 print('(dryrun) download: s3://%s/%s to %s' %
                       (bucket, file.get('Key'), dest_pathname))
             elif operation == 'bucket':
                 print('(dryrun) copy: s3://%s/%s to s3://%s/%s' %
-                      (bucket, file.get('Key'), target_bucket, dest_pathname))
+                      (bucket, file.get('Key'), destination_bucket, dest_pathname))
             elif operation == 'delete':
                 print('(dryrun) delete: s3://%s/%s' %
                       (bucket, file.get('Key')))
