@@ -177,14 +177,15 @@ class S3:
                         'DeleteMarker': False,
                         'LastModified': version.get('LastModified'),
                     })
-                for marker in result.get('DeleteMarkers', []):
-                    version_list.append({
-                        'VersionId': marker.get('VersionId'),
-                        'Key': version.get('Key'),
-                        'IsLatest': marker.get('IsLatest'),
-                        'DeleteMarker': True,
-                        'LastModified': marker.get('LastModified'),
-                    })
+                if delete:
+                    for marker in result.get('DeleteMarkers', []):
+                        version_list.append({
+                            'VersionId': marker.get('VersionId'),
+                            'Key': version.get('Key'),
+                            'IsLatest': marker.get('IsLatest'),
+                            'DeleteMarker': True,
+                            'LastModified': marker.get('LastModified'),
+                        })
             if not select_all:
                 fzf = Pyfzf()
                 fzf.process_list(version_list, 'VersionId', 'Key', 'IsLatest',
