@@ -156,7 +156,8 @@ class S3:
             key: string, if not set, class instance's bucket_path would be used
             delete: bool, allow to choose delete marker
         Returns:
-            version_id: string, the version id user selected
+            selected_versions: list, list of dict the user selected
+                dict: {'Key': s3 key path, 'VersionId': s3 object id}
         """
         bucket = bucket if bucket else self.bucket_name
         key_list = []
@@ -207,6 +208,9 @@ class S3:
 
         read the s3 object file and if is yaml/json file_type, load the file into dict
         currently is only used for cloudformation
+
+        Args:
+            file_type: string, yaml/json, if specified, will load the file into dict
         """
         s3_object = self.resource.Object(self.bucket_name, self.bucket_path)
         body = s3_object.get()['Body'].read()
@@ -231,6 +235,10 @@ class S3:
         if yes, append the local file name to the s3 path as the key
 
         if recursive is set, append '/' to last if '/' does not exist
+
+        Args:
+            local_path: string, local file path
+            recursive: bool, recursive operation
         """
         if recursive:
             if not self.bucket_path:

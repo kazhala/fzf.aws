@@ -19,6 +19,7 @@ def upload_s3(path=None, local=[], recursive=False, hidden=False, root=False, sy
     """upload local files/directories to s3
 
     upload through boto3 s3 client
+    glob pattern are handled first exclude list then will run the include list
 
     Args:
         path: string, s3 bucket path for upload destination

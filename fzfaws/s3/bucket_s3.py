@@ -14,6 +14,9 @@ from fzfaws.s3.helper.s3progress import S3Progress
 def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude=[], include=[], version=False):
     """transfer file between buckts
 
+    handle transfer file between buckets or even within the same bucket
+    Handle glob pattern through exclude list first than it will process the include to explicit include files
+
     Args:
         from_path: string, target bucket path
         to_path: string, destination bucket path
@@ -21,6 +24,7 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
         sync: bool, use sync operation through subprocess
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include afer exclude
+        version: bool, transfer file with specific version
     Return:
         None
     Exceptions:

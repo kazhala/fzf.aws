@@ -21,6 +21,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
 
     handles sync, download file and download recursive
     from a s3 bucket
+    glob pattern are first handled through exclude list and then include list
 
     Args:
         path: string, path of the s3 bucket if specified
@@ -31,6 +32,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
         exclude: list, list of pattern to exclude file
         include: list, list of pattern to include file after exclude
         hidden: bool, include hidden directory during search
+        version: bool, download specific version of file
     Returns:
         None
     Exceptions:
@@ -81,6 +83,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
                     s3_key, s3.bucket_name, s3.client))
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
+
     elif version:
         for obj_version in obj_versions:
             destination_path = os.path.join(
