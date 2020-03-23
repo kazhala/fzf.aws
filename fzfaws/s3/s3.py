@@ -182,7 +182,7 @@ class S3:
                     for marker in result.get('DeleteMarkers', []):
                         version_list.append({
                             'VersionId': marker.get('VersionId'),
-                            'Key': version.get('Key'),
+                            'Key': marker.get('Key'),
                             'IsLatest': marker.get('IsLatest'),
                             'DeleteMarker': True,
                             'LastModified': marker.get('LastModified'),

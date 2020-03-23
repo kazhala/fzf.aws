@@ -5,6 +5,7 @@ delete files/folders on s3
 from fzfaws.s3.s3 import S3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
+from fzfaws.s3.helper.exclude_file import exclude_file
 
 
 def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False):
@@ -47,24 +48,33 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
             s3.set_s3_object(version=version, multi_select=True)
 
     if recursive:
-        file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
-        ], exclude, include, 'delete')
         if allversion:
-            # loop through all files and request their versions
+            # use a different method other than the walk s3 folder
+            # since walk_s3_folder doesn't provide access to deleted version object
+            # delete_all_versions method will list all files including deleted versions or even delete marker
+            file_list = delete_all_versions(
+                s3.client, s3.bucket_name, s3.bucket_path, [], exclude, include)
+            obj_versions = []
+            # loop through all files and get their versions
+            for file in file_list:
+                obj_versions.extend(s3.get_object_version(
+                    key=file, delete=True, select_all=True))
+                print('(dryrun) delete: s3://%s/%s and all versions' %
+                      (s3.bucket_name, file))
             if get_confirmation('Delete all files and all of their versions?'):
-                for s3_key, destname in file_list:
-                    obj_versions = s3.get_object_version(
-                        key=s3_key, delete=True, select_all=True)
-                    for obj_version in obj_versions:
-                        print('delete: s3://%s/%s with version %s' %
-                              (s3.bucket_name, s3_key, obj_version.get('VersionId')))
-                        s3.client.delete_object(
-                            Bucket=s3.bucket_name,
-                            Key=s3_key,
-                            MFA=mfa,
-                            VersionId=obj_version.get('VersionId')
-                        )
+                for obj_version in obj_versions:
+                    print('delete: s3://%s/%s with version %s' %
+                          (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
+                    s3.client.delete_object(
+                        Bucket=s3.bucket_name,
+                        Key=obj_version.get('Key'),
+                        MFA=mfa,
+                        VersionId=obj_version.get('VersionId')
+                    )
+
         else:
+            file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
+            ], exclude, include, 'delete')
             if get_confirmation('Confirm?'):
                 # destiname here is completely useless, only for looping purpose
                 for s3_key, destname in file_list:
@@ -106,3 +116,27 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                     Bucket=s3.bucket_name,
                     Key=s3_path,
                 )
+
+
+def delete_all_versions(client, bucket, path, file_list=[], exclude=[], include=[]):
+    paginator = client.get_paginator('list_object_versions')
+    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=path):
+        if result.get('CommonPrefixes') is not None:
+            for subdir in result.get('CommonPrefixes'):
+                file_list = delete_all_versions(client, bucket, subdir.get(
+                    'Prefix'), file_list, exclude, include)
+        for file in result.get('Versions', []):
+            if exclude_file(exclude, include, file.get('Key')):
+                continue
+            if file.get('Key') in file_list:
+                continue
+            else:
+                file_list.append(file.get('Key'))
+        for file in result.get('DeleteMarkers', []):
+            if exclude_file(exclude, include, file.get('Key')):
+                continue
+            if file.get('Key') in file_list:
+                continue
+            else:
+                file_list.append(file.get('Key'))
+    return file_list
