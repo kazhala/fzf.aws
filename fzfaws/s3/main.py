@@ -68,7 +68,7 @@ def s3(raw_args):
     download_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                               help='when fd is installed, add this flag to include hidden files in the search')
     download_cmd.add_argument('-v', '--version', action='store_true', default=False,
-                              help='choose a version of the object and download')
+                              help='choose a version of the object and download, Note: does not support recursive flag')
     bucket_cmd = subparsers.add_parser(
         'bucket', description='move file/directory between s3 buckets')
     bucket_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
@@ -81,6 +81,8 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to exclude a number of patterns')
     bucket_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
                             help='specify a number of bash style globbing pattern to include files after excluding')
+    bucket_cmd.add_argument('-v', '--version', action='store_true', default=False,
+                            help='choose a version of the object and transfer, Note: does not support recursive flag')
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
     delete_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
@@ -96,7 +98,7 @@ def s3(raw_args):
                             'and the value that is displayed on your authentication device. ' +
                             'Required to permanently delete a versioned object if versioning is configured with MFA delete enabled')
     delete_cmd.add_argument('-v', '--version', action='store_true', default=False,
-                            help='choose an or multiple object versions to delete')
+                            help='choose an or multiple object versions to delete, Note: does not support recursive, to delete all versions recursivly, use -V flag')
     delete_cmd.add_argument('-V', '--allversion', action='store_true', default=False,
                             help='delete a versioned object completely including all versions and delete markes')
     args = parser.parse_args(raw_args)
@@ -132,7 +134,7 @@ def s3(raw_args):
         from_path = args.path[0] if args.path else None
         to_path = args.path[1] if len(args.path) > 1 else None
         bucket_s3(from_path, to_path, args.recursive,
-                  args.sync, args.exclude, args.include)
+                  args.sync, args.exclude, args.include, args.version)
     elif args.subparser_name == 'delete':
         path = args.path[0] if args.path else None
         mfa = ' '.join(args.mfa)

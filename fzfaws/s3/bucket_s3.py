@@ -11,7 +11,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
 
 
-def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude=[], include=[]):
+def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude=[], include=[], version=False):
     """transfer file between buckts
 
     Args:
@@ -41,6 +41,9 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
     if from_path:
         target_bucket, target_path = process_path_param(
             from_path, s3, search_folder)
+        if version:
+            obj_versions = s3.get_object_version()
+        # clean up the s3 attributes for next operation
         s3.bucket_name = None
         s3.bucket_path = ''
         if to_path:
@@ -54,10 +57,14 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
             s3.set_s3_path()
             target_path = s3.bucket_path
         else:
-            s3.set_s3_object(multi_select=True)
+            s3.set_s3_object(multi_select=True, version=version)
             target_path_list = s3.path_list
 
+        if version:
+            obj_versions = s3.get_object_version()
+
         print('Set the destination bucket where the file should be moved')
+        # clean up the s3 attributes for next operation
         s3.bucket_name = None
         s3.bucket_path = ''
         s3.set_s3_bucket()
@@ -84,6 +91,29 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
+    elif version:
+        # set s3 attributes for getting destination key
+        s3.bucket_name = dest_bucket
+        s3.bucket_path = dest_path
+        for obj_version in obj_versions:
+            s3_key = s3.get_s3_destination_key(obj_version.get('Key'))
+            print('(dryrun) copy: s3://%s/%s to s3://%s/%s with version %s' %
+                  (target_bucket, obj_version.get('Key'), dest_bucket, s3_key, obj_version.get('VersionId')))
+        if get_confirmation('Confirm?'):
+            for obj_version in obj_versions:
+                s3_key = s3.get_s3_destination_key(obj_version.get('Key'))
+                print('copy: s3://%s/%s to s3://%s/%s with version %s' %
+                      (target_bucket, obj_version.get('Key'), dest_bucket, s3_key, obj_version.get('VersionId')))
+                copy_source = {
+                    'Bucket': target_bucket,
+                    'Key': obj_version.get('Key'),
+                    'VersionId': obj_version.get('VersionId')
+                }
+                s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
+                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')))
+                # remove the progress bar
+                sys.stdout.write('\033[2K\033[1G')
+
     else:
         # set the s3 instance name and path the destination bucket
         s3.bucket_name = dest_bucket
@@ -103,8 +133,7 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
                     'Key': target_path
                 }
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
-                    target_path, target_bucket, s3.client
-                ))
+                    target_path, target_bucket, s3.client))
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
