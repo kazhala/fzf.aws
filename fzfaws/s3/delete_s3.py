@@ -52,7 +52,7 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
             # use a different method other than the walk s3 folder
             # since walk_s3_folder doesn't provide access to deleted version object
             # delete_all_versions method will list all files including deleted versions or even delete marker
-            file_list = delete_all_versions(
+            file_list = find_all_version_files(
                 s3.client, s3.bucket_name, s3.bucket_path, [], exclude, include)
             obj_versions = []
             # loop through all files and get their versions
@@ -118,12 +118,28 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
                 )
 
 
-def delete_all_versions(client, bucket, path, file_list=[], exclude=[], include=[]):
+def find_all_version_files(client, bucket, path, file_list=[], exclude=[], include=[]):
+    """find all files based on versions
+
+    This method is able to find all files even deleted files or just delete marker left overs
+    Use this method when needing to cleanly delete all files including their versions
+
+    Args:
+        client: object, boto3 s3 client
+        bucket: string, name of the bucket
+        path: string, the folder to delete all files, empty for root
+        file_list: list, the return file list
+        exclude: list, list of pattern to exclude
+        include: list, list of pattern to include after exclude
+    Returns:
+        file_list: list, list of file names including deleted file names with delete marker remained
+    """
+
     paginator = client.get_paginator('list_object_versions')
     for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=path):
         if result.get('CommonPrefixes') is not None:
             for subdir in result.get('CommonPrefixes'):
-                file_list = delete_all_versions(client, bucket, subdir.get(
+                file_list = find_all_version_files(client, bucket, subdir.get(
                     'Prefix'), file_list, exclude, include)
         for file in result.get('Versions', []):
             if exclude_file(exclude, include, file.get('Key')):
