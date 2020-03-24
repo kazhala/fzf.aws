@@ -5,7 +5,7 @@ delete operations on the selected cloudformation stack
 import json
 from fzfaws.utils.util import get_confirmation, remove_dict_from_list
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.cform import Cloudformation
+from fzfaws.cloudformation.cloudformation import Cloudformation
 
 
 def delete_stack(args):

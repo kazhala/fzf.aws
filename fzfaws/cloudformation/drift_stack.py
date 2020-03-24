@@ -5,7 +5,7 @@ detect drift status of the selected cloudformations stack
 import json
 import time
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.cform import Cloudformation
+from fzfaws.cloudformation.cloudformation import Cloudformation
 
 
 def drift_stack(args):

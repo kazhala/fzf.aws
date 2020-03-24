@@ -3,13 +3,13 @@
 create cloudformation stack through both s3 bucket url or local file upload
 """
 import json
-from fzfaws.cform.helper.file_validation import is_yaml, is_json, check_is_valid
-from fzfaws.cform.helper.tags import get_tags
+from fzfaws.cloudformation.helper.file_validation import is_yaml, is_json, check_is_valid
+from fzfaws.cloudformation.helper.tags import get_tags
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_file import process_json_file, process_yaml_file
+from fzfaws.cloudformation.helper.process_file import process_json_file, process_yaml_file
 from fzfaws.utils.exceptions import NoNameEntered, InvalidFileType
-from fzfaws.cform.cform import Cloudformation
-from fzfaws.cform.helper.paramprocessor import ParamProcessor
+from fzfaws.cloudformation.cloudformation import Cloudformation
+from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
 
 
@@ -17,7 +17,7 @@ def create_stack(args):
     """handle the creation of the cloudformation stack
 
     Args:
-        args: argparser args from main.py in cform
+        args: argparser args from main.py in cloudformation
     Returns:
         None
     Raises:

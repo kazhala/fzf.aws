@@ -7,7 +7,7 @@ import sys
 import subprocess
 from botocore.exceptions import ClientError
 from fzfaws.utils.exceptions import NoCommandFound, NoNameEntered, NoSelectionMade, InvalidFileType, InvalidS3PathPattern
-from fzfaws.cform.main import cform
+from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
 from fzfaws.s3.main import s3
 
@@ -18,12 +18,12 @@ def main():
     try:
         if len(sys.argv) < 2:
             raise NoCommandFound()
-        available_routes = ['cform', 'ec2', 'keypair', 's3']
+        available_routes = ['cloudformation', 'ec2', 'keypair', 's3']
         action_command = sys.argv[1]
         if action_command not in available_routes:
             raise NoCommandFound()
-        if action_command == 'cform':
-            cform(sys.argv[2:])
+        if action_command == 'cloudformation':
+            cloudformation(sys.argv[2:])
         elif action_command == 'ec2':
             ec2(sys.argv[2:])
         elif action_command == 's3':
@@ -32,10 +32,10 @@ def main():
     # display help message
     # did'n use argparse at the entry level thus creating similar help message
     except NoCommandFound as e:
-        print('usage: faws [-h] {cform, ec2, keypair, s3} ...\n')
+        print('usage: faws [-h] {cloudformation, ec2, keypair, s3} ...\n')
         print('A better aws cli experience with the help of fzf\n')
         print('positional arguments:')
-        print('  {cform,ec2,keypair,s3}\n')
+        print('  {cloudformation,ec2,keypair,s3}\n')
         print('optional arguments:')
         print('  -h, --help            show this help message and exit')
     except InvalidFileType:

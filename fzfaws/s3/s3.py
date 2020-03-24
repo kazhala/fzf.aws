@@ -9,7 +9,7 @@ import json
 # TODO: use session to list user profile
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.helper.process_file import process_yaml_body, process_json_body
+from fzfaws.cloudformation.helper.process_file import process_yaml_body, process_json_body
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 

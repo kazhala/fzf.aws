@@ -7,16 +7,16 @@ actions to appropriate functions
 import json
 import subprocess
 import argparse
-from fzfaws.cform.delete_stack import delete_stack
-from fzfaws.cform.update_stack import update_stack
-from fzfaws.cform.create_stack import create_stack
-from fzfaws.cform.drift_stack import drift_stack
-from fzfaws.cform.changeset_stack import changeset_stack
+from fzfaws.cloudformation.delete_stack import delete_stack
+from fzfaws.cloudformation.update_stack import update_stack
+from fzfaws.cloudformation.create_stack import create_stack
+from fzfaws.cloudformation.drift_stack import drift_stack
+from fzfaws.cloudformation.changeset_stack import changeset_stack
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cform.cform import Cloudformation
+from fzfaws.cloudformation.cloudformation import Cloudformation
 
 
-def cform(raw_args):
+def cloudformation(raw_args):
     """Entry of cloudformation operations
 
     Args:
@@ -33,7 +33,7 @@ def cform(raw_args):
 
     parser = argparse.ArgumentParser(
         description='CRUD operation on aws cloudformation.',
-        usage='faws cform [-h] {update,create,delete,drift,changeset} ...'
+        usage='faws cloudformation [-h] {update,create,delete,drift,changeset} ...'
     )
     subparsers = parser.add_subparsers(dest='subparser_name')
 
@@ -111,7 +111,7 @@ def cform(raw_args):
             fzf.append_fzf(command)
             fzf.append_fzf('\n')
         selected_command = fzf.execute_fzf(
-            empty_allow=True, print_col=1, preview='faws cform {} -h')
+            empty_allow=True, print_col=1, preview='faws cloudformation {} -h')
         if selected_command == 'update':
             update_cmd.print_help()
         elif selected_command == 'create':
