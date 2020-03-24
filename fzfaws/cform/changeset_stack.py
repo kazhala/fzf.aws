@@ -37,6 +37,8 @@ def changeset_stack(args):
         cloudformation: instance of the Cloudformation class
     Returns:
         None
+    Exceptions:
+        NoNameEntered: when the new changeset receive empty string for new name
     """
 
     cloudformation = Cloudformation()

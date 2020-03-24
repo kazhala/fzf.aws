@@ -38,10 +38,6 @@ def main():
         print('  {cform,ec2,keypair,s3}\n')
         print('optional arguments:')
         print('  -h, --help            show this help message and exit')
-    except NoNameEntered:
-        print('No name was entered for the operation')
-        print('Current operation require a name input, please re-run the operation')
-        print('Exiting..')
     except InvalidFileType:
         print('Selected file is not a valid template file type')
         print('Exiting..')

@@ -20,6 +20,8 @@ def create_stack(args):
         args: argparser args from main.py in cform
     Returns:
         None
+    Exceptions:
+        NoNameEntered: when the new stack receive empty string as stack name
     """
 
     cloudformation = Cloudformation()
@@ -75,7 +77,7 @@ def create_stack(args):
 
         stack_name = input('StackName: ')
         if not stack_name:
-            raise NoNameEntered('No name entered')
+            raise NoNameEntered('No stack name entered')
 
         file_data = s3.get_object_data(file_type)
         if 'Parameters' in file_data:
