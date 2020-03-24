@@ -3,6 +3,7 @@
 Generate presigning url for an s3 object
 """
 from fzfaws.s3.s3 import S3
+from fzfaws.utils.exceptions import InvalidParameterType
 
 
 def presign_s3(path=None, version=False, expires_in=3600):
@@ -19,7 +20,13 @@ def presign_s3(path=None, version=False, expires_in=3600):
     Exceptions:
         InvalidS3PathPattern: when the input path is not a valid s3 form
             bucketname/path or bucketname/
+        InvalidParameterType: when input parameter is wrong type
+        NoSelectionMade: when fzf selection is empty
     """
+
+    if not isinstance(expires_in, int):
+        raise InvalidParameterType(
+            '-e, --expires accept integer, make sure to pass in integer')
 
     s3 = S3()
     if path:

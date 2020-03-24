@@ -38,9 +38,6 @@ def main():
         print('  {cform,ec2,keypair,s3}\n')
         print('optional arguments:')
         print('  -h, --help            show this help message and exit')
-    except NoSelectionMade:
-        print('No selection was made')
-        print('Exit..')
     except NoNameEntered:
         print('No name was entered for the operation')
         print('Current operation require a name input, please re-run the operation')

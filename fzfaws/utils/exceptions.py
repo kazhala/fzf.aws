@@ -24,3 +24,8 @@ class InvalidS3PathPattern(Exception):
 class InvalidFileType(Exception):
     """The file type is not accepted file type"""
     pass
+
+
+class InvalidParameterType(Exception):
+    """When the input parameter in not correct type"""
+    pass
