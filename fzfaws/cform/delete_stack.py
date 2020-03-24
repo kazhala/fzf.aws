@@ -21,6 +21,8 @@ def delete_stack(args):
         cloudformation: instance of the Cloudformation class
     Returns:
         None
+    Raises:
+        NoSelectionMade: whent he required fzf selection received zero selection
     """
 
     cloudformation = Cloudformation()

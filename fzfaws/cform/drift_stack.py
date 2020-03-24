@@ -16,6 +16,8 @@ def drift_stack(args):
         cloudformation: instance of the Cloudformation class
     Returns:
         None
+    Raises:
+        NoSelectionMade: when the required selection received empty result
     """
 
     cloudformation = Cloudformation()
