@@ -45,10 +45,6 @@ def main():
     except InvalidFileType:
         print('Selected file is not a valid template file type')
         print('Exiting..')
-    except InvalidS3PathPattern:
-        print(
-            'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/to/upload)')
-        print('Exiting..')
     except KeyboardInterrupt:
         print('\nExit')
     except subprocess.SubprocessError:

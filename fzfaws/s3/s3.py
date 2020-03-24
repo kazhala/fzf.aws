@@ -57,7 +57,8 @@ class S3:
             self.bucket_name = path.split('/')[0]
             self.bucket_path = '/'.join(path.split('/')[1:])
         else:
-            raise InvalidS3PathPattern
+            raise InvalidS3PathPattern(
+                'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/to/upload)')
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download

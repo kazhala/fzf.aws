@@ -35,6 +35,8 @@ def upload_s3(path=None, local=[], recursive=False, hidden=False, root=False, sy
         None
     Exceptions:
         InvalidS3PathPattern: when the specified s3 path is invalid pattern
+        NoSelectionMade: when the required fzf selection is empty
+        SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
 
     s3 = S3()

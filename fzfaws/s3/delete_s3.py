@@ -25,7 +25,8 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
         None
     Exceptions:
         InvalidS3PathPattern: when the path varibale is not a valid pattern
-        bucket/ or bucket/pathname
+            bucket/ or bucket/pathname
+        NoSelectionMade: when the required fzf selection did not receive any result
     """
 
     s3 = S3()

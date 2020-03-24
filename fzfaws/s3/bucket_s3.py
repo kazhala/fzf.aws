@@ -29,6 +29,7 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
         None
     Exceptions:
         InvalidS3PathPattern: when the specified s3 path is invalid pattern
+        NoSelectionMade: when the required fzf selection did not receive any result
     """
 
     s3 = S3()

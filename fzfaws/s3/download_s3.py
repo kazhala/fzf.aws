@@ -37,6 +37,8 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
         None
     Exceptions:
         InvalidS3PathPattern: when the specified s3 path is invalid pattern
+        NoSelectionMade: when the required fzf selection is not made
+        SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
 
     s3 = S3()
