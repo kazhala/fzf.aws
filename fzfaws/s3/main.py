@@ -11,6 +11,7 @@ from fzfaws.s3.upload_s3 import upload_s3
 from fzfaws.s3.download_s3 import download_s3
 from fzfaws.s3.bucket_s3 import bucket_s3
 from fzfaws.s3.delete_s3 import delete_s3
+from fzfaws.s3.presign_s3 import presign_s3
 
 
 def s3(raw_args):
@@ -101,6 +102,14 @@ def s3(raw_args):
                             help='choose an or multiple object versions to delete, Note: does not support recursive, to delete all versions recursivly, use -V flag')
     delete_cmd.add_argument('-V', '--allversion', action='store_true', default=False,
                             help='delete a versioned object completely including all versions and delete markes')
+    presign_cmd = subparsers.add_parser(
+        'presign', description='generate presign url on the selected object based on your current profile permission')
+    presign_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
+                             help='spcify a s3 path (buckeName/path), use this flag to skip s3 bucket/path selection')
+    presign_cmd.add_argument('-v', '--version', action='store_true', default=False,
+                             help='generate presign url on a specific version of the object')
+    presign_cmd.add_argument('-e', '--expires', nargs=1, action='store', default=3600,
+                             help='specify a expiration period in seconds, default is 3600 seconds')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -140,3 +149,6 @@ def s3(raw_args):
         mfa = ' '.join(args.mfa)
         delete_s3(path, args.recursive, args.exclude,
                   args.include, mfa, args.version, args.allversion)
+    elif args.subparser_name == 'presign':
+        path = args.path[0] if args.path else None
+        presign_s3(path, args.version, args.expires)
