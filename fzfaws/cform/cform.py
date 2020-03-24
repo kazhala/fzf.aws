@@ -83,7 +83,7 @@ class Cloudformation:
                 instance.execute_with_capabilities(args, instance.client.update_stack, StackName=stack_name)
         Returns:
             the raw response from boto3
-        Exceptions:
+        Raises:
            InsufficientCapabilitiesException: when the stack action require extra acknowledgement
         """
         try:

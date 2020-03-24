@@ -17,7 +17,7 @@ def presign_s3(path=None, version=False, expires_in=3600):
         None
     Output:
         presignUrl: string, the presign url of the object
-    Exceptions:
+    Raises:
         InvalidS3PathPattern: when the input path is not a valid s3 form
             bucketname/path or bucketname/
         InvalidParameterType: when input parameter is wrong type

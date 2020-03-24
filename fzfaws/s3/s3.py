@@ -50,7 +50,7 @@ class S3:
 
         Args:
             path: string, format(Bucket/ or Bucket/path/to/operate)
-        Exceptions:
+        Raises:
             InvalidS3PathPattern: when the specified s3 path is invalid pattern
         """
         if self._validate_input_path(path):
@@ -71,7 +71,7 @@ class S3:
         without handling different upload sceanario. Please use the
         get_s3_destination_key after set_s3_path to obtain the correct destination key
 
-        Exceptions:
+        Raises:
             TypeError: would raise when there is no more path to iterate
             Would indicate an end to the loop and print out user current
             selected path

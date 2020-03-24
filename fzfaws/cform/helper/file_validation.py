@@ -16,7 +16,7 @@ def is_json(file_name):
 def check_is_valid(file_name):
     """check if the file is json or yaml
 
-    Exceptions:
+    Raises:
         InvalidFileType: when the file is not json or yaml
     """
     if not is_yaml(file_name) and not is_json(file_name):

@@ -20,8 +20,10 @@ def create_stack(args):
         args: argparser args from main.py in cform
     Returns:
         None
-    Exceptions:
+    Raises:
         NoNameEntered: when the new stack receive empty string as stack name
+        NoSelectionMade: when the required fzf selection received zero result
+        SubprocessError: when the local file search received zero result
     """
 
     cloudformation = Cloudformation()

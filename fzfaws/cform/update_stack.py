@@ -19,12 +19,14 @@ def update_stack(args):
 
     Args:
         args: argparse args
-        cloudformation: instance of the Cloudformation class
     Returns:
         If is called from changeset_stack() then it will return a dict based on
         the arguments changeset_stack recieved
         example:
             {'Parameters': value, 'Tags': value, 'TemplateBody': value, 'TemplateURL': value}
+    Raises:
+        NoSelectionMade: when the required fzf selection recieved empty result
+        SubprocessError: when the local file search reciped empty result through fzf
     """
 
     cloudformation = Cloudformation()

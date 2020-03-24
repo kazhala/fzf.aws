@@ -33,7 +33,7 @@ def upload_s3(path=None, local=[], recursive=False, hidden=False, root=False, sy
         include: list, list of glob pattern to include after exclude
     Returns:
         None
-    Exceptions:
+    Raises:
         InvalidS3PathPattern: when the specified s3 path is invalid pattern
         NoSelectionMade: when the required fzf selection is empty
         SubprocessError: when the local file search got zero result from fzf(no selection in fzf)

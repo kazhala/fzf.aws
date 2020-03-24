@@ -27,7 +27,8 @@ def cform(raw_args):
         subprocess.CalledProcessError: When user exit the fzf subshell by ctrl-c
         ClientError: aws boto3 exceptions
         KeyboardInterrupt: ctrl-c during python operations
-        Exception: catch the rest
+        NoSelectionMade: when the require fzf selection received empty result
+        NoNameEntered: when the required name entry is empty
     """
 
     parser = argparse.ArgumentParser(

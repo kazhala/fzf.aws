@@ -23,7 +23,7 @@ def delete_s3(path=None, recursive=False, exclude=[], include=[], mfa='', versio
         allversion: bool, skip selection of version, delete all versions
     Returns:
         None
-    Exceptions:
+    Raises:
         InvalidS3PathPattern: when the path varibale is not a valid pattern
             bucket/ or bucket/pathname
         NoSelectionMade: when the required fzf selection did not receive any result
