@@ -37,9 +37,11 @@ def s3(raw_args):
     upload_cmd.add_argument('-R', '--root', action='store_true',
                             default=False, help='search local file from root directory')
     upload_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
-                            help='specify a s3 path (s3://bucketName/filename or s3://bucketName/path/) using this flag and skip s3 bucket/path selection')
+                            help='specify a s3 path (s3://bucketName/filename or s3://bucketName/path/ or s3://bucketName/)' +
+                            'using this flag and skip s3 bucket/path selection')
     upload_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
-                            help='specify the path/paths of a local file to upload')
+                            help='specify the path/paths of a local file to upload' +
+                            '(e.g. ~/folder/ or ~/folder/filename)')
     upload_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='upload a directory to s3 bucket recursivly')
     upload_cmd.add_argument('-s', '--sync', action='store_true',
@@ -54,10 +56,12 @@ def s3(raw_args):
         'download', description='download a file/directory from s3 to local')
     download_cmd.add_argument('-R', '--root', action='store_true', default=False,
                               help='search local directory from root directory')
+    download_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
+                              help='specify a s3 path (s3://bucketname/filename or s3://bucketname/path/ or s3://bucketName/)' +
+                              'using this flag and skip s3 bucket/path selection')
     download_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
-                              help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
-    download_cmd.add_argument('-P', '--local', nargs=1, action='store', default=[],
-                              help='specify the path of a local file to download')
+                              help='specify the path for the download destination of the s3 object' +
+                              '(e.g. ~/folder/ or ~/folder/filename)')
     download_cmd.add_argument('-r', '--recursive', action='store_true',
                               default=False, help='download a directory from s3 recursivly')
     download_cmd.add_argument('-s', '--sync', action='store_true',
@@ -135,9 +139,9 @@ def s3(raw_args):
         upload_s3(bucket, args.path, args.recursive, args.hidden,
                   args.root, args.sync, args.exclude, args.include)
     elif args.subparser_name == 'download':
-        path = args.path[0] if args.path else None
-        local = args.local[0] if args.local else None
-        download_s3(path, local, args.recursive, args.root,
+        bucket = args.bucket[0] if args.bucket else None
+        local_path = args.path[0] if args.path else None
+        download_s3(bucket, local_path, args.recursive, args.root,
                     args.sync, args.exclude, args.include, args.hidden, args.version)
     elif args.subparser_name == 'bucket':
         from_path = args.path[0] if args.path else None

@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def download_s3(path=None, local=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False, version=False):
+def download_s3(bucket=None, local_path=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False, version=False):
     """download files/'directory' from s3
 
     handles sync, download file and download recursive
@@ -42,29 +42,21 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
     """
 
     s3 = S3()
-    if path:
-        s3.set_bucket_and_path(path)
-        # if only the bucket is specified
-        # still need to process the bucket path
-        if not s3.bucket_path:
-            if recursive or sync:
-                s3.set_s3_path()
-            else:
-                s3.set_s3_object(multi_select=True, version=version)
-    else:
+    s3.set_bucket_and_path(bucket)
+    if not s3.bucket_name:
         s3.set_s3_bucket()
-        if recursive or sync:
+    if recursive or sync:
+        if not s3.bucket_path:
             s3.set_s3_path()
-        else:
+    else:
+        if not s3.path_list:
             s3.set_s3_object(multi_select=True, version=version)
 
     if version:
         obj_versions = s3.get_object_version()
 
     fzf = Pyfzf()
-    if local:
-        local_path = local
-    else:
+    if not local_path:
         local_path = fzf.get_local_file(
             root, directory=True, hidden=hidden, empty_allow=True)
 
@@ -112,7 +104,7 @@ def download_s3(path=None, local=None, recursive=False, root=False, sync=False, 
             # due the fact without recursive flag s3.bucket_path is set by s3.set_s3_object
             # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
             print('(dryrun) download: s3://%s/%s to %s' %
-                  (s3.bucket_name, s3.bucket_path, destination_path))
+                  (s3.bucket_name, s3_path, destination_path))
         if get_confirmation('Confirm?'):
             for s3_path in s3.path_list:
                 destination_path = os.path.join(

@@ -49,19 +49,18 @@ class S3:
         set both bucket and path directly
 
         Args:
-            bucket: string, format(Bucket/ or Bucket/path/to/operate)
+            bucket: string, format(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)
         Raises:
             InvalidS3PathPattern: when the specified s3 path is invalid pattern
         """
         if not bucket:
             return
         if self._validate_input_path(bucket):
-            print(bucket.split('/'))
             self.bucket_name = bucket.split('/')[2]
             self.bucket_path = '/'.join(bucket.split('/')[3:])
         else:
             raise InvalidS3PathPattern(
-                'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/to/upload)')
+                'Invalid s3 path pattern, valid pattern(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)')
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download
@@ -149,7 +148,7 @@ class S3:
                 else:
                     self.bucket_path = fzf.execute_fzf(print_col=-1)
         except:
-            print('Bucket is empty')
+            print('Bucket is empty or no selection was made')
             exit()
 
     def get_object_version(self, bucket=None, key=None, delete=False, select_all=False):
