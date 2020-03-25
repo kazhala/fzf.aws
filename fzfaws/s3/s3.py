@@ -49,20 +49,27 @@ class S3:
         set both bucket and path directly
 
         Args:
-            bucket: string, format(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)
+            bucket: string, format(Bucket/ or Bucket/path/ or Bucket/filename)
         Raises:
             InvalidS3PathPattern: when the specified s3 path is invalid pattern
         """
         if not bucket:
             return
-        if self._validate_input_path(bucket):
+        # check user input
+        result, match = self._validate_input_path(bucket)
+        if result == 'accesspoint':
+            self.bucket_name = match[0][0:-1]
+            self.bucket_path = match[1]
+            if self.bucket_path:
+                self.path_list.append(self.bucket_path)
+        elif result == 'bucketpath':
             self.bucket_name = bucket.split('/')[0]
             self.bucket_path = '/'.join(bucket.split('/')[1:])
             if self.bucket_path:
                 self.path_list.append(self.bucket_path)
         else:
             raise InvalidS3PathPattern(
-                'Invalid s3 path pattern, valid pattern(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)')
+                'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)')
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download
@@ -265,8 +272,14 @@ class S3:
 
     def _validate_input_path(self, user_input):
         """validate if the user input path is valid format"""
-        path_pattern = r"^(.*/)+.*$"
-        return re.match(path_pattern, user_input)
+        accesspoint_pattern = r"^(arn:aws.*:s3:[a-z\-0-9]+:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-]{1,63}/)(.*)$"
+        path_pattern = r"^(?!arn:.*)(.*/)+.*$"
+        if re.match(accesspoint_pattern, user_input):
+            return ('accesspoint', re.match(accesspoint_pattern, user_input).groups())
+        elif re.match(path_pattern, user_input):
+            return ('bucketpath', re.match(path_pattern, user_input).groups())
+        else:
+            return (None, None)
 
     def _get_path_option(self):
         """pop up fzf for user to select what to do with the path"""
