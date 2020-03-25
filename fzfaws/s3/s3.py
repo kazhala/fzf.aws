@@ -56,8 +56,8 @@ class S3:
         if not bucket:
             return
         if self._validate_input_path(bucket):
-            self.bucket_name = bucket.split('/')[2]
-            self.bucket_path = '/'.join(bucket.split('/')[3:])
+            self.bucket_name = bucket.split('/')[0]
+            self.bucket_path = '/'.join(bucket.split('/')[1:])
         else:
             raise InvalidS3PathPattern(
                 'Invalid s3 path pattern, valid pattern(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)')
@@ -263,7 +263,7 @@ class S3:
 
     def _validate_input_path(self, user_input):
         """validate if the user input path is valid format"""
-        path_pattern = r"^s3://(.*/)+.*$"
+        path_pattern = r"^(.*/)+.*$"
         return re.match(path_pattern, user_input)
 
     def _get_path_option(self):

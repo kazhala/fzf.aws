@@ -76,7 +76,7 @@ def s3(raw_args):
                               help='choose a version of the object and download, Note: does not support recursive flag')
     bucket_cmd = subparsers.add_parser(
         'bucket', description='move file/directory between s3 buckets')
-    bucket_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
+    bucket_cmd.add_argument('-b', '--bucket', nargs='+', action='store', default=[],
                             help='spcify 1 or 2 path for the from bucket and to bucket respectively')
     bucket_cmd.add_argument('-r', '--recursive', action='store_true', default=False,
                             help='move bucket object respectively')
@@ -144,9 +144,9 @@ def s3(raw_args):
         download_s3(bucket, local_path, args.recursive, args.root,
                     args.sync, args.exclude, args.include, args.hidden, args.version)
     elif args.subparser_name == 'bucket':
-        from_path = args.path[0] if args.path else None
-        to_path = args.path[1] if len(args.path) > 1 else None
-        bucket_s3(from_path, to_path, args.recursive,
+        from_bucket = args.bucket[0] if args.bucket else None
+        to_bucket = args.bucket[1] if len(args.bucket) > 1 else None
+        bucket_s3(from_bucket, to_bucket, args.recursive,
                   args.sync, args.exclude, args.include, args.version)
     elif args.subparser_name == 'delete':
         path = args.path[0] if args.path else None

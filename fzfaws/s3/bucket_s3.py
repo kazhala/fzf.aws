@@ -11,15 +11,15 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
 
 
-def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude=[], include=[], version=False):
+def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False):
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
     Handle glob pattern through exclude list first than it will process the include to explicit include files
 
     Args:
-        from_path: string, target bucket path
-        to_path: string, destination bucket path
+        from_bucket: string, target bucket path
+        to_bucket: string, destination bucket path
         recursive: bool, whether to copy entire folder or just file
         sync: bool, use sync operation through subprocess
         exclude: list, list of glob pattern to exclude
@@ -43,17 +43,18 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
 
     search_folder = True if recursive or sync else False
 
-    if from_path:
-        target_bucket, target_path = process_path_param(
-            from_path, s3, search_folder)
+    if from_bucket:
+        target_bucket, target_path, target_path_list = process_path_param(
+            from_bucket, s3, search_folder, version=version)
         if version:
             obj_versions = s3.get_object_version()
         # clean up the s3 attributes for next operation
         s3.bucket_name = None
         s3.bucket_path = ''
-        if to_path:
-            dest_bucket, dest_path = process_path_param(
-                to_path, s3, True)
+        if to_bucket:
+            dest_bucket, dest_path, dest_path_list = process_path_param(
+                to_bucket, s3, True)
+
     else:
         print('Set the target bucket which contains the file to move')
         s3.set_s3_bucket()
@@ -143,20 +144,20 @@ def bucket_s3(from_path=None, to_path=None, recursive=False, sync=False, exclude
                 sys.stdout.write('\033[2K\033[1G')
 
 
-def process_path_param(path, s3, search_folder):
-    """process path args and return bucket name and path
+def process_path_param(bucket, s3, search_folder, version=False):
+    """process bucket parameter and return bucket name and path
 
     Args:
-        path: string, raw path from the argument
+        bucket: string, raw bucket parameter from the argument
         s3: object, s3 instance from the S3 class
         search_folder: bool, search folder or file
     Returns:
         A tuple consisting of the bucketname and bucket path
     """
-    s3.set_bucket_and_path(path)
+    s3.set_bucket_and_path(bucket)
     if not s3.bucket_path:
         if search_folder:
             s3.set_s3_path()
         else:
-            s3.set_s3_object(multi_select=True)
-    return (s3.bucket_name, s3.bucket_path)
+            s3.set_s3_object(multi_select=True, version=version)
+    return (s3.bucket_name, s3.bucket_path, s3.path_list)
