@@ -54,6 +54,11 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         if to_bucket:
             dest_bucket, dest_path, dest_path_list = process_path_param(
                 to_bucket, s3, True)
+        else:
+            s3.set_s3_bucket()
+            s3.set_s3_path()
+            dest_bucket = s3.bucket_name
+            dest_path = s3.bucket_path
 
     else:
         print('Set the target bucket which contains the file to move')

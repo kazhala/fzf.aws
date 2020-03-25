@@ -58,6 +58,8 @@ class S3:
         if self._validate_input_path(bucket):
             self.bucket_name = bucket.split('/')[0]
             self.bucket_path = '/'.join(bucket.split('/')[1:])
+            if self.bucket_path:
+                self.path_list.append(self.bucket_path)
         else:
             raise InvalidS3PathPattern(
                 'Invalid s3 path pattern, valid pattern(s3://Bucket/ or s3://Bucket/path/ or s3://Bucket/filename)')
