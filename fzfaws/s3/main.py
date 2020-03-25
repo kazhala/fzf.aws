@@ -109,11 +109,11 @@ def s3(raw_args):
                             help='delete a versioned object completely including all versions and delete markes')
     presign_cmd = subparsers.add_parser(
         'presign', description='generate presign url on the selected object based on your current profile permission')
-    presign_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
+    presign_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
                              help='spcify a s3 path (buckeName/path), use this flag to skip s3 bucket/path selection')
     presign_cmd.add_argument('-v', '--version', action='store_true', default=False,
                              help='generate presign url on a specific version of the object')
-    presign_cmd.add_argument('-e', '--expires', nargs=1, action='store', default=3600,
+    presign_cmd.add_argument('-e', '--expires', nargs=1, action='store', default=[3600],
                              help='specify a expiration period in seconds, default is 3600 seconds')
     args = parser.parse_args(raw_args)
 
@@ -155,5 +155,5 @@ def s3(raw_args):
         delete_s3(bucket, args.recursive, args.exclude,
                   args.include, mfa, args.version, args.allversion)
     elif args.subparser_name == 'presign':
-        path = args.path[0] if args.path else None
-        presign_s3(path, args.version, args.expires)
+        bucket = args.bucket[0] if args.bucket else None
+        presign_s3(bucket, args.version, int(args.expires[0]))
