@@ -42,20 +42,23 @@ class S3:
         fzf.process_list(response['Buckets'], 'Name')
         self.bucket_name = fzf.execute_fzf()
 
-    def set_bucket_and_path(self, path):
+    def set_bucket_and_path(self, bucket=None):
         """method to set both bucket and path
 
         use this method to skip fzf selection and
         set both bucket and path directly
 
         Args:
-            path: string, format(Bucket/ or Bucket/path/to/operate)
+            bucket: string, format(Bucket/ or Bucket/path/to/operate)
         Raises:
             InvalidS3PathPattern: when the specified s3 path is invalid pattern
         """
-        if self._validate_input_path(path):
-            self.bucket_name = path.split('/')[0]
-            self.bucket_path = '/'.join(path.split('/')[1:])
+        if not bucket:
+            return
+        if self._validate_input_path(bucket):
+            print(bucket.split('/'))
+            self.bucket_name = bucket.split('/')[2]
+            self.bucket_path = '/'.join(bucket.split('/')[3:])
         else:
             raise InvalidS3PathPattern(
                 'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/to/upload)')
@@ -261,7 +264,7 @@ class S3:
 
     def _validate_input_path(self, user_input):
         """validate if the user input path is valid format"""
-        path_pattern = r"^(.*/)+.*$"
+        path_pattern = r"^s3://(.*/)+.*$"
         return re.match(path_pattern, user_input)
 
     def _get_path_option(self):

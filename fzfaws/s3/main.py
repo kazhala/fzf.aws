@@ -36,9 +36,9 @@ def s3(raw_args):
         'upload', description='upload a local file/directory to s3 bucket')
     upload_cmd.add_argument('-R', '--root', action='store_true',
                             default=False, help='search local file from root directory')
-    upload_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
-                            help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
-    upload_cmd.add_argument('-P', '--local', nargs='+', action='store', default=[],
+    upload_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
+                            help='specify a s3 path (s3://bucketName/filename or s3://bucketName/path/) using this flag and skip s3 bucket/path selection')
+    upload_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
                             help='specify the path/paths of a local file to upload')
     upload_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='upload a directory to s3 bucket recursivly')
@@ -131,8 +131,8 @@ def s3(raw_args):
         exit()
 
     if args.subparser_name == 'upload':
-        path = args.path[0] if args.path else None
-        upload_s3(path, args.local, args.recursive, args.hidden,
+        bucket = args.bucket[0] if args.bucket else None
+        upload_s3(bucket, args.path, args.recursive, args.hidden,
                   args.root, args.sync, args.exclude, args.include)
     elif args.subparser_name == 'download':
         path = args.path[0] if args.path else None
