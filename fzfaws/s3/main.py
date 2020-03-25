@@ -37,7 +37,7 @@ def s3(raw_args):
     upload_cmd.add_argument('-R', '--root', action='store_true',
                             default=False, help='search local file from root directory')
     upload_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
-                            help='specify a s3 path (s3://bucketName/filename or s3://bucketName/path/ or s3://bucketName/)' +
+                            help='specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)' +
                             'using this flag and skip s3 bucket/path selection')
     upload_cmd.add_argument('-p', '--path', nargs='+', action='store', default=[],
                             help='specify the path/paths of a local file to upload' +
@@ -57,7 +57,7 @@ def s3(raw_args):
     download_cmd.add_argument('-R', '--root', action='store_true', default=False,
                               help='search local directory from root directory')
     download_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
-                              help='specify a s3 path (s3://bucketname/filename or s3://bucketname/path/ or s3://bucketName/)' +
+                              help='specify a s3 path (bucketname/filename or bucketname/path/ or bucketName/)' +
                               'using this flag and skip s3 bucket/path selection')
     download_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
                               help='specify the path for the download destination of the s3 object' +
@@ -90,8 +90,9 @@ def s3(raw_args):
                             help='choose a version of the object and transfer, Note: does not support recursive flag')
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
-    delete_cmd.add_argument('-p', '--path', nargs=1, action='store', default=[],
-                            help='specify a s3 path (bucketName/path) using this flag and skip s3 bucket/path selection')
+    delete_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
+                            help='specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)' +
+                            'using this flag and skip s3 bucket/path selection')
     delete_cmd.add_argument('-r', '--recursive', action='store_true',
                             default=False, help='download a directory from s3 recursivly')
     delete_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
@@ -149,9 +150,9 @@ def s3(raw_args):
         bucket_s3(from_bucket, to_bucket, args.recursive,
                   args.sync, args.exclude, args.include, args.version)
     elif args.subparser_name == 'delete':
-        path = args.path[0] if args.path else None
+        bucket = args.bucket[0] if args.bucket else None
         mfa = ' '.join(args.mfa)
-        delete_s3(path, args.recursive, args.exclude,
+        delete_s3(bucket, args.recursive, args.exclude,
                   args.include, mfa, args.version, args.allversion)
     elif args.subparser_name == 'presign':
         path = args.path[0] if args.path else None
