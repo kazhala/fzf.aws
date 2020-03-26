@@ -13,7 +13,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
-from fzfaws.s3.helper.get_storageclass import get_storageclass
+from fzfaws.s3.helper.s3args import S3ExtraArgument
 
 
 def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], storage_class=False):
@@ -63,13 +63,10 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     else:
         local_path = local_paths
 
+    # construct extra argument
+    extra_args = S3ExtraArgument()
     if storage_class:
-        selected_class = get_storageclass()
-
-    # construct extra argument for upload
-    extra_args = dict()
-    if selected_class:
-        extra_args['StorageClass'] = selected_class
+        extra_args.set_storageclass()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
@@ -96,7 +93,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
-                                     callback=S3Progress(item['local_path']), extra_args=extra_args)
+                                     callback=S3Progress(item['local_path']), extra_args=extra_args.get_extra_args())
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
     else:
@@ -113,6 +110,6 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (filepath, s3.bucket_name, destination_key))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
-                                     callback=S3Progress(filepath), extra_args=extra_args)
+                                     callback=S3Progress(filepath), extra_args=extra_args.get_extra_args())
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
