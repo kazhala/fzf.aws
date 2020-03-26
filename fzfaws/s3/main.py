@@ -55,8 +55,6 @@ def s3(raw_args):
     upload_cmd.add_argument('-E', '--extra', action='store_true', default=False,
                             help='configure extra settings for this upload operation (e.g. ACL, storage class, encryption)' +
                             'otherwise, default settings of the bucket would be used')
-    upload_cmd.add_argument('-t', '--tag', action='store_true', default=False,
-                            help='add tags to the objects for the current upload operations')
 
     download_cmd = subparsers.add_parser(
         'download', description='download a file/directory from s3 to local')

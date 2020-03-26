@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 
 
-def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False, tags=False):
+def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
@@ -33,7 +33,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         sync: bool, use s3 cli sync operation
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include after exclude
-        storage_class: bool, use different class rather than the default class
+        extra_config: bool, configure extra configuration during upload (e.g. storage class,tagging,ACL)
     Returns:
         None
     Raises:
@@ -67,8 +67,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     extra_args = S3Args(s3)
     if extra_config:
         extra_args.set_extra_args()
-    # seperate tag handling because different operation have different tag handling
-    if tags:
+        # seperate tag handling because different operation have different tag handling
         extra_args.set_tags()
 
     if sync:
