@@ -64,7 +64,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         local_path = local_paths
 
     # construct extra argument
-    extra_args = S3ExtraArgument()
+    extra_args = S3ExtraArgument(s3)
     if extra_config:
         extra_args.set_storageclass()
         extra_args.set_ACL()

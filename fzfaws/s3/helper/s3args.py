@@ -9,10 +9,12 @@ class S3ExtraArgument:
     """helper class to construct extra argument
 
     Attributes:
+        s3: s3 instance from the S3 class
         _extra_args: dict, extra argument to use for s3 operation
     """
 
-    def __init__(self):
+    def __init__(self, s3):
+        self.s3 = s3
         self._extra_args = dict()
 
     def set_storageclass(self):
@@ -56,6 +58,10 @@ class S3ExtraArgument:
         result = fzf.execute_fzf(empty_allow=True, print_col=1)
         if result:
             self._extra_args['ServerSideEncryption'] = result
+        if result == 'aws:kms':
+            current_region = self.s3.client.get_bucket_location(
+                Bucket=self.s3.bucket_name)
+            print(current_region)
 
     def get_extra_args(self):
         return self._extra_args

@@ -85,7 +85,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         dest_bucket = s3.bucket_name
         dest_path = s3.bucket_path
 
-    extra_args = S3ExtraArgument()
+    extra_args = S3ExtraArgument(s3)
     if extra_config:
         extra_args.set_storageclass()
         extra_args.set_ACL()
