@@ -47,5 +47,15 @@ class S3ExtraArgument:
         if result:
             self._extra_args['ACL'] = result
 
+    def set_encryption(self):
+        """set the encryption setting"""
+        print('Select a ecryption setting, esc to use the default encryption setting for the bucket')
+        fzf = Pyfzf()
+        fzf.append_fzf('AES256\n')
+        fzf.append_fzf('aws:kms\n')
+        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        if result:
+            self._extra_args['ServerSideEncryption'] = result
+
     def get_extra_args(self):
         return self._extra_args

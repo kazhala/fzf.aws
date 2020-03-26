@@ -68,6 +68,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     if extra_config:
         extra_args.set_storageclass()
         extra_args.set_ACL()
+        extra_args.set_encryption()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
