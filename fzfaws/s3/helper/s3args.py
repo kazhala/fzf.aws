@@ -23,7 +23,6 @@ class S3Args:
         self.set_storageclass()
         self.set_ACL()
         self.set_encryption()
-        self.set_tags()
 
     def set_storageclass(self):
         """set valid storage class"""

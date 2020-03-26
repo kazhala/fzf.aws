@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 
 
-def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
+def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False, tags=False):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
@@ -67,6 +67,9 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     extra_args = S3Args(s3)
     if extra_config:
         extra_args.set_extra_args()
+    # seperate tag handling because different operation have different tag handling
+    if tags:
+        extra_args.set_tags()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
@@ -92,6 +95,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 print('upload: %s to s3://%s/%s' %
                       (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
+                # TODO: see bottom
                 transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local_path']), extra_args=extra_args.get_extra_args())
