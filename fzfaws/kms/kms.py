@@ -4,6 +4,7 @@ Handle selection of kms keys
 TODO: handle creation of kms keys with iam capabilities
 """
 import boto3
+from fzfaws.utils.pyfzf import Pyfzf
 
 
 class KMS:
@@ -17,10 +18,15 @@ class KMS:
     """
 
     def __init__(self, region=None, profile=None):
-        self.client = boto3.client('kms', region=region, profile=profile)
+        self.client = boto3.client('kms', region_name=region)
         self.keyid = None
 
-    def set_key(self):
-        paginator = self.client.get_paginator('list_keys')
+    def set_keyid(self):
+        """set the key for kms using fzf"""
+        fzf = Pyfzf()
+        paginator = self.client.get_paginator('list_aliases')
         for result in paginator.paginate():
-            print(result)
+            aliases = [alias for alias in result.get(
+                'Aliases') if alias.get('TargetKeyId')]
+            fzf.process_list(aliases, 'TargetKeyId', 'AliasName', 'AliasArn')
+        self.keyid = fzf.execute_fzf()

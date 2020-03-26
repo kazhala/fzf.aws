@@ -3,6 +3,7 @@
 using fzf to construct some of the extra argument for s3 operation
 """
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.kms.kms import KMS
 
 
 class S3ExtraArgument:
@@ -61,7 +62,10 @@ class S3ExtraArgument:
         if result == 'aws:kms':
             current_region = self.s3.client.get_bucket_location(
                 Bucket=self.s3.bucket_name)
-            print(current_region)
+            current_region = current_region.get('LocationConstraint')
+            kms = KMS()
+            kms.set_keyid()
+            self._extra_args['SSEKMSKeyId'] = kms.keyid
 
     def get_extra_args(self):
         return self._extra_args
