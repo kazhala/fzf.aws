@@ -13,6 +13,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.get_storageclass import get_storageclass
 
 
 def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], storage_class=False):
@@ -63,21 +64,12 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         local_path = local_paths
 
     if storage_class:
-        print('Select a storage class, esc to use the default storage class')
-        class_fzf = Pyfzf()
-        class_fzf.append_fzf('STANDARD\n')
-        class_fzf.append_fzf('REDUCED_REDUNDANCY\n')
-        class_fzf.append_fzf('STANDARD_IA\n')
-        class_fzf.append_fzf('ONEZONE_IA\n')
-        class_fzf.append_fzf('INTELLIGENT_TIERING\n')
-        class_fzf.append_fzf('GLACIER\n')
-        class_fzf.append_fzf('DEEP_ARCHIVE\n')
-        storage_class = class_fzf.execute_fzf(empty_allow=True, print_col=1)
+        selected_class = get_storageclass()
 
     # construct extra argument for upload
     extra_args = dict()
-    if storage_class:
-        extra_args['StorageClass'] = storage_class
+    if selected_class:
+        extra_args['StorageClass'] = selected_class
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,

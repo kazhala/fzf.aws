@@ -9,9 +9,10 @@ from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.get_storageclass import get_storageclass
 
 
-def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False):
+def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, storage_class=False):
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
@@ -25,6 +26,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include afer exclude
         version: bool, transfer file with specific version
+        storage_class: bool, choose a different storage_class to use rather than the default storage class
     Return:
         None
     Raises:
@@ -83,6 +85,13 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         dest_bucket = s3.bucket_name
         dest_path = s3.bucket_path
 
+    if storage_class:
+        selected_class = get_storageclass()
+
+    extra_args = dict()
+    if selected_class:
+        extra_args['StorageClass'] = selected_class
+
     if sync:
         sync_s3(exclude, include, 's3://%s/%s' % (target_bucket,
                                                   target_path), 's3://%s/%s' % (dest_bucket, dest_path))
@@ -98,7 +107,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': s3_key
                 }
                 s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
-                    s3_key, target_bucket, s3.client))
+                    s3_key, target_bucket, s3.client), ExtraArgs=extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
@@ -121,7 +130,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'VersionId': obj_version.get('VersionId')
                 }
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
-                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')))
+                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')), ExtraArgs=extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
@@ -144,7 +153,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': target_path
                 }
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
-                    target_path, target_bucket, s3.client))
+                    target_path, target_bucket, s3.client), ExtraArgs=extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
