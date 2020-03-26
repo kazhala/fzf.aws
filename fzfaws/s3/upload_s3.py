@@ -13,7 +13,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
-from fzfaws.s3.helper.s3args import S3ExtraArgument
+from fzfaws.s3.helper.s3args import S3Args
 
 
 def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
@@ -64,11 +64,9 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         local_path = local_paths
 
     # construct extra argument
-    extra_args = S3ExtraArgument(s3)
+    extra_args = S3Args(s3)
     if extra_config:
-        extra_args.set_storageclass()
-        extra_args.set_ACL()
-        extra_args.set_encryption()
+        extra_args.set_extra_args()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
@@ -94,6 +92,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 print('upload: %s to s3://%s/%s' %
                       (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
+                transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local_path']), extra_args=extra_args.get_extra_args())
                 # remove the progress bar
@@ -111,6 +110,13 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 print('upload: %s to s3://%s/%s' %
                       (filepath, s3.bucket_name, destination_key))
                 transfer = S3Transfer(s3.client)
+
+                # for some reason, S3Transfer raise error for the Key 'Tagging', not supported
+                # although it is supported in the documentation for upload_file
+                # below will work,
+                # TODO: change after pull request is merged
+                # https://github.com/boto/boto3/issues/1981
+                transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
                                      callback=S3Progress(filepath), extra_args=extra_args.get_extra_args())
                 # remove the progress bar
