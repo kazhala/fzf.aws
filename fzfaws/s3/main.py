@@ -52,6 +52,9 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     upload_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                             help='when fd is installed, add this flag to include hidden files in the search')
+    upload_cmd.add_argument('-c', '--storageclass', action='store_true', default=False,
+                            help='use a different storage class for this upload rather than the default storage class')
+
     download_cmd = subparsers.add_parser(
         'download', description='download a file/directory from s3 to local')
     download_cmd.add_argument('-R', '--root', action='store_true', default=False,
@@ -74,6 +77,7 @@ def s3(raw_args):
                               help='when fd is installed, add this flag to include hidden files in the search')
     download_cmd.add_argument('-v', '--version', action='store_true', default=False,
                               help='choose a version of the object and download, Note: does not support recursive flag')
+
     bucket_cmd = subparsers.add_parser(
         'bucket', description='move file/directory between s3 buckets')
     bucket_cmd.add_argument('-b', '--bucket', nargs='+', action='store', default=[],
@@ -88,6 +92,7 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     bucket_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='choose a version of the object and transfer, Note: does not support recursive flag')
+
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
     delete_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
@@ -107,6 +112,7 @@ def s3(raw_args):
                             help='choose an or multiple object versions to delete, Note: does not support recursive, to delete all versions recursivly, use -V flag')
     delete_cmd.add_argument('-V', '--allversion', action='store_true', default=False,
                             help='delete a versioned object completely including all versions and delete markes')
+
     presign_cmd = subparsers.add_parser(
         'presign', description='generate presign url on the selected object based on your current profile permission')
     presign_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
@@ -138,7 +144,7 @@ def s3(raw_args):
     if args.subparser_name == 'upload':
         bucket = args.bucket[0] if args.bucket else None
         upload_s3(bucket, args.path, args.recursive, args.hidden,
-                  args.root, args.sync, args.exclude, args.include)
+                  args.root, args.sync, args.exclude, args.include, args.storageclass)
     elif args.subparser_name == 'download':
         bucket = args.bucket[0] if args.bucket else None
         local_path = args.path[0] if args.path else None

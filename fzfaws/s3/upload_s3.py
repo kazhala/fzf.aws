@@ -15,7 +15,7 @@ from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
 
 
-def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[]):
+def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], storage_class=False):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
@@ -32,6 +32,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         sync: bool, use s3 cli sync operation
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include after exclude
+        storage_class: bool, use different class rather than the default class
     Returns:
         None
     Raises:
@@ -61,6 +62,23 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     else:
         local_path = local_paths
 
+    if storage_class:
+        print('Select a storage class, esc to use the default storage class')
+        class_fzf = Pyfzf()
+        class_fzf.append_fzf('STANDARD\n')
+        class_fzf.append_fzf('REDUCED_REDUNDANCY\n')
+        class_fzf.append_fzf('STANDARD_IA\n')
+        class_fzf.append_fzf('ONEZONE_IA\n')
+        class_fzf.append_fzf('INTELLIGENT_TIERING\n')
+        class_fzf.append_fzf('GLACIER\n')
+        class_fzf.append_fzf('DEEP_ARCHIVE\n')
+        storage_class = class_fzf.execute_fzf(empty_allow=True, print_col=1)
+
+    # construct extra argument for upload
+    extra_args = dict()
+    if storage_class:
+        extra_args['StorageClass'] = storage_class
+
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
                 to_path='s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
@@ -86,7 +104,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
-                                     callback=S3Progress(item['local_path']))
+                                     callback=S3Progress(item['local_path']), extra_args=extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
     else:
@@ -103,6 +121,6 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (filepath, s3.bucket_name, destination_key))
                 transfer = S3Transfer(s3.client)
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
-                                     callback=S3Progress(filepath))
+                                     callback=S3Progress(filepath), extra_args=extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
