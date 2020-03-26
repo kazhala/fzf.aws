@@ -12,7 +12,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3ExtraArgument
 
 
-def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, storage_class=False):
+def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, extra_config=False):
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
@@ -86,8 +86,9 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         dest_path = s3.bucket_path
 
     extra_args = S3ExtraArgument()
-    if storage_class:
+    if extra_config:
         extra_args.set_storageclass()
+        extra_args.set_ACL()
 
     if sync:
         sync_s3(exclude, include, 's3://%s/%s' % (target_bucket,

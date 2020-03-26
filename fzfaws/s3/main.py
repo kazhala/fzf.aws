@@ -52,8 +52,9 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     upload_cmd.add_argument('-H', '--hidden', action='store_true', default=False,
                             help='when fd is installed, add this flag to include hidden files in the search')
-    upload_cmd.add_argument('-c', '--storageclass', action='store_true', default=False,
-                            help='use a different storage class for this upload rather than the default storage class')
+    upload_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                            help='configure extra settings for this upload operation (e.g. ACL, storage class, encryption)' +
+                            'otherwise, default settings of the bucket would be used')
 
     download_cmd = subparsers.add_parser(
         'download', description='download a file/directory from s3 to local')
@@ -92,8 +93,9 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     bucket_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='choose a version of the object and transfer, Note: does not support recursive flag')
-    bucket_cmd.add_argument('-c', '--storageclass', action='store_true', default=False,
-                            help='use a different storage class for this upload rather than the default storage class')
+    bucket_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                            help='configure extra settings for this file trasfer operation (e.g. ACL, storage class, encryption)' +
+                            'otherwise, default settings of the bucket would be used')
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
@@ -146,7 +148,7 @@ def s3(raw_args):
     if args.subparser_name == 'upload':
         bucket = args.bucket[0] if args.bucket else None
         upload_s3(bucket, args.path, args.recursive, args.hidden,
-                  args.root, args.sync, args.exclude, args.include, args.storageclass)
+                  args.root, args.sync, args.exclude, args.include, args.extra)
     elif args.subparser_name == 'download':
         bucket = args.bucket[0] if args.bucket else None
         local_path = args.path[0] if args.path else None
@@ -156,7 +158,7 @@ def s3(raw_args):
         from_bucket = args.bucket[0] if args.bucket else None
         to_bucket = args.bucket[1] if len(args.bucket) > 1 else None
         bucket_s3(from_bucket, to_bucket, args.recursive,
-                  args.sync, args.exclude, args.include, args.version, args.storageclass)
+                  args.sync, args.exclude, args.include, args.version, args.extra)
     elif args.subparser_name == 'delete':
         bucket = args.bucket[0] if args.bucket else None
         mfa = ' '.join(args.mfa)

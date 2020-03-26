@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3ExtraArgument
 
 
-def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], storage_class=False):
+def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
@@ -65,8 +65,9 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
 
     # construct extra argument
     extra_args = S3ExtraArgument()
-    if storage_class:
+    if extra_config:
         extra_args.set_storageclass()
+        extra_args.set_ACL()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
