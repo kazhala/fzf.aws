@@ -136,8 +136,12 @@ def s3(raw_args):
                             help='update setting/configuration of a \'folder\' recursivly on s3')
     object_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='update setting/configuration of versions of objects')
-    object_cmd.add_argument('-V', '--allversion', action='store_true', defualt=False,
+    object_cmd.add_argument('-V', '--allversion', action='store_true', default=False,
                             help='update setting/configuration for all versions of the selected object')
+    object_cmd.add_argument('-e', '--exclude', nargs='+', action='store', default=[],
+                            help='specify a number of bash style globbing pattern to exclude a number of patterns')
+    object_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
+                            help='specify a number of bash style globbing pattern to include files after excluding')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -182,4 +186,5 @@ def s3(raw_args):
         presign_s3(bucket, args.version, int(args.expires[0]))
     elif args.subparser_name == 'object':
         bucket = args.bucket[0] if args.bucket else None
-        object_s3(bucket, args.recursive, args.version)
+        object_s3(bucket, args.recursive, args.version,
+                  args.exclude, args.include)

@@ -18,9 +18,6 @@ class S3Args:
     def __init__(self, s3):
         self.s3 = s3
         self._extra_args = {}
-        # self._extra_args = {
-        #     'GrantRead': 'emailAddress=jackyruann@gmail.com,id=ad2161263b64c24d13eb62ec5e4f32fa1e1625965b292d4885afb554a4ffb3a1'
-        # }
 
     def set_extra_args(self):
         self.set_storageclass()
