@@ -104,7 +104,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         for filepath in local_paths:
             # get the formated s3 destination
             destination_key = s3.get_s3_destination_key(filepath)
-            print('(dryrung) upload: %s to s3://%s/%s' %
+            print('(dryrun) upload: %s to s3://%s/%s' %
                   (filepath, s3.bucket_name, destination_key))
 
         if get_confirmation('Confirm?'):
