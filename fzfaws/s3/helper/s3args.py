@@ -154,16 +154,36 @@ class S3Args:
 
     @property
     def tags(self):
-        return self._extra_args.get('Tagging')
+        return self._extra_args.get('Tagging', '')
 
     @property
     def encryption(self):
-        return self._extra_args.get('ServerSideEncryption')
+        return self._extra_args.get('ServerSideEncryption', '')
 
     @property
     def kms_id(self):
-        return self._extra_args.get('SSEKMSKeyId')
+        return self._extra_args.get('SSEKMSKeyId', '')
 
     @property
     def acl(self):
-        return self._extra_args.get('ACL')
+        return self._extra_args.get('ACL', '')
+
+    @property
+    def metadata(self):
+        return self._extra_args.get('Metadata', {})
+
+    @property
+    def acl_full(self):
+        return self._extra_args.get('GrantFullControl', '')
+
+    @property
+    def acl_read(self):
+        return self._extra_args.get('GrantRead', '')
+
+    @property
+    def acl_acp_read(self):
+        return self._extra_args.get('GrantReadACP', '')
+
+    @property
+    def acl_acp_write(self):
+        return self._extra_args.get('GrantWriteACP', '')
