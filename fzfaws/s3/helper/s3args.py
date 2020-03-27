@@ -17,7 +17,10 @@ class S3Args:
 
     def __init__(self, s3):
         self.s3 = s3
-        self._extra_args = dict()
+        self._extra_args = {}
+        # self._extra_args = {
+        #     'GrantRead': 'emailAddress=jackyruann@gmail.com,id=ad2161263b64c24d13eb62ec5e4f32fa1e1625965b292d4885afb554a4ffb3a1'
+        # }
 
     def set_extra_args(self):
         self.set_storageclass()
@@ -41,9 +44,38 @@ class S3Args:
             self._extra_args['StorageClass'] = result
 
     def set_ACL(self):
-        """set the ACL for the current operation"""
+        """set the ACL option for the current operation"""
+        print(
+            'Select a type of ACL to grant, aws accept one of canned ACL or explicit ACL')
+        fzf = Pyfzf()
+        fzf.append_fzf('None (use bucket default ACL setting)\n')
+        fzf.append_fzf(
+            'Canned ACL (predefined set of grantees and permissions)\n')
+        fzf.append_fzf(
+            'Explicit ACL (explicit set grantees and permissions)\n')
+        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        if result == 'Canned':
+            self.set_canned_ACL()
+        elif result == 'Explicit':
+            self.set_explicit_ACL()
+        else:
+            return
 
-        print('Select a ACL option, esc to use the default ACL setting for the bucket')
+    def set_explicit_ACL(self):
+        """set explicit ACL for grantees and permissions
+
+        Get user id/email first than display fzf allow multi_select
+        to select permissions
+        """
+        print('Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
+        print('Format: id=XXX,id=XXX,email=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
+        accounts = input('Accounts: ')
+        print(accounts)
+
+    def set_canned_ACL(self):
+        """set the canned ACL for the current operation"""
+        print(
+            'Select a Canned ACL option, esc to use the default ACL setting for the bucket')
         fzf = Pyfzf()
         fzf.append_fzf('private\n')
         fzf.append_fzf('public-read\n')
