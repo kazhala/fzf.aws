@@ -12,6 +12,7 @@ from fzfaws.s3.download_s3 import download_s3
 from fzfaws.s3.bucket_s3 import bucket_s3
 from fzfaws.s3.delete_s3 import delete_s3
 from fzfaws.s3.presign_s3 import presign_s3
+from fzfaws.s3.object_s3 import object_s3
 
 
 def s3(raw_args):
@@ -30,7 +31,7 @@ def s3(raw_args):
     """
 
     parser = argparse.ArgumentParser(description='perform CRUD operations with aws s3 bucket',
-                                     usage='faws s3 [-h] {upload,download,delete,bucket,presign,ls} ...')
+                                     usage='faws s3 [-h] {upload,download,delete,bucket,presign,object,ls} ...')
     subparsers = parser.add_subparsers(dest='subparser_name')
     upload_cmd = subparsers.add_parser(
         'upload', description='upload a local file/directory to s3 bucket')
@@ -125,6 +126,18 @@ def s3(raw_args):
                              help='generate presign url on a specific version of the object')
     presign_cmd.add_argument('-e', '--expires', nargs=1, action='store', default=[3600],
                              help='specify a expiration period in seconds, default is 3600 seconds')
+
+    object_cmd = subparsers.add_parser(
+        'object', description='configure settings and properties of objects in S3')
+    object_cmd.add_argument('-b', '--bucket', nargs=1, action='store', default=[],
+                            help='specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)' +
+                            'using this flag and skip s3 bucket/path selection')
+    object_cmd.add_argument('-r', '--recursive', action='store_true', default=False,
+                            help='update setting/configuration of a \'folder\' recursivly on s3')
+    object_cmd.add_argument('-v', '--version', action='store_true', default=False,
+                            help='update setting/configuration of versions of objects')
+    object_cmd.add_argument('-V', '--allversion', action='store_true', defualt=False,
+                            help='update setting/configuration for all versions of the selected object')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -167,3 +180,6 @@ def s3(raw_args):
     elif args.subparser_name == 'presign':
         bucket = args.bucket[0] if args.bucket else None
         presign_s3(bucket, args.version, int(args.expires[0]))
+    elif args.subparser_name == 'object':
+        bucket = args.bucket[0] if args.bucket else None
+        object_s3(bucket, args.recursive, args.version)
