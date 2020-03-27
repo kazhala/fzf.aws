@@ -172,7 +172,7 @@ def s3(raw_args):
         from_bucket = args.bucket[0] if args.bucket else None
         to_bucket = args.bucket[1] if len(args.bucket) > 1 else None
         bucket_s3(from_bucket, to_bucket, args.recursive,
-                  args.sync, args.exclude, args.include, args.version, args.extra)
+                  args.sync, args.exclude, args.include, args.version)
     elif args.subparser_name == 'delete':
         bucket = args.bucket[0] if args.bucket else None
         mfa = ' '.join(args.mfa)
