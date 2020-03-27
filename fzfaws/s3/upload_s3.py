@@ -67,8 +67,6 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     extra_args = S3Args(s3)
     if extra_config:
         extra_args.set_extra_args()
-        # seperate tag handling because different operation have different tag handling
-        extra_args.set_tags()
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,

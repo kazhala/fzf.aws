@@ -23,6 +23,23 @@ class S3Args:
         self.set_storageclass()
         self.set_ACL()
         self.set_encryption()
+        self.set_metadata()
+        self.set_tags()
+
+    def set_metadata(self):
+        """set the meta data for the object"""
+
+        if get_confirmation('Set meta data?'):
+            print(
+                'Enter meta data for the upload objects, enter without value will skip tagging')
+            print(
+                'Metadata format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
+            metadata = input('Metadata: ')
+            if metadata:
+                self._extra_args['Metadata'] = {}
+                for item in metadata.split('&'):
+                    key, value = item.split('=')
+                    self._extra_args['Metadata'][key] = value
 
     def set_storageclass(self):
         """set valid storage class"""
@@ -130,3 +147,23 @@ class S3Args:
     @property
     def extra_args(self):
         return self._extra_args
+
+    @property
+    def storage_class(self):
+        return self._extra_args.get('StorageClass')
+
+    @property
+    def tags(self):
+        return self._extra_args.get('Tagging')
+
+    @property
+    def encryption(self):
+        return self._extra_args.get('ServerSideEncryption')
+
+    @property
+    def kms_id(self):
+        return self._extra_args.get('SSEKMSKeyId')
+
+    @property
+    def acl(self):
+        return self._extra_args.get('ACL')
