@@ -104,7 +104,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': s3_key
                 }
                 s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
-                    s3_key, target_bucket, s3.client), ExtraArgs=extra_args.get_extra_args())
+                    s3_key, target_bucket, s3.client), ExtraArgs=extra_args.extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
@@ -127,7 +127,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'VersionId': obj_version.get('VersionId')
                 }
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
-                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')), ExtraArgs=extra_args.get_extra_args())
+                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')), ExtraArgs=extra_args.extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
@@ -150,7 +150,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': target_path
                 }
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
-                    target_path, target_bucket, s3.client), ExtraArgs=extra_args.get_extra_args())
+                    target_path, target_bucket, s3.client), ExtraArgs=extra_args.extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 

@@ -55,13 +55,13 @@ class S3Args:
             'Explicit ACL (explicit set grantees and permissions)\n')
         result = fzf.execute_fzf(empty_allow=True, print_col=1)
         if result == 'Canned':
-            self.set_canned_ACL()
+            self._set_canned_ACL()
         elif result == 'Explicit':
-            self.set_explicit_ACL()
+            self._set_explicit_ACL()
         else:
             return
 
-    def set_explicit_ACL(self):
+    def _set_explicit_ACL(self):
         """set explicit ACL for grantees and permissions
 
         Get user id/email first than display fzf allow multi_select
@@ -72,7 +72,7 @@ class S3Args:
         accounts = input('Accounts: ')
         print(accounts)
 
-    def set_canned_ACL(self):
+    def _set_canned_ACL(self):
         """set the canned ACL for the current operation"""
         print(
             'Select a Canned ACL option, esc to use the default ACL setting for the bucket')
@@ -117,5 +117,6 @@ class S3Args:
             if tags:
                 self._extra_args['Tagging'] = tags
 
-    def get_extra_args(self):
+    @property
+    def extra_args(self):
         return self._extra_args

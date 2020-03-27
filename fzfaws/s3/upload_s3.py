@@ -97,7 +97,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 # TODO: see bottom
                 transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
-                                     callback=S3Progress(item['local_path']), extra_args=extra_args.get_extra_args())
+                                     callback=S3Progress(item['local_path']), extra_args=extra_args.extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
     else:
@@ -121,6 +121,6 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 # https://github.com/boto/boto3/issues/1981
                 transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
-                                     callback=S3Progress(filepath), extra_args=extra_args.get_extra_args())
+                                     callback=S3Progress(filepath), extra_args=extra_args.extra_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
