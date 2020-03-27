@@ -66,7 +66,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
     # construct extra argument
     extra_args = S3Args(s3)
     if extra_config:
-        extra_args.set_extra_args()
+        extra_args.set_extra_args(upload=True)
 
     if sync:
         sync_s3(exclude=exclude, include=include, from_path=local_path,
@@ -94,6 +94,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 transfer = S3Transfer(s3.client)
                 # TODO: see bottom
                 transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
+                transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local_path']), extra_args=extra_args.extra_args)
                 # remove the progress bar
@@ -118,6 +119,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                 # TODO: change after pull request is merged
                 # https://github.com/boto/boto3/issues/1981
                 transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
+                transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
                                      callback=S3Progress(filepath), extra_args=extra_args.extra_args)
                 # remove the progress bar

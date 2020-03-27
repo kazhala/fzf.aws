@@ -19,7 +19,7 @@ class S3Args:
         self.s3 = s3
         self._extra_args = {}
 
-    def set_extra_args(self, storage=False, acl=False, encryption=False, metadata=False, tags=False, version=False, recursive=False):
+    def set_extra_args(self, storage=False, acl=False, encryption=False, metadata=False, tags=False, version=False, recursive=False, upload=False):
         if version:
             pass
         elif recursive:
@@ -33,7 +33,8 @@ class S3Args:
                 fzf.append_fzf('Encryption\n')
                 fzf.append_fzf('Metadata\n')
                 fzf.append_fzf('Tagging\n')
-                attributes = fzf.execute_fzf(print_col=1, multi_select=True)
+                attributes = fzf.execute_fzf(
+                    print_col=1, multi_select=True, empty_allow=upload)
                 for attribute in attributes:
                     if attribute == 'StorageClass':
                         storage = True
@@ -59,17 +60,16 @@ class S3Args:
     def set_metadata(self):
         """set the meta data for the object"""
 
-        if get_confirmation('Set meta data?'):
-            print(
-                'Enter meta data for the upload objects, enter without value will skip tagging')
-            print(
-                'Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)')
-            metadata = input('Metadata: ')
-            if metadata:
-                self._extra_args['Metadata'] = {}
-                for item in metadata.split('&'):
-                    key, value = item.split('=')
-                    self._extra_args['Metadata'][key] = value
+        print(
+            'Enter meta data for the upload objects, enter without value will skip tagging')
+        print(
+            'Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)')
+        metadata = input('Metadata: ')
+        if metadata:
+            self._extra_args['Metadata'] = {}
+            for item in metadata.split('&'):
+                key, value = item.split('=')
+                self._extra_args['Metadata'][key] = value
 
     def set_storageclass(self):
         """set valid storage class"""
@@ -165,14 +165,13 @@ class S3Args:
 
     def set_tags(self):
         """set tags for the object"""
-        if get_confirmation('Tagging for current upload?'):
-            print(
-                'Enter tags for the upload objects, enter without value will skip tagging')
-            print(
-                'Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
-            tags = input('Tags: ')
-            if tags:
-                self._extra_args['Tagging'] = tags
+        print(
+            'Enter tags for the upload objects, enter without value will skip tagging')
+        print(
+            'Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
+        tags = input('Tags: ')
+        if tags:
+            self._extra_args['Tagging'] = tags
 
     @property
     def extra_args(self):
