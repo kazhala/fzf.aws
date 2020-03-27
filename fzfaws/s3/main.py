@@ -94,9 +94,6 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     bucket_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='choose a version of the object and transfer, Note: does not support recursive flag')
-    bucket_cmd.add_argument('-E', '--extra', action='store_true', default=False,
-                            help='configure extra settings for this file trasfer operation (e.g. ACL, storage class, encryption)' +
-                            'otherwise, default settings of the bucket would be used')
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
