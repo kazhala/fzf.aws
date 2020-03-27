@@ -19,12 +19,42 @@ class S3Args:
         self.s3 = s3
         self._extra_args = {}
 
-    def set_extra_args(self):
-        self.set_storageclass()
-        self.set_ACL()
-        self.set_encryption()
-        self.set_metadata()
-        self.set_tags()
+    def set_extra_args(self, storage=False, acl=False, encryption=False, metadata=False, tags=False, version=False, recursive=False):
+        if version:
+            pass
+        elif recursive:
+            pass
+        else:
+            if not storage and not acl and not encryption and not metadata and not tags:
+                print('Select attributes to configure')
+                fzf = Pyfzf()
+                fzf.append_fzf('StorageClass\n')
+                fzf.append_fzf('ACL\n')
+                fzf.append_fzf('Encryption\n')
+                fzf.append_fzf('Metadata\n')
+                fzf.append_fzf('Tagging\n')
+                attributes = fzf.execute_fzf(print_col=1, multi_select=True)
+                for attribute in attributes:
+                    if attribute == 'StorageClass':
+                        storage = True
+                    elif attribute == 'ACL':
+                        acl = True
+                    elif attribute == 'Metadata':
+                        metadata = True
+                    elif attribute == 'Encryption':
+                        encryption = True
+                    elif attribute == 'Tagging':
+                        tags = True
+        if storage:
+            self.set_storageclass()
+        if acl:
+            self.set_ACL()
+        if encryption:
+            self.set_encryption()
+        if metadata:
+            self.set_metadata()
+        if tags:
+            self.set_tags()
 
     def set_metadata(self):
         """set the meta data for the object"""

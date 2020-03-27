@@ -47,14 +47,6 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
     elif not s3.path_list:
         s3.set_s3_object(version, multi_select=True)
 
-    # fzf for the menu
-    fzf = Pyfzf()
-    fzf.append_fzf('StorageClass\n')
-    fzf.append_fzf('ACL\n')
-    fzf.append_fzf('Encryption\n')
-    fzf.append_fzf('Metadata\n')
-    fzf.append_fzf('Tagging\n')
-
     # handle rename
     if name:
         print('Enter the new name below (format: newname or path/newname for a new path)')
@@ -101,19 +93,8 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         pass
     else:
         s3_args = S3Args(s3)
-        print('Select attributes to update on the selected objects')
-        attributes = fzf.execute_fzf(print_col=1, multi_select=True)
-        for attribute in attributes:
-            if attribute == 'StorageClass':
-                s3_args.set_storageclass()
-            elif attribute == 'ACL':
-                s3_args.set_ACL()
-            elif attribute == 'Metadata':
-                s3_args.set_metadata()
-            elif attribute == 'Encryption':
-                s3_args.set_encryption()
-            elif attribute == 'Tagging':
-                s3_args.set_tags()
+        s3_args.set_extra_args()
+
         for s3_key in s3.path_list:
             print('(dryrun) update s3://%s/%s' % (s3.bucket_name, s3_key))
         if get_confirmation('Confirm?'):
@@ -136,7 +117,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                 copy_object_args['StorageClass'] = s3_args.storage_class
             if s3_args.encryption:
                 copy_object_args['ServerSideEncryption'] = s3_args.encryption
-            if s3_args.encryption == 'aws:kms':
+            if s3_args.encryption and s3_args.encryption == 'aws:kms':
                 copy_object_args['SSEKMSKeyId'] = s3_args.kms_id
             if s3_args.tags:
                 copy_object_args['TaggingDirective'] = 'REPLACE'
