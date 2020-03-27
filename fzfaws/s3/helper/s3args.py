@@ -33,7 +33,7 @@ class S3Args:
             print(
                 'Enter meta data for the upload objects, enter without value will skip tagging')
             print(
-                'Metadata format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
+                'Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)')
             metadata = input('Metadata: ')
             if metadata:
                 self._extra_args['Metadata'] = {}

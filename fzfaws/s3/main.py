@@ -139,6 +139,8 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to exclude a number of patterns')
     object_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
                             help='specify a number of bash style globbing pattern to include files after excluding')
+    object_cmd.add_argument('-n', '--name', action='store_true', default=False,
+                            help='update the name of the selected object')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -183,5 +185,5 @@ def s3(raw_args):
         presign_s3(bucket, args.version, int(args.expires[0]))
     elif args.subparser_name == 'object':
         bucket = args.bucket[0] if args.bucket else None
-        object_s3(bucket, args.recursive, args.version,
-                  args.exclude, args.include)
+        object_s3(bucket, args.recursive, args.version, args.allversion,
+                  args.exclude, args.include, args.name)
