@@ -68,9 +68,22 @@ class S3Args:
         to select permissions
         """
         print('Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
-        print('Format: id=XXX,id=XXX,email=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
+        print('Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
         accounts = input('Accounts: ')
-        print(accounts)
+        # get what permission to set
+        fzf = Pyfzf()
+        fzf.append_fzf('GrantFullControl\n')
+        fzf.append_fzf('GrantRead\n')
+        fzf.append_fzf('GrantReadACP\n')
+        fzf.append_fzf('GrantWriteACP\n')
+        results = fzf.execute_fzf(
+            empty_allow=True, print_col=1, multi_select=True)
+        if not results:
+            print(
+                'No permission is set, default ACL settings of the bucket would be used')
+        else:
+            for result in results:
+                self._extra_args[result] = str(accounts)
 
     def _set_canned_ACL(self):
         """set the canned ACL for the current operation"""
