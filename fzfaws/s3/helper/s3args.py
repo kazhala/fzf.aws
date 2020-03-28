@@ -168,7 +168,7 @@ class S3Args:
         fzf.append_fzf('AES256\n')
         fzf.append_fzf('aws:kms\n')
         result = fzf.execute_fzf(empty_allow=True, print_col=1)
-        if result and result != 'None':
+        if result:
             self._extra_args['ServerSideEncryption'] = result
         if result == 'aws:kms':
             current_region = self.s3.client.get_bucket_location(

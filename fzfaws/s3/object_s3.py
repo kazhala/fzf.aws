@@ -99,87 +99,101 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
             print('(dryrun) update s3://%s/%s' % (s3.bucket_name, s3_key))
         if get_confirmation('Confirm?'):
             for s3_key in s3.path_list:
-                s3_obj = s3.resource.Object(s3.bucket_name, s3_key)
-                s3_acl = s3.resource.ObjectAcl(s3.bucket_name, s3_key)
-                permission_read = []
-                permission_acp_read = []
-                permission_acp_write = []
-                permission_full = []
-                for grantee in s3_acl.grants:
-                    if grantee.get('Permission') == 'READ':
-                        permission_read.append(
-                            'id=' + grantee['Grantee']['ID'])
-                    elif grantee.get('Permission') == 'FULL_CONTROL':
-                        permission_full.append(
-                            'id=' + grantee['Grantee']['ID'])
-                    elif grantee.get('Permission') == 'WRITE_ACP':
-                        permission_acp_write.append(
-                            'id=' + grantee['Grantee']['ID'])
-                    elif grantee.get('Permission') == 'READ_ACP':
-                        permission_acp_read.append(
-                            'id=' + grantee['Grantee']['ID'])
-
                 print('update s3://%s/%s' % (s3.bucket_name, s3_key))
-                copy_object_args = {
-                    "Bucket": s3.bucket_name,
-                    "Key": s3_key,
-                    "CopySource": {
-                        'Bucket': s3.bucket_name,
-                        'Key': s3_key
-                    },
-                }
-                if s3_args.storage_class:
-                    copy_object_args['StorageClass'] = s3_args.storage_class
-                elif s3_obj.storage_class:
-                    copy_object_args['StorageClass'] = s3_obj.storage_class
-
-                if s3_args.encryption:
-                    copy_object_args['ServerSideEncryption'] = s3_args.encryption
-                elif s3_obj.server_side_encryption:
-                    copy_object_args['ServerSideEncryption'] = s3_obj.server_side_encryption
-
-                if s3_args.encryption and s3_args.encryption == 'aws:kms':
-                    copy_object_args['SSEKMSKeyId'] = s3_args.kms_id
-                elif s3_obj.server_side_encryption and s3_obj.server_side_encryption == 'aws:kms':
-                    copy_object_args['SSEKMSKeyId'] = s3_obj.ssekms_key_id
-
-                if s3_args.tags:
-                    copy_object_args['TaggingDirective'] = 'REPLACE'
-                    copy_object_args['Tagging'] = s3_args.tags
-                else:
-                    copy_object_args['TaggingDirective'] = 'COPY'
-
-                if s3_args.metadata:
-                    copy_object_args['Metadata'] = s3_args.metadata
-                    copy_object_args['MetadataDirective'] = 'REPLACE'
-                else:
-                    copy_object_args['MetadataDirective'] = 'COPY'
-
-                if s3_args.acl:
-                    copy_object_args['ACL'] = s3_args.acl
-                else:
-                    if s3_args.acl_full:
-                        copy_object_args['GrantFullControl'] = s3_args.acl_full
-                    elif permission_full:
-                        copy_object_args['GrantFullControl'] = ','.join(
-                            permission_full)
-
-                    if s3_args.acl_read:
-                        copy_object_args['GrantRead'] = s3_args.acl_read
-                    elif permission_read:
-                        copy_object_args['GrantRead'] = ','.join(
-                            permission_read)
-
-                    if s3_args.acl_acp_read:
-                        copy_object_args['GrantReadACP'] = s3_args.acl_acp_read
-                    elif permission_acp_read:
-                        copy_object_args['GrantReadACP'] = ','.join(
-                            permission_acp_read)
-
-                    if s3_args.acl_acp_write:
-                        copy_object_args['GrantWriteACP'] = s3_args.acl_acp_write
-                    elif permission_acp_write:
-                        copy_object_args['GrantWriteACP'] = ','.join(
-                            permission_acp_write)
-
+                copy_object_args = get_copy_args(s3, s3_key, s3_args)
                 s3.client.copy_object(**copy_object_args)
+
+
+def get_copy_args(s3, s3_key, s3_args):
+    """get copy argument
+
+    Args:
+        s3: object, s3 instance of S3 class
+        s3_key: string, the current object key on s3
+        s3_args: object, args instance of S3Args
+    Returns:
+        copy_object_args: dict, the key ward argument for s3.client.copy_object
+    """
+    s3_obj = s3.resource.Object(s3.bucket_name, s3_key)
+    s3_acl = s3.resource.ObjectAcl(s3.bucket_name, s3_key)
+    permission_read = []
+    permission_acp_read = []
+    permission_acp_write = []
+    permission_full = []
+    for grantee in s3_acl.grants:
+        if grantee.get('Permission') == 'READ':
+            permission_read.append(
+                'id=' + grantee['Grantee']['ID'])
+        elif grantee.get('Permission') == 'FULL_CONTROL':
+            permission_full.append(
+                'id=' + grantee['Grantee']['ID'])
+        elif grantee.get('Permission') == 'WRITE_ACP':
+            permission_acp_write.append(
+                'id=' + grantee['Grantee']['ID'])
+        elif grantee.get('Permission') == 'READ_ACP':
+            permission_acp_read.append(
+                'id=' + grantee['Grantee']['ID'])
+
+    copy_object_args = {
+        "Bucket": s3.bucket_name,
+        "Key": s3_key,
+        "CopySource": {
+            'Bucket': s3.bucket_name,
+            'Key': s3_key
+        },
+    }
+    if s3_args.storage_class:
+        copy_object_args['StorageClass'] = s3_args.storage_class
+    elif s3_obj.storage_class:
+        copy_object_args['StorageClass'] = s3_obj.storage_class
+
+    if s3_args.encryption:
+        if s3_args.encryption != 'None':
+            copy_object_args['ServerSideEncryption'] = s3_args.encryption
+    elif s3_obj.server_side_encryption:
+        copy_object_args['ServerSideEncryption'] = s3_obj.server_side_encryption
+
+    if s3_args.encryption and s3_args.encryption == 'aws:kms':
+        copy_object_args['SSEKMSKeyId'] = s3_args.kms_id
+    elif s3_obj.server_side_encryption and s3_obj.server_side_encryption == 'aws:kms':
+        copy_object_args['SSEKMSKeyId'] = s3_obj.ssekms_key_id
+
+    if s3_args.tags:
+        copy_object_args['TaggingDirective'] = 'REPLACE'
+        copy_object_args['Tagging'] = s3_args.tags
+    else:
+        copy_object_args['TaggingDirective'] = 'COPY'
+
+    if s3_args.metadata:
+        copy_object_args['Metadata'] = s3_args.metadata
+        copy_object_args['MetadataDirective'] = 'REPLACE'
+    else:
+        copy_object_args['MetadataDirective'] = 'COPY'
+
+    if s3_args.acl:
+        copy_object_args['ACL'] = s3_args.acl
+    else:
+        if s3_args.acl_full:
+            copy_object_args['GrantFullControl'] = s3_args.acl_full
+        elif permission_full:
+            copy_object_args['GrantFullControl'] = ','.join(
+                permission_full)
+
+        if s3_args.acl_read:
+            copy_object_args['GrantRead'] = s3_args.acl_read
+        elif permission_read:
+            copy_object_args['GrantRead'] = ','.join(
+                permission_read)
+
+        if s3_args.acl_acp_read:
+            copy_object_args['GrantReadACP'] = s3_args.acl_acp_read
+        elif permission_acp_read:
+            copy_object_args['GrantReadACP'] = ','.join(
+                permission_acp_read)
+
+        if s3_args.acl_acp_write:
+            copy_object_args['GrantWriteACP'] = s3_args.acl_acp_write
+        elif permission_acp_write:
+            copy_object_args['GrantWriteACP'] = ','.join(
+                permission_acp_write)
+    return copy_object_args
