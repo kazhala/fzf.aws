@@ -19,10 +19,25 @@ class S3Args:
         self.s3 = s3
         self._extra_args = {}
 
-    def set_extra_args(self, storage=False, acl=False, metadata=False, encryption=False, tags=False, version=False, recursive=False, upload=False):
+    def set_extra_args(self, storage=False, acl=False, metadata=False, encryption=False, tags=False, version=False, upload=False):
+        """determine what attributes to set
+
+        Use fzf menu to let user select attributes to configure
+
+        Args:
+            storage: bool, set storage
+            acl: bool, set acl
+            metadata: bool, set metadata
+            encryption: bool, set server_side_encryption
+            tags: bool, set tags
+            version: bool, reduce the menu size, as some attributes cannot be configured
+            upload: bool, determine if the menu could have empty selection
+        Returns:
+            None
+        Exceptions:
+            NoSelectionMade: When uplaod is false and no selection is made
+        """
         if version:
-            pass
-        elif recursive:
             pass
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
