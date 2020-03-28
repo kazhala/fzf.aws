@@ -122,17 +122,33 @@ def get_copy_args(s3, s3_key, s3_args):
     permission_full = []
     for grantee in s3_acl.grants:
         if grantee.get('Permission') == 'READ':
-            permission_read.append(
-                'id=' + grantee['Grantee']['ID'])
-        elif grantee.get('Permission') == 'FULL_CONTROL':
-            permission_full.append(
-                'id=' + grantee['Grantee']['ID'])
+            if grantee['Grantee'].get('ID'):
+                permission_read.append(
+                    'id=' + grantee['Grantee']['ID'])
+            elif grantee['Grantee'].get('URI'):
+                permission_read.append(
+                    'uri=' + grantee['Grantee']['URI'])
+        elif grantee['Grantee'].get('Permission') == 'FULL_CONTROL':
+            if grantee['Grantee'].get('ID'):
+                permission_full.append(
+                    'id=' + grantee['Grantee']['ID'])
+            elif grantee['Grantee'].get('URI'):
+                permission_full.append(
+                    'uri=' + grantee['Grantee']['URI'])
         elif grantee.get('Permission') == 'WRITE_ACP':
-            permission_acp_write.append(
-                'id=' + grantee['Grantee']['ID'])
+            if grantee['Grantee'].get('ID'):
+                permission_acp_write.append(
+                    'id=' + grantee['Grantee']['ID'])
+            elif grantee['Grantee'].get('URI'):
+                permission_acp_write.append(
+                    'uri=' + grantee['Grantee']['URI'])
         elif grantee.get('Permission') == 'READ_ACP':
-            permission_acp_read.append(
-                'id=' + grantee['Grantee']['ID'])
+            if grantee['Grantee'].get('ID'):
+                permission_acp_read.append(
+                    'id=' + grantee['Grantee']['ID'])
+            elif grantee['Grantee'].get('URI'):
+                permission_acp_read.append(
+                    'uri=' + grantee['Grantee']['URI'])
 
     copy_object_args = {
         "Bucket": s3.bucket_name,
