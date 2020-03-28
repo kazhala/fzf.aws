@@ -3,6 +3,7 @@
 update settings on s3 object
 """
 import sys
+import json
 from fzfaws.s3.s3 import S3
 from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.utils.pyfzf import Pyfzf
@@ -57,18 +58,23 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
             if get_confirmation('Confirm?'):
                 print('rename: s3://%s/%s to s3://%s/%s' %
                       (s3.bucket_name, s3.bucket_path, s3.bucket_name, new_name))
+                # initialise empty s3_args so that get_copy_args will use all the original value
+                s3_args = S3Args(s3)
+                copy_object_args = get_copy_args(
+                    s3, s3.bucket_path, s3_args, extra_args=True)
                 copy_source = {
                     'Bucket': s3.bucket_name,
                     'Key': s3.bucket_path,
                 }
                 s3.client.copy(copy_source, s3.bucket_name, new_name, Callback=S3Progress(
-                    s3.bucket_path, s3.bucket_name, s3.client))
+                    s3.bucket_path, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
                 s3.client.delete_object(
                     Bucket=s3.bucket_name,
                     Key=s3.bucket_path,
                 )
+
         else:
             # get version
             obj_version = s3.get_object_version(key=s3.bucket_path)[0]
@@ -77,6 +83,10 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
             if get_confirmation('Confirm?'):
                 print('rename s3://%s/%s to s3://%s/%s with version %s' %
                       (s3.bucket_name, obj_version.get('Key'), s3.bucket_name, new_name, obj_version.get('VersionId')))
+                # initialise empty s3_args so that get_copy_args will use all the original value
+                s3_args = S3Args(s3)
+                copy_object_args = get_copy_args(
+                    s3, s3.bucket_path, s3_args, extra_args=True, version=obj_version.get('VersionId'))
                 copy_source = {
                     'Bucket': s3.bucket_name,
                     'Key': obj_version.get('Key'),
@@ -104,18 +114,35 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                 s3.client.copy_object(**copy_object_args)
 
 
-def get_copy_args(s3, s3_key, s3_args):
+def get_copy_args(s3, s3_key, s3_args, extra_args=False, version=None):
     """get copy argument
 
     Args:
         s3: object, s3 instance of S3 class
         s3_key: string, the current object key on s3
         s3_args: object, args instance of S3Args
+        extra_args: bool, is it for extra_args or full args
+        version: bool, if current copy is for versioned copy
     Returns:
         copy_object_args: dict, the key ward argument for s3.client.copy_object
     """
-    s3_obj = s3.resource.Object(s3.bucket_name, s3_key)
-    s3_acl = s3.resource.ObjectAcl(s3.bucket_name, s3_key)
+    if not version:
+        s3_obj = s3.resource.Object(s3.bucket_name, s3_key)
+        s3_acl = s3.resource.ObjectAcl(s3.bucket_name, s3_key)
+    else:
+        s3_obj = s3.client.get_object(
+            Bucket=s3.bucket_name,
+            Key=s3_key,
+            VersionId=version
+        )
+        s3_obj.pop('ResponseMetadata')
+        s3_acl = s3.client.get_object_acl(
+            Bucket=s3.bucket_name,
+            Key=s3_key,
+            VersionId=version,
+        )
+        exit()
+
     permission_read = []
     permission_acp_read = []
     permission_acp_write = []
@@ -150,14 +177,18 @@ def get_copy_args(s3, s3_key, s3_args):
                 permission_acp_read.append(
                     'uri=' + grantee['Grantee']['URI'])
 
-    copy_object_args = {
-        "Bucket": s3.bucket_name,
-        "Key": s3_key,
-        "CopySource": {
-            'Bucket': s3.bucket_name,
-            'Key': s3_key
-        },
-    }
+    if not extra_args:
+        copy_object_args = {
+            "Bucket": s3.bucket_name,
+            "Key": s3_key,
+            "CopySource": {
+                'Bucket': s3.bucket_name,
+                'Key': s3_key
+            },
+        }
+    else:
+        copy_object_args = {}
+
     if s3_args.storage_class:
         copy_object_args['StorageClass'] = s3_args.storage_class
     elif s3_obj.storage_class:
@@ -177,14 +208,10 @@ def get_copy_args(s3, s3_key, s3_args):
     if s3_args.tags:
         copy_object_args['TaggingDirective'] = 'REPLACE'
         copy_object_args['Tagging'] = s3_args.tags
-    else:
-        copy_object_args['TaggingDirective'] = 'COPY'
 
     if s3_args.metadata:
         copy_object_args['Metadata'] = s3_args.metadata
         copy_object_args['MetadataDirective'] = 'REPLACE'
-    else:
-        copy_object_args['MetadataDirective'] = 'COPY'
 
     if s3_args.acl:
         copy_object_args['ACL'] = s3_args.acl
