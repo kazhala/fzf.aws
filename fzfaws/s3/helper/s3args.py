@@ -19,13 +19,13 @@ class S3Args:
         self.s3 = s3
         self._extra_args = {}
 
-    def set_extra_args(self, storage=False, acl=False, encryption=False, metadata=False, tags=False, version=False, recursive=False, upload=False):
+    def set_extra_args(self, storage=False, acl=False, metadata=False, encryption=False, tags=False, version=False, recursive=False, upload=False):
         if version:
             pass
         elif recursive:
             pass
         else:
-            if not storage and not acl and not encryption and not metadata and not tags:
+            if not storage and not acl and not metadata and not encryption and not tags:
                 print('Select attributes to configure')
                 fzf = Pyfzf()
                 fzf.append_fzf('StorageClass\n')
