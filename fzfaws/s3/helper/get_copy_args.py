@@ -12,6 +12,15 @@ def get_copy_args(s3, s3_key, s3_args, extra_args=False, version=None):
     Format the argument into a dict that could be passed into
     s3 function through **keywards
 
+    There are three different cases
+    1. normal object rename and construct full argument for s3.client.copy()
+    2. normal object rename and construct ExtraArgs for s3Transfer.copy()
+        which provides progress bar
+    3. versioned object rename and construct argument
+        versioned object require to use s3.client.get_object() rather than s3.resource.Object()
+        so the return type are different, one is object and one is dict, hence, multiple checkes
+        in the handler
+
     Args:
         s3: object, s3 instance of S3 class
         s3_key: string, the current object key on s3
