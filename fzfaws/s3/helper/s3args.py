@@ -202,7 +202,23 @@ class S3Args:
             self._extra_args['Tagging'] = tags
 
     def check_tag_acl(self):
-        """check if the only applicable args is tags or acl"""
+        """check if the only attributes to configure is ACL or Tags
+
+        Args:
+            None
+        Returns:
+            result: dict, containing two keys, Tags and Grants
+            Structure: {
+                'Tags': list, list of tags = {'Key': value, 'Value': value}
+                'Grants': dict, = {
+                    'ACL': string,
+                    'GrantFullControl': string,
+                    'GrantRead': string,
+                    'GrantReadACP': string,
+                    'GrantWriteACP': string
+                }
+            }
+        """
         result = {}
         if not self._extra_args.get('StorageClass') and not self._extra_args.get('ServerSideEncryption') and not self._extra_args.get('Metadata'):
             if self._extra_args.get('Tagging'):
