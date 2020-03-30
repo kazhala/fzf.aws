@@ -201,16 +201,41 @@ class S3Args:
         if tags:
             self._extra_args['Tagging'] = tags
 
-    def check_only_tags(self):
-        """check if the only applicable args is tags"""
-        if len(self._extra_args) == 1 and self._extra_args.get('Tagging'):
-            tags = []
-            for tag in self._extra_args.get('Tagging').split('&'):
-                key, value = tag.split('=')
-                tags.append({'Key': key, 'Value': value})
-            return tags
-        else:
-            return False
+    def check_tag_acl(self):
+        """check if the only applicable args is tags or acl"""
+        result = {}
+        if not self._extra_args.get('StorageClass') and not self._extra_args.get('ServerSideEncryption') and not self._extra_args.get('Metadata'):
+            if self._extra_args.get('Tagging'):
+                tags = []
+                for tag in self._extra_args.get('Tagging').split('&'):
+                    key, value = tag.split('=')
+                    tags.append({'Key': key, 'Value': value})
+                result['Tags'] = tags
+            if self._extra_args.get('ACL'):
+                if not result.get('Grants'):
+                    result['Grants'] = {}
+                result['Grants']['ACL'] = self._extra_args.get('ACL')
+            if self._extra_args.get('GrantFullControl'):
+                if not result.get('Grants'):
+                    result['Grants'] = {}
+                result['Grants']['GrantFullControl'] = self._extra_args.get(
+                    'GrantFullControl')
+            if self._extra_args.get('GrantRead'):
+                if not result.get('Grants'):
+                    result['Grants'] = {}
+                result['Grants']['GrantRead'] = self._extra_args.get(
+                    'GrantRead')
+            if self._extra_args.get('GrantReadACP'):
+                if not result.get('Grants'):
+                    result['Grants'] = {}
+                result['Grants']['GrantReadACP'] = self._extra_args.get(
+                    'GrantReadACP')
+            if self._extra_args.get('GrantWriteACP'):
+                if not result.get('Grants'):
+                    result['Grants'] = {}
+                result['Grants']['GrantWriteACP'] = self._extra_args.get(
+                    'GrantWriteACP')
+        return result
 
     @property
     def extra_args(self):
