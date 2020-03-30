@@ -101,7 +101,32 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
     elif recursive:
         pass
     elif version:
-        pass
+        obj_versions = s3.get_object_version(select_all=allversion)
+        s3_args = S3Args(s3)
+        s3_args.set_extra_args(version=True)
+
+        for obj_version in obj_versions:
+            print('(dryrun) update s3://%s/%s with version %s' %
+                  (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
+        if get_confirmation('Confirm?'):
+            for obj_version in obj_versions:
+                print('update s3://%s/%s with version %s' %
+                      (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
+                tag_only = s3_args.check_only_tags()
+                if tag_only:
+                    s3.client.put_object_tagging(
+                        Bucket=s3.bucket_name,
+                        Key=obj_version.get('Key'),
+                        VersionId=obj_version.get('VersionId'),
+                        Tagging={
+                            'TagSet': tag_only
+                        }
+                    )
+                else:
+                    copy_object_args = get_copy_args(s3, obj_version.get(
+                        'Key'), s3_args, version=obj_version.get('VersionId'))
+                    s3.client.copy_object(**copy_object_args)
+
     else:
         s3_args = S3Args(s3)
         s3_args.set_extra_args()

@@ -38,7 +38,20 @@ class S3Args:
             NoSelectionMade: When uplaod is false and no selection is made
         """
         if version:
-            pass
+            if not metadata and not acl and not tags:
+                print('Select attributes to configure')
+                fzf = Pyfzf()
+                fzf.append_fzf('ACL\n')
+                fzf.append_fzf('Tagging')
+                attributes = fzf.execute_fzf(
+                    print_col=1, multi_select=True, empty_allow=False)
+                for attribute in attributes:
+                    if attribute == 'ACL':
+                        acl = True
+                    elif attribute == 'Metadata':
+                        metadata = True
+                    elif attribute == 'Tagging':
+                        tags = True
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
                 print('Select attributes to configure')
