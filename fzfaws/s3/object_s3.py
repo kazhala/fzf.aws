@@ -111,5 +111,16 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         if get_confirmation('Confirm?'):
             for s3_key in s3.path_list:
                 print('update s3://%s/%s' % (s3.bucket_name, s3_key))
-                copy_object_args = get_copy_args(s3, s3_key, s3_args)
-                s3.client.copy_object(**copy_object_args)
+                # check if only tags is being updated
+                tag_only = s3_args.check_only_tags()
+                if tag_only:
+                    s3.client.put_object_tagging(
+                        Bucket=s3.bucket_name,
+                        Key=s3_key,
+                        Tagging={
+                            'TagSet': tag_only
+                        }
+                    )
+                else:
+                    copy_object_args = get_copy_args(s3, s3_key, s3_args)
+                    s3.client.copy_object(**copy_object_args)

@@ -188,6 +188,17 @@ class S3Args:
         if tags:
             self._extra_args['Tagging'] = tags
 
+    def check_only_tags(self):
+        """check if the only applicable args is tags"""
+        if len(self._extra_args) == 1 and self._extra_args.get('Tagging'):
+            tags = []
+            for tag in self._extra_args.get('Tagging').split('&'):
+                key, value = tag.split('=')
+                tags.append({'Key': key, 'Value': value})
+            return tags
+        else:
+            return False
+
     @property
     def extra_args(self):
         return self._extra_args
