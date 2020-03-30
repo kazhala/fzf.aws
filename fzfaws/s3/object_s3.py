@@ -104,6 +104,9 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         obj_versions = s3.get_object_version(select_all=allversion)
         s3_args = S3Args(s3)
         s3_args.set_extra_args(version=True)
+        # check if only tags or acl is being updated
+        # this way it won't create extra versions on the object
+        check_result = s3_args.check_tag_acl()
 
         for obj_version in obj_versions:
             print('(dryrun) update s3://%s/%s with version %s' %
@@ -112,33 +115,39 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
             for obj_version in obj_versions:
                 print('update s3://%s/%s with version %s' %
                       (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
-                tag_only = s3_args.check_only_tags()
-                if tag_only:
-                    s3.client.put_object_tagging(
-                        Bucket=s3.bucket_name,
-                        Key=obj_version.get('Key'),
-                        VersionId=obj_version.get('VersionId'),
-                        Tagging={
-                            'TagSet': tag_only
+                if check_result:
+                    if check_result.get('Tags'):
+                        s3.client.put_object_tagging(
+                            Bucket=s3.bucket_name,
+                            Key=obj_version.get('Key'),
+                            VersionId=obj_version.get('VersionId'),
+                            Tagging={
+                                'TagSet': check_result.get('Tags')
+                            }
+                        )
+                    if check_result.get('Grants'):
+                        grant_args = {
+                            'Bucket': s3.bucket_name,
+                            'Key': obj_version.get('Key'),
+                            'VersionId': obj_version.get('VersionId')
                         }
-                    )
+                        grant_args.update(check_result.get('Grants'))
+                        s3.client.put_object_acl(**grant_args)
                 else:
-                    copy_object_args = get_copy_args(s3, obj_version.get(
-                        'Key'), s3_args, version=obj_version.get('VersionId'))
-                    s3.client.copy_object(**copy_object_args)
+                    print('Nothing to update')
 
     else:
         s3_args = S3Args(s3)
         s3_args.set_extra_args()
+        # check if only tags or acl is being updated
+        # this way it won't create extra versions on the object
+        check_result = s3_args.check_tag_acl()
 
         for s3_key in s3.path_list:
             print('(dryrun) update s3://%s/%s' % (s3.bucket_name, s3_key))
         if get_confirmation('Confirm?'):
             for s3_key in s3.path_list:
                 print('update s3://%s/%s' % (s3.bucket_name, s3_key))
-                # check if only tags or acl is being updated
-                # this way it won't create extra versions on the object
-                check_result = s3_args.check_tag_acl()
                 if check_result:
                     if check_result.get('Tags'):
                         s3.client.put_object_tagging(
@@ -157,6 +166,9 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                         s3.client.put_object_acl(**grant_args)
 
                 else:
-                    # Note: this will create new version if version is enabled
-                    copy_object_args = get_copy_args(s3, s3_key, s3_args)
-                    s3.client.copy_object(**copy_object_args)
+                    try:
+                        # Note: this will create new version if version is enabled
+                        copy_object_args = get_copy_args(s3, s3_key, s3_args)
+                        s3.client.copy_object(**copy_object_args)
+                    except:
+                        print('Nothing to be updated')
