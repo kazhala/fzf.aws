@@ -195,7 +195,6 @@ class S3Args:
                 owner = acls['Owner']['ID']
                 origianl_acl = {
                     'FULL_CONTROL': [],
-                    'WRITE': [],
                     'WRITE_ACP': [],
                     'READ': [],
                     'READ_ACP': []
@@ -234,16 +233,16 @@ class S3Args:
                     'Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
                 if original:
                     if result == 'GrantFullControl' and origianl_acl.get('FULL_CONTROL'):
-                        print('Orignal: %s' % "&".join(
+                        print('Orignal: %s' % ",".join(
                             origianl_acl.get('FULL_CONTROL')))
                     elif result == 'GrantRead' and origianl_acl.get('READ'):
                         print('Orignal: %s' %
-                              "&".join(origianl_acl.get('READ')))
+                              ",".join(origianl_acl.get('READ')))
                     elif result == 'GrantReadACP' and origianl_acl.get('READ_ACP'):
-                        print('Orignal: %s' % "&".join(
+                        print('Orignal: %s' % ",".join(
                             origianl_acl.get('READ_ACP')))
                     elif result == 'GrantWriteACP' and origianl_acl.get('WRITE_ACP'):
-                        print('Orignal: %s' % "&".join(
+                        print('Orignal: %s' % ",".join(
                             origianl_acl.get('WRITE_ACP')))
                     print(80*'-')
                 print(
