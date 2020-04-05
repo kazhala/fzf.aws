@@ -37,6 +37,7 @@ class S3Args:
         Exceptions:
             NoSelectionMade: When uplaod is false and no selection is made
         """
+        attributes = []
         if version:
             if not metadata and not acl and not tags:
                 print('Select attributes to configure')
@@ -45,13 +46,6 @@ class S3Args:
                 fzf.append_fzf('Tagging')
                 attributes = fzf.execute_fzf(
                     print_col=1, multi_select=True, empty_allow=False)
-                for attribute in attributes:
-                    if attribute == 'ACL':
-                        acl = True
-                    elif attribute == 'Metadata':
-                        metadata = True
-                    elif attribute == 'Tagging':
-                        tags = True
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
                 print('Select attributes to configure')
@@ -63,17 +57,19 @@ class S3Args:
                 fzf.append_fzf('Tagging\n')
                 attributes = fzf.execute_fzf(
                     print_col=1, multi_select=True, empty_allow=upload)
-                for attribute in attributes:
-                    if attribute == 'StorageClass':
-                        storage = True
-                    elif attribute == 'ACL':
-                        acl = True
-                    elif attribute == 'Metadata':
-                        metadata = True
-                    elif attribute == 'Encryption':
-                        encryption = True
-                    elif attribute == 'Tagging':
-                        tags = True
+
+        for attribute in attributes:
+            if attribute == 'StorageClass':
+                storage = True
+            elif attribute == 'ACL':
+                acl = True
+            elif attribute == 'Metadata':
+                metadata = True
+            elif attribute == 'Encryption':
+                encryption = True
+            elif attribute == 'Tagging':
+                tags = True
+
         if storage:
             self.set_storageclass()
         if acl:
