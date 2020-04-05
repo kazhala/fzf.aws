@@ -75,15 +75,16 @@ class S3Args:
             s3_obj = self.s3.resource.Object(
                 self.s3.bucket_name, self.s3.path_list[0])
             old_storage_class = s3_obj.storage_class if s3_obj.storage_class else 'STANDARD'
+            old_encryption = s3_obj.server_side_encryption if s3_obj.server_side_encryption else 'None'
         elif not upload and version:
             pass
 
         if storage:
-            self.set_storageclass(value=old_storage_class)
+            self.set_storageclass(original=old_storage_class)
         if acl:
             self.set_ACL()
         if encryption:
-            self.set_encryption()
+            self.set_encryption(original=old_encryption)
         if metadata:
             self.set_metadata()
         if tags:
@@ -103,15 +104,16 @@ class S3Args:
                 key, value = item.split('=')
                 self._extra_args['Metadata'][key] = value
 
-    def set_storageclass(self, value):
+    def set_storageclass(self, original=None):
         """set valid storage class
 
         Args:
-            value: string, previous value of the storage_class
+            original: string, previous value of the storage_class
         """
 
         print('Select a storage class, esc to use the default storage class of the bucket setting')
-        print('Orignal: %s' % value)
+        if original:
+            print('Orignal: %s' % original)
         fzf = Pyfzf()
         fzf.append_fzf('STANDARD\n')
         fzf.append_fzf('REDUCED_REDUNDANCY\n')
@@ -185,9 +187,15 @@ class S3Args:
         if result:
             self._extra_args['ACL'] = result
 
-    def set_encryption(self):
-        """set the encryption setting"""
+    def set_encryption(self, original=None):
+        """set the encryption setting
+
+        Args:
+            original_type: string, previous value of the encryption
+        """
         print('Select a ecryption setting, esc to use the default encryption setting for the bucket')
+        if original:
+            print('Orignal: %s' % original)
         fzf = Pyfzf()
         fzf.append_fzf('None\n')
         fzf.append_fzf('AES256\n')
