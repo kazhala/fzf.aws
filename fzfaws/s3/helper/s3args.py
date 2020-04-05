@@ -70,8 +70,16 @@ class S3Args:
             elif attribute == 'Tagging':
                 tags = True
 
+        # only show previous values if one object is selected
+        if not upload and not version and len(self.s3.path_list) == 1:
+            s3_obj = self.s3.resource.Object(
+                self.s3.bucket_name, self.s3.path_list[0])
+            old_storage_class = s3_obj.storage_class if s3_obj.storage_class else 'STANDARD'
+        elif not upload and version:
+            pass
+
         if storage:
-            self.set_storageclass()
+            self.set_storageclass(value=old_storage_class)
         if acl:
             self.set_ACL()
         if encryption:
@@ -95,10 +103,15 @@ class S3Args:
                 key, value = item.split('=')
                 self._extra_args['Metadata'][key] = value
 
-    def set_storageclass(self):
-        """set valid storage class"""
+    def set_storageclass(self, value):
+        """set valid storage class
 
-        print('Select a storage class, esc to use the default storage class')
+        Args:
+            value: string, previous value of the storage_class
+        """
+
+        print('Select a storage class, esc to use the default storage class of the bucket setting')
+        print('Orignal: %s' % value)
         fzf = Pyfzf()
         fzf.append_fzf('STANDARD\n')
         fzf.append_fzf('REDUCED_REDUNDANCY\n')
