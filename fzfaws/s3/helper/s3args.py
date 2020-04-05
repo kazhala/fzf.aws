@@ -76,6 +76,12 @@ class S3Args:
                 self.s3.bucket_name, self.s3.path_list[0])
             old_storage_class = s3_obj.storage_class if s3_obj.storage_class else 'STANDARD'
             old_encryption = s3_obj.server_side_encryption if s3_obj.server_side_encryption else 'None'
+            if s3_obj.metadata:
+                old_metadata = []
+                for key, value in s3_obj.metadata.items():
+                    old_metadata.append('%s=%s' % (key, value))
+                old_metadata = '&'.join(old_metadata)
+
         elif not upload and version:
             pass
 
@@ -86,15 +92,21 @@ class S3Args:
         if encryption:
             self.set_encryption(original=old_encryption)
         if metadata:
-            self.set_metadata()
+            self.set_metadata(original=old_metadata)
         if tags:
             self.set_tags()
 
-    def set_metadata(self):
-        """set the meta data for the object"""
+    def set_metadata(self, original=None):
+        """set the meta data for the object
+
+        Args:
+            original: string, previous value of the object
+        """
 
         print(
             'Enter meta data for the upload objects, enter without value will skip tagging')
+        if original:
+            print('Orignal: %s' % original)
         print(
             'Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)')
         metadata = input('Metadata: ')
