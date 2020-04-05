@@ -2,6 +2,7 @@
 
 using fzf to construct some of the extra argument for s3 operation
 """
+import json
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.kms.kms import KMS
 from fzfaws.utils.util import get_confirmation
@@ -89,7 +90,9 @@ class S3Args:
         if storage:
             self.set_storageclass(original=old_storage_class)
         if acl:
-            self.set_ACL()
+            display_original = True if not upload and len(
+                self.s3.path_list) == 1 else False
+            self.set_ACL(original=display_original, version=version)
         if encryption:
             self.set_encryption(original=old_encryption)
         if metadata:
@@ -141,8 +144,13 @@ class S3Args:
         if result:
             self._extra_args['StorageClass'] = result
 
-    def set_ACL(self):
-        """set the ACL option for the current operation"""
+    def set_ACL(self, original=False, version=[]):
+        """set the ACL option for the current operation
+        Args:
+            original: bool, whether to display original values
+            version: list, list of version obj {'Key': key, 'VersionId': versionid}
+                Used to fetch previous values in _set_explicit_ACL()
+        """
         print(
             'Select a type of ACL to grant, aws accept one of canned ACL or explicit ACL')
         fzf = Pyfzf()
@@ -155,16 +163,59 @@ class S3Args:
         if result == 'Canned':
             self._set_canned_ACL()
         elif result == 'Explicit':
-            self._set_explicit_ACL()
+            self._set_explicit_ACL(original=original, version=version)
         else:
             return
 
-    def _set_explicit_ACL(self):
+    def _set_explicit_ACL(self, original=False, version=[]):
         """set explicit ACL for grantees and permissions
 
         Get user id/email first than display fzf allow multi_select
         to select permissions
+
+        Args:
+            original: bool, whether to display original values
+            version: list, list of version obj {'Key': key, 'VersionId': versionid}
+                Used to fetch previous values in _set_explicit_ACL()
         """
+        # get original values
+        if original:
+            if not version:
+                acls = self.s3.client.get_object_acl(
+                    Bucket=self.s3.bucket_name,
+                    Key=self.s3.path_list[0]
+                )
+            elif len(version) == 1:
+                acls = self.s3.client.get_object_acl(
+                    Bucket=self.s3.bucket_name,
+                    Key=self.s3.path_list[0],
+                    VersionId=version[0].get('VersionId')
+                )
+            if acls:
+                owner = acls['Owner']['ID']
+                origianl_acl = {
+                    'FULL_CONTROL': [],
+                    'WRITE': [],
+                    'WRITE_ACP': [],
+                    'READ': [],
+                    'READ_ACP': []
+                }
+                for grantee in acls.get('Grants', []):
+                    if grantee['Grantee'].get('EmailAddress'):
+                        origianl_acl[grantee['Permission']].append('%s=%s' % (
+                            'emailAddress', grantee['Grantee'].get('EmailAddress')))
+                    elif grantee['Grantee'].get('ID') and grantee['Grantee'].get('ID') != owner:
+                        origianl_acl[grantee['Permission']].append(
+                            '%s=%s' % ('id', grantee['Grantee'].get('ID')))
+                    elif grantee['Grantee'].get('URI'):
+                        origianl_acl[grantee['Permission']].append(
+                            '%s=%s' % ('uri', grantee['Grantee'].get('URI')))
+
+            print('Current ACL')
+            print(json.dumps(origianl_acl, indent=4, default=str))
+            if not get_confirmation('Continue?'):
+                return
+
         # get what permission to set
         fzf = Pyfzf()
         fzf.append_fzf('GrantFullControl\n')
@@ -179,7 +230,22 @@ class S3Args:
         else:
             for result in results:
                 print('Set permisstion for %s' % result)
-                print('Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
+                print(
+                    'Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
+                if original:
+                    if result == 'GrantFullControl' and origianl_acl.get('FULL_CONTROL'):
+                        print('Orignal: %s' % "&".join(
+                            origianl_acl.get('FULL_CONTROL')))
+                    elif result == 'GrantRead' and origianl_acl.get('READ'):
+                        print('Orignal: %s' %
+                              "&".join(origianl_acl.get('READ')))
+                    elif result == 'GrantReadACP' and origianl_acl.get('READ_ACP'):
+                        print('Orignal: %s' % "&".join(
+                            origianl_acl.get('READ_ACP')))
+                    elif result == 'GrantWriteACP' and origianl_acl.get('WRITE_ACP'):
+                        print('Orignal: %s' % "&".join(
+                            origianl_acl.get('WRITE_ACP')))
+                    print(80*'-')
                 print(
                     'Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
                 accounts = input('Accounts: ')
