@@ -72,6 +72,10 @@ class S3Args:
             elif attribute == 'Tagging':
                 tags = True
 
+        old_storage_class = ''
+        old_encryption = ''
+        old_metadata = ''
+
         # only show previous values if one object is selected
         if not upload and not version and len(self.s3.path_list) == 1:
             s3_obj = self.s3.resource.Object(
