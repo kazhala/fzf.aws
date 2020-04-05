@@ -135,9 +135,6 @@ class S3Args:
         Get user id/email first than display fzf allow multi_select
         to select permissions
         """
-        print('Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
-        print('Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
-        accounts = input('Accounts: ')
         # get what permission to set
         fzf = Pyfzf()
         fzf.append_fzf('GrantFullControl\n')
@@ -151,6 +148,12 @@ class S3Args:
                 'No permission is set, default ACL settings of the bucket would be used')
         else:
             for result in results:
+                print('Set permisstion for %s' % result)
+                print('Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
+                print(
+                    'Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
+                accounts = input('Accounts: ')
+                print(80*'-')
                 self._extra_args[result] = str(accounts)
 
     def _set_canned_ACL(self):
