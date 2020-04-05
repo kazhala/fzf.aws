@@ -103,7 +103,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
         s3_args = S3Args(s3)
-        s3_args.set_extra_args(version=True)
+        s3_args.set_extra_args(version=obj_versions)
         # check if only tags or acl is being updated
         # this way it won't create extra versions on the object
         check_result = s3_args.check_tag_acl()

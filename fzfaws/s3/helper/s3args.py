@@ -19,7 +19,7 @@ class S3Args:
         self.s3 = s3
         self._extra_args = {}
 
-    def set_extra_args(self, storage=False, acl=False, metadata=False, encryption=False, tags=False, version=False, upload=False):
+    def set_extra_args(self, storage=False, acl=False, metadata=False, encryption=False, tags=False, version=[], upload=False):
         """determine what attributes to set
 
         Use fzf menu to let user select attributes to configure
@@ -30,7 +30,8 @@ class S3Args:
             metadata: bool, set metadata
             encryption: bool, set server_side_encryption
             tags: bool, set tags
-            version: bool, reduce the menu size, as some attributes cannot be configured
+            version: list, list of selected object version obj {'Key': value, 'VersionId': versionid}.
+                It's used to determine the menu item and display previous values
             upload: bool, determine if the menu could have empty selection
         Returns:
             None
@@ -94,7 +95,9 @@ class S3Args:
         if metadata:
             self.set_metadata(original=old_metadata)
         if tags:
-            self.set_tags()
+            display_original = True if not upload and len(
+                self.s3.path_list) == 1 else False
+            self.set_tags(original=display_original, version=version)
 
     def set_metadata(self, original=None):
         """set the meta data for the object
@@ -223,10 +226,40 @@ class S3Args:
             kms.set_keyid()
             self._extra_args['SSEKMSKeyId'] = kms.keyid
 
-    def set_tags(self):
-        """set tags for the object"""
+    def set_tags(self, original=False, version=[]):
+        """set tags for the object
+
+        Args:
+            original: bool, whether to fetch original values
+            version: list, include version
+        """
         print(
             'Enter tags for the upload objects, enter without value will skip tagging')
+        if original:
+            if not version:
+                tags = self.s3.client.get_object_tagging(
+                    Bucket=self.s3.bucket_name,
+                    Key=self.s3.path_list[0],
+                )
+                original_tags = []
+                for tag in tags.get('TagSet', []):
+                    original_tags.append('%s=%s' %
+                                         (tag.get('Key'), tag.get('Value')))
+                original_tags = '&'.join(original_tags)
+                print('Orignal: %s' % original_tags)
+            elif len(version) == 1:
+                tags = self.s3.client.get_object_tagging(
+                    Bucket=self.s3.bucket_name,
+                    Key=self.s3.path_list[0],
+                    VersionId=version[0].get('VersionId')
+                )
+                original_tags = []
+                for tag in tags.get('TagSet', []):
+                    original_tags.append('%s=%s' %
+                                         (tag.get('Key'), tag.get('Value')))
+                original_tags = '&'.join(original_tags)
+                print('Orignal: %s' % original_tags)
+
         print(
             'Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
         tags = input('Tags: ')
