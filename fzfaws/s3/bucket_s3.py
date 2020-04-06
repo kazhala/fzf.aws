@@ -10,6 +10,7 @@ from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
+from fzfaws.s3.helper.get_copy_args import get_copy_args
 
 
 def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, preserve=False):
@@ -100,8 +101,15 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Bucket': target_bucket,
                     'Key': s3_key
                 }
+                copy_object_args = {}
+                if preserve:
+                    s3_args = S3Args(s3)
+                    s3.bucket_name = target_bucket
+                    copy_object_args = get_copy_args(
+                        s3, s3_key, s3_args, extra_args=True)
+
                 s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
-                    s3_key, target_bucket, s3.client))
+                    s3_key, target_bucket, s3.client), ExtraArgs=copy_object_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
