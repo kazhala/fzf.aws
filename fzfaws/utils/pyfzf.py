@@ -59,8 +59,7 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = ['fzf', '--height', '70%',
-                    '--layout=reverse', '--cycle']
+        cmd_list = ['fzf']
         cmd_list.append(
             '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
         if header:
@@ -147,8 +146,7 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
-            cmd_list = ['fzf', '--height', '70%',
-                        '--layout=reverse', '--cycle', '--preview', 'cat {}']
+            cmd_list = ['fzf', '--preview', 'cat {}']
             cmd_list.append(
                 '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
             if header:
