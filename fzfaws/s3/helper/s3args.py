@@ -86,9 +86,6 @@ class S3Args:
                     old_metadata.append('%s=%s' % (key, value))
                 old_metadata = '&'.join(old_metadata)
 
-        elif not upload and version:
-            pass
-
         if storage:
             self.set_storageclass(original=old_storage_class)
         if acl:
