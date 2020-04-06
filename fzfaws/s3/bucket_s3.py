@@ -12,7 +12,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 
 
-def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False):
+def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, preserve=False):
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
@@ -26,6 +26,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include afer exclude
         version: bool, transfer file with specific version
+        preserve: bool, preserve previous object details like storage class encryption etc
     Return:
         None
     Raises:

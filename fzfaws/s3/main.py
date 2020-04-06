@@ -94,6 +94,8 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to include files after excluding')
     bucket_cmd.add_argument('-v', '--version', action='store_true', default=False,
                             help='choose a version of the object and transfer, Note: does not support recursive flag')
+    bucket_cmd.add_argument('-p', '--preserve', action='store_true', default=False,
+                            help='preserve all object details when moving object, default False, will use the bucket setting')
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete file/directory on the s3 bucket')
@@ -184,7 +186,7 @@ def s3(raw_args):
         from_bucket = args.bucket[0] if args.bucket else None
         to_bucket = args.bucket[1] if len(args.bucket) > 1 else None
         bucket_s3(from_bucket, to_bucket, args.recursive,
-                  args.sync, args.exclude, args.include, args.version)
+                  args.sync, args.exclude, args.include, args.version, args.preserve)
     elif args.subparser_name == 'delete':
         bucket = args.bucket[0] if args.bucket else None
         mfa = ' '.join(args.mfa)
