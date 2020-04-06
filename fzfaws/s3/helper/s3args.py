@@ -42,15 +42,13 @@ class S3Args:
         attributes = []
         if version:
             if not metadata and not acl and not tags:
-                print('Select attributes to configure')
                 fzf = Pyfzf()
                 fzf.append_fzf('ACL\n')
                 fzf.append_fzf('Tagging')
                 attributes = fzf.execute_fzf(
-                    print_col=1, multi_select=True, empty_allow=False)
+                    print_col=1, multi_select=True, empty_allow=False, header='Select attributes to configure')
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
-                print('Select attributes to configure')
                 fzf = Pyfzf()
                 fzf.append_fzf('StorageClass\n')
                 fzf.append_fzf('ACL\n')
@@ -58,7 +56,7 @@ class S3Args:
                 fzf.append_fzf('Metadata\n')
                 fzf.append_fzf('Tagging\n')
                 attributes = fzf.execute_fzf(
-                    print_col=1, multi_select=True, empty_allow=upload)
+                    print_col=1, multi_select=True, empty_allow=upload, header='Select attributes to configure')
 
         for attribute in attributes:
             if attribute == 'StorageClass':
@@ -115,10 +113,11 @@ class S3Args:
 
         print(
             'Enter meta data for the upload objects, enter without value will skip tagging')
-        if original:
-            print('Orignal: %s' % original)
         print(
             'Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)')
+        if original:
+            print(80*'-')
+            print('Orignal: %s' % original)
         metadata = input('Metadata: ')
         if metadata:
             self._extra_args['Metadata'] = {}
@@ -133,9 +132,9 @@ class S3Args:
             original: string, previous value of the storage_class
         """
 
-        print('Select a storage class, esc to use the default storage class of the bucket setting')
+        header = 'Select a storage class, esc to use the default storage class of the bucket setting'
         if original:
-            print('Orignal: %s' % original)
+            header += '\nOriginal: %s' % original
         fzf = Pyfzf()
         fzf.append_fzf('STANDARD\n')
         fzf.append_fzf('REDUCED_REDUNDANCY\n')
@@ -144,7 +143,7 @@ class S3Args:
         fzf.append_fzf('INTELLIGENT_TIERING\n')
         fzf.append_fzf('GLACIER\n')
         fzf.append_fzf('DEEP_ARCHIVE\n')
-        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        result = fzf.execute_fzf(empty_allow=True, print_col=1, header=header)
         if result:
             self._extra_args['StorageClass'] = result
 
@@ -155,15 +154,14 @@ class S3Args:
             version: list, list of version obj {'Key': key, 'VersionId': versionid}
                 Used to fetch previous values in _set_explicit_ACL()
         """
-        print(
-            'Select a type of ACL to grant, aws accept one of canned ACL or explicit ACL')
         fzf = Pyfzf()
         fzf.append_fzf('None (use bucket default ACL setting)\n')
         fzf.append_fzf(
             'Canned ACL (predefined set of grantees and permissions)\n')
         fzf.append_fzf(
             'Explicit ACL (explicit set grantees and permissions)\n')
-        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        result = fzf.execute_fzf(empty_allow=True, print_col=1,
+                                 header='Select a type of ACL to grant, aws accept one of canned ACL or explicit ACL')
         if result == 'Canned':
             self._set_canned_ACL()
         elif result == 'Explicit':
@@ -216,6 +214,7 @@ class S3Args:
 
             print('Current ACL')
             print(json.dumps(origianl_acl, indent=4, default=str))
+            print('Note: fzf.aws cannot preserve previous ACL permission')
             if not get_confirmation('Continue?'):
                 return
 
@@ -235,7 +234,10 @@ class S3Args:
                 print('Set permisstion for %s' % result)
                 print(
                     'Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)')
+                print(
+                    'Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
                 if original:
+                    print(80*'-')
                     if result == 'GrantFullControl' and origianl_acl.get('FULL_CONTROL'):
                         print('Orignal: %s' % ",".join(
                             origianl_acl.get('FULL_CONTROL')))
@@ -248,17 +250,12 @@ class S3Args:
                     elif result == 'GrantWriteACP' and origianl_acl.get('WRITE_ACP'):
                         print('Orignal: %s' % ",".join(
                             origianl_acl.get('WRITE_ACP')))
-                    print(80*'-')
-                print(
-                    'Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
                 accounts = input('Accounts: ')
                 print(80*'-')
                 self._extra_args[result] = str(accounts)
 
     def _set_canned_ACL(self):
         """set the canned ACL for the current operation"""
-        print(
-            'Select a Canned ACL option, esc to use the default ACL setting for the bucket')
         fzf = Pyfzf()
         fzf.append_fzf('private\n')
         fzf.append_fzf('public-read\n')
@@ -267,7 +264,8 @@ class S3Args:
         fzf.append_fzf('aws-exec-read\n')
         fzf.append_fzf('bucket-owner-read\n')
         fzf.append_fzf('bucket-owner-full-control\n')
-        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        result = fzf.execute_fzf(empty_allow=True, print_col=1,
+                                 header='Select a Canned ACL option, esc to use the default ACL setting for the bucket')
         if result:
             self._extra_args['ACL'] = result
 
@@ -277,14 +275,14 @@ class S3Args:
         Args:
             original_type: string, previous value of the encryption
         """
-        print('Select a ecryption setting, esc to use the default encryption setting for the bucket')
+        header = 'Select a ecryption setting, esc to use the default encryption setting for the bucket'
         if original:
-            print('Orignal: %s' % original)
+            header += '\nOriginal: %s' % original
         fzf = Pyfzf()
         fzf.append_fzf('None\n')
         fzf.append_fzf('AES256\n')
         fzf.append_fzf('aws:kms\n')
-        result = fzf.execute_fzf(empty_allow=True, print_col=1)
+        result = fzf.execute_fzf(empty_allow=True, print_col=1, header=header)
         if result:
             self._extra_args['ServerSideEncryption'] = result
         if result == 'aws:kms':
@@ -304,7 +302,10 @@ class S3Args:
         """
         print(
             'Enter tags for the upload objects, enter without value will skip tagging')
+        print(
+            'Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
         if original:
+            print(80*'-')
             if not version:
                 tags = self.s3.client.get_object_tagging(
                     Bucket=self.s3.bucket_name,
@@ -329,8 +330,6 @@ class S3Args:
                 original_tags = '&'.join(original_tags)
                 print('Orignal: %s' % original_tags)
 
-        print(
-            'Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)')
         tags = input('Tags: ')
         if tags:
             self._extra_args['Tagging'] = tags
