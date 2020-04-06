@@ -26,7 +26,7 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
         include: list, list of glob pattern to include after exclude
         operation: string, current operation type
             Print different information based on operation type
-            download/bucket/delete
+            download/bucket/delete/object
         destination_path: string, the destination root path
         destination_bucket: string, the destination bucket name
             Only set this for operation='bucket'
@@ -66,6 +66,9 @@ def walk_s3_folder(client, bucket, bucket_path, root='', file_list=[], exclude=[
                       (bucket, file.get('Key'), destination_bucket, dest_pathname))
             elif operation == 'delete':
                 print('(dryrun) delete: s3://%s/%s' %
+                      (bucket, file.get('Key')))
+            elif operation == 'object':
+                print('(dryrun) update: s3://%s/%s' %
                       (bucket, file.get('Key')))
             file_list.append((file.get('Key'), dest_pathname))
     return file_list

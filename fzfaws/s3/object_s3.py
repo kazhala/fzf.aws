@@ -10,6 +10,7 @@ from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.get_copy_args import get_copy_args
+from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
 def object_s3(bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False):
@@ -54,7 +55,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         print('Enter the new name below (format: newname or path/newname for a new path)')
         new_name = input('Name(Orignal: %s): ' % s3.bucket_path)
         if not version:
-            print('(dryrun) rename s3://%s/%s to s3://%s/%s' %
+            print('(dryrun) rename: s3://%s/%s to s3://%s/%s' %
                   (s3.bucket_name, s3.bucket_path, s3.bucket_name, new_name))
             if get_confirmation('Confirm?'):
                 print('rename: s3://%s/%s to s3://%s/%s' %
@@ -79,10 +80,10 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         else:
             # get version
             obj_version = s3.get_object_version(key=s3.bucket_path)[0]
-            print('(dryrun) rename s3://%s/%s to s3://%s/%s with version %s' %
+            print('(dryrun) rename: s3://%s/%s to s3://%s/%s with version %s' %
                   (s3.bucket_name, obj_version.get('Key'), s3.bucket_name, new_name, obj_version.get('VersionId')))
             if get_confirmation('Confirm?'):
-                print('rename s3://%s/%s to s3://%s/%s with version %s' %
+                print('rename: s3://%s/%s to s3://%s/%s with version %s' %
                       (s3.bucket_name, obj_version.get('Key'), s3.bucket_name, new_name, obj_version.get('VersionId')))
                 # initialise empty s3_args so that get_copy_args will use all the original value
                 s3_args = S3Args(s3)
@@ -99,7 +100,47 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                 sys.stdout.write('\033[2K\033[1G')
 
     elif recursive:
-        pass
+        s3_args = S3Args(s3)
+        s3_args.set_extra_args()
+        # check if only tags or acl is being updated
+        # this way it won't create extra versions on the object
+        check_result = s3_args.check_tag_acl()
+
+        file_list = walk_s3_folder(s3.client, s3.bucket_name, s3.bucket_path, s3.bucket_path, [
+        ], exclude, include, 'object', s3.bucket_path, s3.bucket_name)
+        if get_confirmation('Confirm?'):
+            if check_result:
+                for original_key, destination_key in file_list:
+                    print('update: s3://%s/%s' %
+                          (s3.bucket_name, original_key))
+                    if check_result.get('Tags'):
+                        s3.client.put_object_tagging(
+                            Bucket=s3.bucket_name,
+                            Key=original_key,
+                            Tagging={
+                                'TagSet': check_result.get('Tags')
+                            }
+                        )
+                    if check_result.get('Grants'):
+                        grant_args = {
+                            'Bucket': s3.bucket_name,
+                            'Key': original_key
+                        }
+                        grant_args.update(check_result.get('Grants'))
+                        s3.client.put_object_acl(**grant_args)
+
+            else:
+                try:
+                    for original_key, destination_key in file_list:
+                        print('update: s3://%s/%s' %
+                              (s3.bucket_name, original_key))
+                        # Note: this will create new version if version is enabled
+                        copy_object_args = get_copy_args(
+                            s3, original_key, s3_args)
+                        s3.client.copy_object(**copy_object_args)
+                except:
+                    print('Nothing to be updated')
+
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
         s3_args = S3Args(s3)
@@ -109,11 +150,11 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         check_result = s3_args.check_tag_acl()
 
         for obj_version in obj_versions:
-            print('(dryrun) update s3://%s/%s with version %s' %
+            print('(dryrun) update: s3://%s/%s with version %s' %
                   (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
         if get_confirmation('Confirm?'):
             for obj_version in obj_versions:
-                print('update s3://%s/%s with version %s' %
+                print('update: s3://%s/%s with version %s' %
                       (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
                 if check_result:
                     if check_result.get('Tags'):
@@ -144,10 +185,10 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         check_result = s3_args.check_tag_acl()
 
         for s3_key in s3.path_list:
-            print('(dryrun) update s3://%s/%s' % (s3.bucket_name, s3_key))
+            print('(dryrun) update: s3://%s/%s' % (s3.bucket_name, s3_key))
         if get_confirmation('Confirm?'):
             for s3_key in s3.path_list:
-                print('update s3://%s/%s' % (s3.bucket_name, s3_key))
+                print('update: s3://%s/%s' % (s3.bucket_name, s3_key))
                 if check_result:
                     if check_result.get('Tags'):
                         s3.client.put_object_tagging(
