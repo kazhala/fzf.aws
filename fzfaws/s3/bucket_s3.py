@@ -56,14 +56,15 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
             dest_bucket, dest_path, dest_path_list = process_path_param(
                 to_bucket, s3, True)
         else:
-            s3.set_s3_bucket()
+            s3.set_s3_bucket(
+                header='Set the destination bucket where the file should be moved')
             s3.set_s3_path()
             dest_bucket = s3.bucket_name
             dest_path = s3.bucket_path
 
     else:
-        print('Set the target bucket which contains the file to move')
-        s3.set_s3_bucket()
+        s3.set_s3_bucket(
+            header='Set the target bucket which contains the file to move')
         target_bucket = s3.bucket_name
         if search_folder:
             s3.set_s3_path()
@@ -75,11 +76,11 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         if version:
             obj_versions = s3.get_object_version()
 
-        print('Set the destination bucket where the file should be moved')
         # clean up the s3 attributes for next operation
         s3.bucket_name = None
         s3.bucket_path = ''
-        s3.set_s3_bucket()
+        s3.set_s3_bucket(
+            header='Set the destination bucket where the file should be moved')
         s3.set_s3_path()
         dest_bucket = s3.bucket_name
         dest_path = s3.bucket_path

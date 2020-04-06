@@ -35,12 +35,16 @@ class S3:
         self.bucket_path = ''
         self.path_list = []
 
-    def set_s3_bucket(self):
-        """list bucket through fzf and let user select a bucket"""
+    def set_s3_bucket(self, header=''):
+        """list bucket through fzf and let user select a bucket
+
+        Args:
+            header: string, optionally display header in fzf
+        """
         response = self.client.list_buckets()
         fzf = Pyfzf()
         fzf.process_list(response['Buckets'], 'Name')
-        self.bucket_name = fzf.execute_fzf()
+        self.bucket_name = fzf.execute_fzf(header=header)
 
     def set_bucket_and_path(self, bucket=None):
         """method to set both bucket and path
@@ -283,7 +287,6 @@ class S3:
 
     def _get_path_option(self):
         """pop up fzf for user to select what to do with the path"""
-        print('Please select which level of the bucket would you like to operate in')
         fzf = Pyfzf()
         fzf.append_fzf('root: operate on the root level of the bucket\n')
         fzf.append_fzf(
@@ -291,4 +294,4 @@ class S3:
         fzf.append_fzf('input: manully input the path/name\n')
         fzf.append_fzf(
             'append: interactively select a path and then input new path/name to append')
-        return fzf.execute_fzf(print_col=1).split(':')[0]
+        return fzf.execute_fzf(print_col=1, header='Please select which level of the bucket would you like to operate in').split(':')[0]
