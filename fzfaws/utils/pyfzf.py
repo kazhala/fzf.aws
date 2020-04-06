@@ -53,24 +53,25 @@ class Pyfzf:
             Above example would return 'Hello:'' if the first entry is selected, print col is 1
             if print_col was 2, 'hello' would be printed
         """
+
         # remove the empty line at the end
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
+        cmd_list = ['fzf', '--height', '60%',
+                    '--layout=reverse', '--cycle']
         if not preview:
             if not multi_select:
-                selection = subprocess.Popen(
-                    ('fzf'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+                cmd_list.append('+m')
             else:
-                selection = subprocess.Popen(
-                    ('fzf', '-m'), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+                cmd_list.append('-m')
         else:
             if not multi_select:
-                selection = subprocess.Popen(
-                    ('fzf', '--preview', preview), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+                cmd_list.extend(['+m', '--preview', preview])
             else:
-                selection = subprocess.Popen(
-                    ('fzf', '-m', '--preview', preview), stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+                cmd_list.extend(['-m', '--preview', preview])
+        selection = subprocess.Popen(
+            cmd_list, stdin=fzf_input.stdout, stdout=subprocess.PIPE)
 
         if print_col == -1:
             selection_name = subprocess.check_output(
@@ -139,12 +140,14 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
+            cmd_list = ['fzf', '--height', '60%',
+                        '--layout=reverse', '--cycle', '--preview', 'cat {}']
             if multi_select:
-                selected_file_path = subprocess.check_output(
-                    ('fzf', '-m'), stdin=list_file.stdout)
+                cmd_list.append('-m')
             else:
-                selected_file_path = subprocess.check_output(
-                    ('fzf'), stdin=list_file.stdout)
+                cmd_list.append('+m')
+            selected_file_path = subprocess.check_output(
+                cmd_list, stdin=list_file.stdout)
         except subprocess.CalledProcessError:
             if not empty_allow:
                 raise
