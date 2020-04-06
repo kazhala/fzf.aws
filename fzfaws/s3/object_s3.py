@@ -13,7 +13,7 @@ from fzfaws.s3.helper.get_copy_args import get_copy_args
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def object_s3(bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False):
+def object_s3(bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False, storage=False, encryption=False, metadata=False, tagging=False, acl=False):
     """update selected object settings
 
     Display a menu based on recursive and version requirement
@@ -31,6 +31,12 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         exclude: list, list of glob pattern to exclude
         include: list, list of glob pattern to include
         name: bool, update name of the object (limit object selection to one object)
+            Note: not compatible with other attributes setting
+        storage: bool, update storage of the object (skip attribute selection)
+        encryption: bool, update encryption method of the object (skip attribute selection)
+        metadata: bool, update meta of the object (skip attribute selection)
+        tagging: bool, update tags of the object (skip attribute selection)
+        acl: bool, update acl of the object (skip attribute selection)
     Returns:
         None
     Raises:
@@ -104,7 +110,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
 
     elif recursive:
         s3_args = S3Args(s3)
-        s3_args.set_extra_args()
+        s3_args.set_extra_args(storage, acl, metadata, encryption, tagging)
         # check if only tags or acl is being updated
         # this way it won't create extra versions on the object
         check_result = s3_args.check_tag_acl()
@@ -147,7 +153,8 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
         s3_args = S3Args(s3)
-        s3_args.set_extra_args(version=obj_versions)
+        s3_args.set_extra_args(storage, acl, metadata,
+                               encryption, tagging, version=obj_versions)
         # check if only tags or acl is being updated
         # this way it won't create extra versions on the object
         check_result = s3_args.check_tag_acl()
@@ -182,7 +189,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
 
     else:
         s3_args = S3Args(s3)
-        s3_args.set_extra_args()
+        s3_args.set_extra_args(storage, acl, metadata, encryption, tagging)
         # check if only tags or acl is being updated
         # this way it won't create extra versions on the object
         check_result = s3_args.check_tag_acl()

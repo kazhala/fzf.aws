@@ -139,8 +139,18 @@ def s3(raw_args):
                             help='specify a number of bash style globbing pattern to exclude a number of patterns')
     object_cmd.add_argument('-i', '--include', nargs='+', action='store', default=[],
                             help='specify a number of bash style globbing pattern to include files after excluding')
-    object_cmd.add_argument('-n', '--name', action='store_true', default=False,
+    object_cmd.add_argument('-N', '--name', action='store_true', default=False,
                             help='update the name of the selected object')
+    object_cmd.add_argument('-S', '--storage', action='store_true', default=False,
+                            help='update storage class of the selected object')
+    object_cmd.add_argument('-M', '--meta', action='store_true', default=False,
+                            help='update metadata of the selected object')
+    object_cmd.add_argument('-t', '--tag', action='store_true', default=False,
+                            help='update tag of the selected object')
+    object_cmd.add_argument('-E', '--encryption', action='store_true', default=False,
+                            help='update encryption method of the selected object')
+    object_cmd.add_argument('-A', '--ACL', action='store_true', default=False,
+                            help='update acl method of the selected object')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -186,4 +196,4 @@ def s3(raw_args):
     elif args.subparser_name == 'object':
         bucket = args.bucket[0] if args.bucket else None
         object_s3(bucket, args.recursive, args.version, args.allversion,
-                  args.exclude, args.include, args.name)
+                  args.exclude, args.include, args.name, args.storage, args.encryption, args.meta, args.tag, args.ACL)
