@@ -182,6 +182,7 @@ class S3Args:
         """
         # get original values
         if original:
+            acls = ''
             if not version:
                 acls = self.s3.client.get_object_acl(
                     Bucket=self.s3.bucket_name,
@@ -193,30 +194,30 @@ class S3Args:
                     Key=self.s3.path_list[0],
                     VersionId=version[0].get('VersionId')
                 )
+            original_acl = {
+                'FULL_CONTROL': [],
+                'WRITE_ACP': [],
+                'READ': [],
+                'READ_ACP': []
+            }
             if acls:
                 owner = acls['Owner']['ID']
-                origianl_acl = {
-                    'FULL_CONTROL': [],
-                    'WRITE_ACP': [],
-                    'READ': [],
-                    'READ_ACP': []
-                }
                 for grantee in acls.get('Grants', []):
                     if grantee['Grantee'].get('EmailAddress'):
-                        origianl_acl[grantee['Permission']].append('%s=%s' % (
+                        original_acl[grantee['Permission']].append('%s=%s' % (
                             'emailAddress', grantee['Grantee'].get('EmailAddress')))
                     elif grantee['Grantee'].get('ID') and grantee['Grantee'].get('ID') != owner:
-                        origianl_acl[grantee['Permission']].append(
+                        original_acl[grantee['Permission']].append(
                             '%s=%s' % ('id', grantee['Grantee'].get('ID')))
                     elif grantee['Grantee'].get('URI'):
-                        origianl_acl[grantee['Permission']].append(
+                        original_acl[grantee['Permission']].append(
                             '%s=%s' % ('uri', grantee['Grantee'].get('URI')))
 
-            print('Current ACL')
-            print(json.dumps(origianl_acl, indent=4, default=str))
-            print('Note: fzf.aws cannot preserve previous ACL permission')
-            if not get_confirmation('Continue?'):
-                return
+                print('Current ACL')
+                print(json.dumps(original_acl, indent=4, default=str))
+                print('Note: fzf.aws cannot preserve previous ACL permission')
+                if not get_confirmation('Continue?'):
+                    return
 
         # get what permission to set
         fzf = Pyfzf()
@@ -238,18 +239,18 @@ class S3Args:
                     'Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers')
                 if original:
                     print(80*'-')
-                    if result == 'GrantFullControl' and origianl_acl.get('FULL_CONTROL'):
+                    if result == 'GrantFullControl' and original_acl.get('FULL_CONTROL'):
                         print('Orignal: %s' % ",".join(
-                            origianl_acl.get('FULL_CONTROL')))
-                    elif result == 'GrantRead' and origianl_acl.get('READ'):
+                            original_acl.get('FULL_CONTROL')))
+                    elif result == 'GrantRead' and original_acl.get('READ'):
                         print('Orignal: %s' %
-                              ",".join(origianl_acl.get('READ')))
-                    elif result == 'GrantReadACP' and origianl_acl.get('READ_ACP'):
+                              ",".join(original_acl.get('READ')))
+                    elif result == 'GrantReadACP' and original_acl.get('READ_ACP'):
                         print('Orignal: %s' % ",".join(
-                            origianl_acl.get('READ_ACP')))
-                    elif result == 'GrantWriteACP' and origianl_acl.get('WRITE_ACP'):
+                            original_acl.get('READ_ACP')))
+                    elif result == 'GrantWriteACP' and original_acl.get('WRITE_ACP'):
                         print('Orignal: %s' % ",".join(
-                            origianl_acl.get('WRITE_ACP')))
+                            original_acl.get('WRITE_ACP')))
                 accounts = input('Accounts: ')
                 print(80*'-')
                 self._extra_args[result] = str(accounts)

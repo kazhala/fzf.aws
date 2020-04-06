@@ -39,6 +39,9 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
 
+    if allversion:
+        version = True
+
     s3 = S3()
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
