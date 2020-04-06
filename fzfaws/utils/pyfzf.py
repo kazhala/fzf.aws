@@ -31,7 +31,7 @@ class Pyfzf:
         """
         self.fzf_string += new_string
 
-    def execute_fzf(self, empty_allow=False, print_col=2, preview=None, multi_select=False):
+    def execute_fzf(self, empty_allow=False, print_col=2, preview=None, multi_select=False, header=None):
         """execute fzf and return formated string
 
         Args:
@@ -41,6 +41,7 @@ class Pyfzf:
                 use -1 to print everything except first column, useful when you have filenames with spaces
             preview: string, display preview for each entry, require shell script string
             multi_select: bool, if multi select is allowed
+            header: string, display helper information/title
         Returns:
             return the string value of the selected entry, depending ont the print_col
         Example:
@@ -58,8 +59,12 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = ['fzf', '--height', '60%',
+        cmd_list = ['fzf', '--height', '70%',
                     '--layout=reverse', '--cycle']
+        cmd_list.append(
+            '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
+        if header:
+            cmd_list.append('--header=%s' % header)
         if not preview:
             if not multi_select:
                 cmd_list.append('+m')
@@ -91,7 +96,7 @@ class Pyfzf:
             # conver the byte to string and remove the empty trailing line
             return str(selection_name, 'utf-8').strip()
 
-    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False, multi_select=False):
+    def get_local_file(self, search_from_root=False, cloudformation=False, directory=False, hidden=False, empty_allow=False, multi_select=False, header=None):
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -105,9 +110,11 @@ class Pyfzf:
             directory: bool, search directory
             hidden: include hidden files/folders with search using fd
             empty_allow: bool, allow empty selection, if set, use current directory
+            header: string, display helper text/title
         Returns:
             the file path of the selected file
         """
+
         if empty_allow:
             print('Exit without select will use the current directory')
         if search_from_root:
@@ -140,8 +147,12 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
-            cmd_list = ['fzf', '--height', '60%',
+            cmd_list = ['fzf', '--height', '70%',
                         '--layout=reverse', '--cycle', '--preview', 'cat {}']
+            cmd_list.append(
+                '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
+            if header:
+                cmd_list.append('--header=%s' % header)
             if multi_select:
                 cmd_list.append('-m')
             else:
