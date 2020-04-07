@@ -101,17 +101,15 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Bucket': target_bucket,
                     'Key': s3_key
                 }
-                copy_object_args = {}
-                if preserve:
+                if not preserve:
+                    s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
+                        s3_key, target_bucket, s3.client))
+                    # remove the progress bar
+                    sys.stdout.write('\033[2K\033[1G')
+                else:
                     s3.bucket_name = target_bucket
-                    s3_args = S3Args(s3)
-                    copy_object_args = get_copy_args(
-                        s3, s3_key, s3_args, extra_args=True)
-
-                s3.client.copy(copy_source, dest_bucket, dest_pathname, Callback=S3Progress(
-                    s3_key, target_bucket, s3.client), ExtraArgs=copy_object_args)
-                # remove the progress bar
-                sys.stdout.write('\033[2K\033[1G')
+                    copy_and_preserve(s3, target_bucket, s3_key,
+                                      dest_bucket, dest_pathname)
 
     elif version:
         # set s3 attributes for getting destination key
@@ -131,16 +129,15 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': obj_version.get('Key'),
                     'VersionId': obj_version.get('VersionId')
                 }
-                copy_object_args = {}
-                if preserve:
+                if not preserve:
+                    s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
+                        'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')))
+                    # remove the progress bar
+                    sys.stdout.write('\033[2K\033[1G')
+                else:
                     s3.bucket_name = target_bucket
-                    s3_args = S3Args(s3)
-                    copy_object_args = get_copy_args(s3, obj_version.get(
-                        'Key'), s3_args, extra_args=True, version=obj_version.get('VersionId'))
-                s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
-                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')), ExtraArgs=copy_object_args)
-                # remove the progress bar
-                sys.stdout.write('\033[2K\033[1G')
+                    copy_and_preserve(s3, target_bucket, obj_version.get(
+                        'Key'), dest_bucket, s3_key, version=obj_version.get('VersionId'))
 
     else:
         # set the s3 instance name and path the destination bucket
@@ -160,16 +157,45 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Bucket': target_bucket,
                     'Key': target_path
                 }
-                copy_object_args = {}
-                if preserve:
+                if not preserve:
+                    s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
+                        target_path, target_bucket, s3.client))
+                    # remove the progress bar
+                    sys.stdout.write('\033[2K\033[1G')
+                else:
                     s3.bucket_name = target_bucket
-                    s3_args = S3Args(s3)
-                    copy_object_args = get_copy_args(
-                        s3, target_path, s3_args, extra_args=True)
-                s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
-                    target_path, target_bucket, s3.client), ExtraArgs=copy_object_args)
-                # remove the progress bar
-                sys.stdout.write('\033[2K\033[1G')
+                    copy_and_preserve(s3, target_bucket,
+                                      target_path, dest_bucket, s3_key)
+
+
+def copy_and_preserve(s3, target_bucket, target_path, dest_bucket, dest_path, version=None):
+    """copy object to other buckets but preserve details
+
+    Args:
+        s3: object, S3 instance, make sure to set s3.bucket_name
+        target_bucket: string, bucket which contains the file to move
+        target_path: string, the file to move
+        dest_bucket: string, destination bucket
+        dest_path: string, destination file path
+        version: string, versionId of the object
+    Returns:
+        None
+    Exceptions:
+        AccessDenied: when moving encrypted object with kms over regions
+    """
+    copy_source = {
+        'Bucket': target_bucket,
+        'Key': target_path
+    }
+    if version:
+        copy_source['VersionId'] = version
+    s3_args = S3Args(s3)
+    copy_object_args = get_copy_args(
+        s3, target_path, s3_args, extra_args=True, version=version)
+    s3.client.copy(copy_source, dest_bucket, dest_path, Callback=S3Progress(
+        target_path, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
+    # remove the progress bar
+    sys.stdout.write('\033[2K\033[1G')
 
 
 def process_path_param(bucket, s3, search_folder, version=False):
