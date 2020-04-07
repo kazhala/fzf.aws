@@ -139,16 +139,13 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                         s3.client.put_object_acl(**grant_args)
 
             else:
-                try:
-                    for original_key, destination_key in file_list:
-                        print('update: s3://%s/%s' %
-                              (s3.bucket_name, original_key))
-                        # Note: this will create new version if version is enabled
-                        copy_object_args = get_copy_args(
-                            s3, original_key, s3_args)
-                        s3.client.copy_object(**copy_object_args)
-                except:
-                    print('Nothing to be updated')
+                for original_key, destination_key in file_list:
+                    print('update: s3://%s/%s' %
+                          (s3.bucket_name, original_key))
+                    # Note: this will create new version if version is enabled
+                    copy_object_args = get_copy_args(
+                        s3, original_key, s3_args)
+                    s3.client.copy_object(**copy_object_args)
 
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
@@ -217,9 +214,6 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                         s3.client.put_object_acl(**grant_args)
 
                 else:
-                    try:
-                        # Note: this will create new version if version is enabled
-                        copy_object_args = get_copy_args(s3, s3_key, s3_args)
-                        s3.client.copy_object(**copy_object_args)
-                    except:
-                        print('Nothing to be updated')
+                    # Note: this will create new version if version is enabled
+                    copy_object_args = get_copy_args(s3, s3_key, s3_args)
+                    s3.client.copy_object(**copy_object_args)

@@ -207,7 +207,8 @@ def copy_and_preserve(s3, target_bucket, target_path, dest_bucket, dest_path, ve
             error_name = re.match(error_pattern, str(e)).group(1)
             if error_name == 'AccessDenied':
                 print(80*'-')
-                print('You have ACL policies that enable public access but '
+                print(e)
+                print('You may have ACL policies that enable public access but '
                       'the destination bucket is blocking all public access, ' +
                       "you need to either uncheck 'block all public access' or update your object ACL settings " +
                       "or try again without the -p flag or continue without preserving the ACL")
