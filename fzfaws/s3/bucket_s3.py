@@ -4,6 +4,8 @@ contains the main function for moving object between buckets
 """
 import os
 import sys
+import re
+from botocore.exceptions import ClientError
 from fzfaws.s3.s3 import S3
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
@@ -181,7 +183,7 @@ def copy_and_preserve(s3, target_bucket, target_path, dest_bucket, dest_path, ve
     Returns:
         None
     Exceptions:
-        AccessDenied: when moving encrypted object with kms over regions
+        ClientError: when moving encrypted object with kms over regions
     """
     copy_source = {
         'Bucket': target_bucket,
@@ -192,10 +194,35 @@ def copy_and_preserve(s3, target_bucket, target_path, dest_bucket, dest_path, ve
     s3_args = S3Args(s3)
     copy_object_args = get_copy_args(
         s3, target_path, s3_args, extra_args=True, version=version)
-    s3.client.copy(copy_source, dest_bucket, dest_path, Callback=S3Progress(
-        target_path, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
-    # remove the progress bar
-    sys.stdout.write('\033[2K\033[1G')
+
+    while True:
+        try:
+            s3.client.copy(copy_source, dest_bucket, dest_path, Callback=S3Progress(
+                target_path, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
+            # remove the progress bar
+            sys.stdout.write('\033[2K\033[1G')
+            break
+        except ClientError as e:
+            error_pattern = r'^.*\((.*)\).*$'
+            error_name = re.match(error_pattern, str(e)).group(1)
+            if error_name == 'AccessDenied':
+                print(80*'-')
+                print('You have ACL policies that enable public access but '
+                      'the destination bucket is blocking all public access, ' +
+                      "you need to either uncheck 'block all public access' or update your object ACL settings " +
+                      "or try again without the -p flag or continue without preserving the ACL")
+                if not get_confirmation('Continue without preserving ACL?'):
+                    raise
+                copy_object_args.pop('GrantFullControl', None)
+                copy_object_args.pop('GrantRead', None)
+                copy_object_args.pop('GrantReadACP', None)
+                copy_object_args.pop('GrantWriteACP', None)
+            # # handle when kms encrypt object move to a bucket in different region
+            elif error_name == 'KMS.NotFoundException':
+                copy_object_args['ServerSideEncryption'] = 'AES256'
+                copy_object_args.pop('SSEKMSKeyId', None)
+            else:
+                raise
 
 
 def process_path_param(bucket, s3, search_folder, version=False):
