@@ -109,6 +109,8 @@ def get_copy_args(s3, s3_key, s3_args, extra_args=False, version=None):
 
     if s3_args.encryption and s3_args.encryption == 'aws:kms':
         copy_object_args['SSEKMSKeyId'] = s3_args.kms_id
+    elif s3_args.encryption and s3_args.encryption != 'aws:kms':
+        pass
     elif not version and s3_obj.server_side_encryption and s3_obj.server_side_encryption == 'aws:kms':
         copy_object_args['SSEKMSKeyId'] = s3_obj.ssekms_key_id
     elif version and s3_obj.get('SSEKMSKeyId'):
