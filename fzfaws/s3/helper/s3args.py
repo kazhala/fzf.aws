@@ -277,7 +277,7 @@ class S3Args:
         if original:
             header += '\nOriginal: %s' % original
         fzf = Pyfzf()
-        fzf.append_fzf('None\n')
+        fzf.append_fzf('None (Use bucket default setting)\n')
         fzf.append_fzf('AES256\n')
         fzf.append_fzf('aws:kms\n')
         result = fzf.execute_fzf(empty_allow=True, print_col=1, header=header)

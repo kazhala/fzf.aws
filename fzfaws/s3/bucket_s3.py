@@ -103,8 +103,8 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                 }
                 copy_object_args = {}
                 if preserve:
-                    s3_args = S3Args(s3)
                     s3.bucket_name = target_bucket
+                    s3_args = S3Args(s3)
                     copy_object_args = get_copy_args(
                         s3, s3_key, s3_args, extra_args=True)
 
@@ -131,8 +131,14 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Key': obj_version.get('Key'),
                     'VersionId': obj_version.get('VersionId')
                 }
+                copy_object_args = {}
+                if preserve:
+                    s3.bucket_name = target_bucket
+                    s3_args = S3Args(s3)
+                    copy_object_args = get_copy_args(s3, obj_version.get(
+                        'Key'), s3_args, extra_args=True, version=obj_version.get('VersionId'))
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(obj_version.get(
-                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')))
+                    'Key'), target_bucket, s3.client, version_id=obj_version.get('VersionId')), ExtraArgs=copy_object_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
@@ -154,8 +160,14 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                     'Bucket': target_bucket,
                     'Key': target_path
                 }
+                copy_object_args = {}
+                if preserve:
+                    s3.bucket_name = target_bucket
+                    s3_args = S3Args(s3)
+                    copy_object_args = get_copy_args(
+                        s3, target_path, s3_args, extra_args=True)
                 s3.client.copy(copy_source, dest_bucket, s3_key, Callback=S3Progress(
-                    target_path, target_bucket, s3.client))
+                    target_path, target_bucket, s3.client), ExtraArgs=copy_object_args)
                 # remove the progress bar
                 sys.stdout.write('\033[2K\033[1G')
 
