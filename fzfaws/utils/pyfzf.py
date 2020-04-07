@@ -146,7 +146,7 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
-            cmd_list = ['fzf', '--preview', 'cat {}']
+            cmd_list = ['fzf']
             cmd_list.append(
                 '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
             if header:
