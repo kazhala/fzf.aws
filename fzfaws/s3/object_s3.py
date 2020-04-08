@@ -144,8 +144,15 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
                           (s3.bucket_name, original_key))
                     # Note: this will create new version if version is enabled
                     copy_object_args = get_copy_args(
-                        s3, original_key, s3_args)
-                    s3.client.copy_object(**copy_object_args)
+                        s3, original_key, s3_args, extra_args=True)
+                    copy_source = {
+                        'Bucket': s3.bucket_name,
+                        'Key': original_key
+                    }
+                    s3.client.copy(copy_source, s3.bucket_name, original_key, Callback=S3Progress(
+                        original_key, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
+                    # remove the progress bar
+                    sys.stdout.write('\033[2K\033[1G')
 
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
@@ -215,5 +222,13 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
 
                 else:
                     # Note: this will create new version if version is enabled
-                    copy_object_args = get_copy_args(s3, s3_key, s3_args)
-                    s3.client.copy_object(**copy_object_args)
+                    copy_object_args = get_copy_args(
+                        s3, s3_key, s3_args, extra_args=True)
+                    copy_source = {
+                        'Bucket': s3.bucket_name,
+                        'Key': s3_key
+                    }
+                    s3.client.copy(copy_source, s3.bucket_name, s3_key, Callback=S3Progress(
+                        s3_key, s3.bucket_name, s3.client), ExtraArgs=copy_object_args)
+                    # remove the progress bar
+                    sys.stdout.write('\033[2K\033[1G')

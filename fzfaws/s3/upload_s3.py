@@ -93,7 +93,6 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (item['relative'], item['bucket'], item['key']))
                 transfer = S3Transfer(s3.client)
                 # TODO: see bottom
-                transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
                 transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
                 transfer.upload_file(item['local_path'], item['bucket'], item['key'],
                                      callback=S3Progress(item['local_path']), extra_args=extra_args.extra_args)
@@ -113,12 +112,10 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
                       (filepath, s3.bucket_name, destination_key))
                 transfer = S3Transfer(s3.client)
 
-                # for some reason, S3Transfer raise error for the Key 'Tagging', not supported
-                # although it is supported in the documentation for upload_file
-                # below will work,
-                # TODO: change after pull request is merged
-                # https://github.com/boto/boto3/issues/1981
-                transfer.ALLOWED_UPLOAD_ARGS.append('Tagging')
+                # TODO: Require help, GrantWriteACP raise errors, ALLOWED_UPLOAD_ARGS only allow GrantWriteACL
+                # However, in all documentation, AWS is using GrantWriteACP not GrantWriteACL, even the read is GrantReadACP
+                # I've opened issue https://github.com/boto/s3transfer/issues/163
+                # doesn't seem like I'm going to get any response ¯\_(ツ)_/¯, but the hack below will work
                 transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
                 transfer.upload_file(filepath, s3.bucket_name, destination_key,
                                      callback=S3Progress(filepath), extra_args=extra_args.extra_args)
