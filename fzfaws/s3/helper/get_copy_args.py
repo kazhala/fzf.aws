@@ -49,35 +49,36 @@ def get_copy_args(s3, s3_key, s3_args, extra_args=False, version=None):
     permission_acp_read = []
     permission_acp_write = []
     permission_full = []
-    for grantee in s3_acl.grants if not version else s3_acl.get('Grants'):
-        if grantee.get('Permission') == 'READ':
-            if grantee['Grantee'].get('ID'):
-                permission_read.append(
-                    'id=' + grantee['Grantee']['ID'])
-            elif grantee['Grantee'].get('URI'):
-                permission_read.append(
-                    'uri=' + grantee['Grantee']['URI'])
-        elif grantee['Grantee'].get('Permission') == 'FULL_CONTROL':
-            if grantee['Grantee'].get('ID'):
-                permission_full.append(
-                    'id=' + grantee['Grantee']['ID'])
-            elif grantee['Grantee'].get('URI'):
-                permission_full.append(
-                    'uri=' + grantee['Grantee']['URI'])
-        elif grantee.get('Permission') == 'WRITE_ACP':
-            if grantee['Grantee'].get('ID'):
-                permission_acp_write.append(
-                    'id=' + grantee['Grantee']['ID'])
-            elif grantee['Grantee'].get('URI'):
-                permission_acp_write.append(
-                    'uri=' + grantee['Grantee']['URI'])
-        elif grantee.get('Permission') == 'READ_ACP':
-            if grantee['Grantee'].get('ID'):
-                permission_acp_read.append(
-                    'id=' + grantee['Grantee']['ID'])
-            elif grantee['Grantee'].get('URI'):
-                permission_acp_read.append(
-                    'uri=' + grantee['Grantee']['URI'])
+    if check_acl_update(s3_args):
+        for grantee in s3_acl.grants if not version else s3_acl.get('Grants'):
+            if grantee.get('Permission') == 'READ':
+                if grantee['Grantee'].get('ID'):
+                    permission_read.append(
+                        'id=' + grantee['Grantee']['ID'])
+                elif grantee['Grantee'].get('URI'):
+                    permission_read.append(
+                        'uri=' + grantee['Grantee']['URI'])
+            elif grantee['Grantee'].get('Permission') == 'FULL_CONTROL':
+                if grantee['Grantee'].get('ID'):
+                    permission_full.append(
+                        'id=' + grantee['Grantee']['ID'])
+                elif grantee['Grantee'].get('URI'):
+                    permission_full.append(
+                        'uri=' + grantee['Grantee']['URI'])
+            elif grantee.get('Permission') == 'WRITE_ACP':
+                if grantee['Grantee'].get('ID'):
+                    permission_acp_write.append(
+                        'id=' + grantee['Grantee']['ID'])
+                elif grantee['Grantee'].get('URI'):
+                    permission_acp_write.append(
+                        'uri=' + grantee['Grantee']['URI'])
+            elif grantee.get('Permission') == 'READ_ACP':
+                if grantee['Grantee'].get('ID'):
+                    permission_acp_read.append(
+                        'id=' + grantee['Grantee']['ID'])
+                elif grantee['Grantee'].get('URI'):
+                    permission_acp_read.append(
+                        'uri=' + grantee['Grantee']['URI'])
 
     if not extra_args:
         copy_object_args = {
@@ -151,3 +152,15 @@ def get_copy_args(s3, s3_key, s3_args, extra_args=False, version=None):
             copy_object_args['GrantWriteACP'] = ','.join(
                 permission_acp_write)
     return copy_object_args
+
+
+def check_acl_update(s3_args):
+    """check if any acl is updated
+
+    If updated, don't preserve any other acl to have the same behavior as put_object_acl
+    Args:
+        s3_args: object, S3Args object
+    Return:
+        A boolean value indicating if the previous acl value should be preserved
+    """
+    return not s3_args.acl_full and not s3_args.acl_read and not s3_args.acl_acp_write and not s3_args.acl_acp_read
