@@ -8,7 +8,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.exclude_file import exclude_file
 
 
-def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False):
+def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False, deletemark=False):
     """delete file/directory on the selected s3 bucket
 
     Args:
@@ -21,6 +21,7 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
             only used for mfa and version enabled object
         version: bool, pick version/versions to delete
         allversion: bool, skip selection of version, delete all versions
+        deletemark: bool, only display files with deletemark
     Returns:
         None
     Raises:
@@ -42,7 +43,8 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
             s3.set_s3_path()
     else:
         if not s3.path_list:
-            s3.set_s3_object(version=version, multi_select=True)
+            s3.set_s3_object(version=version, multi_select=True,
+                             deletemark=deletemark)
 
     if recursive:
         if allversion:
@@ -50,7 +52,7 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
             # since walk_s3_folder doesn't provide access to deleted version object
             # delete_all_versions method will list all files including deleted versions or even delete marker
             file_list = find_all_version_files(
-                s3.client, s3.bucket_name, s3.bucket_path, [], exclude, include)
+                s3.client, s3.bucket_name, s3.bucket_path, [], exclude, include, deletemark)
             obj_versions = []
             # loop through all files and get their versions
             for file in file_list:
@@ -115,7 +117,7 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
                 )
 
 
-def find_all_version_files(client, bucket, path, file_list=[], exclude=[], include=[]):
+def find_all_version_files(client, bucket, path, file_list=[], exclude=[], include=[], deletemark=False):
     """find all files based on versions
 
     This method is able to find all files even deleted files or just delete marker left overs
@@ -128,6 +130,7 @@ def find_all_version_files(client, bucket, path, file_list=[], exclude=[], inclu
         file_list: list, the return file list
         exclude: list, list of pattern to exclude
         include: list, list of pattern to include after exclude
+        deletemark: bool, set to True if only want to find file with deletemark
     Returns:
         file_list: list, list of file names including deleted file names with delete marker remained
     """
@@ -138,13 +141,14 @@ def find_all_version_files(client, bucket, path, file_list=[], exclude=[], inclu
             for subdir in result.get('CommonPrefixes'):
                 file_list = find_all_version_files(client, bucket, subdir.get(
                     'Prefix'), file_list, exclude, include)
-        for file in result.get('Versions', []):
-            if exclude_file(exclude, include, file.get('Key')):
-                continue
-            if file.get('Key') in file_list:
-                continue
-            else:
-                file_list.append(file.get('Key'))
+        if not deletemark:
+            for file in result.get('Versions', []):
+                if exclude_file(exclude, include, file.get('Key')):
+                    continue
+                if file.get('Key') in file_list:
+                    continue
+                else:
+                    file_list.append(file.get('Key'))
         for file in result.get('DeleteMarkers', []):
             if exclude_file(exclude, include, file.get('Key')):
                 continue

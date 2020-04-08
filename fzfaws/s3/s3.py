@@ -121,7 +121,7 @@ class S3:
                 print('S3 file path is set to %s' %
                       (self.bucket_path if self.bucket_path else 'root'))
 
-    def set_s3_object(self, version=False, multi_select=False):
+    def set_s3_object(self, version=False, multi_select=False, deletemark=False):
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
@@ -133,6 +133,8 @@ class S3:
                 rather than list_objects so that user could still find the object even after
                 they deleted the object
             multi_select: bool, enable multi_select
+            deletemark: bool, only display object that has deletemark associated with
+                Only works with version=True
         """
         try:
             if not version:
@@ -150,11 +152,21 @@ class S3:
                 key_list = []
                 paginator = self.client.get_paginator('list_object_versions')
                 for result in paginator.paginate(Bucket=self.bucket_name):
-                    for version in result.get('Versions'):
-                        key_object = {'Key': version.get('Key')}
+                    for version in result.get('DeleteMarkers', []):
+                        key_object = {'Key': version.get(
+                            'Key'), 'Deleted': True}
                         if key_object not in key_list:
                             key_list.append(key_object)
-                fzf.process_list(key_list, 'Key')
+                    if not deletemark:
+                        for version in result.get('Versions', []):
+                            key_object = {'Key': version.get(
+                                'Key'), 'Deleted': False}
+                            if key_object not in key_list:
+                                key_list.append(key_object)
+                if key_list:
+                    fzf.process_list(key_list, 'Key', 'Deleted', gap=4)
+                else:
+                    raise
                 if multi_select:
                     self.path_list = fzf.execute_fzf(
                         print_col=-1, multi_select=True)
