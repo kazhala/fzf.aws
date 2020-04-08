@@ -118,6 +118,8 @@ def s3(raw_args):
                             help='delete a versioned object completely including all versions and delete markes')
     delete_cmd.add_argument('-d', '--deletemark', action='store_true', default=False,
                             help='only display and delete object with delete marker, used for cleanup all deleted unwanted object')
+    delete_cmd.add_argument('-c', '--clean', action='store_true', default=False,
+                            help='delete all versions recursivly except the current one, used for cleanup s3 bucket with all older versions')
 
     presign_cmd = subparsers.add_parser(
         'presign', description='generate presign url on the selected object based on your current profile permission')
@@ -193,7 +195,7 @@ def s3(raw_args):
         bucket = args.bucket[0] if args.bucket else None
         mfa = ' '.join(args.mfa)
         delete_s3(bucket, args.recursive, args.exclude,
-                  args.include, mfa, args.version, args.allversion, args.deletemark)
+                  args.include, mfa, args.version, args.allversion, args.deletemark, args.clean)
     elif args.subparser_name == 'presign':
         bucket = args.bucket[0] if args.bucket else None
         presign_s3(bucket, args.version, int(args.expires[0]))

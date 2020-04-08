@@ -176,13 +176,15 @@ class S3:
             print('Bucket is empty or no selection was made')
             exit()
 
-    def get_object_version(self, bucket=None, key=None, delete=False, select_all=False):
+    def get_object_version(self, bucket=None, key=None, delete=False, select_all=False, non_current=False):
         """list object versions through fzf
 
         Args:
             bucket: string, if not set, class instance's bucket_name would be used
             key: string, if not set, class instance's bucket_path would be used
             delete: bool, allow to choose delete marker
+            select_all: bool, skip fzf and pull all version into the return list
+            non_current: bool, only put non_current versions into the list
         Returns:
             selected_versions: list, list of dict the user selected
                 dict: {'Key': s3 key path, 'VersionId': s3 object id}
@@ -199,13 +201,14 @@ class S3:
             paginator = self.client.get_paginator('list_object_versions')
             for result in paginator.paginate(Bucket=bucket, Prefix=key):
                 for version in result.get('Versions', []):
-                    version_list.append({
-                        'VersionId': version.get('VersionId'),
-                        'Key': version.get('Key'),
-                        'IsLatest': version.get('IsLatest'),
-                        'DeleteMarker': False,
-                        'LastModified': version.get('LastModified'),
-                    })
+                    if (non_current and not version.get('IsLatest')) or not non_current:
+                        version_list.append({
+                            'VersionId': version.get('VersionId'),
+                            'Key': version.get('Key'),
+                            'IsLatest': version.get('IsLatest'),
+                            'DeleteMarker': False,
+                            'LastModified': version.get('LastModified'),
+                        })
                 if delete:
                     for marker in result.get('DeleteMarkers', []):
                         version_list.append({

@@ -8,7 +8,7 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.exclude_file import exclude_file
 
 
-def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False, deletemark=False):
+def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False, deletemark=False, clean=False):
     """delete file/directory on the selected s3 bucket
 
     Args:
@@ -22,6 +22,7 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
         version: bool, pick version/versions to delete
         allversion: bool, skip selection of version, delete all versions
         deletemark: bool, only display files with deletemark
+        clean: bool, recursivly delete all olderversions but leave the current version
     Returns:
         None
     Raises:
@@ -32,8 +33,15 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
 
     s3 = S3()
 
+    if deletemark:
+        version = True
     if allversion:
         version = True
+        recursive = True
+    if clean:
+        version = True
+        allversion = True
+        recursive = True
 
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
@@ -57,10 +65,10 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
             # loop through all files and get their versions
             for file in file_list:
                 obj_versions.extend(s3.get_object_version(
-                    key=file, delete=True, select_all=True))
-                print('(dryrun) delete: s3://%s/%s and all versions' %
-                      (s3.bucket_name, file))
-            if get_confirmation('Delete all files and all of their versions?'):
+                    key=file, delete=True, select_all=True, non_current=clean))
+                print('(dryrun) delete: s3://%s/%s and all %s' %
+                      (s3.bucket_name, file, 'versions' if not clean else 'non-current versions'))
+            if get_confirmation('Delete %s?' % ('all of their versions' if not clean else 'all non-current versions')):
                 for obj_version in obj_versions:
                     print('delete: s3://%s/%s with version %s' %
                           (s3.bucket_name, obj_version.get('Key'), obj_version.get('VersionId')))
