@@ -6,13 +6,14 @@ import json
 from fzfaws.s3.s3 import S3
 
 
-def ls_s3(bucket=False, version=False):
+def ls_s3(bucket=False, version=False, deletemark=False):
     """list files and display information on the selected file
 
     List files with version by specifying the -v flag
     Args:
         bucket: bool, display bucket details instead of object details
         version: bool, determine if version should also be displayed
+        deletemark: bool, only list file with deletemark associated
     Returns:
         None
     Exceptions:
@@ -22,8 +23,14 @@ def ls_s3(bucket=False, version=False):
     """
     s3 = S3()
     s3.set_s3_bucket()
+    if deletemark:
+        version = True
     if not bucket:
-        s3.set_s3_object(multi_select=True, version=version)
+        s3.set_s3_object(multi_select=True, version=version,
+                         deletemark=deletemark)
+
+    if version:
+        obj_versions = s3.get_object_version()
 
     if bucket:
         response = {}
@@ -56,9 +63,34 @@ def ls_s3(bucket=False, version=False):
         print(80*'-')
         print('s3://%s' % s3.bucket_name)
         print(json.dumps(response, indent=4, default=str))
+        exit()
 
-    if version:
-        pass
+    elif version:
+        for obj_version in obj_versions:
+            response = s3.client.head_object(
+                Bucket=s3.bucket_name,
+                Key=obj_version.get('Key'),
+                VersionId=obj_version.get('VersionId')
+            )
+            tags = s3.client.get_object_tagging(
+                Bucket=s3.bucket_name,
+                Key=obj_version.get('Key'),
+                VersionId=obj_version.get('VersionId')
+            )
+            acls = s3.client.get_object_acl(
+                Bucket=s3.bucket_name,
+                Key=obj_version.get('Key'),
+                VersionId=obj_version.get('VersionId')
+            )
+            response.pop('ResponseMetadata', None)
+            response['Tags'] = tags.get('TagSet')
+            response['Owner'] = acls.get('Owner')
+            response['Grants'] = acls.get('Grants')
+            print(80*'-')
+            print('s3://%s/%s versioned %s' % (s3.bucket_name,
+                                               obj_version.get('Key'), obj_version.get('VersionId')))
+            print(json.dumps(response, indent=4, default=str))
+
     else:
         for s3_key in s3.path_list:
             response = s3.client.head_object(
