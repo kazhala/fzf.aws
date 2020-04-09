@@ -153,18 +153,16 @@ class S3:
                 paginator = self.client.get_paginator('list_object_versions')
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     for version in result.get('DeleteMarkers', []):
-                        key_object = {'Key': version.get(
-                            'Key'), 'Deleted': True}
+                        key_object = {'Key': version.get('Key')}
                         if key_object not in key_list:
                             key_list.append(key_object)
                     if not deletemark:
                         for version in result.get('Versions', []):
-                            key_object = {'Key': version.get(
-                                'Key'), 'Deleted': False}
+                            key_object = {'Key': version.get('Key')}
                             if key_object not in key_list:
                                 key_list.append(key_object)
                 if key_list:
-                    fzf.process_list(key_list, 'Key', 'Deleted', gap=4)
+                    fzf.process_list(key_list, 'Key', gap=4)
                 else:
                     raise
                 if multi_select:
