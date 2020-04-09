@@ -13,6 +13,7 @@ from fzfaws.s3.bucket_s3 import bucket_s3
 from fzfaws.s3.delete_s3 import delete_s3
 from fzfaws.s3.presign_s3 import presign_s3
 from fzfaws.s3.object_s3 import object_s3
+from fzfaws.s3.ls_s3 import ls_s3
 
 
 def s3(raw_args):
@@ -157,6 +158,13 @@ def s3(raw_args):
                             help='update encryption method of the selected object')
     object_cmd.add_argument('-A', '--ACL', action='store_true', default=False,
                             help='update acl method of the selected object')
+
+    ls_cmd = subparsers.add_parser(
+        'ls', description='display details about selected object')
+    ls_cmd.add_argument('-b', '--bucket', action='store_true', default=False,
+                        help='list bucket and display bucket setting')
+    ls_cmd.add_argument('-v', '--version', action='store_true', default=False,
+                        help='list file versions of the selected files')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -203,3 +211,5 @@ def s3(raw_args):
         bucket = args.bucket[0] if args.bucket else None
         object_s3(bucket, args.recursive, args.version, args.allversion,
                   args.exclude, args.include, args.name, args.storage, args.encryption, args.meta, args.tag, args.ACL)
+    elif args.subparser_name == 'ls':
+        ls_s3(args.bucket, args.version)
