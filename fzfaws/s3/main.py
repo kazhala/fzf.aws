@@ -170,7 +170,8 @@ def s3(raw_args):
     args = parser.parse_args(raw_args)
 
     if not raw_args:
-        available_commands = ['upload', 'download', 'bucket', 'delete']
+        available_commands = ['upload', 'download',
+                              'bucket', 'delete', 'object', 'ls']
         fzf = Pyfzf()
         for command in available_commands:
             fzf.append_fzf(command)
@@ -185,6 +186,10 @@ def s3(raw_args):
             bucket_cmd.print_help()
         elif selected_command == 'delete':
             delete_cmd.print_help()
+        elif selected_command == 'object':
+            object_cmd.print_help()
+        elif selected_command == 'ls':
+            ls_cmd.print_help()
         exit()
 
     if args.subparser_name == 'upload':
