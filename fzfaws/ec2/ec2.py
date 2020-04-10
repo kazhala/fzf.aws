@@ -22,7 +22,12 @@ class EC2(BaseSession):
     """
 
     def __init__(self, region=None, profile=None):
-        """region is limited due to ec2 not avalilable in all region"""
+        """region is limited due to ec2 not avalilable in all region
+
+        Args:
+            region: string or bool, use a different region for this operation
+            profile: string or bool, use a different profile for this operation
+        """
         super().__init__(profile=profile, region=region, service_name='ec2')
         self.instance = None
         self.instance_list = []
