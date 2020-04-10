@@ -79,10 +79,13 @@ def ec2(raw_args):
 
     terminate_cmd = subparsers.add_parser(
         'terminate', description='Terminate the selected instance/instances')
-    terminate_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                               help='select a different region rather than using the default region')
     terminate_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                                help='pause the program and wait for instance to be terminated')
+    terminate_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                               help='use a different profile, set the flag without argument to use fzf and select a profile')
+    terminate_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                               help='use a different region, set the flag without argument to use fzf and select a region')
+
     ls_cmd = subparsers.add_parser(
         'ls', description='print the information of the selected instance')
     ls_cmd.add_argument('-r', '--region', action='store_true', default=False,
@@ -129,7 +132,7 @@ def ec2(raw_args):
     elif args.subparser_name == 'reboot':
         reboot_instance(args.profile, args.region)
     elif args.subparser_name == 'terminate':
-        terminate_instance(args)
+        terminate_instance(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
         ec2 = EC2()
         if args.region:
