@@ -16,13 +16,14 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 
 
-def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
+def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
     glob pattern are handled first exclude list then will run the include list
 
     Args:
+        profile: bool or string, use a different profile for operation
         bucket: string, the bucket or bucket path for upload destination
             format: s3://bucketname or s3://bucketname/path/ or s3://bucketname/filename
         local_paths: list, list of local file to upload
@@ -42,7 +43,7 @@ def upload_s3(bucket=None, local_paths=[], recursive=False, hidden=False, root=F
         SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
 
-    s3 = S3()
+    s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()
