@@ -6,10 +6,11 @@ from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidParameterType
 
 
-def presign_s3(bucket=None, version=False, expires_in=3600):
+def presign_s3(profile=False, bucket=None, version=False, expires_in=3600):
     """get an object from s3 using fzf and generate presign url
 
     Args:
+        profile: string or bool, use a different profile for operation
         bucket: string, s3 path, if specified, skip fzf selection
         version: bool, whether to search for object version and generate url
         expires_in: number, the expiration period of the url
@@ -23,7 +24,7 @@ def presign_s3(bucket=None, version=False, expires_in=3600):
         NoSelectionMade: when fzf selection is empty
     """
 
-    s3 = S3()
+    s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()

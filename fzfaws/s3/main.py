@@ -138,6 +138,8 @@ def s3(raw_args):
                              help='generate presign url on a specific version of the object')
     presign_cmd.add_argument('-e', '--expires', nargs=1, action='store', default=[3600],
                              help='specify a expiration period in seconds, default is 3600 seconds')
+    presign_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                             help='use a different profile, set the flag without argument to use fzf and select a profile')
 
     object_cmd = subparsers.add_parser(
         'object', description='configure settings and properties of objects in S3')
@@ -225,7 +227,7 @@ def s3(raw_args):
                   args.include, mfa, args.version, args.allversion, args.deletemark, args.clean)
     elif args.subparser_name == 'presign':
         bucket = args.bucket[0] if args.bucket else None
-        presign_s3(bucket, args.version, int(args.expires[0]))
+        presign_s3(args.profile, bucket, args.version, int(args.expires[0]))
     elif args.subparser_name == 'object':
         bucket = args.bucket[0] if args.bucket else None
         object_s3(bucket, args.recursive, args.version, args.allversion,
