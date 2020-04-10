@@ -19,7 +19,6 @@ def terminate_instance(profile=False, region=False, wait=False):
     Exceptions:
         ClientError: boto3 client error
         NoSelectionMade: when required fzf selection did not get a selection
-        subprocess.CalledProcessError: when local file search did not get a file
     """
 
     ec2 = EC2(region, profile)

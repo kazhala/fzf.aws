@@ -13,6 +13,7 @@ from fzfaws.ec2.start_instance import start_instance
 from fzfaws.ec2.stop_instance import stop_instance
 from fzfaws.ec2.reboot_instance import reboot_instance
 from fzfaws.ec2.terminate_instance import terminate_instance
+from fzfaws.ec2.ls_instance import ls_instance
 
 
 def ec2(raw_args):
@@ -88,8 +89,10 @@ def ec2(raw_args):
 
     ls_cmd = subparsers.add_parser(
         'ls', description='print the information of the selected instance')
-    ls_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                        help='select a different region rather than using the default region')
+    ls_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                        help='use a different profile, set the flag without argument to use fzf and select a profile')
+    ls_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                        help='use a different region, set the flag without argument to use fzf and select a region')
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
@@ -134,8 +137,4 @@ def ec2(raw_args):
     elif args.subparser_name == 'terminate':
         terminate_instance(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
-        ec2 = EC2()
-        if args.region:
-            ec2.set_ec2_region()
-        ec2.set_ec2_instance(multi_select=False)
-        print(json.dumps(ec2.instance, indent=4, default=str))
+        ls_instance(args.profile, args.region)
