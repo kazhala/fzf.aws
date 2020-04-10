@@ -50,12 +50,15 @@ def ec2(raw_args):
 
     start_cmd = subparsers.add_parser(
         'start', description='start the selected instance/instances')
-    start_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                           help='select a different region rather than using the default region')
     start_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                            help='pause the program and wait for the instance to be started')
     start_cmd.add_argument('-W', '--check', action='store_true', default=False,
                            help='wait until all status check have passes')
+    start_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                           help='use a different profile, set the flag without argument to use fzf and select a profile')
+    start_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                           help='use a different region, set the flag without argument to use fzf and select a region')
+
     stop_cmd = subparsers.add_parser(
         'stop', description='stop the selected instance/instances')
     stop_cmd.add_argument('-r', '--region', action='store_true', default=False,
@@ -114,7 +117,7 @@ def ec2(raw_args):
         username = args.user[0]
         ssh_instance(args.profile, args.region, args.bastion, username)
     elif args.subparser_name == 'start':
-        start_instance(args)
+        start_instance(args.profile, args.region, args.wait, args.check)
     elif args.subparser_name == 'stop':
         stop_instance(args)
     elif args.subparser_name == 'reboot':
