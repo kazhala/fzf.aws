@@ -3,24 +3,27 @@
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
 import boto3
+from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_name_tag, search_dict_in_list
 
 
-class EC2:
+class EC2(BaseSession):
     """ec2 wrapper class
 
     handles operation for all ec2 related task with boto3.client('ec2')
 
     Attributes:
-        client: boto3 client
-        instane: dict, the selected instance from boto3 response
+        session: BaseSession.session, boto3 session
+        client: BaseSession.client, boto3 client
+        resource: BaseSession.resource, boto3 resource
+        instance_list: list, list of dict information about selected instances
+        instance_ids: list, list of string, ec2 ids
     """
 
     def __init__(self, region=None, profile=None):
         """region is limited due to ec2 not avalilable in all region"""
-        # TODO: handle cloudformation invalid regions
-        self.client = boto3.client('ec2')
+        super().__init__(profile=profile, region=region, service_name='ec2')
         self.instance = None
         self.instance_list = []
         self.instance_ids = []

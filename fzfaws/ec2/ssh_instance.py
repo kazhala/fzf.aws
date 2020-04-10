@@ -8,21 +8,22 @@ from fzfaws.ec2.ec2 import EC2
 home = os.path.expanduser('~')
 
 
-def ssh_instance(args):
+def ssh_instance(profile=False, region=False, bastion=False, username='ec2-user'):
     """function to handle ssh operation intot the ec2 instance
 
     connect to ec2 instance through subprocess calling ssh
     May use other package later, but for now, is sufficient enough
 
     Args:
-        args: argparse args
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        bastion: bool, whether to enable ssh forwarding
+        username: string, default=ec2-user, username to ssh
     Returns:
         None
     """
-    ec2 = EC2()
 
-    if args.region:
-        ec2.set_ec2_region()
+    ec2 = EC2(region, profile)
     ec2.set_ec2_instance(multi_select=False)
 
     if ec2.instance['Status'] == 'stopped':
@@ -37,10 +38,10 @@ def ssh_instance(args):
         # check for file existence
         if os.path.isfile(ssh_key):
             cmd_list = ['ssh']
-            if args.bastion:
+            if bastion:
                 cmd_list.append('-A')
             # if for custom VPC doesn't have public dns name, use public ip address
-            cmd_list.extend(['-i', ssh_key, '%s@%s' % (args.user[0], ec2.instance['PublicDnsName']
+            cmd_list.extend(['-i', ssh_key, '%s@%s' % (username, ec2.instance['PublicDnsName']
                                                        if ec2.instance['PublicDnsName'] != 'N/A' else ec2.instance['PublicIpAddress'])])
             ssh = subprocess.Popen(
                 cmd_list,

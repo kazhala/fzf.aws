@@ -37,14 +37,17 @@ def ec2(raw_args):
 
     ssh_cmd = subparsers.add_parser(
         'ssh', description='ssh into the selected instance')
-    ssh_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                         help='select a different region rather than using the default region')
     ssh_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
                          help='specify a different path than config for the location of the key pem file')
     ssh_cmd.add_argument('-u', '--user', nargs=1, action='store', default=['ec2-user'],
                          help='specify a different username used to ssh into the instance, default is ec2-user')
     ssh_cmd.add_argument('-A', '--bastion', action='store_true', default=False,
                          help='Add this flag when you are connecting to a bastion host using ssh forwarding')
+    ssh_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                         help='use a different profile, set the flag without argument to use fzf and select a profile')
+    ssh_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                         help='use a different region, set the flag without argument to use fzf and select a region')
+
     start_cmd = subparsers.add_parser(
         'start', description='start the selected instance/instances')
     start_cmd.add_argument('-r', '--region', action='store_true', default=False,
@@ -101,8 +104,15 @@ def ec2(raw_args):
             ls_cmd.print_help()
         exit()
 
+    if args.profile == None:
+        # when user set --profile flag but without argument
+        args.profile = True
+    if args.region == None:
+        args.region = True
+
     if args.subparser_name == 'ssh':
-        ssh_instance(args)
+        username = args.user[0]
+        ssh_instance(args.profile, args.region, args.bastion, username)
     elif args.subparser_name == 'start':
         start_instance(args)
     elif args.subparser_name == 'stop':
