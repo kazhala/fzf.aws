@@ -16,7 +16,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def download_s3(bucket=None, local_path=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False, version=False):
+def download_s3(profile=False, bucket=None, local_path=None, recursive=False, root=False, sync=False, exclude=[], include=[], hidden=False, version=False):
     """download files/'directory' from s3
 
     handles sync, download file and download recursive
@@ -24,8 +24,9 @@ def download_s3(bucket=None, local_path=None, recursive=False, root=False, sync=
     glob pattern are first handled through exclude list and then include list
 
     Args:
-        path: string, path of the s3 bucket if specified
-        local: string, local path if specified
+        profile: bool or string, use different profile for operation
+        bucket: string, path of the s3 bucket if specified
+        local_path: string, local path if specified
         recursive: bool, opeate recursivly
         root: bool, search file from root directory
         sync: bool, use sync operation
@@ -41,7 +42,7 @@ def download_s3(bucket=None, local_path=None, recursive=False, root=False, sync=
         SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
 
-    s3 = S3()
+    s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()

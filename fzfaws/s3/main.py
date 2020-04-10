@@ -82,6 +82,8 @@ def s3(raw_args):
                               help='when fd is installed, add this flag to include hidden files in the search')
     download_cmd.add_argument('-v', '--version', action='store_true', default=False,
                               help='choose a version of the object and download, Note: does not support recursive flag')
+    download_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                              help='use a different profile, set the flag without argument to use fzf and select a profile')
 
     bucket_cmd = subparsers.add_parser(
         'bucket', description='move file/directory between s3 buckets')
@@ -194,14 +196,18 @@ def s3(raw_args):
             ls_cmd.print_help()
         exit()
 
+    if args.profile == None:
+        # when user set --profile flag but without argument
+        args.profile = True
+
     if args.subparser_name == 'upload':
         bucket = args.bucket[0] if args.bucket else None
-        upload_s3(bucket, args.path, args.recursive, args.hidden,
+        upload_s3(args.profile, bucket, args.path, args.recursive, args.hidden,
                   args.root, args.sync, args.exclude, args.include, args.extra)
     elif args.subparser_name == 'download':
         bucket = args.bucket[0] if args.bucket else None
         local_path = args.path[0] if args.path else None
-        download_s3(bucket, local_path, args.recursive, args.root,
+        download_s3(args.profile, bucket, local_path, args.recursive, args.root,
                     args.sync, args.exclude, args.include, args.hidden, args.version)
     elif args.subparser_name == 'bucket':
         from_bucket = args.bucket[0] if args.bucket else None
