@@ -6,14 +6,13 @@ management if user decide to change region or use different profile
 import boto3
 import re
 import json
-# TODO: use session to list user profile
-from boto3.session import Session
+from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.helper.process_file import process_yaml_body, process_json_body
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 
-class S3:
+class S3(BaseSession):
     """s3 client wrapper class to interact with boto3.client('s3')
 
     handles operations directly related to boto3
@@ -28,9 +27,8 @@ class S3:
         path_list: list, list of s3 path, would be set when multi_select of set_s3_object is used
     """
 
-    def __init__(self):
-        self.client = boto3.client('s3')
-        self.resource = boto3.resource('s3')
+    def __init__(self, profile=None, region=None):
+        super().__init__(profile=profile, region=region, service_name='s3')
         self.bucket_name = None
         self.bucket_path = ''
         self.path_list = []
