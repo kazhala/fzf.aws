@@ -6,18 +6,17 @@ from fzfaws.ec2.ec2 import EC2
 from fzfaws.utils.util import get_confirmation
 
 
-def reboot_instance(args):
+def reboot_instance(profile=False, region=False):
     """reboot the selected instances
 
     Args:
-        args: subparser args
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
     Returns:
         None
     """
 
-    ec2 = EC2()
-    if args.region:
-        ec2.set_ec2_region()
+    ec2 = EC2(region, profile)
     ec2.set_ec2_instance()
 
     ec2.print_instance_details()

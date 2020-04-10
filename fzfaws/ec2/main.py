@@ -72,8 +72,11 @@ def ec2(raw_args):
 
     reboot_cmd = subparsers.add_parser(
         'reboot', description='reboot the selected instance/instances')
-    reboot_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                            help='select a different region rather than using the default region')
+    reboot_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                            help='use a different profile, set the flag without argument to use fzf and select a profile')
+    reboot_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                            help='use a different region, set the flag without argument to use fzf and select a region')
+
     terminate_cmd = subparsers.add_parser(
         'terminate', description='Terminate the selected instance/instances')
     terminate_cmd.add_argument('-r', '--region', action='store_true', default=False,
@@ -124,7 +127,7 @@ def ec2(raw_args):
     elif args.subparser_name == 'stop':
         stop_instance(args.profile, args.region, args.hibernate, args.wait)
     elif args.subparser_name == 'reboot':
-        reboot_instance(args)
+        reboot_instance(args.profile, args.region)
     elif args.subparser_name == 'terminate':
         terminate_instance(args)
     elif args.subparser_name == 'ls':
