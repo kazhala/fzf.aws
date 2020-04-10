@@ -61,12 +61,15 @@ def ec2(raw_args):
 
     stop_cmd = subparsers.add_parser(
         'stop', description='stop the selected instance/instances')
-    stop_cmd.add_argument('-r', '--region', action='store_true', default=False,
-                          help='select a different region rather than using the default region')
     stop_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                           help='pause the program and wait for the instance to be started')
     stop_cmd.add_argument('-H', '--hibernate', action='store_true', default=False,
                           help='stop instance hibernate, note: will work only if your instance support hibernate stop')
+    stop_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                          help='use a different profile, set the flag without argument to use fzf and select a profile')
+    stop_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                          help='use a different region, set the flag without argument to use fzf and select a region')
+
     reboot_cmd = subparsers.add_parser(
         'reboot', description='reboot the selected instance/instances')
     reboot_cmd.add_argument('-r', '--region', action='store_true', default=False,
@@ -119,7 +122,7 @@ def ec2(raw_args):
     elif args.subparser_name == 'start':
         start_instance(args.profile, args.region, args.wait, args.check)
     elif args.subparser_name == 'stop':
-        stop_instance(args)
+        stop_instance(args.profile, args.region, args.hibernate, args.wait)
     elif args.subparser_name == 'reboot':
         reboot_instance(args)
     elif args.subparser_name == 'terminate':

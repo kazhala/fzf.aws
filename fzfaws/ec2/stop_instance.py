@@ -7,18 +7,19 @@ from fzfaws.ec2.ec2 import EC2
 from fzfaws.utils.util import get_confirmation
 
 
-def stop_instance(args):
+def stop_instance(profile=False, region=False, hibernate=False, wait=False):
     """stop the selected instance
 
     Args:
-        args: subparser args
+        profile: bool or string, use different profile for this operation
+        region: bool or string, use different region for this operation
+        hibernate: bool, stop instance hibernate, Note: instance doesn't support hibernate will raise error
+        wait: bool, pause the function and wait for instance to be stopped
     Returns:
         None
     """
-    ec2 = EC2()
 
-    if args.region:
-        ec2.set_ec2_region()
+    ec2 = EC2(region, profile)
     ec2.set_ec2_instance()
 
     ec2.print_instance_details()
@@ -26,14 +27,14 @@ def stop_instance(args):
         print('Stopping instance now..')
         response = ec2.client.stop_instances(
             InstanceIds=ec2.instance_ids,
-            Hibernate=args.hibernate
+            Hibernate=hibernate
         )
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
         print(80*'-')
         print('Instance stop initiated')
 
-        if args.wait:
+        if wait:
             print('Wating for instance to be stopped')
             ec2.wait('instance_stopped')
             print('Instance stopped')
