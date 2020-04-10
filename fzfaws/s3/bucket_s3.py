@@ -15,13 +15,14 @@ from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.s3.helper.get_copy_args import get_copy_args
 
 
-def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, preserve=False):
+def bucket_s3(profile=False, from_bucket=None, to_bucket=None, recursive=False, sync=False, exclude=[], include=[], version=False, preserve=False):
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
     Handle glob pattern through exclude list first than it will process the include to explicit include files
 
     Args:
+        profile: string or bool, use a different profile for operation
         from_bucket: string, target bucket path
         to_bucket: string, destination bucket path
         recursive: bool, whether to copy entire folder or just file
@@ -37,7 +38,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         NoSelectionMade: when the required fzf selection did not receive any result
     """
 
-    s3 = S3()
+    s3 = S3(profile)
 
     # initialise variables to avoid directly using s3 instance since processing 2 buckets
     target_bucket = None
@@ -61,14 +62,14 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
                 to_bucket, s3, True)
         else:
             s3.set_s3_bucket(
-                header='Set the destination bucket where the file should be moved')
+                header='Set the destination bucket where the file should be transfered')
             s3.set_s3_path()
             dest_bucket = s3.bucket_name
             dest_path = s3.bucket_path
 
     else:
         s3.set_s3_bucket(
-            header='Set the target bucket which contains the file to move')
+            header='Set the target bucket which contains the file to transfer')
         target_bucket = s3.bucket_name
         if search_folder:
             s3.set_s3_path()
@@ -84,7 +85,7 @@ def bucket_s3(from_bucket=None, to_bucket=None, recursive=False, sync=False, exc
         s3.bucket_name = None
         s3.bucket_path = ''
         s3.set_s3_bucket(
-            header='Set the destination bucket where the file should be moved')
+            header='Set the destination bucket where the file should be transfered')
         s3.set_s3_path()
         dest_bucket = s3.bucket_name
         dest_path = s3.bucket_path
