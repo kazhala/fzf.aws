@@ -168,6 +168,8 @@ def s3(raw_args):
                             help='update encryption method of the selected object')
     object_cmd.add_argument('-A', '--ACL', action='store_true', default=False,
                             help='update acl method of the selected object')
+    object_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                            help='use a different profile, set the flag without argument to use fzf and select a profile')
 
     ls_cmd = subparsers.add_parser(
         'ls', description='display details about selected object')
@@ -177,6 +179,8 @@ def s3(raw_args):
                         help='list file versions of the selected files')
     ls_cmd.add_argument('-d', '--deletemark', action='store_true', default=False,
                         help='only list file with delete marker associated')
+    ls_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                        help='use a different profile, set the flag without argument to use fzf and select a profile')
     args = parser.parse_args(raw_args)
 
     if not raw_args:
@@ -230,7 +234,7 @@ def s3(raw_args):
         presign_s3(args.profile, bucket, args.version, int(args.expires[0]))
     elif args.subparser_name == 'object':
         bucket = args.bucket[0] if args.bucket else None
-        object_s3(bucket, args.recursive, args.version, args.allversion,
+        object_s3(args.profile, bucket, args.recursive, args.version, args.allversion,
                   args.exclude, args.include, args.name, args.storage, args.encryption, args.meta, args.tag, args.ACL)
     elif args.subparser_name == 'ls':
-        ls_s3(args.bucket, args.version, args.deletemark)
+        ls_s3(args.profile, args.bucket, args.version, args.deletemark)

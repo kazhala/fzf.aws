@@ -6,11 +6,12 @@ import json
 from fzfaws.s3.s3 import S3
 
 
-def ls_s3(bucket=False, version=False, deletemark=False):
+def ls_s3(profile=False, bucket=False, version=False, deletemark=False):
     """list files and display information on the selected file
 
     List files with version by specifying the -v flag
     Args:
+        profile: string or bool, use a different profile for this operation
         bucket: bool, display bucket details instead of object details
         version: bool, determine if version should also be displayed
         deletemark: bool, only list file with deletemark associated
@@ -21,7 +22,8 @@ def ls_s3(bucket=False, version=False, deletemark=False):
         NoSelectionMade: when the required fzf selection is empty
         SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
     """
-    s3 = S3()
+
+    s3 = S3(profile)
     s3.set_s3_bucket()
     if deletemark:
         version = True

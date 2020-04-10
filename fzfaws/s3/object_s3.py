@@ -13,7 +13,7 @@ from fzfaws.s3.helper.get_copy_args import get_copy_args
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def object_s3(bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False, storage=False, encryption=False, metadata=False, tagging=False, acl=False):
+def object_s3(profile=False, bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False, storage=False, encryption=False, metadata=False, tagging=False, acl=False):
     """update selected object settings
 
     Display a menu based on recursive and version requirement
@@ -23,6 +23,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
         https://github.com/boto/boto3/issues/1981#issuecomment-560067088
 
     Args:
+        profile: string or bool, use a different profile for this operation
         bucket: string, the bucket or bucket path for upload destination
             format: bucketname or bucketname/path/ or bucketname/filename
         recursive: bool, change the settings recursivly
@@ -48,7 +49,7 @@ def object_s3(bucket=None, recursive=False, version=False, allversion=False, exc
     if allversion:
         version = True
 
-    s3 = S3()
+    s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()
