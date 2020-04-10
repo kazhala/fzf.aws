@@ -8,10 +8,11 @@ from fzfaws.utils.util import get_confirmation
 from fzfaws.s3.helper.exclude_file import exclude_file
 
 
-def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False, deletemark=False, clean=False):
+def delete_s3(profile=False, bucket=None, recursive=False, exclude=[], include=[], mfa='', version=False, allversion=False, deletemark=False, clean=False):
     """delete file/directory on the selected s3 bucket
 
     Args:
+        profile: string or bool, use a different profile for operation
         bucket: string, s3 bucket path, specify to skip bucket selection
             format: bucket/pathname or just bucket/
         recursive: bool, operate recursivly, set to true when deleting folders
@@ -31,7 +32,7 @@ def delete_s3(bucket=None, recursive=False, exclude=[], include=[], mfa='', vers
         NoSelectionMade: when the required fzf selection did not receive any result
     """
 
-    s3 = S3()
+    s3 = S3(profile)
 
     if deletemark:
         version = True
