@@ -107,7 +107,7 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
     print('Stack creation initiated')
 
     if wait:
-        print("Waiting for stack to be ready...")
         cloudformation.stack_name = stack_name
-        cloudformation.wait('stack_create_complete')
-        print('Stack create complete')
+        cloudformation.wait('stack_create_complete',
+                            'Waiting for stack to be ready..')
+        print('Stack created')

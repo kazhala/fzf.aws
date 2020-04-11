@@ -5,6 +5,7 @@ and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
 import boto3
+import sys
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list
@@ -65,21 +66,27 @@ class Cloudformation(BaseSession):
             None
             will pause the program until finish or error raised
         """
-        spinner = Spinner(message=message)
-        # spinner is a child thread
-        spinner.start()
-        waiter = self.client.get_waiter(waiter_name)
-        waiter.wait(
-            StackName=self.stack_name,
-            WaiterConfig={
-                'Delay': delay,
-                'MaxAttempts': attempts
-            },
-            **kwargs
-        )
-        spinner.stop()
-        # join back the thread to main thread
-        spinner.join()
+        try:
+            spinner = Spinner(message=message)
+            # spinner is a child thread
+            spinner.start()
+            waiter = self.client.get_waiter(waiter_name)
+            waiter.wait(
+                StackName=self.stack_name,
+                WaiterConfig={
+                    'Delay': delay,
+                    'MaxAttempts': attempts
+                },
+                **kwargs
+            )
+            spinner.stop()
+            # join back the thread to main thread
+            spinner.join()
+        except (KeyboardInterrupt, SystemExit):
+            spinner.stop()
+            spinner.join()
+            print('Exit')
+            sys.exit()
 
     def execute_with_capabilities(self, capabilities=False, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
