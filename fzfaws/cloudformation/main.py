@@ -58,16 +58,18 @@ def cloudformation(raw_args):
 
     create_cmd = subparsers.add_parser(
         'create', description='create a new stack')
-    create_cmd.add_argument('-R', '--root', action='store_true', default=False,
+    create_cmd.add_argument('-r', '--root', action='store_true', default=False,
                             help='search local file from root instead of current directory')
-    create_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
-                            help='specifie a path where the local file is stored')
-    create_cmd.add_argument('-l', '--local', action='store_true',
-                            default=False, help='upload local file')
+    create_cmd.add_argument('-l', '--local', nargs='?',
+                            action='store', default=False, help='upload local file')
     create_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for create complete signal, max wait time 60mins')
     create_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
                             help='Select capabilities to acknowledge during stack creation')
+    create_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                            help='use a different profile, set the flag without argument to use fzf and select a profile')
+    create_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                            help='use a different region, set the flag without argument to use fzf and select a region')
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete an existing stack')
@@ -137,7 +139,8 @@ def cloudformation(raw_args):
         args.local = True
 
     if args.subparser_name == 'create':
-        create_stack(args)
+        create_stack(args.profile, args.region, args.local,
+                     args.root, args.capabilities, args.wait)
     elif args.subparser_name == 'update':
         update_stack(args.profile, args.region, args.replace, args.tag,
                      args.local, args.root, args.capabilities, args.wait)

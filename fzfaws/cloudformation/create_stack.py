@@ -13,11 +13,16 @@ from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
 
 
-def create_stack(args):
+def create_stack(profile=False, region=False, local_path=False, root=False, capabilities=False, wait=False):
     """handle the creation of the cloudformation stack
 
     Args:
-        args: argparser args from main.py in cloudformation
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        local_path: string or bool, set local file path for upload
+        root: bool, search local file from root
+        capabilities: bool, added capabilities for cloudformation creation
+        wait: bool, pause the function and wait for completion
     Returns:
         None
     Raises:
@@ -26,17 +31,14 @@ def create_stack(args):
         SubprocessError: when the local file search received zero result
     """
 
-    cloudformation = Cloudformation()
+    cloudformation = Cloudformation(profile, region)
 
     # local flag specified
-    if args.local:
-        local_path = ''
-        # local path specified
-        if args.path:
-            local_path = args.path[0]
-        else:
+    if local_path:
+        if type(local_path) != str:
             fzf = Pyfzf()
-            local_path = fzf.get_local_file(args.root, cloudformation=True)
+            local_path = fzf.get_local_file(
+                search_from_root=root, cloudformation=True)
 
         # double check file type
         check_is_valid(local_path)
@@ -49,7 +51,7 @@ def create_stack(args):
         # get params
         if 'Parameters' in file_data['dictBody']:
             paramprocessor = ParamProcessor(
-                file_data['dictBody']['Parameters'])
+                cloudformation.profile, cloudformation.region, file_data['dictBody']['Parameters'])
             paramprocessor.process_stack_params()
             create_parameters = paramprocessor.processed_params
         else:
@@ -57,7 +59,7 @@ def create_stack(args):
         tags = get_tags()
 
         response = cloudformation.execute_with_capabilities(
-            args=args,
+            capabilities=capabilities,
             cloudformation_action=cloudformation.client.create_stack,
             StackName=stack_name,
             TemplateBody=file_data['body'],
@@ -67,7 +69,7 @@ def create_stack(args):
 
     # if no local file flag, get from s3
     else:
-        s3 = S3()
+        s3 = S3(cloudformation.profile, cloudformation.region)
         s3.set_s3_bucket()
         s3.set_s3_object()
         if is_yaml(s3.bucket_path):
@@ -83,14 +85,15 @@ def create_stack(args):
 
         file_data = s3.get_object_data(file_type)
         if 'Parameters' in file_data:
-            paramprocessor = ParamProcessor(file_data['Parameters'])
+            paramprocessor = ParamProcessor(
+                cloudformation.profile, cloudformation.region, file_data['Parameters'])
             paramprocessor.process_stack_params()
             create_parameters = paramprocessor.processed_params
         tags = get_tags()
 
         template_body_loacation = s3.get_object_url()
         response = cloudformation.execute_with_capabilities(
-            args=args,
+            capabilities=capabilities,
             cloudformation_action=cloudformation.client.create_stack,
             StackName=stack_name,
             TemplateURL=template_body_loacation,
@@ -103,7 +106,7 @@ def create_stack(args):
     print(80*'-')
     print('Stack creation initiated')
 
-    if args.wait:
+    if wait:
         print("Waiting for stack to be ready...")
         cloudformation.stack_name = stack_name
         cloudformation.wait('stack_create_complete')
