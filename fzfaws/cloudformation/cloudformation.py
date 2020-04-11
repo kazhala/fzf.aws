@@ -8,6 +8,7 @@ import boto3
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list
+from fzfaws.utils.spinner import Spinner
 
 
 class Cloudformation(BaseSession):
@@ -51,11 +52,12 @@ class Cloudformation(BaseSession):
                 result.get('StackResourceSummaries'), 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId')
         return fzf.execute_fzf(multi_select=True)
 
-    def wait(self, waiter_name, delay=15, attempts=240, **kwargs):
+    def wait(self, waiter_name, message=None, delay=15, attempts=240, **kwargs):
         """wait for the operation to be completed
 
         Args:
             waiter_name: string, name from boto3 waiter
+            message: string, loading message
             delay: number, how long between each attempt
             attempts: number, max attempts, usually 60mins, so 30 * 120
             **kwargs: rest of args for specific waiters like changeset waiter require ChangeSetName
@@ -63,6 +65,9 @@ class Cloudformation(BaseSession):
             None
             will pause the program until finish or error raised
         """
+        spinner = Spinner(message=message)
+        # spinner is a child thread
+        spinner.start()
         waiter = self.client.get_waiter(waiter_name)
         waiter.wait(
             StackName=self.stack_name,
@@ -72,6 +77,9 @@ class Cloudformation(BaseSession):
             },
             **kwargs
         )
+        spinner.stop()
+        # join back the thread to main thread
+        spinner.join()
 
     def execute_with_capabilities(self, capabilities=False, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled

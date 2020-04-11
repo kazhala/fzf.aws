@@ -183,6 +183,6 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
     print('Stack update initiated')
 
     if wait:
-        print('Wating for stack to be updated..')
-        cloudformation.wait('stack_update_complete')
-        print('Stack update complete')
+        cloudformation.wait('stack_update_complete',
+                            'Wating for stack to be updated..')
+        print('Stack update completed')
