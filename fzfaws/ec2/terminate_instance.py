@@ -21,7 +21,7 @@ def terminate_instance(profile=False, region=False, wait=False):
         NoSelectionMade: when required fzf selection did not get a selection
     """
 
-    ec2 = EC2(region, profile)
+    ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 
     ec2.print_instance_details()

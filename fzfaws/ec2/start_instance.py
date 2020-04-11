@@ -23,7 +23,7 @@ def start_instance(profile=False, region=False, wait=False, check=False):
         subprocess.CalledProcessError: when local file search did not get a file
     """
 
-    ec2 = EC2(region, profile)
+    ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 
     ec2.print_instance_details()

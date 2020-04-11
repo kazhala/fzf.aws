@@ -26,7 +26,7 @@ def ssh_instance(profile=False, region=False, bastion=False, username='ec2-user'
         NoSelectionMade: when required fzf selection did not get a selection
     """
 
-    ec2 = EC2(region, profile)
+    ec2 = EC2(profile, region)
     ec2.set_ec2_instance(multi_select=False)
 
     if ec2.instance['Status'] == 'stopped':

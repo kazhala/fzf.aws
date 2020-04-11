@@ -15,7 +15,8 @@ def ls_instance(profile=False, region=False):
         ClientError: boto3 client error
         NoSelectionMade: when required fzf selection did not get a selection
     """
-    ec2 = EC2(region, profile)
+
+    ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
     response = ec2.client.describe_instances(
         InstanceIds=ec2.instance_ids
