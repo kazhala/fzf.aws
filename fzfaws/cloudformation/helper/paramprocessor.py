@@ -5,6 +5,7 @@ from botocore.exceptions import ClientError
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list, check_dict_value_in_list, get_name_tag
 from fzfaws.ec2.ec2 import EC2
+from fzfaws.route53.route53 import Route53
 
 
 class ParamProcessor:
@@ -33,7 +34,7 @@ class ParamProcessor:
             region: string or bool, use a different region for this operation
         """
         self.ec2 = EC2(profile, region).client
-        self.route53 = boto3.client('route53')
+        self.route53 = Route53(profile, region).client
         self.params = params
         self.original_params = original_params
         self.processed_params = []
