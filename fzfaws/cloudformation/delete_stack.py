@@ -8,7 +8,7 @@ from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.cloudformation import Cloudformation
 
 
-def delete_stack(args):
+def delete_stack(profile=False, region=False, wait=False):
     """handle deltion of the stack
 
     Two situation, normal deletion and retained deletion.
@@ -17,15 +17,16 @@ def delete_stack(args):
     in order for deletion to be success.
 
     Args:
-        args: argparse args
-        cloudformation: instance of the Cloudformation class
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        wait: bool, pause the function and wait for stack delete complete
     Returns:
         None
     Raises:
         NoSelectionMade: whent he required fzf selection received zero selection
     """
 
-    cloudformation = Cloudformation()
+    cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
     logical_id_list = []
@@ -46,7 +47,7 @@ def delete_stack(args):
     print('Stack deletion initiated')
 
     # wait for completion
-    if args.wait:
-        print('Wating for stack to be deleted..')
-        cloudformation.wait('stack_delete_complete')
+    if wait:
+        cloudformation.wait('stack_delete_complete',
+                            'Wating for stack to be deleted..')
         print('Stack deleted')

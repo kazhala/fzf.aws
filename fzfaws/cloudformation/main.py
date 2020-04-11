@@ -75,6 +75,11 @@ def cloudformation(raw_args):
         'delete', description='delete an existing stack')
     delete_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for delete complete signal, max wait time 60mins')
+    delete_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                            help='use a different profile, set the flag without argument to use fzf and select a profile')
+    delete_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                            help='use a different region, set the flag without argument to use fzf and select a region')
+
     ls_cmd = subparsers.add_parser(
         'ls', description='list and print infomation of the selcted stack')
     drift_cmd = subparsers.add_parser(
@@ -135,7 +140,7 @@ def cloudformation(raw_args):
         args.profile = True
     if args.region == None:
         args.region = True
-    if args.local == None:
+    if hasattr(args, 'local') and args.local == None:
         args.local = True
 
     if args.subparser_name == 'create':
@@ -145,7 +150,7 @@ def cloudformation(raw_args):
         update_stack(args.profile, args.region, args.replace, args.tag,
                      args.local, args.root, args.capabilities, args.wait)
     elif args.subparser_name == 'delete':
-        delete_stack(args)
+        delete_stack(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
         cloudformation = Cloudformation()
         cloudformation.set_stack()
