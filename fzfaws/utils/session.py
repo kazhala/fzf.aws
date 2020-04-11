@@ -51,4 +51,8 @@ class BaseSession:
         self.session = Session(region_name=selected_region,
                                profile_name=selected_profile)
         self.client = self.session.client(service_name)
-        self.resource = self.session.resource(service_name)
+
+        # only certain service support resource
+        resources = self.session.get_available_resources()
+        if service_name in resources:
+            self.resource = self.session.resource(service_name)
