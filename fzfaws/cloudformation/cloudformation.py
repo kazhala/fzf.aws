@@ -65,6 +65,10 @@ class Cloudformation(BaseSession):
         Returns:
             None
             will pause the program until finish or error raised
+        Exceptions:
+            KeyboardInterrupt: when user ctrl-c stop the program
+            SystemExit: on system attempting to quit
+                The above exceptions are handled and correctly stop all threads
         """
         try:
             spinner = Spinner(message=message)
