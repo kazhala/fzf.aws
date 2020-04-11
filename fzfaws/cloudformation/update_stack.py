@@ -14,11 +14,20 @@ from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidFileType
 
 
-def update_stack(args):
+def update_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, dryrun=False):
     """handle the update of cloudformation stacks
 
     Args:
-        args: argparse args
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        replace: bool, replace current template for update
+        tagging: bool, update tags as well
+        local_path: string or bool, if True, use fzf to obtain local file. If string, skip fzf
+        root: bool, search from $HOME
+        capabilities: bool, execute_with_capabilities
+        wait: bool, pause the function and wait for updated to complate
+        dryrun: bool, instead of updating the stack, return the updated information
+            Used for changeset_stack() getting update information
     Returns:
         If is called from changeset_stack() then it will return a dict based on
         the arguments changeset_stack recieved
@@ -29,11 +38,11 @@ def update_stack(args):
         SubprocessError: when the local file search reciped empty result through fzf
     """
 
-    cloudformation = Cloudformation()
+    cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
     # check to use current template or replace current template
-    if not args.replace:
+    if not replace:
         print('Enter new parameter values, skip to use original value')
         updated_parameters = []
         if 'Parameters' in cloudformation.stack_details:
@@ -60,18 +69,18 @@ def update_stack(args):
                     })
 
         tags = cloudformation.stack_details['Tags']
-        if args.tag:
+        if tagging:
             tags = update_tags(tags)
             new_tags = get_tags(update=True)
             for new_tag in new_tags:
                 tags.append(new_tag)
 
         # return the data if this function is called through changeset_stack
-        if args.subparser_name == 'changeset':
+        if dryrun:
             return {'Parameters': updated_parameters, 'Tags': tags}
 
         response = cloudformation.execute_with_capabilities(
-            args=args,
+            capabilities=capabilities,
             cloudformation_action=cloudformation.client.update_stack,
             StackName=cloudformation.stack_name,
             UsePreviousTemplate=True,
@@ -82,13 +91,11 @@ def update_stack(args):
     else:
         # replace existing template
         # check if the new template should be from local
-        if args.local:
-            local_path = ''
-            if args.path:
-                local_path = args.path[0]
-            else:
+        if local_path:
+            if type(local_path) != str:
                 fzf = Pyfzf()
-                local_path = fzf.get_local_file(args.root, cloudformation=True)
+                local_path = fzf.get_local_file(
+                    search_from_root=root, cloudformation=True)
 
             # double check file type
             check_is_valid(local_path)
@@ -107,17 +114,17 @@ def update_stack(args):
                 updated_parameters = []
 
             tags = cloudformation.stack_details['Tags']
-            if args.tag:
+            if tagging:
                 tags = update_tags(tags)
                 new_tags = get_tags(update=True)
                 for new_tag in new_tags:
                     tags.append(new_tag)
 
-            if args.subparser_name == 'changeset':
+            if dryrun:
                 return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateBody': file_data['body']}
 
             response = cloudformation.execute_with_capabilities(
-                args=args,
+                capabilities=capabilities,
                 cloudformation_action=cloudformation.client.update_stack,
                 StackName=cloudformation.stack_name,
                 TemplateBody=file_data['body'],
@@ -128,7 +135,8 @@ def update_stack(args):
 
         # if no local file flag, get from s3
         else:
-            s3 = S3()
+            s3 = S3(profile=cloudformation.profile,
+                    region=cloudformation.region)
             s3.set_s3_bucket()
             s3.set_s3_object()
             if is_yaml(s3.bucket_path):
@@ -148,7 +156,7 @@ def update_stack(args):
                 updated_parameters = []
 
             tags = cloudformation.stack_details['Tags']
-            if args.tag:
+            if tagging:
                 tags = update_tags(tags)
                 new_tags = get_tags(update=True)
                 for new_tag in new_tags:
@@ -156,11 +164,11 @@ def update_stack(args):
 
             template_body_loacation = s3.get_object_url()
 
-            if args.subparser_name == 'changeset':
+            if dryrun:
                 return {'Parameters': updated_parameters, 'Tags': tags, 'TemplateURL': template_body_loacation}
 
             response = cloudformation.execute_with_capabilities(
-                args=args,
+                capabilities=capabilities,
                 cloudformation_action=cloudformation.client.update_stack,
                 StackName=cloudformation.stack_name,
                 TemplateURL=template_body_loacation,
@@ -174,7 +182,7 @@ def update_stack(args):
     print(80*'-')
     print('Stack update initiated')
 
-    if args.wait:
+    if wait:
         print('Wating for stack to be updated..')
         cloudformation.wait('stack_update_complete')
         print('Stack update complete')

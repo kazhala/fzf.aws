@@ -41,18 +41,20 @@ def cloudformation(raw_args):
         'update', description='update an existing stack')
     update_cmd.add_argument('-t', '--tag', action='store_true',
                             default=False, help='update the tag during update')
-    update_cmd.add_argument('-R', '--root', action='store_true', default=False,
+    update_cmd.add_argument('-r', '--root', action='store_true', default=False,
                             help='search local file from root instead of current directory')
-    update_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
-                            help='specifie a path where the local file is stored')
-    update_cmd.add_argument('-l', '--local', action='store_true',
-                            default=False, help='upload local file')
-    update_cmd.add_argument('-r', '--replace', action='store_true', default=False,
+    update_cmd.add_argument('-l', '--local', nargs='?',
+                            action='store', default=False, help='upload local file')
+    update_cmd.add_argument('-x', '--replace', action='store_true', default=False,
                             help='replace current template to update')
     update_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for update complete signal, max wait time 60mins')
     update_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
                             help='Select capabilities to acknowledge during stack update')
+    update_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                            help='use a different profile, set the flag without argument to use fzf and select a profile')
+    update_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                            help='use a different region, set the flag without argument to use fzf and select a region')
 
     create_cmd = subparsers.add_parser(
         'create', description='create a new stack')
@@ -126,10 +128,19 @@ def cloudformation(raw_args):
             changeset_cmd.print_help()
         exit()
 
+    if args.profile == None:
+        # when user set --profile flag but without argument
+        args.profile = True
+    if args.region == None:
+        args.region = True
+    if args.local == None:
+        args.local = True
+
     if args.subparser_name == 'create':
         create_stack(args)
     elif args.subparser_name == 'update':
-        update_stack(args)
+        update_stack(args.profile, args.region, args.replace, args.tag,
+                     args.local, args.root, args.capabilities, args.wait)
     elif args.subparser_name == 'delete':
         delete_stack(args)
     elif args.subparser_name == 'ls':

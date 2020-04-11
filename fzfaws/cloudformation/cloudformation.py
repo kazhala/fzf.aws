@@ -5,11 +5,12 @@ and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
 import boto3
+from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list
 
 
-class Cloudformation:
+class Cloudformation(BaseSession):
     """Cloudformation class to interact with boto3.client('cloudformaiton')
 
     handles operations directly related to boto3.client
@@ -20,8 +21,8 @@ class Cloudformation:
         stack_details: a dict containing response from boto3
     """
 
-    def __init__(self, region=None, profile=None):
-        self.client = boto3.client('cloudformation')
+    def __init__(self, profile=None, region=None):
+        super().__init__(profile=profile, region=region, service_name='cloudformation')
         self.stack_name = None
         self.stack_details = None
 
@@ -72,11 +73,11 @@ class Cloudformation:
             **kwargs
         )
 
-    def execute_with_capabilities(self, args, cloudformation_action, **kwargs):
+    def execute_with_capabilities(self, capabilities=False, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
 
         Args:
-            args: argparse args
+            capabilities: bool, execute with capabilities
             cloudformation_action: function, the cloudformation method to execute
             **kwargs: key ward args to use in the cloudformation_action
             example:
@@ -87,7 +88,7 @@ class Cloudformation:
            InsufficientCapabilitiesException: when the stack action require extra acknowledgement
         """
         try:
-            if not args.capabilities:
+            if not capabilities:
                 response = cloudformation_action(**kwargs)
             else:
                 response = cloudformation_action(
