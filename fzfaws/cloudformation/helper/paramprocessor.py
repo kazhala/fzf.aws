@@ -4,6 +4,7 @@ import re
 from botocore.exceptions import ClientError
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list, check_dict_value_in_list, get_name_tag
+from fzfaws.ec2.ec2 import EC2
 
 
 class ParamProcessor:
@@ -11,10 +12,27 @@ class ParamProcessor:
 
     utilizing fzf and boto3 to give better experience of entering params
     for cloudformation
+
+    Attributes:
+        ec2: object, a boto3 client init from EC2 class
+        route53: object a boto3 client init from Route53 class
+        params: dict, collection of parameter to process
+        original_params: dict, original_value of the params during update
+        processed_params: dict, process params thats ready to be consumed
+        _aws_specific_param: list, list of aws param that should be catched
+        _aws_specific_list_param: list, list of aws list param that should be catched
     """
 
-    def __init__(self, params, original_params=None, region=None, profile=None):
-        self.ec2 = boto3.client('ec2')
+    def __init__(self, profile=None, region=None, params=None, original_params=None):
+        """init the ParamProcessor
+
+        Args:
+            params: dict, collection of parameter to process
+            original_params: dict, original_value of the params during update
+            profile: string or bool, use a different profile for this operation
+            region: string or bool, use a different region for this operation
+        """
+        self.ec2 = EC2(profile, region).client
         self.route53 = boto3.client('route53')
         self.params = params
         self.original_params = original_params

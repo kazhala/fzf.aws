@@ -107,7 +107,7 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
             # process params
             if 'Parameters' in file_data['dictBody']:
                 paramprocessor = ParamProcessor(
-                    file_data['dictBody']['Parameters'], cloudformation.stack_details.get('Parameters'))
+                    cloudformation.profile, cloudformation.region, file_data['dictBody']['Parameters'], cloudformation.stack_details.get('Parameters'))
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:
@@ -149,7 +149,7 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
             file_data = s3.get_object_data(file_type)
             if 'Parameters' in file_data:
                 paramprocessor = ParamProcessor(
-                    file_data['Parameters'], cloudformation.stack_details.get('Parameters'))
+                    cloudformation.profile, cloudformation.region, file_data['Parameters'], cloudformation.stack_details.get('Parameters'))
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:
