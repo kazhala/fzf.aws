@@ -33,8 +33,8 @@ class ParamProcessor:
             profile: string or bool, use a different profile for this operation
             region: string or bool, use a different region for this operation
         """
-        self.ec2 = EC2(profile, region).client
-        self.route53 = Route53(profile, region).client
+        self.ec2 = EC2(profile, region)
+        self.route53 = Route53(profile, region)
         self.params = params
         self.original_params = original_params
         self.processed_params = []
@@ -184,24 +184,24 @@ class ParamProcessor:
 
         fzf = Pyfzf()
         if type_name == 'AWS::EC2::KeyPair::KeyName':
-            response = self.ec2.describe_key_pairs()
+            response = self.ec2.client.describe_key_pairs()
             response_list = response['KeyPairs']
             fzf.process_list(response_list, 'KeyName')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::SecurityGroup::Id':
-            response = self.ec2.describe_security_groups()
+            response = self.ec2.client.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response['SecurityGroups']:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupId', 'GroupName', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::AvailabilityZone::Name':
-            response = self.ec2.describe_availability_zones()
+            response = self.ec2.client.describe_availability_zones()
             response_list = response['AvailabilityZones']
             fzf.process_list(response_list, 'ZoneName')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Instance::Id':
-            response = self.ec2.describe_instances()
+            response = self.ec2.client.describe_instances()
             response_list = []
             for instance in response['Reservations']:
                 response_list.append({
@@ -211,14 +211,14 @@ class ParamProcessor:
             fzf.process_list(response_list, 'InstanceId', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::SecurityGroup::GroupName':
-            response = self.ec2.describe_security_groups()
+            response = self.ec2.client.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response['SecurityGroups']:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupName', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Subnet::Id':
-            response = self.ec2.describe_subnets()
+            response = self.ec2.client.describe_subnets()
             response_list = response['Subnets']
             for subnet in response['Subnets']:
                 subnet['Name'] = get_name_tag(subnet)
@@ -226,14 +226,14 @@ class ParamProcessor:
                              'AvailabilityZone', 'CidrBlock', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::Volume::Id':
-            response = self.ec2.describe_volumes()
+            response = self.ec2.client.describe_volumes()
             response_list = response['Volumes']
             for volume in response['Volumes']:
                 volume['Name'] = get_name_tag(volume)
             fzf.process_list(response_list, 'VolumeId', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::EC2::VPC::Id':
-            response = self.ec2.describe_vpcs()
+            response = self.ec2.client.describe_vpcs()
             response_list = response['Vpcs']
             for vpc in response['Vpcs']:
                 vpc['Name'] = get_name_tag(vpc)
@@ -241,12 +241,8 @@ class ParamProcessor:
                              'IsDefault', 'CidrBlock', 'Name')
             return fzf.execute_fzf(empty_allow=True)
         elif type_name == 'AWS::Route53::HostedZone::Id':
-            response = self.route53.list_hosted_zones()
-            response_list = self._process_hosted_zone(response['HostedZones'])
-            fzf.process_list(response_list, 'Id', 'Name')
-            return fzf.execute_fzf(empty_allow=True)
-
-    # handler if parameter type is a list type
+            self.route53.set_zone_id()
+            return self.route53.zone_id
 
     def _get_list_param_value(self, type_name):
         """handler if parameter type is a list type
@@ -261,12 +257,12 @@ class ParamProcessor:
 
         fzf = Pyfzf()
         if type_name == 'List<AWS::EC2::AvailabilityZone::Name>':
-            response = self.ec2.describe_availability_zones()
+            response = self.ec2.client.describe_availability_zones()
             response_list = response['AvailabilityZones']
             fzf.process_list(response_list, 'ZoneName')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Instance::Id>':
-            response = self.ec2.describe_instances()
+            response = self.ec2.client.describe_instances()
             raw_response_list = response['Reservations']
             response_list = []
             for item in raw_response_list:
@@ -275,21 +271,21 @@ class ParamProcessor:
             fzf.process_list(response_list, 'InstanceId', 'Name')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::SecurityGroup::GroupName>':
-            response = self.ec2.describe_security_groups()
+            response = self.ec2.client.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response_list:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupName')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::SecurityGroup::Id>':
-            response = self.ec2.describe_security_groups()
+            response = self.ec2.client.describe_security_groups()
             response_list = response['SecurityGroups']
             for sg in response_list:
                 sg['Name'] = get_name_tag(sg)
             fzf.process_list(response_list, 'GroupId', 'GroupName', 'Name')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Subnet::Id>':
-            response = self.ec2.describe_subnets()
+            response = self.ec2.client.describe_subnets()
             response_list = response['Subnets']
             for subnet in response_list:
                 subnet['Name'] = get_name_tag(subnet)
@@ -297,14 +293,14 @@ class ParamProcessor:
                              'AvailabilityZone', 'CidrBlock', 'Name')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::Volume::Id>':
-            response = self.ec2.describe_volumes()
+            response = self.ec2.client.describe_volumes()
             response_list = response['Volumes']
             for volume in response_list:
                 volume['Name'] = get_name_tag(volume)
             fzf.process_list(response_list, 'VolumeId', 'Name')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::EC2::VPC::Id>':
-            response = self.ec2.describe_vpcs()
+            response = self.ec2.client.describe_vpcs()
             response_list = response['Vpcs']
             for vpc in response_list:
                 vpc['Name'] = get_name_tag(vpc)
@@ -312,18 +308,5 @@ class ParamProcessor:
                              'IsDefault', 'CidrBlock', 'Name')
             return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == 'List<AWS::Route53::HostedZone::Id>':
-            response = self.route53.list_hosted_zones()
-            response_list = self._process_hosted_zone(response['HostedZones'])
-            fzf.process_list(response_list, 'Id', 'Name')
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
-
-    def _process_hosted_zone(self, hostedzone_list):
-        """process hostedzone as the response is not raw id"""
-        id_list = []
-        id_pattern = r'/hostedzone/(?P<id>.*)$'
-        for hosted_zone in hostedzone_list:
-            raw_zone_id = re.search(
-                id_pattern, hosted_zone['Id']).group('id')
-            id_list.append(
-                {'Id': raw_zone_id, 'Name': hosted_zone['Name']})
-        return id_list
+            self.route53.set_zone_id(multi_select=True)
+            return self.route53.zone_ids
