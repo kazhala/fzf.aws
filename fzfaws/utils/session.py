@@ -46,6 +46,8 @@ class BaseSession:
             selected_region = fzf.execute_fzf(empty_allow=True, print_col=1)
         elif region and type(region) == str:
             selected_region = region
+        self.profile = selected_profile
+        self.region = selected_region
         self.session = Session(region_name=selected_region,
                                profile_name=selected_profile)
         self.client = self.session.client(service_name)
