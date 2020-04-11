@@ -3,24 +3,28 @@
 detect drift status of the selected cloudformations stack
 """
 import json
+import sys
 import time
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.cloudformation import Cloudformation
+from fzfaws.utils.spinner import Spinner
 
 
-def drift_stack(args):
+def drift_stack(profile=False, region=False, info=False, select=False):
     """perform actions on stack drift
 
     Args:
-        args: argparser args
-        cloudformation: instance of the Cloudformation class
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        info: bool, display drift status instead of initiate a drift detection
+        select: bool, select individual resource and detect, othewise, it will perform stack level check
     Returns:
         None
     Raises:
         NoSelectionMade: when the required selection received empty result
     """
 
-    cloudformation = Cloudformation()
+    cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
     print(json.dumps(
@@ -32,13 +36,13 @@ def drift_stack(args):
     )
     response_list = response['StackResources']
 
-    if args.info:
+    if info:
         response = cloudformation.client.describe_stack_resource_drifts(
             StackName=cloudformation.stack_name,
         )
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
-    elif not args.select:
+    elif not select:
         response = cloudformation.client.detect_stack_drift(
             StackName=cloudformation.stack_name
         )
@@ -92,23 +96,32 @@ def wait_drift_result(cloudformation, drift_id):
     Returns:
         None
     """
-    print('Drift detection initiated')
-    print(f"DriftDetectionId: {drift_id}")
-    print('Wating for drift detection to complete..')
+    try:
+        print('Drift detection initiated')
+        print(f"DriftDetectionId: {drift_id}")
+        spinner = Spinner(message='Wating for drift detection to complete..')
 
-    while True:
-        time.sleep(5)
-        response = cloudformation.client.describe_stack_drift_detection_status(
-            StackDriftDetectionId=drift_id
-        )
-        if response['DetectionStatus'] != 'DETECTION_IN_PROGRESS':
-            break
-    response.pop('ResponseMetadata', None)
-    print(json.dumps(response, indent=4, default=str))
-    print(80*'-')
-    if response['DetectionStatus'] == 'DETECTION_COMPLETE':
-        print(f"StackDriftStatus: {response['StackDriftStatus']}")
-        print(
-            f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
-    else:
-        print('Drift detection failed')
+        spinner.start()
+        while True:
+            time.sleep(5)
+            response = cloudformation.client.describe_stack_drift_detection_status(
+                StackDriftDetectionId=drift_id
+            )
+            if response['DetectionStatus'] != 'DETECTION_IN_PROGRESS':
+                break
+        spinner.stop()
+        spinner.join()
+        response.pop('ResponseMetadata', None)
+        print(json.dumps(response, indent=4, default=str))
+        print(80*'-')
+        if response['DetectionStatus'] == 'DETECTION_COMPLETE':
+            print(f"StackDriftStatus: {response['StackDriftStatus']}")
+            print(
+                f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
+        else:
+            print('Drift detection failed')
+    except (KeyboardInterrupt, SystemExit):
+        spinner.stop()
+        spinner.join()
+        print('Exit')
+        sys.exit()

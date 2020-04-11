@@ -82,12 +82,17 @@ def cloudformation(raw_args):
 
     ls_cmd = subparsers.add_parser(
         'ls', description='list and print infomation of the selcted stack')
+
     drift_cmd = subparsers.add_parser(
         'drift', description='drift detection on the stack/resources')
     drift_cmd.add_argument('-i', '--info', action='store_true', default=False,
                            help='Check the current drift status')
     drift_cmd.add_argument('-s', '--select', action='store_true', default=False,
                            help='select individual resource or resources to detect drift')
+    drift_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                           help='use a different profile, set the flag without argument to use fzf and select a profile')
+    drift_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                           help='use a different region, set the flag without argument to use fzf and select a region')
 
     changeset_cmd = subparsers.add_parser(
         'changeset', description='create a change set for the selected stack')
@@ -156,6 +161,6 @@ def cloudformation(raw_args):
         cloudformation.set_stack()
         print(json.dumps(cloudformation.stack_details, indent=4, default=str))
     elif args.subparser_name == 'drift':
-        drift_stack(args)
+        drift_stack(args.profile, args.region, args.info, args.select)
     elif args.subparser_name == 'changeset':
         changeset_stack(args)

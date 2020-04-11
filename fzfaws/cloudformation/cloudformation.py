@@ -70,6 +70,7 @@ class Cloudformation(BaseSession):
             SystemExit: on system attempting to quit
                 The above exceptions are handled and correctly stop all threads
         """
+
         try:
             spinner = Spinner(message=message)
             # spinner is a child thread
