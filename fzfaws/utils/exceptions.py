@@ -6,11 +6,6 @@ class NoCommandFound(Exception):
     pass
 
 
-class NoSelectionMade(Exception):
-    """Exception to raise when there is no selection made through fzf"""
-    pass
-
-
 class NoNameEntered(Exception):
     """When there is no name specified"""
     pass
@@ -28,4 +23,14 @@ class InvalidFileType(Exception):
 
 class InvalidParameterType(Exception):
     """When the input parameter in not correct type"""
+    pass
+
+
+class EmptyList(Exception):
+    """The input list to fzf process list is empty"""
+    pass
+
+
+class NoSelectionMade(Exception):
+    """Exception to raise when there is no selection made through fzf"""
     pass

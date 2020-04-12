@@ -1,6 +1,6 @@
 import subprocess
 import os
-from fzfaws.utils.exceptions import NoSelectionMade
+from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
 
 
 class Pyfzf:
@@ -191,6 +191,8 @@ class Pyfzf:
             gap: number, gap between text
         Returns:
             A string which contains the value from response_list[key_name]
+        Exceptions:
+            EmptyList: when the input list resulted in empty result
         Example:
             list = [{'Name': 1, 'Mame': 2}, {'Name': 2, 'Mame': 3}]
             fzf.process_list(list, 'Name', 'Mame', gap=4)
@@ -203,3 +205,5 @@ class Pyfzf:
                 self.append_fzf(gap*' ')
                 self.append_fzf(f"{arg}: {item.get(arg)}")
             self.append_fzf('\n')
+        if not self.fzf_string:
+            raise EmptyList('Result list was empty, exiting..')
