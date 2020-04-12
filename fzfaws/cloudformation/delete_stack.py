@@ -33,7 +33,7 @@ def delete_stack(profile=False, region=False, wait=False):
     if cloudformation.stack_details['StackStatus'] == 'DELETE_FAILED':
         print(
             'The stack is in the failed state, specify any resource to skip during deletion')
-        logical_id_list = cloudformation.get_stack_resources()
+        logical_id_list = cloudformation.get_stack_resources(empty_allow=True)
 
     if not get_confirmation(
             f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"):

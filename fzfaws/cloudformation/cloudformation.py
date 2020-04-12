@@ -29,7 +29,11 @@ class Cloudformation(BaseSession):
         self.stack_details = None
 
     def set_stack(self):
-        """stores the selected stack into the instance"""
+        """stores the selected stack into the instance
+
+        Exceptions:
+            EmptyList: when there is no stack
+        """
         fzf = Pyfzf()
         stack_list = []
         paginator = self.client.get_paginator('describe_stacks')
@@ -41,17 +45,23 @@ class Cloudformation(BaseSession):
         self.stack_details = search_dict_in_list(
             self.stack_name, stack_list, 'StackName')
 
-    def get_stack_resources(self):
+    def get_stack_resources(self, empty_allow=False):
         """list all stack logical resources
 
         return the selected list of logical resources
+
+        Args:
+            empty_allow: bool, allow empty selection
         """
         fzf = Pyfzf()
         paginator = self.client.get_paginator('list_stack_resources')
         for result in paginator.paginate(StackName=self.stack_name):
+            for resource in result.get('StackResourceSummaries'):
+                resource['Drift'] = resource.get(
+                    'DriftInformation').get('StackResourceDriftStatus')
             fzf.process_list(
-                result.get('StackResourceSummaries'), 'LogicalResourceId', 'ResourceType', 'PhysicalResourceId')
-        return fzf.execute_fzf(multi_select=True)
+                result.get('StackResourceSummaries'), 'LogicalResourceId', 'ResourceType', 'Drift')
+        return fzf.execute_fzf(multi_select=True, empty_allow=empty_allow)
 
     def wait(self, waiter_name, message=None, delay=15, attempts=240, **kwargs):
         """wait for the operation to be completed
