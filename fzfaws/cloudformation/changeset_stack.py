@@ -7,6 +7,7 @@ from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.utils.exceptions import NoNameEntered
 from fzfaws.cloudformation.cloudformation import Cloudformation
+from fzfaws.utils.util import get_confirmation
 
 
 def describe_changes(cloudformation, changeset_name):
@@ -29,22 +30,31 @@ def describe_changes(cloudformation, changeset_name):
     print(json.dumps(response['Changes'], indent=4, default=str))
 
 
-def changeset_stack(args):
+def changeset_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, info=False, execute=False):
     """handle changeset actions
 
     Args:
-        args: argparse args
+        profile: string or bool, use a different profile for this operation
+        region: string or bool, use a different region for this operation
+        replace: bool, create changeset with replace template option
+        tagging: bool, set tags for new changeset
+        local_path: string or bool, use local template rather than s3
+        root: bool, search from root
+        capabilities: bool, execute with capabilities
+        wait: bool, pause the function and wait for changeset create complete
+        info: bool, display result of a changeset
+        execute: bool, execute the selected changeset
     Returns:
         None
     Raises:
         NoNameEntered: when the new changeset receive empty string for new name
     """
 
-    cloudformation = Cloudformation()
+    cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
     # if not creating new changeset
-    if args.info or args.execute:
+    if info or execute:
         fzf = Pyfzf()
         response = cloudformation.client.list_change_sets(
             StackName=cloudformation.stack_name
@@ -55,16 +65,19 @@ def changeset_stack(args):
                          'ExecutionStatus', 'Status', 'Description')
         selected_changeset = fzf.execute_fzf()
 
-        if args.info:
+        if info:
             describe_changes(cloudformation, selected_changeset)
 
         # execute the change set
-        elif args.execute:
-            response = cloudformation.client.execute_change_set(
-                ChangeSetName=selected_changeset,
-                StackName=cloudformation.stack_name
-            )
-            print(response)
+        elif execute:
+            if get_confirmation('Execute changeset %s?' % selected_changeset):
+                response = cloudformation.client.execute_change_set(
+                    ChangeSetName=selected_changeset,
+                    StackName=cloudformation.stack_name
+                )
+                cloudformation.wait('stack_update_complete',
+                                    'Wating for stack to be updated..')
+                print('Stack updated')
 
     else:
         changeset_name = input('Enter name of this changeset: ')
@@ -73,11 +86,12 @@ def changeset_stack(args):
         changeset_description = input('Description: ')
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
-        update_details = update_stack(args, cloudformation)
+        update_details = update_stack(
+            cloudformation.profile, cloudformation.region, replace, tagging, local_path, root, capabilities, wait, dryrun=True, cloudformation=cloudformation)
 
-        if not args.replace:
+        if not replace:
             response = cloudformation.execute_with_capabilities(
-                args=args,
+                capabilities=capabilities,
                 cloudformation_action=cloudformation.client.create_change_set,
                 StackName=cloudformation.stack_name,
                 UsePreviousTemplate=True,
@@ -87,9 +101,9 @@ def changeset_stack(args):
                 Description=changeset_description
             )
         else:
-            if args.local:
+            if local_path:
                 response = cloudformation.execute_with_capabilities(
-                    args=args,
+                    capabilities=capabilities,
                     cloudformation_action=cloudformation.client.create_change_set,
                     StackName=cloudformation.stack_name,
                     TemplateBody=update_details['TemplateBody'],
@@ -101,7 +115,7 @@ def changeset_stack(args):
                 )
             else:
                 response = cloudformation.execute_with_capabilities(
-                    args=args,
+                    capabilities=capabilities,
                     cloudformation_action=cloudformation.client.create_change_set,
                     StackName=cloudformation.stack_name,
                     TemplateURL=update_details['TemplateURL'],
@@ -117,9 +131,8 @@ def changeset_stack(args):
         print(80*'-')
         print('Changeset create initiated')
 
-        if args.wait:
-            print('Wating for changset to be created..')
+        if wait:
             cloudformation.wait('change_set_create_complete',
-                                ChangeSetName=changeset_name)
+                                'Wating for changset to be created..', ChangeSetName=changeset_name)
             print('Changeset created')
             describe_changes(cloudformation, changeset_name)

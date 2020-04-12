@@ -14,7 +14,7 @@ from fzfaws.s3.s3 import S3
 from fzfaws.utils.exceptions import InvalidFileType
 
 
-def update_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, dryrun=False):
+def update_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, dryrun=False, cloudformation=None):
     """handle the update of cloudformation stacks
 
     Args:
@@ -28,6 +28,7 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
         wait: bool, pause the function and wait for updated to complate
         dryrun: bool, instead of updating the stack, return the updated information
             Used for changeset_stack() getting update information
+        cloudformation: object, instance of Cloudformation
     Returns:
         If is called from changeset_stack() then it will return a dict based on
         the arguments changeset_stack recieved
@@ -38,8 +39,9 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
         SubprocessError: when the local file search reciped empty result through fzf
     """
 
-    cloudformation = Cloudformation(profile, region)
-    cloudformation.set_stack()
+    if not cloudformation:
+        cloudformation = Cloudformation(profile, region)
+        cloudformation.set_stack()
 
     # check to use current template or replace current template
     if not replace:

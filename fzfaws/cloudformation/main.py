@@ -96,10 +96,8 @@ def cloudformation(raw_args):
 
     changeset_cmd = subparsers.add_parser(
         'changeset', description='create a change set for the selected stack')
-    changeset_cmd.add_argument('-R', '--root', action='store_true', default=False,
+    changeset_cmd.add_argument('-r', '--root', action='store_true', default=False,
                                help='search local file from root instead of current directory')
-    changeset_cmd.add_argument('-p', '--path', nargs=1, action='store', default=None,
-                               help='specifie a path where the local file is stored')
     changeset_cmd.add_argument('-l', '--local', action='store_true',
                                default=False, help='upload local file')
     changeset_cmd.add_argument('-w', '--wait', action='store_true', default=False,
@@ -108,12 +106,16 @@ def cloudformation(raw_args):
                                help='Select capabilities to acknowledge during stack creation')
     changeset_cmd.add_argument('-t', '--tag', action='store_true',
                                default=False, help='update the tag during update')
-    changeset_cmd.add_argument('-r', '--replace', action='store_true', default=False,
+    changeset_cmd.add_argument('-x', '--replace', action='store_true', default=False,
                                help='replace current template to update')
     changeset_cmd.add_argument('-i', '--info', action='store_true',
                                help='view the result of the changeset')
     changeset_cmd.add_argument('-e', '--execute', action='store_true',
                                help='Execute update based on selected changeset')
+    changeset_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                               help='use a different profile, set the flag without argument to use fzf and select a profile')
+    changeset_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                               help='use a different region, set the flag without argument to use fzf and select a region')
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
@@ -163,4 +165,5 @@ def cloudformation(raw_args):
     elif args.subparser_name == 'drift':
         drift_stack(args.profile, args.region, args.info, args.select)
     elif args.subparser_name == 'changeset':
-        changeset_stack(args)
+        changeset_stack(args.profile, args.region, args.replace, args.tag, args.local,
+                        args.root, args.capabilities, args.wait, args.info, args.execute)
