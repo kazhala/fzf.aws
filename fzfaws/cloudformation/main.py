@@ -7,6 +7,7 @@ actions to appropriate functions
 import json
 import subprocess
 import argparse
+from fzfaws.cloudformation.ls_stack import ls_stack
 from fzfaws.cloudformation.delete_stack import delete_stack
 from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.cloudformation.create_stack import create_stack
@@ -82,6 +83,12 @@ def cloudformation(raw_args):
 
     ls_cmd = subparsers.add_parser(
         'ls', description='list and print infomation of the selcted stack')
+    ls_cmd.add_argument('-r', '--resource', action='store_true', default=False,
+                        help='display information on resources')
+    ls_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
+                        help='use a different profile, set the flag without argument to use fzf and select a profile')
+    ls_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
+                        help='use a different region, set the flag without argument to use fzf and select a region')
 
     drift_cmd = subparsers.add_parser(
         'drift', description='drift detection on the stack/resources')
@@ -159,9 +166,7 @@ def cloudformation(raw_args):
     elif args.subparser_name == 'delete':
         delete_stack(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
-        cloudformation = Cloudformation()
-        cloudformation.set_stack()
-        print(json.dumps(cloudformation.stack_details, indent=4, default=str))
+        ls_stack(args.profile, args.region, args.resource)
     elif args.subparser_name == 'drift':
         drift_stack(args.profile, args.region, args.info, args.select)
     elif args.subparser_name == 'changeset':
