@@ -22,6 +22,7 @@ def drift_stack(profile=False, region=False, info=False, select=False):
         None
     Raises:
         NoSelectionMade: when the required selection received empty result
+        ClientError: boto3 client error
     """
 
     cloudformation = Cloudformation(profile, region)
@@ -50,18 +51,9 @@ def drift_stack(profile=False, region=False, info=False, select=False):
         wait_drift_result(cloudformation, drift_id)
 
     else:
-        # prepare fzf
-        for resource in response_list:
-            resource['Drift'] = resource['DriftInformation']['StackResourceDriftStatus']
-        fzf = Pyfzf()
-        fzf.process_list(response['StackResources'],
-                         'LogicalResourceId', 'ResourceType', 'Drift', gap=4)
-        logical_id_list = fzf.execute_fzf(multi_select=True)
+        logical_id_list = cloudformation.get_stack_resources()
 
-        if len(logical_id_list) < 1:
-            print('No resources selected')
-            exit()
-        elif len(logical_id_list) == 1:
+        if len(logical_id_list) == 1:
             # get individual resource drift status
             response = cloudformation.client.detect_stack_resource_drift(
                 StackName=cloudformation.stack_name,
