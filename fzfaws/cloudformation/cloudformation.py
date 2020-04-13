@@ -6,6 +6,7 @@ in a centralized place
 """
 import boto3
 import sys
+import re
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import search_dict_in_list
@@ -129,12 +130,18 @@ class Cloudformation(BaseSession):
                 response = cloudformation_action(
                     **kwargs, Capabilities=self._get_capabilities())
         except self.client.exceptions.InsufficientCapabilitiesException as e:
+            pattern = r"^.*(Requires capabilities.*)$"
+            error_msg = re.match(pattern, str(e)).group(1)
             response = cloudformation_action(
-                **kwargs, Capabilities=self._get_capabilities())
+                **kwargs, Capabilities=self._get_capabilities(message=error_msg))
         return response
 
-    def _get_capabilities(self):
-        """display help message and let user select capabilities"""
+    def _get_capabilities(self, message=''):
+        """display help message and let user select capabilities
+
+        Args:
+            message: string, capability error message to display
+        """
         fzf = Pyfzf()
         fzf.append_fzf('CAPABILITY_IAM\n')
         fzf.append_fzf('CAPABILITY_NAMED_IAM\n')
@@ -143,5 +150,7 @@ class Cloudformation(BaseSession):
         print('Some of the resources in your template require capabilities')
         print('Template macros, nested stacks and iam roles/policies would require explicit acknowledgement')
         print('More information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html')
-        print('Please select the capabilities to acknowledge and proceed (press tab to multi select)')
-        return fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True)
+        print('Please select the capabilities to acknowledge and proceed')
+        message += '\nPlease select the capabilities to acknowledge and proceed'
+        message += '\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html'
+        return fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True, header=message)
