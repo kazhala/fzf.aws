@@ -42,6 +42,5 @@ def start_instance(profile=False, region=False, wait=False, check=False):
             ec2.wait('instance_status_ok')
             print('Instance is ready')
         elif wait:
-            print('Wating for instance to be running...')
-            ec2.wait('instance_running')
+            ec2.wait('instance_running', 'Wating for instance to be running...')
             print('Instance is running')

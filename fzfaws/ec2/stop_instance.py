@@ -38,6 +38,5 @@ def stop_instance(profile=False, region=False, hibernate=False, wait=False):
         print('Instance stop initiated')
 
         if wait:
-            print('Wating for instance to be stopped')
-            ec2.wait('instance_stopped')
+            ec2.wait('instance_stopped', 'Wating for instance to be stopped')
             print('Instance stopped')

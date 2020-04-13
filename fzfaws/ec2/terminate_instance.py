@@ -36,6 +36,6 @@ def terminate_instance(profile=False, region=False, wait=False):
         print('Instance termination initiated')
 
         if wait:
-            print('Wating for instance to be terminated..')
-            ec2.wait('instance_terminated')
+            ec2.wait('instance_terminated',
+                     'Wating for instance to be terminated..')
             print('Instance terminated')

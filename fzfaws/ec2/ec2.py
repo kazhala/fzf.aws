@@ -3,9 +3,11 @@
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
 import boto3
+import sys
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_name_tag, search_dict_in_list
+from fzfaws.utils.spinner import Spinner
 
 
 class EC2(BaseSession):
@@ -90,22 +92,40 @@ class EC2(BaseSession):
             print('InstanceId: %s  Name: %s' %
                   (instance['InstanceId'], instance['Name']))
 
-    def wait(self, waiter_name, delay=15, attempts=40):
+    def wait(self, waiter_name, message=None, delay=15, attempts=40):
         """wait for the operation to be completed
 
         Args:
             waiter_name: string, name from boto3 waiter
+            message: string, message to display during loading
             delay: number, how long between each attempt
             attempts: number, max attempts, usually 60mins, so 30 * 120
         Returns:
             None
             will pause the program until finish or error raised
         """
-        waiter = self.client.get_waiter(waiter_name)
-        waiter.wait(
-            InstanceIds=self.instance_ids,
-            WaiterConfig={
-                'Delay': delay,
-                'MaxAttempts': attempts
-            },
-        )
+        try:
+            spinner = Spinner(message=message)
+            # spinner is a child thread
+            spinner.start()
+            waiter = self.client.get_waiter(waiter_name)
+            waiter.wait(
+                InstanceIds=self.instance_ids,
+                WaiterConfig={
+                    'Delay': delay,
+                    'MaxAttempts': attempts
+                },
+            )
+            spinner.stop()
+            # join back the main thread
+            spinner.join()
+        except (KeyboardInterrupt, SystemExit):
+            spinner.stop()
+            spinner.join()
+            print('Exit')
+            sys.exit()
+        except Exception as e:
+            spinner.stop()
+            spinner.join()
+            print(e)
+            sys.exit()
