@@ -59,7 +59,7 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = ['fzf']
+        cmd_list = ['fzf', '--ansi']
         cmd_list.append(
             '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
         if header:
