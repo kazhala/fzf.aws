@@ -67,6 +67,29 @@ class S3Progress(object):
                 percentage = (self._seen_so_far / self._size) * 100
             sys.stdout.write(
                 "\r%s  %s / %s  (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
+                    self._filename, self.human_readable_size(
+                        self._seen_so_far), self.human_readable_size(self._size),
                     percentage))
             sys.stdout.flush()
+            # remove the progress bar line
+            sys.stdout.write('\033[2K\033[1G')
+
+    def human_readable_size(self, value):
+        """copied from awscli, try to provide the same experience
+
+        Convert an size in bytes into a human readable format.
+        """
+        HUMANIZE_SUFFIXES = ('KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB')
+        one_decimal_point = '%.1f'
+        base = 1024
+        bytes_int = float(value)
+
+        if bytes_int == 1:
+            return '1 Byte'
+        elif bytes_int < base:
+            return '%d Bytes' % bytes_int
+
+        for i, suffix in enumerate(HUMANIZE_SUFFIXES):
+            unit = base ** (i+2)
+            if round((bytes_int / unit) * base) < base:
+                return '%.1f %s' % ((base * bytes_int / unit), suffix)
