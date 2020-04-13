@@ -9,7 +9,8 @@ import json
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.helper.process_file import process_yaml_body, process_json_body
-from fzfaws.utils.exceptions import InvalidS3PathPattern
+from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
+from fzfaws.utils.util import get_confirmation
 
 
 class S3(BaseSession):
@@ -85,9 +86,7 @@ class S3(BaseSession):
         get_s3_destination_key after set_s3_path to obtain the correct destination key
 
         Raises:
-            TypeError: would raise when there is no more path to iterate
-            Would indicate an end to the loop and print out user current
-            selected path
+            NoSelectionMade: when user did not confirm their s3 path, exit
         """
         selected_option = self._get_path_option()
         if selected_option == 'input':
@@ -98,17 +97,24 @@ class S3(BaseSession):
             paginator = self.client.get_paginator('list_objects')
             fzf = Pyfzf()
             try:
+                parents = []
                 # interactively search down 'folders' in s3
                 while True:
+                    if len(parents) > 0:
+                        fzf.append_fzf('..\n')
                     for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter='/'):
-                        for prefix in result.get('CommonPrefixes'):
+                        for prefix in result.get('CommonPrefixes', []):
                             fzf.append_fzf(prefix.get('Prefix'))
                             fzf.append_fzf('\n')
                     selected_path = fzf.execute_fzf(
-                        empty_allow=True, print_col=0)
+                        empty_allow=True, print_col=0, header='PWD: s3://%s/%s (press ESC to use current path)' % (self.bucket_name, self.bucket_path))
                     if not selected_path:
                         raise
-                    self.bucket_path = selected_path
+                    if selected_path == '..':
+                        self.bucket_path = parents.pop()
+                    else:
+                        parents.append(self.bucket_path)
+                        self.bucket_path = selected_path
                     # reset fzf string
                     fzf.fzf_string = ''
             except:
@@ -116,8 +122,13 @@ class S3(BaseSession):
                     new_path = input(
                         'Input the new path to append(newname or newpath/): ')
                     self.bucket_path += new_path
-                print('S3 file path is set to %s' %
-                      (self.bucket_path if self.bucket_path else 'root'))
+                if get_confirmation('S3 file path will be set to %s' %
+                                    (self.bucket_path if self.bucket_path else 'root')):
+                    print('S3 file path is set to %s' %
+                          (self.bucket_path if self.bucket_path else 'root'))
+                else:
+                    raise NoSelectionMade(
+                        'S3 file path was not configured, exiting..')
 
     def set_s3_object(self, version=False, multi_select=False, deletemark=False):
         """list object within a bucket and let user select a object.
