@@ -155,7 +155,11 @@ class S3(BaseSession):
                 fzf = Pyfzf()
                 paginator = self.client.get_paginator('list_objects')
                 for result in paginator.paginate(Bucket=self.bucket_name):
-                    fzf.process_list(result.get('Contents'), 'Key')
+                    for file in result.get('Contents', []):
+                        if file.get('Key').endswith('/') or not file.get('Key'):
+                            # user created dir in S3 console will appear in the result and is not operatable
+                            continue
+                        fzf.append_fzf('Key: %s\n' % file.get('Key'))
                 if multi_select:
                     self.path_list = fzf.execute_fzf(
                         print_col=-1, multi_select=True)
@@ -167,6 +171,8 @@ class S3(BaseSession):
                 paginator = self.client.get_paginator('list_object_versions')
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     for version in result.get('DeleteMarkers', []):
+                        if version.get('Key').endswith('/') or not version.get('Key'):
+                            continue
                         color_string = '\033[31m' + \
                             'Key: %s' % version.get('Key') + \
                             '\033[0m'
@@ -174,11 +180,17 @@ class S3(BaseSession):
                             key_list.append(color_string)
                     if not deletemark:
                         for version in result.get('Versions', []):
+                            if version.get('Key').endswith('/') or not version.get('Key'):
+                                continue
                             color_string = '\033[31m' + \
                                 'Key: %s' % version.get('Key') + \
                                 '\033[0m'
                             norm_string = 'Key: %s' % version.get('Key')
                             if color_string not in key_list and norm_string not in key_list:
+                                key_list.append(norm_string)
+                            elif color_string in key_list and version.get('IsLatest'):
+                                # handle the case where delete marker is associated, object is visible because new version has published
+                                key_list.remove(color_string)
                                 key_list.append(norm_string)
                 if key_list:
                     for item in key_list:
