@@ -6,6 +6,7 @@ management if user decide to change region or use different profile
 import boto3
 import re
 import json
+from botocore.exceptions import ClientError
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.helper.process_file import process_yaml_body, process_json_body
@@ -117,6 +118,8 @@ class S3(BaseSession):
                         self.bucket_path = selected_path
                     # reset fzf string
                     fzf.fzf_string = ''
+            except ClientError:
+                raise
             except:
                 if selected_option == 'append':
                     print('Current PWD is s3://%s/%s' %
