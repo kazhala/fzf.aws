@@ -119,11 +119,13 @@ class S3(BaseSession):
                     fzf.fzf_string = ''
             except:
                 if selected_option == 'append':
+                    print('Current PWD is s3://%s/%s' %
+                          (self.bucket_name, self.bucket_path))
                     new_path = input(
                         'Input the new path to append(newname or newpath/): ')
                     self.bucket_path += new_path
-                if get_confirmation('S3 file path will be set to %s' %
-                                    (self.bucket_path if self.bucket_path else 'root')):
+                if get_confirmation('S3 file path will be set to s3://%s/%s' %
+                                    (self.bucket_name, self.bucket_path if self.bucket_path else 'root')):
                     print('S3 file path is set to %s' %
                           (self.bucket_path if self.bucket_path else 'root'))
                 else:
