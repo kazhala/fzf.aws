@@ -102,6 +102,11 @@ class Cloudformation(BaseSession):
             spinner.join()
             print('Exit')
             sys.exit()
+        except Exception as e:
+            spinner.stop()
+            spinner.join()
+            print(e)
+            sys.exit()
 
     def execute_with_capabilities(self, capabilities=False, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
