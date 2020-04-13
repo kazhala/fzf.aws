@@ -149,62 +149,62 @@ class S3(BaseSession):
             multi_select: bool, enable multi_select
             deletemark: bool, only display object that has deletemark associated with
                 Only works with version=True
+        Exceptions:
+            NoSelectionMade: when there is no selection made, bucket is empty
+            ClientError: boto3 error
         """
-        try:
-            if not version:
-                fzf = Pyfzf()
-                paginator = self.client.get_paginator('list_objects')
-                for result in paginator.paginate(Bucket=self.bucket_name):
-                    for file in result.get('Contents', []):
-                        if file.get('Key').endswith('/') or not file.get('Key'):
-                            # user created dir in S3 console will appear in the result and is not operatable
-                            continue
-                        fzf.append_fzf('Key: %s\n' % file.get('Key'))
-                if multi_select:
-                    self.path_list = fzf.execute_fzf(
-                        print_col=-1, multi_select=True)
-                else:
-                    self.bucket_path = fzf.execute_fzf(print_col=-1)
+        if not version:
+            fzf = Pyfzf()
+            paginator = self.client.get_paginator('list_objects')
+            for result in paginator.paginate(Bucket=self.bucket_name):
+                for file in result.get('Contents', []):
+                    if file.get('Key').endswith('/') or not file.get('Key'):
+                        # user created dir in S3 console will appear in the result and is not operatable
+                        continue
+                    fzf.append_fzf('Key: %s\n' % file.get('Key'))
+            if multi_select:
+                self.path_list = fzf.execute_fzf(
+                    print_col=-1, multi_select=True)
             else:
-                fzf = Pyfzf()
-                key_list = []
-                paginator = self.client.get_paginator('list_object_versions')
-                for result in paginator.paginate(Bucket=self.bucket_name):
-                    for version in result.get('DeleteMarkers', []):
+                self.bucket_path = fzf.execute_fzf(print_col=-1)
+        else:
+            fzf = Pyfzf()
+            key_list = []
+            paginator = self.client.get_paginator('list_object_versions')
+            for result in paginator.paginate(Bucket=self.bucket_name):
+                for version in result.get('DeleteMarkers', []):
+                    if version.get('Key').endswith('/') or not version.get('Key'):
+                        continue
+                    color_string = '\033[31m' + \
+                        'Key: %s' % version.get('Key') + \
+                        '\033[0m'
+                    if color_string not in key_list:
+                        key_list.append(color_string)
+                if not deletemark:
+                    for version in result.get('Versions', []):
                         if version.get('Key').endswith('/') or not version.get('Key'):
                             continue
                         color_string = '\033[31m' + \
                             'Key: %s' % version.get('Key') + \
                             '\033[0m'
-                        if color_string not in key_list:
-                            key_list.append(color_string)
-                    if not deletemark:
-                        for version in result.get('Versions', []):
-                            if version.get('Key').endswith('/') or not version.get('Key'):
-                                continue
-                            color_string = '\033[31m' + \
-                                'Key: %s' % version.get('Key') + \
-                                '\033[0m'
-                            norm_string = 'Key: %s' % version.get('Key')
-                            if color_string not in key_list and norm_string not in key_list:
-                                key_list.append(norm_string)
-                            elif color_string in key_list and version.get('IsLatest'):
-                                # handle the case where delete marker is associated, object is visible because new version has published
-                                key_list.remove(color_string)
-                                key_list.append(norm_string)
-                if key_list:
-                    for item in key_list:
-                        fzf.append_fzf(item + '\n')
-                else:
-                    raise
-                if multi_select:
-                    self.path_list = fzf.execute_fzf(
-                        print_col=-1, multi_select=True)
-                else:
-                    self.bucket_path = fzf.execute_fzf(print_col=-1)
-        except:
-            print('Bucket is empty or no selection was made')
-            exit()
+                        norm_string = 'Key: %s' % version.get('Key')
+                        if color_string not in key_list and norm_string not in key_list:
+                            key_list.append(norm_string)
+                        elif color_string in key_list and version.get('IsLatest'):
+                            # handle the case where delete marker is associated, object is visible because new version has published
+                            key_list.remove(color_string)
+                            key_list.append(norm_string)
+            if key_list:
+                for item in key_list:
+                    fzf.append_fzf(item + '\n')
+            else:
+                raise NoSelectionMade(
+                    'Bucket might be empty or there was no selection made')
+            if multi_select:
+                self.path_list = fzf.execute_fzf(
+                    print_col=-1, multi_select=True)
+            else:
+                self.bucket_path = fzf.execute_fzf(print_col=-1)
 
     def get_object_version(self, bucket=None, key=None, delete=False, select_all=False, non_current=False):
         """list object versions through fzf
