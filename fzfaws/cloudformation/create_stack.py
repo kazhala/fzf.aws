@@ -11,9 +11,10 @@ from fzfaws.utils.exceptions import NoNameEntered, InvalidFileType
 from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
+from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 
 
-def create_stack(profile=False, region=False, local_path=False, root=False, capabilities=False, wait=False):
+def create_stack(profile=False, region=False, local_path=False, root=False, capabilities=False, wait=False, extra=False):
     """handle the creation of the cloudformation stack
 
     Args:
@@ -23,8 +24,7 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
         root: bool, search local file from root
         capabilities: bool, added capabilities for cloudformation creation
         wait: bool, pause the function and wait for completion
-    Returns:
-        None
+        extra: bool, configure extra settings of the stack, iam, roleback, notification etc
     Raises:
         NoNameEntered: when the new stack receive empty string as stack name
         NoSelectionMade: when the required fzf selection received zero result
@@ -56,16 +56,14 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
             create_parameters = paramprocessor.processed_params
         else:
             create_parameters = []
-        tags = get_tags()
 
-        response = cloudformation.execute_with_capabilities(
-            capabilities=capabilities,
-            cloudformation_action=cloudformation.client.create_stack,
-            StackName=stack_name,
-            TemplateBody=file_data['body'],
-            Parameters=create_parameters,
-            Tags=tags,
-        )
+        cloudformation_args = {
+            'capabilities': capabilities,
+            'cloudformation_action': cloudformation.client.create_stack,
+            'StackName': stack_name,
+            'TemplateBody': file_data['body'],
+            'Parameters': create_parameters
+        }
 
     # if no local file flag, get from s3
     else:
@@ -89,17 +87,22 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
                 cloudformation.profile, cloudformation.region, file_data['Parameters'])
             paramprocessor.process_stack_params()
             create_parameters = paramprocessor.processed_params
-        tags = get_tags()
 
         template_body_loacation = s3.get_object_url()
-        response = cloudformation.execute_with_capabilities(
-            capabilities=capabilities,
-            cloudformation_action=cloudformation.client.create_stack,
-            StackName=stack_name,
-            TemplateURL=template_body_loacation,
-            Parameters=create_parameters,
-            Tags=tags,
-        )
+        cloudformation_args = {
+            'capabilities': capabilities,
+            'cloudformation_action': cloudformation.client.create_stack,
+            'StackName': stack_name,
+            'TemplateURL': template_body_loacation,
+            'Parameters': create_parameters
+        }
+
+    if extra:
+        extra_args = CloudformationArgs(cloudformation)
+        extra_args.set_extra_args()
+        cloudformation_args.update(extra_args.extra_args)
+    response = cloudformation.execute_with_capabilities(
+        **cloudformation_args)
 
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
