@@ -14,7 +14,7 @@ from fzfaws.utils.spinner import Spinner
 
 
 class Cloudformation(BaseSession):
-    """Cloudformation class to interact with boto3.client('cloudformaiton')
+    """Cloudformation class to interact with boto3.client('cloudformation')
 
     handles operations directly related to boto3.client
 

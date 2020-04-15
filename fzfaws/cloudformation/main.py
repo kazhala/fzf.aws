@@ -1,4 +1,4 @@
-"""Entry point for all cloudformaiton operations
+"""Entry point for all cloudformation operations
 
 process the raw_args passed in from __main__.py which is sys.argv[2:]
 read sub command {update,create,delete,drift,changeset} and route

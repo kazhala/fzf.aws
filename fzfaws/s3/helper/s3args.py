@@ -34,8 +34,6 @@ class S3Args:
             version: list, list of selected object version obj {'Key': value, 'VersionId': versionid}.
                 It's used to determine the menu item and display previous values
             upload: bool, determine if the menu could have empty selection
-        Returns:
-            None
         Exceptions:
             NoSelectionMade: When uplaod is false and no selection is made
         """
