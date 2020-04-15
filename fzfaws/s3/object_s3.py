@@ -13,7 +13,8 @@ from fzfaws.s3.helper.get_copy_args import get_copy_args
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
-def object_s3(profile=False, bucket=None, recursive=False, version=False, allversion=False, exclude=[], include=[], name=False, storage=False, encryption=False, metadata=False, tagging=False, acl=False):
+def object_s3(profile=False, bucket=None, recursive=False, version=False, allversion=False,
+              exclude=[], include=[], name=False, storage=False, encryption=False, metadata=False, tagging=False, acl=False):
     """update selected object settings
 
     Display a menu based on recursive and version requirement
