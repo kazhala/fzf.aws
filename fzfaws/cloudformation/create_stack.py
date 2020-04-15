@@ -87,6 +87,8 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
                 cloudformation.profile, cloudformation.region, file_data['Parameters'])
             paramprocessor.process_stack_params()
             create_parameters = paramprocessor.processed_params
+        else:
+            create_parameters = []
 
         template_body_loacation = s3.get_object_url()
         cloudformation_args = {
