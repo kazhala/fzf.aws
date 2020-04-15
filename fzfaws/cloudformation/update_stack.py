@@ -159,6 +159,10 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
         extra_args = CloudformationArgs(cloudformation)
         extra_args.set_extra_args(update=True)
         cloudformation_args.update(extra_args.extra_args)
+
+    if dryrun:
+        return cloudformation_args
+
     response = cloudformation.execute_with_capabilities(
         **cloudformation_args)
 

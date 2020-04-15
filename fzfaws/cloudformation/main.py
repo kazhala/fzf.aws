@@ -56,7 +56,7 @@ def cloudformation(raw_args):
                             help='use a different profile, set the flag without argument to use fzf and select a profile')
     update_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                             help='use a different region, set the flag without argument to use fzf and select a region')
-    update_cmd.add_argument('-e', '--extra', action='store_true', default=False,
+    update_cmd.add_argument('-E', '--extra', action='store_true', default=False,
                             help='configure extra settings during update stack (E.g.Tags, iam role, notification, policy etc)')
 
     create_cmd = subparsers.add_parser(
@@ -73,7 +73,7 @@ def cloudformation(raw_args):
                             help='use a different profile, set the flag without argument to use fzf and select a profile')
     create_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                             help='use a different region, set the flag without argument to use fzf and select a region')
-    create_cmd.add_argument('-e', '--extra', action='store_true', default=False,
+    create_cmd.add_argument('-E', '--extra', action='store_true', default=False,
                             help='configure extra settings during create stack (E.g.Tags, iam role, notification, policy etc)')
 
     delete_cmd = subparsers.add_parser(
@@ -127,6 +127,8 @@ def cloudformation(raw_args):
                                help='use a different profile, set the flag without argument to use fzf and select a profile')
     changeset_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                                help='use a different region, set the flag without argument to use fzf and select a region')
+    changeset_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                               help='configure extra settings during creating a changeset (E.g.Tags, iam role, notification, policy etc)')
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
@@ -175,4 +177,4 @@ def cloudformation(raw_args):
         drift_stack(args.profile, args.region, args.info, args.select)
     elif args.subparser_name == 'changeset':
         changeset_stack(args.profile, args.region, args.replace, args.tag, args.local,
-                        args.root, args.capabilities, args.wait, args.info, args.execute)
+                        args.root, args.capabilities, args.wait, args.info, args.execute, args.extra)

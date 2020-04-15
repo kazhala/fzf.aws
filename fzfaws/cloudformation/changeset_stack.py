@@ -30,7 +30,7 @@ def describe_changes(cloudformation, changeset_name):
     print(json.dumps(response['Changes'], indent=4, default=str))
 
 
-def changeset_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, info=False, execute=False):
+def changeset_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, info=False, execute=False, extra=False):
     """handle changeset actions
 
     Args:
@@ -44,6 +44,8 @@ def changeset_stack(profile=False, region=False, replace=False, tagging=False, l
         wait: bool, pause the function and wait for changeset create complete
         info: bool, display result of a changeset
         execute: bool, execute the selected changeset
+        extra: bool, configure extra settings during chagset creation
+            E.g. iam, sns, rolback etc configuration
     Returns:
         None
     Raises:
@@ -86,45 +88,16 @@ def changeset_stack(profile=False, region=False, replace=False, tagging=False, l
         changeset_description = input('Description: ')
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
-        update_details = update_stack(
-            cloudformation.profile, cloudformation.region, replace, tagging, local_path, root, capabilities, wait, dryrun=True, cloudformation=cloudformation)
+        cloudformation_args = update_stack(
+            cloudformation.profile, cloudformation.region, replace, tagging, local_path, root, capabilities, wait, dryrun=True, extra=extra, cloudformation=cloudformation)
+        cloudformation_args['cloudformation_action'] = cloudformation.client.create_change_set
+        cloudformation_args.update({
+            'ChangeSetName': changeset_name,
+            'Description': changeset_description
+        })
 
-        if not replace:
-            response = cloudformation.execute_with_capabilities(
-                capabilities=capabilities,
-                cloudformation_action=cloudformation.client.create_change_set,
-                StackName=cloudformation.stack_name,
-                UsePreviousTemplate=True,
-                Parameters=update_details['Parameters'],
-                Tags=update_details['Tags'],
-                ChangeSetName=changeset_name,
-                Description=changeset_description
-            )
-        else:
-            if local_path:
-                response = cloudformation.execute_with_capabilities(
-                    capabilities=capabilities,
-                    cloudformation_action=cloudformation.client.create_change_set,
-                    StackName=cloudformation.stack_name,
-                    TemplateBody=update_details['TemplateBody'],
-                    UsePreviousTemplate=False,
-                    Parameters=update_details['Parameters'],
-                    Tags=update_details['Tags'],
-                    ChangeSetName=changeset_name,
-                    Description=changeset_description
-                )
-            else:
-                response = cloudformation.execute_with_capabilities(
-                    capabilities=capabilities,
-                    cloudformation_action=cloudformation.client.create_change_set,
-                    StackName=cloudformation.stack_name,
-                    TemplateURL=update_details['TemplateURL'],
-                    UsePreviousTemplate=False,
-                    Parameters=update_details['Parameters'],
-                    Tags=update_details['Tags'],
-                    ChangeSetName=changeset_name,
-                    Description=changeset_description
-                )
+        response = cloudformation.execute_with_capabilities(
+            **cloudformation_args)
 
         response.pop('ResponseMetadata', None)
         print(json.dumps(response, indent=4, default=str))
