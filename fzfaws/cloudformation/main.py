@@ -40,8 +40,6 @@ def cloudformation(raw_args):
 
     update_cmd = subparsers.add_parser(
         'update', description='update an existing stack')
-    update_cmd.add_argument('-t', '--tag', action='store_true',
-                            default=False, help='update the tag during update')
     update_cmd.add_argument('-r', '--root', action='store_true', default=False,
                             help='search local file from root instead of current directory')
     update_cmd.add_argument('-l', '--local', nargs='?',
@@ -50,14 +48,12 @@ def cloudformation(raw_args):
                             help='replace current template to update')
     update_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for update complete signal, max wait time 60mins')
-    update_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
-                            help='Select capabilities to acknowledge during stack update')
+    update_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                            help='configure extra settings during update stack (E.g.Tags, iam role, notification, policy etc)')
     update_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
                             help='use a different profile, set the flag without argument to use fzf and select a profile')
     update_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                             help='use a different region, set the flag without argument to use fzf and select a region')
-    update_cmd.add_argument('-E', '--extra', action='store_true', default=False,
-                            help='configure extra settings during update stack (E.g.Tags, iam role, notification, policy etc)')
 
     create_cmd = subparsers.add_parser(
         'create', description='create a new stack')
@@ -67,14 +63,12 @@ def cloudformation(raw_args):
                             action='store', default=False, help='upload local file')
     create_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for create complete signal, max wait time 60mins')
-    create_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
-                            help='Select capabilities to acknowledge during stack creation')
+    create_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                            help='configure extra settings during create stack (E.g.Tags, iam role, notification, policy etc)')
     create_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
                             help='use a different profile, set the flag without argument to use fzf and select a profile')
     create_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                             help='use a different region, set the flag without argument to use fzf and select a region')
-    create_cmd.add_argument('-E', '--extra', action='store_true', default=False,
-                            help='configure extra settings during create stack (E.g.Tags, iam role, notification, policy etc)')
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete an existing stack')
@@ -113,22 +107,18 @@ def cloudformation(raw_args):
                                default=False, help='upload local file')
     changeset_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                                help='Pause the script and wait for create complete signal, max wait time 60mins')
-    changeset_cmd.add_argument('-c', '--capabilities', action='store_true', default=False,
-                               help='Select capabilities to acknowledge during stack creation')
-    changeset_cmd.add_argument('-t', '--tag', action='store_true',
-                               default=False, help='update the tag during update')
     changeset_cmd.add_argument('-x', '--replace', action='store_true', default=False,
                                help='replace current template to update')
     changeset_cmd.add_argument('-i', '--info', action='store_true',
                                help='view the result of the changeset')
     changeset_cmd.add_argument('-e', '--execute', action='store_true',
                                help='Execute update based on selected changeset')
+    changeset_cmd.add_argument('-E', '--extra', action='store_true', default=False,
+                               help='configure extra settings during creating a changeset (E.g.Tags, iam role, notification, policy etc)')
     changeset_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
                                help='use a different profile, set the flag without argument to use fzf and select a profile')
     changeset_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                                help='use a different region, set the flag without argument to use fzf and select a region')
-    changeset_cmd.add_argument('-E', '--extra', action='store_true', default=False,
-                               help='configure extra settings during creating a changeset (E.g.Tags, iam role, notification, policy etc)')
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
@@ -165,10 +155,10 @@ def cloudformation(raw_args):
 
     if args.subparser_name == 'create':
         create_stack(args.profile, args.region, args.local,
-                     args.root, args.capabilities, args.wait, args.extra)
+                     args.root, args.wait, args.extra)
     elif args.subparser_name == 'update':
-        update_stack(args.profile, args.region, args.replace, args.tag,
-                     args.local, args.root, args.capabilities, args.wait, extra=args.extra)
+        update_stack(args.profile, args.region, args.replace,
+                     args.local, args.root, args.wait, args.extra)
     elif args.subparser_name == 'delete':
         delete_stack(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
@@ -176,5 +166,5 @@ def cloudformation(raw_args):
     elif args.subparser_name == 'drift':
         drift_stack(args.profile, args.region, args.info, args.select)
     elif args.subparser_name == 'changeset':
-        changeset_stack(args.profile, args.region, args.replace, args.tag, args.local,
-                        args.root, args.capabilities, args.wait, args.info, args.execute, args.extra)
+        changeset_stack(args.profile, args.region, args.replace, args.local,
+                        args.root, args.wait, args.info, args.execute, args.extra)

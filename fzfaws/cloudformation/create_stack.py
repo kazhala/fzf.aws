@@ -14,7 +14,7 @@ from fzfaws.s3.s3 import S3
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 
 
-def create_stack(profile=False, region=False, local_path=False, root=False, capabilities=False, wait=False, extra=False):
+def create_stack(profile=False, region=False, local_path=False, root=False, wait=False, extra=False):
     """handle the creation of the cloudformation stack
 
     Args:
@@ -22,7 +22,6 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
         region: string or bool, use a different region for this operation
         local_path: string or bool, set local file path for upload
         root: bool, search local file from root
-        capabilities: bool, added capabilities for cloudformation creation
         wait: bool, pause the function and wait for completion
         extra: bool, configure extra settings of the stack, iam, roleback, notification etc
     Raises:
@@ -58,7 +57,6 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
             create_parameters = []
 
         cloudformation_args = {
-            'capabilities': capabilities,
             'cloudformation_action': cloudformation.client.create_stack,
             'StackName': stack_name,
             'TemplateBody': file_data['body'],
@@ -92,7 +90,6 @@ def create_stack(profile=False, region=False, local_path=False, root=False, capa
 
         template_body_loacation = s3.get_object_url()
         cloudformation_args = {
-            'capabilities': capabilities,
             'cloudformation_action': cloudformation.client.create_stack,
             'StackName': stack_name,
             'TemplateURL': template_body_loacation,

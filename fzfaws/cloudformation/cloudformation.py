@@ -109,7 +109,7 @@ class Cloudformation(BaseSession):
             print(e)
             sys.exit()
 
-    def execute_with_capabilities(self, capabilities=False, cloudformation_action=None, **kwargs):
+    def execute_with_capabilities(self, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
 
         Args:
@@ -124,11 +124,7 @@ class Cloudformation(BaseSession):
            InsufficientCapabilitiesException: when the stack action require extra acknowledgement
         """
         try:
-            if not capabilities:
-                response = cloudformation_action(**kwargs)
-            else:
-                response = cloudformation_action(
-                    **kwargs, Capabilities=self._get_capabilities())
+            response = cloudformation_action(**kwargs)
         except self.client.exceptions.InsufficientCapabilitiesException as e:
             pattern = r"^.*(Requires capabilities.*)$"
             error_msg = re.match(pattern, str(e)).group(1)
@@ -146,11 +142,6 @@ class Cloudformation(BaseSession):
         fzf.append_fzf('CAPABILITY_IAM\n')
         fzf.append_fzf('CAPABILITY_NAMED_IAM\n')
         fzf.append_fzf('CAPABILITY_AUTO_EXPAND')
-        print(80*'-')
-        print('Some of the resources in your template require capabilities')
-        print('Template macros, nested stacks and iam roles/policies would require explicit acknowledgement')
-        print('More information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html')
-        print('Please select the capabilities to acknowledge and proceed')
         message += '\nPlease select the capabilities to acknowledge and proceed'
         message += '\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html'
         return fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True, header=message)

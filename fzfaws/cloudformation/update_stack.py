@@ -15,22 +15,20 @@ from fzfaws.utils.exceptions import InvalidFileType
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 
 
-def update_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, dryrun=False, extra=False, cloudformation=None):
+def update_stack(profile=False, region=False, replace=False, local_path=False, root=False, wait=False, extra=False, dryrun=False, cloudformation=None):
     """handle the update of cloudformation stacks
 
     Args:
         profile: string or bool, use a different profile for this operation
         region: string or bool, use a different region for this operation
         replace: bool, replace current template for update
-        tagging: bool, update tags as well
         local_path: string or bool, if True, use fzf to obtain local file. If string, skip fzf
         root: bool, search from $HOME
-        capabilities: bool, execute_with_capabilities
         wait: bool, pause the function and wait for updated to complate
-        dryrun: bool, instead of updating the stack, return the updated information
-            Used for changeset_stack() getting update information
         extra: bool, configure extra settings during updating stacks
             iam role, sns, rollback etc
+        dryrun: bool, instead of updating the stack, return the updated information
+            Used for changeset_stack() getting update information
         cloudformation: object, instance of Cloudformation
     Returns:
         If is called from changeset_stack() then it will return a dict based on
@@ -74,7 +72,6 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
                     })
 
         cloudformation_args = {
-            'capabilities': capabilities,
             'cloudformation_action': cloudformation.client.update_stack,
             'StackName': cloudformation.stack_name,
             'UsePreviousTemplate': True,
@@ -107,7 +104,6 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
                 updated_parameters = []
 
             cloudformation_args = {
-                'capabilities': capabilities,
                 'cloudformation_action': cloudformation.client.update_stack,
                 'StackName': cloudformation.stack_name,
                 'TemplateBody': file_data['body'],
@@ -137,17 +133,9 @@ def update_stack(profile=False, region=False, replace=False, tagging=False, loca
             else:
                 updated_parameters = []
 
-            tags = cloudformation.stack_details['Tags']
-            if tagging:
-                tags = update_tags(tags)
-                new_tags = get_tags(update=True)
-                for new_tag in new_tags:
-                    tags.append(new_tag)
-
             template_body_loacation = s3.get_object_url()
 
             cloudformation_args = {
-                'capabilities': capabilities,
                 'cloudformation_action': cloudformation.client.update_stack,
                 'StackName': cloudformation.stack_name,
                 'TemplateURL': template_body_loacation,

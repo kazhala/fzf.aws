@@ -16,8 +16,6 @@ def describe_changes(cloudformation, changeset_name):
     Args:
         stack_name: string, name of the stack
         changeset_name: string, name of the changeset
-    Returns:
-        None
     """
 
     response = cloudformation.client.describe_change_set(
@@ -30,24 +28,20 @@ def describe_changes(cloudformation, changeset_name):
     print(json.dumps(response['Changes'], indent=4, default=str))
 
 
-def changeset_stack(profile=False, region=False, replace=False, tagging=False, local_path=False, root=False, capabilities=False, wait=False, info=False, execute=False, extra=False):
+def changeset_stack(profile=False, region=False, replace=False, local_path=False, root=False, wait=False, info=False, execute=False, extra=False):
     """handle changeset actions
 
     Args:
         profile: string or bool, use a different profile for this operation
         region: string or bool, use a different region for this operation
         replace: bool, create changeset with replace template option
-        tagging: bool, set tags for new changeset
         local_path: string or bool, use local template rather than s3
         root: bool, search from root
-        capabilities: bool, execute with capabilities
         wait: bool, pause the function and wait for changeset create complete
         info: bool, display result of a changeset
         execute: bool, execute the selected changeset
         extra: bool, configure extra settings during chagset creation
             E.g. iam, sns, rolback etc configuration
-    Returns:
-        None
     Raises:
         NoNameEntered: when the new changeset receive empty string for new name
     """
@@ -89,7 +83,7 @@ def changeset_stack(profile=False, region=False, replace=False, tagging=False, l
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
         cloudformation_args = update_stack(
-            cloudformation.profile, cloudformation.region, replace, tagging, local_path, root, capabilities, wait, dryrun=True, extra=extra, cloudformation=cloudformation)
+            cloudformation.profile, cloudformation.region, replace, local_path, root, wait, extra, dryrun=True, cloudformation=cloudformation)
         cloudformation_args['cloudformation_action'] = cloudformation.client.create_change_set
         cloudformation_args.update({
             'ChangeSetName': changeset_name,
