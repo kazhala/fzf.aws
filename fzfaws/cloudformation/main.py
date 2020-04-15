@@ -56,6 +56,8 @@ def cloudformation(raw_args):
                             help='use a different profile, set the flag without argument to use fzf and select a profile')
     update_cmd.add_argument('-R', '--region', nargs='?', action='store', default=False,
                             help='use a different region, set the flag without argument to use fzf and select a region')
+    update_cmd.add_argument('-e', '--extra', action='store_true', default=False,
+                            help='configure extra settings during update stack (E.g.Tags, iam role, notification, policy etc)')
 
     create_cmd = subparsers.add_parser(
         'create', description='create a new stack')
@@ -164,7 +166,7 @@ def cloudformation(raw_args):
                      args.root, args.capabilities, args.wait, args.extra)
     elif args.subparser_name == 'update':
         update_stack(args.profile, args.region, args.replace, args.tag,
-                     args.local, args.root, args.capabilities, args.wait)
+                     args.local, args.root, args.capabilities, args.wait, extra=args.extra)
     elif args.subparser_name == 'delete':
         delete_stack(args.profile, args.region, args.wait)
     elif args.subparser_name == 'ls':
