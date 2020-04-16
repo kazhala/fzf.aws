@@ -7,9 +7,10 @@ in a centralized place
 import boto3
 import sys
 import re
+import json
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.util import search_dict_in_list
+from fzfaws.utils.util import search_dict_in_list, get_confirmation
 from fzfaws.utils.spinner import Spinner
 
 
@@ -124,7 +125,11 @@ class Cloudformation(BaseSession):
            InsufficientCapabilitiesException: when the stack action require extra acknowledgement
         """
         try:
-            response = cloudformation_action(**kwargs)
+            print(json.dumps({**kwargs}, indent=4, default=str))
+            if get_confirmation('Confirm?'):
+                response = cloudformation_action(**kwargs)
+            else:
+                exit()
         except self.client.exceptions.InsufficientCapabilitiesException as e:
             pattern = r"^.*(Requires capabilities.*)$"
             error_msg = re.match(pattern, str(e)).group(1)
