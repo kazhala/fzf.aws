@@ -84,12 +84,15 @@ class CloudformationArgs:
         print(80*'-')
         iam = IAM(profile=self.cloudfomation.profile)
         if not update:
-            iam.set_arn()
-            arn = iam.arn
+            iam.set_arn(
+                header='Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions')
         else:
-            pass
-        if arn:
-            self._extra_args['RoleARN'] = arn
+            header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
+            header += 'Original value: %s' % self.cloudfomation.stack_details.get(
+                'RoleARN', 'N/A')
+            iam.set_arn(header=header)
+        if iam.arn:
+            self._extra_args['RoleARN'] = iam.arn
 
     def set_tags(self, update=False):
         """set tags for the current stack

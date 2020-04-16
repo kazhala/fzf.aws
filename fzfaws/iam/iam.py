@@ -21,12 +21,12 @@ class IAM(BaseSession):
         super().__init__(profile=profile, region=region, service_name='iam')
         self.arn = None
 
-    def set_arn(self, arn=None):
+    def set_arn(self, arn=None, header=None):
         fzf = Pyfzf()
         if not arn:
             paginator = self.client.get_paginator('list_roles')
             for result in paginator.paginate():
                 fzf.process_list(result.get('Roles', []),
                                  'RoleName', 'Arn')
-            arn = fzf.execute_fzf(empty_allow=True, print_col=4)
+            arn = fzf.execute_fzf(empty_allow=True, print_col=4, header=header)
         self.arn = arn
