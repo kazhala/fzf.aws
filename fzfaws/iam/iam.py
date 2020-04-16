@@ -4,6 +4,7 @@ Wraps around boto3.client('iam') and handles profile
 """
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.spinner import Spinner
 
 
 class IAM(BaseSession):
@@ -31,21 +32,29 @@ class IAM(BaseSession):
             service: string, only display role that could be assumed by this service
         """
         fzf = Pyfzf()
+        spinner = Spinner()
         if not arn:
-            paginator = self.client.get_paginator('list_roles')
-            for result in paginator.paginate():
-                if service:
-                    for role in result.get('Roles', []):
-                        statements = role.get(
-                            'AssumeRolePolicyDocument', {}).get('Statement', [])
-                        for statement in statements:
-                            if statement.get('Principal', {}).get('Service', '') == service:
-                                print('yes')
-                                fzf.append_fzf('RoleName: %s  Arn: %s' % (
-                                    role.get('RoleName', 'N/A'), role.get('Arn', 'N/A')))
-                else:
-                    fzf.process_list(result.get('Roles', []),
-                                     'RoleName', 'Arn')
+            try:
+                spinner.start()
+                paginator = self.client.get_paginator('list_roles')
+                for result in paginator.paginate():
+                    if service:
+                        for role in result.get('Roles', []):
+                            statements = role.get(
+                                'AssumeRolePolicyDocument', {}).get('Statement', [])
+                            for statement in statements:
+                                if statement.get('Principal', {}).get('Service', '') == service:
+                                    fzf.append_fzf('RoleName: %s  Arn: %s' % (
+                                        role.get('RoleName', 'N/A'), role.get('Arn', 'N/A')))
+                    else:
+                        fzf.process_list(result.get('Roles', []),
+                                         'RoleName', 'Arn')
+            except:
+                spinner.stop()
+                spinner.join()
+                raise
+            spinner.stop()
+            spinner.join()
             arn = fzf.execute_fzf(empty_allow=empty_allow,
                                   print_col=4, header=header)
         self.arn = arn
