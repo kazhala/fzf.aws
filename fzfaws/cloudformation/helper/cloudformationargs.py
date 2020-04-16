@@ -3,6 +3,7 @@
 contains the class to configure extra settings of a cloudformation stack
 """
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.iam.iam import IAM
 
 
 class CloudformationArgs:
@@ -24,23 +25,23 @@ class CloudformationArgs:
         self.cloudfomation = cloudfomation
         self._extra_args = {}
 
-    def set_extra_args(self, tagging=False, rollback=False, iam=False, stack_policy=False, creation_option=False, sns=False, update=False):
+    def set_extra_args(self, tags=False, rollback=False, permissions=False, stack_policy=False, creation_option=False, notification=False, update=False):
         """set extra arguments
 
         Used to determine what args to set and acts like a router
 
         Args:
-            tagging: bool, set tagging for the stack
+            tags: bool, set tags for the stack
             rollback: bool, set rollback configuration for the stack
             iam: bool, use a specific iam role for this creation
             stack_policy: bool, add stack_policy to the stack
             creation_option: bool, configure creation_policy (termination protection, rollback on failure)
-            sns: bool, set sns topic to publish
+            notification: bool, set sns topic to publish
             update: bool, determine if is creating stack or updating stack
         """
 
         attributes = []
-        if not tagging and not rollback and not iam and not stack_policy and not creation_option and not sns:
+        if not tags and not rollback and not permissions and not stack_policy and not creation_option and not notification:
             fzf = Pyfzf()
             fzf.append_fzf('Tags\n')
             fzf.append_fzf('Permissions\n')
@@ -53,20 +54,42 @@ class CloudformationArgs:
 
         for attribute in attributes:
             if attribute == 'Tags':
-                tagging = True
+                tags = True
             elif attribute == 'Permissions':
-                iam = True
+                permissions = True
             elif attribute == 'StackPolicy':
                 stack_policy = True
             elif attribute == 'Notifications':
-                sns = True
+                notification = True
             elif attribute == 'RollbackConfiguration':
                 rollback = True
             elif attribute == 'CreationOption':
                 creation_option = True
 
-        if tagging:
+        if tags:
             self.set_tags(update)
+        if permissions:
+            self.set_permissions(update)
+
+    def set_permissions(self, update=False):
+        """set the iam user for the current stack
+
+        All operation permissions will be based on this
+        iam role. Select None to stop using iam role
+        and use current profile permissions
+
+        Args:
+            update: bool, show previous values
+        """
+        print(80*'-')
+        iam = IAM(profile=self.cloudfomation.profile)
+        if not update:
+            iam.set_arn()
+            arn = iam.arn
+        else:
+            pass
+        if arn:
+            self._extra_args['RoleARN'] = arn
 
     def set_tags(self, update=False):
         """set tags for the current stack
