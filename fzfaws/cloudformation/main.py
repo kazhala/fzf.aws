@@ -72,6 +72,8 @@ def cloudformation(raw_args):
 
     delete_cmd = subparsers.add_parser(
         'delete', description='delete an existing stack')
+    delete_cmd.add_argument('-i', '--iam', nargs='?', action='store', default=False,
+                            help='specify a iam arn that has the permission to delete the current stack')
     delete_cmd.add_argument('-w', '--wait', action='store_true', default=False,
                             help='Pause the script and wait for delete complete signal, max wait time 60mins')
     delete_cmd.add_argument('-P', '--profile', nargs='?', action='store', default=False,
@@ -160,7 +162,9 @@ def cloudformation(raw_args):
         update_stack(args.profile, args.region, args.replace,
                      args.local, args.root, args.wait, args.extra)
     elif args.subparser_name == 'delete':
-        delete_stack(args.profile, args.region, args.wait)
+        if args.iam == None:
+            args.iam = True
+        delete_stack(args.profile, args.region, args.wait, args.iam)
     elif args.subparser_name == 'ls':
         ls_stack(args.profile, args.region, args.resource)
     elif args.subparser_name == 'drift':
