@@ -85,12 +85,12 @@ class CloudformationArgs:
         iam = IAM(profile=self.cloudfomation.profile)
         if not update:
             iam.set_arn(
-                header='Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions')
+                header='Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions', service='cloudformation.amazonaws.com')
         else:
             header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
             header += 'Original value: %s' % self.cloudfomation.stack_details.get(
                 'RoleARN', 'N/A')
-            iam.set_arn(header=header)
+            iam.set_arn(header=header, service='cloudformation.amazonaws.com')
         if iam.arn:
             self._extra_args['RoleARN'] = iam.arn
 
