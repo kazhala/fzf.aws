@@ -46,7 +46,7 @@ def delete_stack(profile=False, region=False, wait=False, iam=False):
     elif iam and type(iam) == bool:
         iam = IAM(profile=cloudformation.profile)
         iam.set_arn(
-            header='Select a iam role with permissions to delete the current stack')
+            header='Select a iam role with permissions to delete the current stack', service='cloudformation.amazonaws.com')
         if iam.arn:
             cloudformation_args['RoleARN'] = iam.arn
 
