@@ -1,7 +1,7 @@
 """get s3 copy argument for preseving all object information
 
 format the argument into a dict in an attempt to preserve all
-previouse information including tags, metadata storage_class
+previous information including tags, metadata storage_class
 and encryption type
 """
 

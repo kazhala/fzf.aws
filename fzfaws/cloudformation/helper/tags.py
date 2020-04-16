@@ -41,7 +41,7 @@ def update_tags(tags):
     new_tags = []
     print(80*'-')
     print('Update tags')
-    print('Skip the value to use previouse value')
+    print('Skip the value to use previous value')
     print('Enter delete in both field to remove a tag')
     for tag in tags:
         tag_key = input(f"Key({tag['Key']}): ")

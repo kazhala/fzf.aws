@@ -27,7 +27,7 @@ def exclude_file(exclude=[], include=[], filename=None):
     for pattern in exclude:
         if fnmatch.fnmatch(filename, pattern):
             should_exclude = True
-    # validate against include list if it is previouse denied
+    # validate against include list if it is previous denied
     if should_exclude:
         for pattern in include:
             if fnmatch.fnmatch(filename, pattern):

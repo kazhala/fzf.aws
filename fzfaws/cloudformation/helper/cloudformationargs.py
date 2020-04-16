@@ -84,7 +84,7 @@ class CloudformationArgs:
         print(80*'-')
         tag_list = []
         if update:
-            print('Skip the value to use previouse value')
+            print('Skip the value to use previous value')
             print('Enter "deletetag" in any field to remove a tag')
             for tag in self.cloudfomation.stack_details['Tags']:
                 tag_key = input(f"Key({tag['Key']}): ")
