@@ -125,7 +125,6 @@ class Cloudformation(BaseSession):
            InsufficientCapabilitiesException: when the stack action require extra acknowledgement
         """
         try:
-            print(json.dumps({**kwargs}, indent=4, default=str))
             if get_confirmation('Confirm?'):
                 response = cloudformation_action(**kwargs)
             else:

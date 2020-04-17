@@ -25,7 +25,7 @@ class CloudformationArgs:
         self.cloudfomation = cloudfomation
         self._extra_args = {}
 
-    def set_extra_args(self, tags=False, rollback=False, permissions=False, stack_policy=False, creation_option=False, notification=False, update=False):
+    def set_extra_args(self, tags=False, rollback=False, permissions=False, stack_policy=False, creation_option=False, notification=False, update=False, search_from_root=False):
         """set extra arguments
 
         Used to determine what args to set and acts like a router
@@ -38,6 +38,7 @@ class CloudformationArgs:
             creation_option: bool, configure creation_policy (termination protection, rollback on failure)
             notification: bool, set sns topic to publish
             update: bool, determine if is creating stack or updating stack
+            search_from_root: bool, search from root for stack_policy
         """
 
         attributes = []
@@ -70,6 +71,26 @@ class CloudformationArgs:
             self.set_tags(update)
         if permissions:
             self.set_permissions(update)
+        if stack_policy:
+            self.set_policy(update, search_from_root)
+
+    def set_policy(self, update=False, search_from_root=False):
+        """set the stack_policy for the stack
+
+        Used to prevent update on certain resources
+
+        Args:
+            update: bool, show previous values
+            search_from_root: bool, search files from root
+        """
+        print(80*'-')
+        fzf = Pyfzf()
+        file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
+                                       empty_allow=True, header='select the policy document you would like to use')
+        if not update and file_path:
+            with open(file_path, 'r') as body:
+                body = body.read()
+                self._extra_args['StackPolicyBody'] = body
 
     def set_permissions(self, update=False):
         """set the iam user for the current stack

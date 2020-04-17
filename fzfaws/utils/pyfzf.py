@@ -114,8 +114,6 @@ class Pyfzf:
             the file path of the selected file
         """
 
-        if empty_allow:
-            print('Exit without select will use the current directory')
         if search_from_root:
             home_path = os.path.expanduser('~')
             os.chdir(home_path)
