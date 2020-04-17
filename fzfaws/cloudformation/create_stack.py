@@ -98,7 +98,7 @@ def create_stack(profile=False, region=False, local_path=False, root=False, wait
 
     if extra:
         extra_args = CloudformationArgs(cloudformation)
-        extra_args.set_extra_args(search_from_root=True)
+        extra_args.set_extra_args(search_from_root=root)
         cloudformation_args.update(extra_args.extra_args)
     response = cloudformation.execute_with_capabilities(
         **cloudformation_args)

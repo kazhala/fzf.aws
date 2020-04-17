@@ -145,7 +145,7 @@ def update_stack(profile=False, region=False, replace=False, local_path=False, r
 
     if extra:
         extra_args = CloudformationArgs(cloudformation)
-        extra_args.set_extra_args(update=True)
+        extra_args.set_extra_args(update=True, search_from_root=root)
         cloudformation_args.update(extra_args.extra_args)
 
     if dryrun:

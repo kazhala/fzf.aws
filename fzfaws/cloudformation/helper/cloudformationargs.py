@@ -2,8 +2,10 @@
 
 contains the class to configure extra settings of a cloudformation stack
 """
+import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.iam.iam import IAM
+from fzfaws.utils.exceptions import NoSelectionMade
 
 
 class CloudformationArgs:
@@ -85,12 +87,19 @@ class CloudformationArgs:
         """
         print(80*'-')
         fzf = Pyfzf()
-        file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
-                                       empty_allow=True, header='select the policy document you would like to use')
+        try:
+            file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
+                                           header='select the policy document you would like to use')
+        except (NoSelectionMade, subprocess.CalledProcessError):
+            return
         if not update and file_path:
             with open(file_path, 'r') as body:
                 body = body.read()
                 self._extra_args['StackPolicyBody'] = body
+        elif update and file_path:
+            with open(file_path, 'r') as body:
+                body = body.read()
+                self._extra_args['StackPolicyDuringUpdateBody'] = body
 
     def set_permissions(self, update=False):
         """set the iam user for the current stack
