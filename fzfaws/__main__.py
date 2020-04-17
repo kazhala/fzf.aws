@@ -43,7 +43,7 @@ def main():
         print('Exiting..')
     except KeyboardInterrupt:
         print('\nExit')
-    except subprocess.SubprocessError:
+    except NoSelectionMade:
         print('No selection was made')
         print('Exit..')
     except (ClientError, Exception) as e:

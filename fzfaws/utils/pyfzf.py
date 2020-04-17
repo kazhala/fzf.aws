@@ -85,7 +85,7 @@ class Pyfzf:
                 ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
 
         if not selection_name and not empty_allow:
-            raise NoSelectionMade('Empty selection, exiting..')
+            raise NoSelectionMade
 
         if multi_select:
             # multi_select would return everything seperate by \n
@@ -155,9 +155,11 @@ class Pyfzf:
                 cmd_list.append('+m')
             selected_file_path = subprocess.check_output(
                 cmd_list, stdin=list_file.stdout)
+            if not empty_allow and not selected_file_path:
+                raise NoSelectionMade
         except subprocess.CalledProcessError:
             if not empty_allow:
-                raise
+                raise NoSelectionMade
             else:
                 selected_file_path = os.getcwd()
                 print('%s will be used' % selected_file_path)
