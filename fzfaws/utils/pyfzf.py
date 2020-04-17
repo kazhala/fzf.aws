@@ -117,6 +117,8 @@ class Pyfzf:
         if search_from_root:
             home_path = os.path.expanduser('~')
             os.chdir(home_path)
+        if not header and directory and empty_allow:
+            header = 'Exit without selection will use %s' % os.getcwd()
         if self._check_fd():
             cmd_list = []
             if directory:
@@ -160,10 +162,12 @@ class Pyfzf:
         except subprocess.CalledProcessError:
             if not empty_allow:
                 raise NoSelectionMade
-            else:
+            elif empty_allow and directory:
                 selected_file_path = os.getcwd()
                 print('%s will be used' % selected_file_path)
                 return selected_file_path
+            elif empty_allow:
+                return
         if multi_select:
             # multi_select would return everything seperate by \n
             return str(selected_file_path, 'utf-8').splitlines()

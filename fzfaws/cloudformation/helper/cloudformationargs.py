@@ -87,11 +87,8 @@ class CloudformationArgs:
         """
         print(80*'-')
         fzf = Pyfzf()
-        try:
-            file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
-                                           header='select the policy document you would like to use')
-        except (NoSelectionMade, subprocess.CalledProcessError):
-            return
+        file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
+                                       empty_allow=True, header='select the policy document you would like to use')
         if not update and file_path:
             with open(file_path, 'r') as body:
                 body = body.read()
