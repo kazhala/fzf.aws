@@ -132,11 +132,7 @@ class ParamProcessor:
 
         # execute fzf if allowed_value array exists
         if 'AllowedValues' in self.params[parameter_key]:
-            if value_type:
-                print(
-                    f"Choose a value for {parameter_key}({value_type}: {default})")
-            else:
-                print(f'Choose a value for {parameter_key}:')
+            self._print_parameter_key(parameter_key, value_type, default)
             choose_value_fzf = Pyfzf()
             for allowed_value in self.params[parameter_key]['AllowedValues']:
                 choose_value_fzf.append_fzf(allowed_value)
@@ -145,14 +141,10 @@ class ParamProcessor:
                 empty_allow=True, print_col=1)
         else:
             if parameter_type in self._aws_specific_param:
-                if value_type:
-                    print(
-                        f"Choose a value for {parameter_key}({value_type}: {default})")
+                self._print_parameter_key(parameter_key, value_type, default)
                 user_input = self._get_selected_param_value(parameter_type)
             elif parameter_type in self._aws_specific_list_param:
-                if value_type:
-                    print(
-                        f"Choose a value for {parameter_key}({value_type}: {default})")
+                self._print_parameter_key(parameter_key, value_type, default)
                 user_input = self._get_list_param_value(parameter_type)
             else:
                 if not value_type:
@@ -171,6 +163,14 @@ class ParamProcessor:
             return ''
         else:
             return user_input
+
+    def _print_parameter_key(self, parameter_key, value_type=None, default=None):
+        """helper print function"""
+        if value_type:
+            print("Choose a value for %s(%s: %s)" %
+                  (parameter_key, value_type, default))
+        else:
+            print('Choose a value for %s' % parameter_key)
 
     def _get_selected_param_value(self, type_name):
         """use fzf to display aws specific parameters
