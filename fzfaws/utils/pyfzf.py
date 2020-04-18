@@ -59,34 +59,47 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(
             ('echo', self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = ['fzf', '--ansi']
+        cmd_list = ['fzf', '--ansi', '--expect=ctrl-c']
         cmd_list.append(
             '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
         if header:
             cmd_list.append('--header=%s' % header)
+
         if multi_select:
-            cmd_list.append('+m')
+            cmd_list.append('--multi')
         else:
-            cmd_list.append('-m')
+            cmd_list.append('--no-multi')
+
         if preview:
             cmd_list.extend(['--preview', preview])
 
-        selection = subprocess.Popen(
-            cmd_list, stdin=fzf_input.stdout, stdout=subprocess.PIPE)
+        try:
+            # get the output of fzf and check if ctrl-c is pressed
+            selection = subprocess.check_output(
+                cmd_list, stdin=fzf_input.stdout)
+            self._check_ctrl_c(selection)
 
-        if print_col == -1:
-            selection_name = subprocess.check_output(
-                ('awk', '{$1=""; print}'), stdin=selection.stdout)
-        else:
-            selection_name = subprocess.check_output(
-                ('awk', '{print $%s}' % (print_col)), stdin=selection.stdout)
+            # reopen the pipeline and delete the first line(key information)
+            echo_selection = subprocess.Popen(
+                ['echo', selection], stdout=subprocess.PIPE)
+            if print_col == -1:
+                selection_name = subprocess.check_output(
+                    ('awk', '{$1=""; print}'), stdin=echo_selection.stdout)
+            else:
+                selection_name = subprocess.check_output(
+                    ('awk', '{print $%s}' % (print_col)), stdin=echo_selection.stdout)
 
-        if not selection_name and not empty_allow:
-            raise NoSelectionMade
+            if not selection_name and not empty_allow:
+                raise NoSelectionMade
+        except subprocess.CalledProcessError:
+            if not empty_allow:
+                raise NoSelectionMade
+            elif empty_allow:
+                return
 
         if multi_select:
             # multi_select would return everything seperate by \n
-            return_list = str(selection_name, 'utf-8').splitlines()
+            return_list = str(selection_name, 'utf-8').strip().splitlines()
             return [item.strip() for item in return_list]
         else:
             # conver the byte to string and remove the empty trailing line
@@ -143,7 +156,7 @@ class Pyfzf:
                 list_file = subprocess.Popen(
                     'find * -type f', stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=True)
         try:
-            cmd_list = ['fzf']
+            cmd_list = ['fzf', '--expect=ctrl-c']
             cmd_list.append(
                 '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
             if header:
@@ -154,6 +167,7 @@ class Pyfzf:
                 cmd_list.append('+m')
             selected_file_path = subprocess.check_output(
                 cmd_list, stdin=list_file.stdout)
+            self._check_ctrl_c(selected_file_path)
             if not empty_allow and not selected_file_path:
                 raise NoSelectionMade
         except subprocess.CalledProcessError:
@@ -167,9 +181,25 @@ class Pyfzf:
                 return
         if multi_select:
             # multi_select would return everything seperate by \n
-            return str(selected_file_path, 'utf-8').splitlines()
+            return str(selected_file_path, 'utf-8').strip().splitlines()
         else:
             return str(selected_file_path, 'utf-8').strip()
+
+    def _check_ctrl_c(self, raw_bytes):
+        """check if ctrl_c is pressed during fzf invokation
+
+        If ctrl_c is pressed, exit entire program instead of
+        keep moving forward
+
+        Args:
+            raw_bytes: the raw output of fzf
+        """
+        check_init = subprocess.Popen(
+            ['echo', raw_bytes], stdout=subprocess.PIPE)
+        key_press = subprocess.check_output(
+            ['head', '-1'], stdin=check_init.stdout)
+        if (str(key_press, 'utf-8').strip()) == 'ctrl-c':
+            raise KeyboardInterrupt
 
     def _check_fd(self):
         """check if fd is intalled on the machine"""
