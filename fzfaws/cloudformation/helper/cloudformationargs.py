@@ -5,6 +5,7 @@ contains the class to configure extra settings of a cloudformation stack
 import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.iam.iam import IAM
+from fzfaws.sns.sns import SNS
 from fzfaws.utils.exceptions import NoSelectionMade
 
 
@@ -75,6 +76,21 @@ class CloudformationArgs:
             self.set_permissions(update)
         if stack_policy:
             self.set_policy(update, search_from_root)
+        if notification:
+            self.set_notification(update)
+
+    def set_notification(self, update=False):
+        """set sns arn for notification
+
+        Args:
+            update: bool, show previous values
+        """
+        print(80*'-')
+        sns = SNS(profile=self.cloudfomation.profile,
+                  region=self.cloudfomation.region)
+        sns.set_arns(empty_allow=True, header='select a sns topic to notify')
+        if sns.arns:
+            self._extra_args['NotificationARNs'] = sns.arns
 
     def set_policy(self, update=False, search_from_root=False):
         """set the stack_policy for the stack
@@ -82,7 +98,7 @@ class CloudformationArgs:
         Used to prevent update on certain resources
 
         Args:
-            update: bool, show previous values
+            update: bool, if during stack update
             search_from_root: bool, search files from root
         """
         print(80*'-')

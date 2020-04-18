@@ -32,7 +32,7 @@ class IAM(BaseSession):
             service: string, only display role that could be assumed by this service
         """
         fzf = Pyfzf()
-        spinner = Spinner()
+        spinner = Spinner(message='Fetching iam roles..')
         if not arn:
             try:
                 spinner.start()
