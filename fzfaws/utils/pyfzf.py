@@ -64,16 +64,13 @@ class Pyfzf:
             '--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query')
         if header:
             cmd_list.append('--header=%s' % header)
-        if not preview:
-            if not multi_select:
-                cmd_list.append('+m')
-            else:
-                cmd_list.append('-m')
+        if multi_select:
+            cmd_list.append('+m')
         else:
-            if not multi_select:
-                cmd_list.extend(['+m', '--preview', preview])
-            else:
-                cmd_list.extend(['-m', '--preview', preview])
+            cmd_list.append('-m')
+        if preview:
+            cmd_list.extend(['--preview', preview])
+
         selection = subprocess.Popen(
             cmd_list, stdin=fzf_input.stdout, stdout=subprocess.PIPE)
 
