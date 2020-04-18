@@ -5,20 +5,24 @@ TODO: handle creation of kms keys with iam capabilities
 """
 import boto3
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.session import BaseSession
 
 
-class KMS:
+class KMS(BaseSession):
     """kms wrapper class around boto3.client('kms')
 
     handles operation around kms, selection/creation etc
 
     Attributes:
-        client: object, boto3 client
+        region: region for the operation
+        profile: profile to use for the operation
+        client: initialized boto3 client with region and profile in use
+        resource: initialized boto3 resource with region and profile in use
         keyid: string, the selected kms key id
     """
 
-    def __init__(self, region=None, profile=None):
-        self.client = boto3.client('kms', region_name=region)
+    def __init__(self, profile=None, region=None):
+        super().__init__(profile=profile, region=region, service_name='kms')
         self.keyid = None
 
     def set_keyid(self):

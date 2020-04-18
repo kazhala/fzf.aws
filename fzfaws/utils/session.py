@@ -15,6 +15,8 @@ class BaseSession:
         session: boto3 session with customized profile and regions
         client: boto3 client init from the session
         resource: boto3 resource init from the session
+        region: selected region for operation
+        profile: selected profile for operation
     """
 
     def __init__(self, profile=None, region=None, service_name=None):

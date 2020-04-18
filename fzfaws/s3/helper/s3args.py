@@ -285,7 +285,7 @@ class S3Args:
             current_region = self.s3.client.get_bucket_location(
                 Bucket=self.s3.bucket_name)
             current_region = current_region.get('LocationConstraint')
-            kms = KMS()
+            kms = KMS(self.cloudfomation.profile, self.cloudfomation.region)
             kms.set_keyid()
             self._extra_args['SSEKMSKeyId'] = kms.keyid
 

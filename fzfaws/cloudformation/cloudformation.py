@@ -20,7 +20,10 @@ class Cloudformation(BaseSession):
     handles operations directly related to boto3.client
 
     Attributes:
-        client: boto3 client
+        region: region for the operation
+        profile: profile to use for the operation
+        client: initialized boto3 client with region and profile in use
+        resource: initialized boto3 resource with region and profile in use
         stack_name: then name of the selected stack
         stack_details: a dict containing response from boto3
     """
