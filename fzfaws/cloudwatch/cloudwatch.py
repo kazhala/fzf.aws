@@ -41,5 +41,7 @@ class Cloudwatch(BaseSession):
                 if result.get('MetricAlarms'):
                     fzf.process_list(result['MetricAlarms'], 'AlarmArn')
             arns = fzf.execute_fzf(
-                empty_allow=empty_allow, multi_select=True, header=header)
+                empty_allow=empty_allow, multi_select=multi_select, header=header)
+            if not multi_select:
+                arns = [arns]
         self.arns = arns
