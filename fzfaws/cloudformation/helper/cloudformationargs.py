@@ -127,8 +127,10 @@ class CloudformationArgs:
         print(80*'-')
         iam = IAM(profile=self.cloudfomation.profile)
         if not update:
+            header = 'Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
+            header += 'Note: only IAM role can be assumed by CloudFormation is listed'
             iam.set_arn(
-                header='Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions', service='cloudformation.amazonaws.com')
+                header=header, service='cloudformation.amazonaws.com')
         else:
             header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
             header += 'Original value: %s' % self.cloudfomation.stack_details.get(
