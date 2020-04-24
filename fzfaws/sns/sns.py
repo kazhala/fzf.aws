@@ -24,18 +24,22 @@ class SNS(BaseSession):
         super().__init__(profile=profile, region=region, service_name='sns')
         self.arns = []
 
-    def set_arns(self, arns=None, empty_allow=False, header=None):
+    def set_arns(self, arns=None, empty_allow=False, header=None, multi_select=False):
         """set the sns arn for operation
 
         Args:
             arns: list, list of arns to init
             empty_allow: bool, allow empty selection
             header: string, header to display in fzf
+            multi_select: bool, allow multi_select
         """
         if not arns:
             fzf = Pyfzf()
             paginator = self.client.get_paginator('list_topics')
             for result in paginator.paginate():
                 fzf.process_list(result.get('Topics', []), 'TopicArn')
-            self.arns = fzf.execute_fzf(
-                empty_allow=empty_allow, multi_select=True, header=header)
+            arns = fzf.execute_fzf(
+                empty_allow=empty_allow, multi_select=multi_select, header=header)
+            if not multi_select:
+                arns = [arns]
+        self.arns = arns
