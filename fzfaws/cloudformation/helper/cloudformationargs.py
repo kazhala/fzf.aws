@@ -17,17 +17,17 @@ class CloudformationArgs:
     Handles tags, roll back, stack policy, notification, termination protection etc
 
     Attributes:
-        cloudfomation: Cloudformation class instance
+        cloudformation: Cloudformation class instance
         _extra_args: extra argument
     """
 
-    def __init__(self, cloudfomation):
+    def __init__(self, cloudformation):
         """constructior
 
         Args:
-            cloudfomation: Cloudformation class instance
+            cloudformation: Cloudformation class instance
         """
-        self.cloudfomation = cloudfomation
+        self.cloudformation = cloudformation
         self._extra_args = {}
 
     def set_extra_args(self, tags=False, rollback=False, permissions=False, stack_policy=False, creation_option=False, notification=False, update=False, search_from_root=False):
@@ -120,15 +120,22 @@ class CloudformationArgs:
         """
         print(80*'-')
         cloudwatch = Cloudwatch(
-            self.cloudfomation.profile, self.cloudfomation.region)
+            self.cloudformation.profile, self.cloudformation.region)
+        header = 'select a cloudwatch alarm to monitor the stack'
+        message = 'MonitoringTimeInMinutes(Default: 0): '
+        if update and self.cloudformation.stack_details.get('RollbackConfiguration'):
+            header += '\nOriginal value: %s' % self.cloudformation.stack_details['RollbackConfiguration'].get(
+                'RollbackTriggers', 'N/A')
+            message = 'MonitoringTimeInMinutes(Original: %s): ' % self.cloudformation.stack_details['RollbackConfiguration'].get(
+                'MonitoringTimeInMinutes', 'N/A')
         cloudwatch.set_arns(
-            empty_allow=True, header='select a cloudwatch alarm to monitor the stack', multi_select=True)
+            empty_allow=True, header=header, multi_select=True)
         print('Selected arns: %s' % cloudwatch.arns)
-        monitor_time = input('MonitoringTimeInMinutes(Default: 0): ')
+        monitor_time = input(message)
         if cloudwatch.arns:
             self._extra_args['RollbackConfiguration'] = {
                 'RollbackTriggers': [{'Arn': arn, 'Type': 'AWS::CloudWatch::Alarm'} for arn in cloudwatch.arns],
-                'MonitoringTimeInMinutes': monitor_time if monitor_time else 0
+                'MonitoringTimeInMinutes': int(monitor_time) if monitor_time else 0
             }
 
     def set_notification(self, update=False):
@@ -138,11 +145,11 @@ class CloudformationArgs:
             update: bool, show previous values
         """
         print(80*'-')
-        sns = SNS(profile=self.cloudfomation.profile,
-                  region=self.cloudfomation.region)
+        sns = SNS(profile=self.cloudformation.profile,
+                  region=self.cloudformation.region)
         header = 'select sns topic to notify'
         if update:
-            header += '\nOriginal value: %s' % self.cloudfomation.stack_details.get(
+            header += '\nOriginal value: %s' % self.cloudformation.stack_details.get(
                 'NotificationARNs', 'N/A')
         sns.set_arns(empty_allow=True,
                      header=header, multi_select=True)
@@ -183,7 +190,7 @@ class CloudformationArgs:
         """
 
         print(80*'-')
-        iam = IAM(profile=self.cloudfomation.profile)
+        iam = IAM(profile=self.cloudformation.profile)
         if not update:
             header = 'Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
             header += 'Note: only IAM role can be assumed by CloudFormation is listed'
@@ -191,7 +198,7 @@ class CloudformationArgs:
                 header=header, service='cloudformation.amazonaws.com')
         else:
             header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
-            header += 'Original value: %s' % self.cloudfomation.stack_details.get(
+            header += 'Original value: %s' % self.cloudformation.stack_details.get(
                 'RoleARN', 'N/A')
             iam.set_arns(header=header, service='cloudformation.amazonaws.com')
         if iam.arns:
@@ -214,10 +221,10 @@ class CloudformationArgs:
         print(80*'-')
         tag_list = []
         if update:
-            if self.cloudfomation.stack_details.get('Tags'):
+            if self.cloudformation.stack_details.get('Tags'):
                 print('Skip the value to use previous value')
                 print('Enter "deletetag" in any field to remove a tag')
-                for tag in self.cloudfomation.stack_details['Tags']:
+                for tag in self.cloudformation.stack_details['Tags']:
                     tag_key = input(f"Key({tag['Key']}): ")
                     if not tag_key:
                         tag_key = tag['Key']
