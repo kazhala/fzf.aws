@@ -154,6 +154,13 @@ def update_stack(profile=False, region=False, replace=False, local_path=False, r
     response = cloudformation.execute_with_capabilities(
         **cloudformation_args)
 
+    # update termination protection if applicable
+    if extra_args.update_termination:
+        cloudformation.client.update_termination_protection(
+            EnableTerminationProtection=True if extra_args.update_termination == 'True' else False,
+            StackName=cloudformation.stack_name
+        )
+
     response.pop('ResponseMetadata', None)
     print(json.dumps(response, indent=4, default=str))
     print(80*'-')
