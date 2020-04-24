@@ -140,7 +140,12 @@ class CloudformationArgs:
         print(80*'-')
         sns = SNS(profile=self.cloudfomation.profile,
                   region=self.cloudfomation.region)
-        sns.set_arns(empty_allow=True, header='select a sns topic to notify')
+        header = 'select sns topic to notify'
+        if update:
+            header += '\nOriginal value: %s' % self.cloudfomation.stack_details.get(
+                'NotificationARNs', 'N/A')
+        sns.set_arns(empty_allow=True,
+                     header=header, multi_select=True)
         if sns.arns:
             self._extra_args['NotificationARNs'] = sns.arns
 
@@ -209,19 +214,20 @@ class CloudformationArgs:
         print(80*'-')
         tag_list = []
         if update:
-            print('Skip the value to use previous value')
-            print('Enter "deletetag" in any field to remove a tag')
-            for tag in self.cloudfomation.stack_details['Tags']:
-                tag_key = input(f"Key({tag['Key']}): ")
-                if not tag_key:
-                    tag_key = tag['Key']
-                tag_value = input(f"Value({tag['Value']}): ")
-                if not tag_value:
-                    tag_value = tag['Value']
-                if tag_key == 'deletetag' or tag_value == 'deletetag':
-                    continue
-                tag_list.append(
-                    {'Key': tag_key, 'Value': tag_value})
+            if self.cloudfomation.stack_details.get('Tags'):
+                print('Skip the value to use previous value')
+                print('Enter "deletetag" in any field to remove a tag')
+                for tag in self.cloudfomation.stack_details['Tags']:
+                    tag_key = input(f"Key({tag['Key']}): ")
+                    if not tag_key:
+                        tag_key = tag['Key']
+                    tag_value = input(f"Value({tag['Value']}): ")
+                    if not tag_value:
+                        tag_value = tag['Value']
+                    if tag_key == 'deletetag' or tag_value == 'deletetag':
+                        continue
+                    tag_list.append(
+                        {'Key': tag_key, 'Value': tag_value})
             print('Enter new tags below')
             print('Skip enter value to stop entering for new tags')
         elif not update:
