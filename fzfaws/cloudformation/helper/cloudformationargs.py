@@ -94,11 +94,11 @@ class CloudformationArgs:
         cloudwatch.set_arns(
             empty_allow=True, header='select a cloudwatch alarm to monitor the stack', multi_select=True)
         print('Selected arns: %s' % cloudwatch.arns)
-        monitor_time = input('MonitoringTimeInMinutes: ')
-        if cloudwatch.arns and monitor_time:
+        monitor_time = input('MonitoringTimeInMinutes(Default: 0): ')
+        if cloudwatch.arns:
             self._extra_args['RollbackConfiguration'] = {
                 'RollbackTriggers': [{'Arn': arn, 'Type': 'AWS::CloudWatch::Alarm'} for arn in cloudwatch.arns],
-                'MonitoringTimeInMinutes': monitor_time
+                'MonitoringTimeInMinutes': monitor_time if monitor_time else 0
             }
 
     def set_notification(self, update=False):
