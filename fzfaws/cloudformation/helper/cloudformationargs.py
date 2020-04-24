@@ -6,6 +6,7 @@ import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.iam.iam import IAM
 from fzfaws.sns.sns import SNS
+from fzfaws.cloudwatch.cloudwatch import Cloudwatch
 from fzfaws.utils.exceptions import NoSelectionMade
 
 
@@ -78,6 +79,27 @@ class CloudformationArgs:
             self.set_policy(update, search_from_root)
         if notification:
             self.set_notification(update)
+        if rollback:
+            self.set_rollback(update)
+
+    def set_rollback(self, update=False):
+        """set rollback configuration for cloudformation
+
+        Args:
+            update: bool, show previous values
+        """
+        print(80*'-')
+        cloudwatch = Cloudwatch(
+            self.cloudfomation.profile, self.cloudfomation.region)
+        cloudwatch.set_arns(
+            empty_allow=True, header='select a cloudwatch alarm to monitor the stack', multi_select=True)
+        print('Selected arns: %s' % cloudwatch.arns)
+        monitor_time = input('MonitoringTimeInMinutes: ')
+        if cloudwatch.arns and monitor_time:
+            self._extra_args['RollbackConfiguration'] = {
+                'RollbackTriggers': [{'Arn': arn, 'Type': 'AWS::CloudWatch::Alarm'} for arn in cloudwatch.arns],
+                'MonitoringTimeInMinutes': monitor_time
+            }
 
     def set_notification(self, update=False):
         """set sns arn for notification
