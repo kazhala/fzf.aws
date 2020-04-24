@@ -236,6 +236,8 @@ class CloudformationArgs:
             tag_list.append({'Key': tag_name, 'Value': tag_value})
         if tag_list:
             self._extra_args['Tags'] = tag_list
+        elif not tag_list and update:
+            self._extra_args['Tags'] = []
 
     @property
     def extra_args(self):
