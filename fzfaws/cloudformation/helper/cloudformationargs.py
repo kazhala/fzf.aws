@@ -176,20 +176,21 @@ class CloudformationArgs:
         Args:
             update: bool, show previous values
         """
+
         print(80*'-')
         iam = IAM(profile=self.cloudfomation.profile)
         if not update:
             header = 'Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
             header += 'Note: only IAM role can be assumed by CloudFormation is listed'
-            iam.set_arn(
+            iam.set_arns(
                 header=header, service='cloudformation.amazonaws.com')
         else:
             header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
             header += 'Original value: %s' % self.cloudfomation.stack_details.get(
                 'RoleARN', 'N/A')
-            iam.set_arn(header=header, service='cloudformation.amazonaws.com')
-        if iam.arn:
-            self._extra_args['RoleARN'] = iam.arn
+            iam.set_arns(header=header, service='cloudformation.amazonaws.com')
+        if iam.arns:
+            self._extra_args['RoleARN'] = iam.arns[0]
 
     def set_tags(self, update=False):
         """set tags for the current stack
@@ -204,6 +205,7 @@ class CloudformationArgs:
         Args:
             update: bool, determine if is updating the stack
         """
+
         print(80*'-')
         tag_list = []
         if update:
