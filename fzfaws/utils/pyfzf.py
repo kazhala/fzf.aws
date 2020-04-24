@@ -95,7 +95,10 @@ class Pyfzf:
             if not empty_allow:
                 raise NoSelectionMade
             elif empty_allow:
-                return
+                if multi_select:
+                    return []
+                else:
+                    return ''
 
         if multi_select:
             # multi_select would return everything seperate by \n
