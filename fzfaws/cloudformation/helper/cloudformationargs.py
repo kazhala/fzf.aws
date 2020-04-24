@@ -8,6 +8,7 @@ from fzfaws.iam.iam import IAM
 from fzfaws.sns.sns import SNS
 from fzfaws.cloudwatch.cloudwatch import Cloudwatch
 from fzfaws.utils.exceptions import NoSelectionMade
+from fzfaws.utils.util import get_confirmation
 
 
 class CloudformationArgs:
@@ -81,6 +82,35 @@ class CloudformationArgs:
             self.set_notification(update)
         if rollback:
             self.set_rollback(update)
+        if creation_option:
+            self.set_creation(update)
+
+    def set_creation(self, update=False):
+        """set creation option for stack
+
+        Args:
+            update: bool, show previous values
+        """
+        print(80*'-')
+        rollback = input('Rollback on failure (default: y)?(y/n): ')
+        if rollback.lower() != 'y' and rollback.lower() != 'n':
+            self._extra_args['OnFailure'] = 'ROLLBACK'
+        elif rollback.lower() == 'y':
+            self._extra_args['OnFailure'] = 'ROLLBACK'
+        elif rollback.lower() == 'n':
+            self._extra_args['OnFailure'] = 'DO_NOTHING'
+        timeout = input(
+            'Specify number of minutes before stack timeout (default no timeout): ')
+        if timeout:
+            self._extra_args['TimeoutInMinutes'] = int(timeout)
+        termination = input(
+            'Prevents stack from accidentally deleted (default: n)?(y/n): ')
+        if termination.lower() != 'y' and termination.lower() != 'n':
+            self._extra_args['EnableTerminationProtection'] = False
+        elif termination.lower() == 'y':
+            self._extra_args['EnableTerminationProtection'] = True
+        elif termination.lower() == 'n':
+            self._extra_args['EnableTerminationProtection'] = False
 
     def set_rollback(self, update=False):
         """set rollback configuration for cloudformation
