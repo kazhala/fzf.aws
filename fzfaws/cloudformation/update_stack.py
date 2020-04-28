@@ -3,19 +3,33 @@
 perform updates to cloudformation
 """
 import json
-from fzfaws.utils.util import search_dict_in_list
-from fzfaws.cloudformation.helper.file_validation import is_yaml, is_json, check_is_valid
-from fzfaws.cloudformation.helper.tags import get_tags, update_tags
+from fzfaws.cloudformation.helper.file_validation import (
+    is_yaml,
+    is_json,
+    check_is_valid,
+)
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.helper.process_file import process_yaml_file, process_json_file
+from fzfaws.cloudformation.helper.process_file import (
+    process_yaml_file,
+    process_json_file,
+)
 from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
-from fzfaws.utils.exceptions import InvalidFileType
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 
 
-def update_stack(profile=False, region=False, replace=False, local_path=False, root=False, wait=False, extra=False, dryrun=False, cloudformation=None):
+def update_stack(
+    profile=False,
+    region=False,
+    replace=False,
+    local_path=False,
+    root=False,
+    wait=False,
+    extra=False,
+    dryrun=False,
+    cloudformation=None,
+):
     """handle the update of cloudformation stacks
 
     Args:
@@ -44,38 +58,47 @@ def update_stack(profile=False, region=False, replace=False, local_path=False, r
         cloudformation = Cloudformation(profile, region)
         cloudformation.set_stack()
 
+    extra_args = CloudformationArgs(cloudformation)
+
     # check to use current template or replace current template
     if not replace:
-        print('Enter new parameter values, skip to use original value')
+        print("Enter new parameter values, skip to use original value")
         updated_parameters = []
-        if 'Parameters' in cloudformation.stack_details:
-            parameters = cloudformation.stack_details['Parameters']
+        if "Parameters" in cloudformation.stack_details:
+            parameters = cloudformation.stack_details["Parameters"]
 
             # take new values
             for parameter in parameters:
                 parameter_value = input(
-                    f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): ')
+                    f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): '
+                )
                 if parameter_value == '""' or parameter_value == "''":
-                    updated_parameters.append({
-                        'ParameterKey': parameter['ParameterKey'],
-                        'ParameterValue': ''
-                    })
+                    updated_parameters.append(
+                        {
+                            "ParameterKey": parameter["ParameterKey"],
+                            "ParameterValue": "",
+                        }
+                    )
                 elif not parameter_value:
-                    updated_parameters.append({
-                        'ParameterKey': parameter['ParameterKey'],
-                        'UsePreviousValue': True
-                    })
+                    updated_parameters.append(
+                        {
+                            "ParameterKey": parameter["ParameterKey"],
+                            "UsePreviousValue": True,
+                        }
+                    )
                 else:
-                    updated_parameters.append({
-                        'ParameterKey': parameter['ParameterKey'],
-                        'ParameterValue': parameter_value
-                    })
+                    updated_parameters.append(
+                        {
+                            "ParameterKey": parameter["ParameterKey"],
+                            "ParameterValue": parameter_value,
+                        }
+                    )
 
         cloudformation_args = {
-            'cloudformation_action': cloudformation.client.update_stack,
-            'StackName': cloudformation.stack_name,
-            'UsePreviousTemplate': True,
-            'Parameters': updated_parameters
+            "cloudformation_action": cloudformation.client.update_stack,
+            "StackName": cloudformation.stack_name,
+            "UsePreviousTemplate": True,
+            "Parameters": updated_parameters,
         }
 
     else:
@@ -85,49 +108,59 @@ def update_stack(profile=False, region=False, replace=False, local_path=False, r
             if type(local_path) != str:
                 fzf = Pyfzf()
                 local_path = fzf.get_local_file(
-                    search_from_root=root, cloudformation=True)
+                    search_from_root=root, cloudformation=True
+                )
 
-            # double check file type
+            # double check file type, ensure yaml or json
             check_is_valid(local_path)
+            file_data = {}
             if is_yaml(local_path):
                 file_data = process_yaml_file(local_path)
             elif is_json(local_path):
                 file_data = process_json_file(local_path)
 
             # process params
-            if 'Parameters' in file_data['dictBody']:
+            if "Parameters" in file_data["dictBody"]:
                 paramprocessor = ParamProcessor(
-                    cloudformation.profile, cloudformation.region, file_data['dictBody']['Parameters'], cloudformation.stack_details.get('Parameters'))
+                    cloudformation.profile,
+                    cloudformation.region,
+                    file_data["dictBody"]["Parameters"],
+                    cloudformation.stack_details.get("Parameters"),
+                )
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:
                 updated_parameters = []
 
             cloudformation_args = {
-                'cloudformation_action': cloudformation.client.update_stack,
-                'StackName': cloudformation.stack_name,
-                'TemplateBody': file_data['body'],
-                'UsePreviousTemplate': False,
-                'Parameters': updated_parameters
+                "cloudformation_action": cloudformation.client.update_stack,
+                "StackName": cloudformation.stack_name,
+                "TemplateBody": file_data["body"],
+                "UsePreviousTemplate": False,
+                "Parameters": updated_parameters,
             }
 
         # if no local file flag, get from s3
         else:
-            s3 = S3(profile=cloudformation.profile,
-                    region=cloudformation.region)
+            s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
             s3.set_s3_bucket()
             s3.set_s3_object()
+            file_type = ""  # type: str
             if is_yaml(s3.bucket_path):
-                file_type = 'yaml'
+                file_type = "yaml"
             elif is_json(s3.bucket_path):
-                file_type = 'json'
+                file_type = "json"
 
             check_is_valid(s3.bucket_path)
 
             file_data = s3.get_object_data(file_type)
-            if 'Parameters' in file_data:
+            if "Parameters" in file_data:
                 paramprocessor = ParamProcessor(
-                    cloudformation.profile, cloudformation.region, file_data['Parameters'], cloudformation.stack_details.get('Parameters'))
+                    cloudformation.profile,
+                    cloudformation.region,
+                    file_data["Parameters"],
+                    cloudformation.stack_details.get("Parameters"),
+                )
                 paramprocessor.process_stack_params()
                 updated_parameters = paramprocessor.processed_params
             else:
@@ -136,37 +169,36 @@ def update_stack(profile=False, region=False, replace=False, local_path=False, r
             template_body_loacation = s3.get_object_url()
 
             cloudformation_args = {
-                'cloudformation_action': cloudformation.client.update_stack,
-                'StackName': cloudformation.stack_name,
-                'TemplateURL': template_body_loacation,
-                'UsePreviousTemplate': False,
-                'Parameters': updated_parameters
+                "cloudformation_action": cloudformation.client.update_stack,
+                "StackName": cloudformation.stack_name,
+                "TemplateURL": template_body_loacation,
+                "UsePreviousTemplate": False,
+                "Parameters": updated_parameters,
             }
 
     if extra:
-        extra_args = CloudformationArgs(cloudformation)
         extra_args.set_extra_args(update=True, search_from_root=root)
         cloudformation_args.update(extra_args.extra_args)
 
     if dryrun:
         return cloudformation_args
 
-    response = cloudformation.execute_with_capabilities(
-        **cloudformation_args)
+    response = cloudformation.execute_with_capabilities(**cloudformation_args)
 
     # update termination protection if applicable
     if extra_args.update_termination:
         cloudformation.client.update_termination_protection(
-            EnableTerminationProtection=True if extra_args.update_termination == 'True' else False,
-            StackName=cloudformation.stack_name
+            EnableTerminationProtection=True
+            if extra_args.update_termination == "True"
+            else False,
+            StackName=cloudformation.stack_name,
         )
 
-    response.pop('ResponseMetadata', None)
+    response.pop("ResponseMetadata", None)
     print(json.dumps(response, indent=4, default=str))
-    print(80*'-')
-    print('Stack update initiated')
+    print(80 * "-")
+    print("Stack update initiated")
 
     if wait:
-        cloudformation.wait('stack_update_complete',
-                            'Wating for stack to be updated..')
-        print('Stack updated')
+        cloudformation.wait("stack_update_complete", "Wating for stack to be updated..")
+        print("Stack updated")

@@ -9,7 +9,10 @@ import json
 from botocore.exceptions import ClientError
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.helper.process_file import process_yaml_body, process_json_body
+from fzfaws.cloudformation.helper.process_file import (
+    process_yaml_body,
+    process_json_body,
+)
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils.util import get_confirmation
 
@@ -30,12 +33,12 @@ class S3(BaseSession):
     """
 
     def __init__(self, profile=None, region=None):
-        super().__init__(profile=profile, region=region, service_name='s3')
+        super().__init__(profile=profile, region=region, service_name="s3")
         self.bucket_name = None
-        self.bucket_path = ''
+        self.bucket_path = ""
         self.path_list = []
 
-    def set_s3_bucket(self, header=''):
+    def set_s3_bucket(self, header=""):
         """list bucket through fzf and let user select a bucket
 
         Args:
@@ -43,7 +46,7 @@ class S3(BaseSession):
         """
         response = self.client.list_buckets()
         fzf = Pyfzf()
-        fzf.process_list(response['Buckets'], 'Name')
+        fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = fzf.execute_fzf(header=header)
 
     def set_bucket_and_path(self, bucket=None):
@@ -61,19 +64,20 @@ class S3(BaseSession):
             return
         # check user input
         result, match = self._validate_input_path(bucket)
-        if result == 'accesspoint':
+        if result == "accesspoint":
             self.bucket_name = match[0][0:-1]
             self.bucket_path = match[1]
             if self.bucket_path:
                 self.path_list.append(self.bucket_path)
-        elif result == 'bucketpath':
-            self.bucket_name = bucket.split('/')[0]
-            self.bucket_path = '/'.join(bucket.split('/')[1:])
+        elif result == "bucketpath":
+            self.bucket_name = bucket.split("/")[0]
+            self.bucket_path = "/".join(bucket.split("/")[1:])
             if self.bucket_path:
                 self.path_list.append(self.bucket_path)
         else:
             raise InvalidS3PathPattern(
-                'Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)')
+                "Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)"
+            )
 
     def set_s3_path(self):
         """set 'path' of s3 to upload or download
@@ -90,50 +94,65 @@ class S3(BaseSession):
             NoSelectionMade: when user did not confirm their s3 path, exit
         """
         selected_option = self._get_path_option()
-        if selected_option == 'input':
-            self.bucket_path = input('Input the path(newname or newpath/): ')
-        elif selected_option == 'root':
-            print('S3 file path is set to root')
-        elif selected_option == 'append' or selected_option == 'interactively':
-            paginator = self.client.get_paginator('list_objects')
+        if selected_option == "input":
+            self.bucket_path = input("Input the path(newname or newpath/): ")
+        elif selected_option == "root":
+            print("S3 file path is set to root")
+        elif selected_option == "append" or selected_option == "interactively":
+            paginator = self.client.get_paginator("list_objects")
             fzf = Pyfzf()
             try:
                 parents = []
                 # interactively search down 'folders' in s3
                 while True:
                     if len(parents) > 0:
-                        fzf.append_fzf('..\n')
-                    for result in paginator.paginate(Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter='/'):
-                        for prefix in result.get('CommonPrefixes', []):
-                            fzf.append_fzf(prefix.get('Prefix'))
-                            fzf.append_fzf('\n')
+                        fzf.append_fzf("..\n")
+                    for result in paginator.paginate(
+                        Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter="/"
+                    ):
+                        for prefix in result.get("CommonPrefixes", []):
+                            fzf.append_fzf(prefix.get("Prefix"))
+                            fzf.append_fzf("\n")
                     selected_path = fzf.execute_fzf(
-                        empty_allow=True, print_col=0, header='PWD: s3://%s/%s (press ESC to use current path)' % (self.bucket_name, self.bucket_path))
+                        empty_allow=True,
+                        print_col=0,
+                        header="PWD: s3://%s/%s (press ESC to use current path)"
+                        % (self.bucket_name, self.bucket_path),
+                    )
                     if not selected_path:
                         raise
-                    if selected_path == '..':
+                    if selected_path == "..":
                         self.bucket_path = parents.pop()
                     else:
                         parents.append(self.bucket_path)
                         self.bucket_path = selected_path
                     # reset fzf string
-                    fzf.fzf_string = ''
+                    fzf.fzf_string = ""
             except ClientError:
                 raise
             except:
-                if selected_option == 'append':
-                    print('Current PWD is s3://%s/%s' %
-                          (self.bucket_name, self.bucket_path))
+                if selected_option == "append":
+                    print(
+                        "Current PWD is s3://%s/%s"
+                        % (self.bucket_name, self.bucket_path)
+                    )
                     new_path = input(
-                        'Input the new path to append(newname or newpath/): ')
+                        "Input the new path to append(newname or newpath/): "
+                    )
                     self.bucket_path += new_path
-                if get_confirmation('S3 file path will be set to s3://%s/%s' %
-                                    (self.bucket_name, self.bucket_path if self.bucket_path else 'root')):
-                    print('S3 file path is set to %s' %
-                          (self.bucket_path if self.bucket_path else 'root'))
+                if get_confirmation(
+                    "S3 file path will be set to s3://%s/%s"
+                    % (
+                        self.bucket_name,
+                        self.bucket_path if self.bucket_path else "root",
+                    )
+                ):
+                    print(
+                        "S3 file path is set to %s"
+                        % (self.bucket_path if self.bucket_path else "root")
+                    )
                 else:
-                    raise NoSelectionMade(
-                        'S3 file path was not configured, exiting..')
+                    raise NoSelectionMade("S3 file path was not configured, exiting..")
 
     def set_s3_object(self, version=False, multi_select=False, deletemark=False):
         """list object within a bucket and let user select a object.
@@ -155,58 +174,59 @@ class S3(BaseSession):
         """
         if not version:
             fzf = Pyfzf()
-            paginator = self.client.get_paginator('list_objects')
+            paginator = self.client.get_paginator("list_objects")
             for result in paginator.paginate(Bucket=self.bucket_name):
-                for file in result.get('Contents', []):
-                    if file.get('Key').endswith('/') or not file.get('Key'):
+                for file in result.get("Contents", []):
+                    if file.get("Key").endswith("/") or not file.get("Key"):
                         # user created dir in S3 console will appear in the result and is not operatable
                         continue
-                    fzf.append_fzf('Key: %s\n' % file.get('Key'))
+                    fzf.append_fzf("Key: %s\n" % file.get("Key"))
             if multi_select:
-                self.path_list = fzf.execute_fzf(
-                    print_col=-1, multi_select=True)
+                self.path_list = fzf.execute_fzf(print_col=-1, multi_select=True)
             else:
                 self.bucket_path = fzf.execute_fzf(print_col=-1)
         else:
             fzf = Pyfzf()
             key_list = []
-            paginator = self.client.get_paginator('list_object_versions')
+            paginator = self.client.get_paginator("list_object_versions")
             for result in paginator.paginate(Bucket=self.bucket_name):
-                for version in result.get('DeleteMarkers', []):
-                    if version.get('Key').endswith('/') or not version.get('Key'):
+                for version in result.get("DeleteMarkers", []):
+                    if version.get("Key").endswith("/") or not version.get("Key"):
                         continue
-                    color_string = '\033[31m' + \
-                        'Key: %s' % version.get('Key') + \
-                        '\033[0m'
+                    color_string = (
+                        "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+                    )
                     if color_string not in key_list:
                         key_list.append(color_string)
                 if not deletemark:
-                    for version in result.get('Versions', []):
-                        if version.get('Key').endswith('/') or not version.get('Key'):
+                    for version in result.get("Versions", []):
+                        if version.get("Key").endswith("/") or not version.get("Key"):
                             continue
-                        color_string = '\033[31m' + \
-                            'Key: %s' % version.get('Key') + \
-                            '\033[0m'
-                        norm_string = 'Key: %s' % version.get('Key')
+                        color_string = (
+                            "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+                        )
+                        norm_string = "Key: %s" % version.get("Key")
                         if color_string not in key_list and norm_string not in key_list:
                             key_list.append(norm_string)
-                        elif color_string in key_list and version.get('IsLatest'):
+                        elif color_string in key_list and version.get("IsLatest"):
                             # handle the case where delete marker is associated, object is visible because new version has published
                             key_list.remove(color_string)
                             key_list.append(norm_string)
             if key_list:
                 for item in key_list:
-                    fzf.append_fzf(item + '\n')
+                    fzf.append_fzf(item + "\n")
             else:
                 raise NoSelectionMade(
-                    'Bucket might be empty or there was no selection made')
+                    "Bucket might be empty or there was no selection made"
+                )
             if multi_select:
-                self.path_list = fzf.execute_fzf(
-                    print_col=-1, multi_select=True)
+                self.path_list = fzf.execute_fzf(print_col=-1, multi_select=True)
             else:
                 self.bucket_path = fzf.execute_fzf(print_col=-1)
 
-    def get_object_version(self, bucket=None, key=None, delete=False, select_all=False, non_current=False):
+    def get_object_version(
+        self, bucket=None, key=None, delete=False, select_all=False, non_current=False
+    ):
         """list object versions through fzf
 
         Args:
@@ -228,40 +248,54 @@ class S3(BaseSession):
         selected_versions = []
         for key in key_list:
             version_list = []
-            paginator = self.client.get_paginator('list_object_versions')
+            paginator = self.client.get_paginator("list_object_versions")
             for result in paginator.paginate(Bucket=bucket, Prefix=key):
-                for version in result.get('Versions', []):
-                    if (non_current and not version.get('IsLatest')) or not non_current:
-                        version_list.append({
-                            'VersionId': version.get('VersionId'),
-                            'Key': version.get('Key'),
-                            'IsLatest': version.get('IsLatest'),
-                            'DeleteMarker': False,
-                            'LastModified': version.get('LastModified'),
-                        })
+                for version in result.get("Versions", []):
+                    if (non_current and not version.get("IsLatest")) or not non_current:
+                        version_list.append(
+                            {
+                                "VersionId": version.get("VersionId"),
+                                "Key": version.get("Key"),
+                                "IsLatest": version.get("IsLatest"),
+                                "DeleteMarker": False,
+                                "LastModified": version.get("LastModified"),
+                            }
+                        )
                 if delete:
-                    for marker in result.get('DeleteMarkers', []):
-                        version_list.append({
-                            'VersionId': marker.get('VersionId'),
-                            'Key': marker.get('Key'),
-                            'IsLatest': marker.get('IsLatest'),
-                            'DeleteMarker': True,
-                            'LastModified': marker.get('LastModified'),
-                        })
+                    for marker in result.get("DeleteMarkers", []):
+                        version_list.append(
+                            {
+                                "VersionId": marker.get("VersionId"),
+                                "Key": marker.get("Key"),
+                                "IsLatest": marker.get("IsLatest"),
+                                "DeleteMarker": True,
+                                "LastModified": marker.get("LastModified"),
+                            }
+                        )
             if not select_all:
                 fzf = Pyfzf()
-                fzf.process_list(version_list, 'VersionId', 'Key', 'IsLatest',
-                                 'DeleteMarker', 'LastModified')
+                fzf.process_list(
+                    version_list,
+                    "VersionId",
+                    "Key",
+                    "IsLatest",
+                    "DeleteMarker",
+                    "LastModified",
+                )
                 if delete:
                     for result in fzf.execute_fzf(multi_select=True):
-                        selected_versions.append(
-                            {'Key': key, 'VersionId': result})
+                        selected_versions.append({"Key": key, "VersionId": result})
                 else:
                     selected_versions.append(
-                        {'Key': key, 'VersionId': fzf.execute_fzf()})
+                        {"Key": key, "VersionId": fzf.execute_fzf()}
+                    )
             else:
                 selected_versions.extend(
-                    [{'Key': key, 'VersionId': version.get('VersionId')} for version in version_list])
+                    [
+                        {"Key": key, "VersionId": version.get("VersionId")}
+                        for version in version_list
+                    ]
+                )
         return selected_versions
 
     def get_object_data(self, file_type=None):
@@ -274,19 +308,24 @@ class S3(BaseSession):
             file_type: string, yaml/json, if specified, will load the file into dict
         """
         s3_object = self.resource.Object(self.bucket_name, self.bucket_path)
-        body = s3_object.get()['Body'].read()
-        body = str(body, 'utf-8')
-        if file_type == 'yaml':
-            body = process_yaml_body(body)
-        elif file_type == 'json':
-            body = process_json_body(body)
-        return body
+        body = s3_object.get()["Body"].read()
+        body = str(body, "utf-8")
+        body_dict = {}
+        if file_type == "yaml":
+            body_dict = process_yaml_body(body)
+        elif file_type == "json":
+            body_dict = process_json_body(body)
+        return body_dict
 
     def get_object_url(self):
         """return the object url of the current selected object"""
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
-        bucket_location = response['LocationConstraint']
-        return "https://s3-%s.amazonaws.com/%s/%s" % (bucket_location, self.bucket_name, self.bucket_path)
+        bucket_location = response["LocationConstraint"]
+        return "https://s3-%s.amazonaws.com/%s/%s" % (
+            bucket_location,
+            self.bucket_name,
+            self.bucket_path,
+        )
 
     def get_s3_destination_key(self, local_path, recursive=False):
         """set the s3 key for upload destination
@@ -304,17 +343,17 @@ class S3(BaseSession):
         if recursive:
             if not self.bucket_path:
                 return local_path
-            elif self.bucket_path[-1] != '/':
-                return self.bucket_path + '/' + local_path
+            elif self.bucket_path[-1] != "/":
+                return self.bucket_path + "/" + local_path
             else:
                 return self.bucket_path + local_path
         else:
             if not self.bucket_path:
                 # if operation is at root level, return the file name
-                return local_path.split('/')[-1]
-            elif self.bucket_path[-1] == '/':
+                return local_path.split("/")[-1]
+            elif self.bucket_path[-1] == "/":
                 # if specified s3 path, append the file name
-                key = local_path.split('/')[-1]
+                key = local_path.split("/")[-1]
                 return self.bucket_path + key
             else:
                 return self.bucket_path
@@ -324,19 +363,22 @@ class S3(BaseSession):
         accesspoint_pattern = r"^(arn:aws.*:s3:[a-z\-0-9]+:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-]{1,63}/)(.*)$"
         path_pattern = r"^(?!arn:.*)(.*/)+.*$"
         if re.match(accesspoint_pattern, user_input):
-            return ('accesspoint', re.match(accesspoint_pattern, user_input).groups())
+            return ("accesspoint", re.match(accesspoint_pattern, user_input).groups())
         elif re.match(path_pattern, user_input):
-            return ('bucketpath', re.match(path_pattern, user_input).groups())
+            return ("bucketpath", re.match(path_pattern, user_input).groups())
         else:
             return (None, None)
 
     def _get_path_option(self):
         """pop up fzf for user to select what to do with the path"""
         fzf = Pyfzf()
-        fzf.append_fzf('root: operate on the root level of the bucket\n')
+        fzf.append_fzf("root: operate on the root level of the bucket\n")
+        fzf.append_fzf("interactively: interactively select a path through s3\n")
+        fzf.append_fzf("input: manully input the path/name\n")
         fzf.append_fzf(
-            'interactively: interactively select a path through s3\n')
-        fzf.append_fzf('input: manully input the path/name\n')
-        fzf.append_fzf(
-            'append: interactively select a path and then input new path/name to append')
-        return fzf.execute_fzf(print_col=1, header='Please select which level of the bucket would you like to operate in').split(':')[0]
+            "append: interactively select a path and then input new path/name to append"
+        )
+        return fzf.execute_fzf(
+            print_col=1,
+            header="Please select which level of the bucket would you like to operate in",
+        ).split(":")[0]
