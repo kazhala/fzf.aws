@@ -29,7 +29,7 @@ class Cloudformation(BaseSession):
     """
 
     def __init__(self, profile=None, region=None):
-        super().__init__(profile=profile, region=region, service_name='cloudformation')
+        super().__init__(profile=profile, region=region, service_name="cloudformation")
         self.stack_name = None
         self.stack_details = None
 
@@ -41,14 +41,16 @@ class Cloudformation(BaseSession):
         """
         fzf = Pyfzf()
         stack_list = []
-        paginator = self.client.get_paginator('describe_stacks')
+        paginator = self.client.get_paginator("describe_stacks")
         for result in paginator.paginate():
-            stack_list.extend(result['Stacks'])
-            fzf.process_list(result['Stacks'], 'StackName',
-                             'StackStatus', 'Description')
+            stack_list.extend(result["Stacks"])
+            fzf.process_list(
+                result["Stacks"], "StackName", "StackStatus", "Description"
+            )
         self.stack_name = fzf.execute_fzf(empty_allow=False)
         self.stack_details = search_dict_in_list(
-            self.stack_name, stack_list, 'StackName')
+            self.stack_name, stack_list, "StackName"
+        )
 
     def get_stack_resources(self, empty_allow=False):
         """list all stack logical resources
@@ -59,13 +61,18 @@ class Cloudformation(BaseSession):
             empty_allow: bool, allow empty selection
         """
         fzf = Pyfzf()
-        paginator = self.client.get_paginator('list_stack_resources')
+        paginator = self.client.get_paginator("list_stack_resources")
         for result in paginator.paginate(StackName=self.stack_name):
-            for resource in result.get('StackResourceSummaries'):
-                resource['Drift'] = resource.get(
-                    'DriftInformation').get('StackResourceDriftStatus')
+            for resource in result.get("StackResourceSummaries"):
+                resource["Drift"] = resource.get("DriftInformation").get(
+                    "StackResourceDriftStatus"
+                )
             fzf.process_list(
-                result.get('StackResourceSummaries'), 'LogicalResourceId', 'ResourceType', 'Drift')
+                result.get("StackResourceSummaries"),
+                "LogicalResourceId",
+                "ResourceType",
+                "Drift",
+            )
         return fzf.execute_fzf(multi_select=True, empty_allow=empty_allow)
 
     def wait(self, waiter_name, message=None, delay=15, attempts=240, **kwargs):
@@ -85,33 +92,18 @@ class Cloudformation(BaseSession):
             SystemExit: on system attempting to quit
                 The above exceptions are handled and correctly stop all threads
         """
-
-        try:
-            spinner = Spinner(message=message)
-            # spinner is a child thread
-            spinner.start()
-            waiter = self.client.get_waiter(waiter_name)
-            waiter.wait(
-                StackName=self.stack_name,
-                WaiterConfig={
-                    'Delay': delay,
-                    'MaxAttempts': attempts
-                },
-                **kwargs
-            )
-            spinner.stop()
-            # join back the thread to main thread
-            spinner.join()
-        except (KeyboardInterrupt, SystemExit):
-            spinner.stop()
-            spinner.join()
-            print('Exit')
-            sys.exit()
-        except Exception as e:
-            spinner.stop()
-            spinner.join()
-            print(e)
-            sys.exit()
+        spinner = Spinner(message=message)
+        # spinner is a child thread
+        spinner.start()
+        waiter = self.client.get_waiter(waiter_name)
+        waiter.wait(
+            StackName=self.stack_name,
+            WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+            **kwargs
+        )
+        spinner.stop()
+        # join back the thread to main thread
+        spinner.join()
 
     def execute_with_capabilities(self, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
@@ -129,7 +121,7 @@ class Cloudformation(BaseSession):
         """
         try:
             print(json.dumps({**kwargs}, indent=4, default=str))
-            if get_confirmation('Confirm?'):
+            if get_confirmation("Confirm?"):
                 response = cloudformation_action(**kwargs)
             else:
                 exit()
@@ -137,19 +129,22 @@ class Cloudformation(BaseSession):
             pattern = r"^.*(Requires capabilities.*)$"
             error_msg = re.match(pattern, str(e)).group(1)
             response = cloudformation_action(
-                **kwargs, Capabilities=self._get_capabilities(message=error_msg))
+                **kwargs, Capabilities=self._get_capabilities(message=error_msg)
+            )
         return response
 
-    def _get_capabilities(self, message=''):
+    def _get_capabilities(self, message=""):
         """display help message and let user select capabilities
 
         Args:
             message: string, capability error message to display
         """
         fzf = Pyfzf()
-        fzf.append_fzf('CAPABILITY_IAM\n')
-        fzf.append_fzf('CAPABILITY_NAMED_IAM\n')
-        fzf.append_fzf('CAPABILITY_AUTO_EXPAND')
-        message += '\nPlease select the capabilities to acknowledge and proceed'
-        message += '\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html'
-        return fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True, header=message)
+        fzf.append_fzf("CAPABILITY_IAM\n")
+        fzf.append_fzf("CAPABILITY_NAMED_IAM\n")
+        fzf.append_fzf("CAPABILITY_AUTO_EXPAND")
+        message += "\nPlease select the capabilities to acknowledge and proceed"
+        message += "\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html"
+        return fzf.execute_fzf(
+            empty_allow=True, print_col=1, multi_select=True, header=message
+        )
