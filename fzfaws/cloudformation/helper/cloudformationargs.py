@@ -2,13 +2,10 @@
 
 contains the class to configure extra settings of a cloudformation stack
 """
-import subprocess
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.iam.iam import IAM
 from fzfaws.sns.sns import SNS
 from fzfaws.cloudwatch.cloudwatch import Cloudwatch
-from fzfaws.utils.exceptions import NoSelectionMade
-from fzfaws.utils.util import get_confirmation
 
 
 class CloudformationArgs:
@@ -31,7 +28,18 @@ class CloudformationArgs:
         self._extra_args = {}
         self.update_termination = None
 
-    def set_extra_args(self, tags=False, rollback=False, permissions=False, stack_policy=False, creation_option=False, notification=False, update=False, search_from_root=False):
+    def set_extra_args(
+        self,
+        tags=False,
+        rollback=False,
+        permissions=False,
+        stack_policy=False,
+        creation_option=False,
+        notification=False,
+        update=False,
+        search_from_root=False,
+        dryrun=False,
+    ):
         """set extra arguments
 
         Used to determine what args to set and acts like a router
@@ -45,32 +53,48 @@ class CloudformationArgs:
             notification: bool, set sns topic to publish
             update: bool, determine if is creating stack or updating stack
             search_from_root: bool, search from root for stack_policy
+            dryrun: bool, if true, changeset operation and don't add CreationOption or UpdateOption entry
         """
 
         attributes = []
-        if not tags and not rollback and not permissions and not stack_policy and not creation_option and not notification:
+        if (
+            not tags
+            and not rollback
+            and not permissions
+            and not stack_policy
+            and not creation_option
+            and not notification
+        ):
             fzf = Pyfzf()
-            fzf.append_fzf('Tags\n')
-            fzf.append_fzf('Permissions\n')
-            fzf.append_fzf('StackPolicy\n')
-            fzf.append_fzf('Notifications\n')
-            fzf.append_fzf('RollbackConfiguration\n')
-            fzf.append_fzf('CreationOption\n')
+            fzf.append_fzf("Tags\n")
+            fzf.append_fzf("Permissions\n")
+            if not dryrun:
+                fzf.append_fzf("StackPolicy\n")
+            fzf.append_fzf("Notifications\n")
+            fzf.append_fzf("RollbackConfiguration\n")
+            if not dryrun and not update:
+                fzf.append_fzf("CreationOption\n")
+            elif not dryrun and update:
+                fzf.append_fzf("UpdateOption")
             attributes = fzf.execute_fzf(
-                empty_allow=True, print_col=1, multi_select=True, header='Select options to configure')
+                empty_allow=True,
+                print_col=1,
+                multi_select=True,
+                header="Select options to configure",
+            )
 
         for attribute in attributes:
-            if attribute == 'Tags':
+            if attribute == "Tags":
                 tags = True
-            elif attribute == 'Permissions':
+            elif attribute == "Permissions":
                 permissions = True
-            elif attribute == 'StackPolicy':
+            elif attribute == "StackPolicy":
                 stack_policy = True
-            elif attribute == 'Notifications':
+            elif attribute == "Notifications":
                 notification = True
-            elif attribute == 'RollbackConfiguration':
+            elif attribute == "RollbackConfiguration":
                 rollback = True
-            elif attribute == 'CreationOption':
+            elif attribute == "CreationOption" or attribute == "UpdateOption":
                 creation_option = True
 
         if tags:
@@ -92,39 +116,57 @@ class CloudformationArgs:
         Args:
             update: bool, show previous values
         """
-        print(80*'-')
+        print(80 * "-")
         fzf = Pyfzf()
         if not update:
-            fzf.append_fzf('Rollback on failure\n')
-        fzf.append_fzf('TimeoutInMinutes\n')
-        fzf.append_fzf('EnableTerminationProtection\n')
+            fzf.append_fzf("Rollback on failure\n")
+            fzf.append_fzf("TimeoutInMinutes\n")
+        fzf.append_fzf("EnableTerminationProtection\n")
         selected_options = fzf.execute_fzf(
-            empty_allow=True, print_col=1, multi_select=True, header='select options to configure')
+            empty_allow=True,
+            print_col=1,
+            multi_select=True,
+            header="select options to configure",
+        )
         for option in selected_options:
-            if option == 'Rollback':
-                fzf.fzf_string = ''
-                fzf.append_fzf('True\n')
-                fzf.append_fzf('False\n')
+            if option == "Rollback":
+                fzf.fzf_string = ""
+                fzf.append_fzf("True\n")
+                fzf.append_fzf("False\n")
                 result = fzf.execute_fzf(
-                    empty_allow=True, print_col=1, header='Roll back on failue? (Default: True)')
+                    empty_allow=True,
+                    print_col=1,
+                    header="Roll back on failue? (Default: True)",
+                )
                 if result:
-                    self._extra_args['OnFailure'] = 'ROLLBACK' if result == 'True' else 'DO_NOTHING'
-            elif option == 'TimeoutInMinutes':
-                message = 'Specify number of minutes before stack timeout (Default: no timeout): '
-                if update and self.cloudformation.stack_details.get('TimeoutInMinutes'):
-                    message = 'Specify number of minutes before stack timeout (Original: %s)' % self.cloudformation.stack_details[
-                        'TimeoutInMinutes']
+                    self._extra_args["OnFailure"] = (
+                        "ROLLBACK" if result == "True" else "DO_NOTHING"
+                    )
+            elif option == "TimeoutInMinutes":
+                message = "Specify number of minutes before stack timeout (Default: no timeout): "
+                if update and self.cloudformation.stack_details.get("TimeoutInMinutes"):
+                    message = (
+                        "Specify number of minutes before stack timeout (Original: %s)"
+                        % self.cloudformation.stack_details["TimeoutInMinutes"]
+                    )
                 timeout = input(message)
                 if timeout:
-                    self._extra_args['TimeoutInMinutes'] = int(timeout)
-            elif option == 'EnableTerminationProtection':
-                fzf.fzf_string = ''
-                fzf.append_fzf('True\n')
-                fzf.append_fzf('False\n')
+                    self._extra_args["TimeoutInMinutes"] = int(timeout)
+            elif option == "EnableTerminationProtection":
+                fzf.fzf_string = ""
+                fzf.append_fzf("True\n")
+                fzf.append_fzf("False\n")
                 result = fzf.execute_fzf(
-                    empty_allow=True, print_col=1, header='%s' 'Enable termination protection? (Default: False)' if not update else 'Enable termination protection?')
+                    empty_allow=True,
+                    print_col=1,
+                    header="%s" "Enable termination protection? (Default: False)"
+                    if not update
+                    else "Enable termination protection?",
+                )
                 if result and not update:
-                    self._extra_args['EnableTerminationProtection'] = True if result == 'True' else False
+                    self._extra_args["EnableTerminationProtection"] = (
+                        True if result == "True" else False
+                    )
                 elif result and update:
                     self.update_termination = result
 
@@ -134,24 +176,29 @@ class CloudformationArgs:
         Args:
             update: bool, show previous values
         """
-        print(80*'-')
-        cloudwatch = Cloudwatch(
-            self.cloudformation.profile, self.cloudformation.region)
-        header = 'select a cloudwatch alarm to monitor the stack'
-        message = 'MonitoringTimeInMinutes(Default: 0): '
-        if update and self.cloudformation.stack_details.get('RollbackConfiguration'):
-            header += '\nOriginal value: %s' % self.cloudformation.stack_details['RollbackConfiguration'].get(
-                'RollbackTriggers', 'N/A')
-            message = 'MonitoringTimeInMinutes(Original: %s): ' % self.cloudformation.stack_details['RollbackConfiguration'].get(
-                'MonitoringTimeInMinutes', 'N/A')
-        cloudwatch.set_arns(
-            empty_allow=True, header=header, multi_select=True)
-        print('Selected arns: %s' % cloudwatch.arns)
+        print(80 * "-")
+        cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
+        header = "select a cloudwatch alarm to monitor the stack"
+        message = "MonitoringTimeInMinutes(Default: 0): "
+        if update and self.cloudformation.stack_details.get("RollbackConfiguration"):
+            header += "\nOriginal value: %s" % self.cloudformation.stack_details[
+                "RollbackConfiguration"
+            ].get("RollbackTriggers", "N/A")
+            message = "MonitoringTimeInMinutes(Original: %s): " % self.cloudformation.stack_details[
+                "RollbackConfiguration"
+            ].get(
+                "MonitoringTimeInMinutes", "N/A"
+            )
+        cloudwatch.set_arns(empty_allow=True, header=header, multi_select=True)
+        print("Selected arns: %s" % cloudwatch.arns)
         monitor_time = input(message)
         if cloudwatch.arns:
-            self._extra_args['RollbackConfiguration'] = {
-                'RollbackTriggers': [{'Arn': arn, 'Type': 'AWS::CloudWatch::Alarm'} for arn in cloudwatch.arns],
-                'MonitoringTimeInMinutes': int(monitor_time) if monitor_time else 0
+            self._extra_args["RollbackConfiguration"] = {
+                "RollbackTriggers": [
+                    {"Arn": arn, "Type": "AWS::CloudWatch::Alarm"}
+                    for arn in cloudwatch.arns
+                ],
+                "MonitoringTimeInMinutes": int(monitor_time) if monitor_time else 0,
             }
 
     def set_notification(self, update=False):
@@ -160,17 +207,18 @@ class CloudformationArgs:
         Args:
             update: bool, show previous values
         """
-        print(80*'-')
-        sns = SNS(profile=self.cloudformation.profile,
-                  region=self.cloudformation.region)
-        header = 'select sns topic to notify'
+        print(80 * "-")
+        sns = SNS(
+            profile=self.cloudformation.profile, region=self.cloudformation.region
+        )
+        header = "select sns topic to notify"
         if update:
-            header += '\nOriginal value: %s' % self.cloudformation.stack_details.get(
-                'NotificationARNs', 'N/A')
-        sns.set_arns(empty_allow=True,
-                     header=header, multi_select=True)
+            header += "\nOriginal value: %s" % self.cloudformation.stack_details.get(
+                "NotificationARNs", "N/A"
+            )
+        sns.set_arns(empty_allow=True, header=header, multi_select=True)
         if sns.arns:
-            self._extra_args['NotificationARNs'] = sns.arns
+            self._extra_args["NotificationARNs"] = sns.arns
 
     def set_policy(self, update=False, search_from_root=False):
         """set the stack_policy for the stack
@@ -181,18 +229,22 @@ class CloudformationArgs:
             update: bool, if during stack update
             search_from_root: bool, search files from root
         """
-        print(80*'-')
+        print(80 * "-")
         fzf = Pyfzf()
-        file_path = fzf.get_local_file(search_from_root=search_from_root, cloudformation=True,
-                                       empty_allow=True, header='select the policy document you would like to use')
+        file_path = fzf.get_local_file(
+            search_from_root=search_from_root,
+            cloudformation=True,
+            empty_allow=True,
+            header="select the policy document you would like to use",
+        )
         if not update and file_path:
-            with open(file_path, 'r') as body:
+            with open(str(file_path), "r") as body:
                 body = body.read()
-                self._extra_args['StackPolicyBody'] = body
+                self._extra_args["StackPolicyBody"] = body
         elif update and file_path:
-            with open(file_path, 'r') as body:
+            with open(str(file_path), "r") as body:
                 body = body.read()
-                self._extra_args['StackPolicyDuringUpdateBody'] = body
+                self._extra_args["StackPolicyDuringUpdateBody"] = body
 
     def set_permissions(self, update=False):
         """set the iam user for the current stack
@@ -205,20 +257,22 @@ class CloudformationArgs:
             update: bool, show previous values
         """
 
-        print(80*'-')
+        print(80 * "-")
         iam = IAM(profile=self.cloudformation.profile)
         if not update:
-            header = 'Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
-            header += 'Note: only IAM role can be assumed by CloudFormation is listed'
-            iam.set_arns(
-                header=header, service='cloudformation.amazonaws.com')
+            header = (
+                "Choose an IAM role to explicitly define CloudFormation's permissions\n"
+            )
+            header += "Note: only IAM role can be assumed by CloudFormation is listed"
+            iam.set_arns(header=header, service="cloudformation.amazonaws.com")
         else:
-            header = 'Select a role Choose an IAM role to explicitly define CloudFormation\'s permissions\n'
-            header += 'Original value: %s' % self.cloudformation.stack_details.get(
-                'RoleARN', 'N/A')
-            iam.set_arns(header=header, service='cloudformation.amazonaws.com')
+            header = "Select a role Choose an IAM role to explicitly define CloudFormation's permissions\n"
+            header += "Original value: %s" % self.cloudformation.stack_details.get(
+                "RoleARN", "N/A"
+            )
+            iam.set_arns(header=header, service="cloudformation.amazonaws.com")
         if iam.arns:
-            self._extra_args['RoleARN'] = iam.arns[0]
+            self._extra_args["RoleARN"] = iam.arns[0]
 
     def set_tags(self, update=False):
         """set tags for the current stack
@@ -234,41 +288,40 @@ class CloudformationArgs:
             update: bool, determine if is updating the stack
         """
 
-        print(80*'-')
+        print(80 * "-")
         tag_list = []
         if update:
-            if self.cloudformation.stack_details.get('Tags'):
-                print('Skip the value to use previous value')
+            if self.cloudformation.stack_details.get("Tags"):
+                print("Skip the value to use previous value")
                 print('Enter "deletetag" in any field to remove a tag')
-                for tag in self.cloudformation.stack_details['Tags']:
+                for tag in self.cloudformation.stack_details["Tags"]:
                     tag_key = input(f"Key({tag['Key']}): ")
                     if not tag_key:
-                        tag_key = tag['Key']
+                        tag_key = tag["Key"]
                     tag_value = input(f"Value({tag['Value']}): ")
                     if not tag_value:
-                        tag_value = tag['Value']
-                    if tag_key == 'deletetag' or tag_value == 'deletetag':
+                        tag_value = tag["Value"]
+                    if tag_key == "deletetag" or tag_value == "deletetag":
                         continue
-                    tag_list.append(
-                        {'Key': tag_key, 'Value': tag_value})
-            print('Enter new tags below')
-            print('Skip enter value to stop entering for new tags')
+                    tag_list.append({"Key": tag_key, "Value": tag_value})
+            print("Enter new tags below")
+            print("Skip enter value to stop entering for new tags")
         elif not update:
-            print('Tags help you identify your sub resources')
+            print("Tags help you identify your sub resources")
             print('A "Name" tag is suggested to enter at the very least')
-            print('Skip enter value to stop entering for tags')
+            print("Skip enter value to stop entering for tags")
         while True:
-            tag_name = input('TagName: ')
+            tag_name = input("TagName: ")
             if not tag_name:
                 break
-            tag_value = input('TagValue: ')
+            tag_value = input("TagValue: ")
             if not tag_value:
                 break
-            tag_list.append({'Key': tag_name, 'Value': tag_value})
+            tag_list.append({"Key": tag_name, "Value": tag_value})
         if tag_list:
-            self._extra_args['Tags'] = tag_list
+            self._extra_args["Tags"] = tag_list
         elif not tag_list and update:
-            self._extra_args['Tags'] = []
+            self._extra_args["Tags"] = []
 
     @property
     def extra_args(self):

@@ -19,16 +19,25 @@ def describe_changes(cloudformation, changeset_name):
     """
 
     response = cloudformation.client.describe_change_set(
-        ChangeSetName=changeset_name,
-        StackName=cloudformation.stack_name,
+        ChangeSetName=changeset_name, StackName=cloudformation.stack_name,
     )
-    print('StackName: %s' % (cloudformation.stack_name))
-    print('ChangeSetName: %s' % (changeset_name))
-    print('Changes:')
-    print(json.dumps(response['Changes'], indent=4, default=str))
+    print("StackName: %s" % (cloudformation.stack_name))
+    print("ChangeSetName: %s" % (changeset_name))
+    print("Changes:")
+    print(json.dumps(response["Changes"], indent=4, default=str))
 
 
-def changeset_stack(profile=False, region=False, replace=False, local_path=False, root=False, wait=False, info=False, execute=False, extra=False):
+def changeset_stack(
+    profile=False,
+    region=False,
+    replace=False,
+    local_path=False,
+    root=False,
+    wait=False,
+    info=False,
+    execute=False,
+    extra=False,
+):
     """handle changeset actions
 
     Args:
@@ -55,10 +64,16 @@ def changeset_stack(profile=False, region=False, replace=False, local_path=False
         response = cloudformation.client.list_change_sets(
             StackName=cloudformation.stack_name
         )
-        response_list = response['Summaries']
+        response_list = response["Summaries"]
         # get the changeset name
-        fzf.process_list(response_list, 'ChangeSetName', 'StackName',
-                         'ExecutionStatus', 'Status', 'Description')
+        fzf.process_list(
+            response_list,
+            "ChangeSetName",
+            "StackName",
+            "ExecutionStatus",
+            "Status",
+            "Description",
+        )
         selected_changeset = fzf.execute_fzf()
 
         if info:
@@ -66,40 +81,53 @@ def changeset_stack(profile=False, region=False, replace=False, local_path=False
 
         # execute the change set
         elif execute:
-            if get_confirmation('Execute changeset %s?' % selected_changeset):
+            if get_confirmation("Execute changeset %s?" % selected_changeset):
                 response = cloudformation.client.execute_change_set(
                     ChangeSetName=selected_changeset,
-                    StackName=cloudformation.stack_name
+                    StackName=cloudformation.stack_name,
                 )
-                cloudformation.wait('stack_update_complete',
-                                    'Wating for stack to be updated..')
-                print('Stack updated')
+                cloudformation.wait(
+                    "stack_update_complete", "Wating for stack to be updated.."
+                )
+                print("Stack updated")
 
     else:
-        changeset_name = input('Enter name of this changeset: ')
+        changeset_name = input("Enter name of this changeset: ")
         if not changeset_name:
-            raise NoNameEntered('No changeset name specified')
-        changeset_description = input('Description: ')
+            raise NoNameEntered("No changeset name specified")
+        changeset_description = input("Description: ")
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
         cloudformation_args = update_stack(
-            cloudformation.profile, cloudformation.region, replace, local_path, root, wait, extra, dryrun=True, cloudformation=cloudformation)
-        cloudformation_args['cloudformation_action'] = cloudformation.client.create_change_set
-        cloudformation_args.update({
-            'ChangeSetName': changeset_name,
-            'Description': changeset_description
-        })
+            cloudformation.profile,
+            cloudformation.region,
+            replace,
+            local_path,
+            root,
+            wait,
+            extra,
+            dryrun=True,
+            cloudformation=cloudformation,
+        )
+        cloudformation_args[
+            "cloudformation_action"
+        ] = cloudformation.client.create_change_set
+        cloudformation_args["ChangeSetName"] = changeset_name
+        if changeset_description:
+            cloudformation_args["Description"] = changeset_description
 
-        response = cloudformation.execute_with_capabilities(
-            **cloudformation_args)
+        response = cloudformation.execute_with_capabilities(**cloudformation_args)
 
-        response.pop('ResponseMetadata', None)
+        response.pop("ResponseMetadata", None)
         print(json.dumps(response, indent=4, default=str))
-        print(80*'-')
-        print('Changeset create initiated')
+        print(80 * "-")
+        print("Changeset create initiated")
 
         if wait:
-            cloudformation.wait('change_set_create_complete',
-                                'Wating for changset to be created..', ChangeSetName=changeset_name)
-            print('Changeset created')
+            cloudformation.wait(
+                "change_set_create_complete",
+                "Wating for changset to be created..",
+                ChangeSetName=changeset_name,
+            )
+            print("Changeset created")
             describe_changes(cloudformation, changeset_name)
