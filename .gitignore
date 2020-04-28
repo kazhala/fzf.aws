@@ -133,6 +133,7 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
+typings
 
 # vim project setting
 .vim
