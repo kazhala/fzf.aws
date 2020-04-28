@@ -46,16 +46,18 @@ def main():
         print("Selected file is not a valid template file type")
         print("Exiting..")
     except (KeyboardInterrupt, SystemExit, SystemError):
-        for spinner in Spinner.get_spinner():
-            spinner.stop()
-            spinner.join()
         print("\nExit")
-        sys.exit()
     except NoSelectionMade:
         print("No selection was made")
         print("Exit..")
     except (ClientError, Exception) as e:
         print(e)
+    finally:
+        # clear all spinner thread and exit
+        for spinner in Spinner.get_spinner():
+            spinner.stop()
+            spinner.join()
+        sys.exit()
 
 
 if __name__ == "__main__":

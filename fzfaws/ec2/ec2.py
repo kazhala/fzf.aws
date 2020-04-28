@@ -3,7 +3,6 @@
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
 import boto3
-import sys
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_name_tag, search_dict_in_list
@@ -24,75 +23,95 @@ class EC2(BaseSession):
     """
 
     def __init__(self, profile=None, region=None):
+        # type: (Union[str, bool], Union[str, bool]) -> None
         """region is limited due to ec2 not avalilable in all region
 
         Args:
             profile: string or bool, use a different profile for this operation
             region: string or bool, use a different region for this operation
         """
-        super().__init__(profile=profile, region=region, service_name='ec2')
-        self.instance = None
-        self.instance_list = []
-        self.instance_ids = []
+        super().__init__(profile=profile, region=region, service_name="ec2")
+        self.instance = {}  # type: dict
+        self.instance_list = []  # type: list
+        self.instance_ids = []  # type: list
 
     def set_ec2_region(self):
+        # type: () -> None
         """get ec2 supported region
 
         list region and use fzf to store region in the instance
         """
-        response = self.client.describe_regions(
-            AllRegions=True
-        )
+        response = self.client.describe_regions(AllRegions=True)
         fzf = Pyfzf()
-        fzf.process_list(
-            response.get('Regions'), 'RegionName')
+        fzf.process_list(response.get("Regions"), "RegionName")
         region = fzf.execute_fzf()
-        self.client = boto3.client('ec2', region_name=region)
+        self.client = boto3.client("ec2", region_name=region)
 
     def set_ec2_instance(self, multi_select=True):
+        # type: (bool) -> None
         """list all ec2 in the current selected region
 
         store the selected instance details in the instance attribute
         """
+        response_list = []  # type: list
         fzf = Pyfzf()
-        paginator = self.client.get_paginator('describe_instances')
+        paginator = self.client.get_paginator("describe_instances")
         for result in paginator.paginate():
             response_list = []
             # prepare the list for fzf
-            for instance in result['Reservations']:
-                response_list.append({
-                    'InstanceId': instance['Instances'][0].get('InstanceId'),
-                    'InstanceType': instance['Instances'][0].get('InstanceType'),
-                    'Status': instance['Instances'][0]['State'].get('Name'),
-                    'Name': get_name_tag(instance['Instances'][0]),
-                    'KeyName': instance['Instances'][0].get('KeyName', 'N/A'),
-                    'PublicDnsName': instance['Instances'][0].get('PublicDnsName', 'N/A'),
-                    'PublicIpAddress': instance['Instances'][0].get('PublicIpAddress', 'N/A')
-                })
-            fzf.process_list(response_list, 'InstanceId', 'Status', 'InstanceType',
-                             'Name', 'KeyName', 'PublicDnsName', 'PublicIpAddress')
+            for instance in result["Reservations"]:
+                response_list.append(
+                    {
+                        "InstanceId": instance["Instances"][0].get("InstanceId"),
+                        "InstanceType": instance["Instances"][0].get("InstanceType"),
+                        "Status": instance["Instances"][0]["State"].get("Name"),
+                        "Name": get_name_tag(instance["Instances"][0]),
+                        "KeyName": instance["Instances"][0].get("KeyName", "N/A"),
+                        "PublicDnsName": instance["Instances"][0].get(
+                            "PublicDnsName", "N/A"
+                        ),
+                        "PublicIpAddress": instance["Instances"][0].get(
+                            "PublicIpAddress", "N/A"
+                        ),
+                    }
+                )
+            fzf.process_list(
+                response_list,
+                "InstanceId",
+                "Status",
+                "InstanceType",
+                "Name",
+                "KeyName",
+                "PublicDnsName",
+                "PublicIpAddress",
+            )
         selected_instance_ids = fzf.execute_fzf(multi_select=multi_select)
 
         if multi_select:
-            self.instance_ids = selected_instance_ids
+            self.instance_ids = list(selected_instance_ids)
             for instance in self.instance_ids:
-                self.instance_list.append(search_dict_in_list(
-                    instance, response_list, 'InstanceId'))
+                self.instance_list.append(
+                    search_dict_in_list(instance, response_list, "InstanceId")
+                )
         else:
             self.instance = search_dict_in_list(
-                selected_instance_ids, response_list, 'InstanceId')
+                selected_instance_ids, response_list, "InstanceId"
+            )
 
     def print_instance_details(self):
+        # type: () -> None
         """display information of selected instances
 
         call this method before calling boto3 to do any ec2 opeartion
         and get confirmation
         """
         for instance in self.instance_list:
-            print('InstanceId: %s  Name: %s' %
-                  (instance['InstanceId'], instance['Name']))
+            print(
+                "InstanceId: %s  Name: %s" % (instance["InstanceId"], instance["Name"])
+            )
 
     def wait(self, waiter_name, message=None, delay=15, attempts=40):
+        # type: (str, str, int, int) -> None
         """wait for the operation to be completed
 
         Args:
@@ -104,28 +123,14 @@ class EC2(BaseSession):
             None
             will pause the program until finish or error raised
         """
-        try:
-            spinner = Spinner(message=message)
-            # spinner is a child thread
-            spinner.start()
-            waiter = self.client.get_waiter(waiter_name)
-            waiter.wait(
-                InstanceIds=self.instance_ids,
-                WaiterConfig={
-                    'Delay': delay,
-                    'MaxAttempts': attempts
-                },
-            )
-            spinner.stop()
-            # join back the main thread
-            spinner.join()
-        except (KeyboardInterrupt, SystemExit):
-            spinner.stop()
-            spinner.join()
-            print('Exit')
-            sys.exit()
-        except Exception as e:
-            spinner.stop()
-            spinner.join()
-            print(e)
-            sys.exit()
+        spinner = Spinner(message=message)
+        # spinner is a child thread
+        spinner.start()
+        waiter = self.client.get_waiter(waiter_name)
+        waiter.wait(
+            InstanceIds=self.instance_ids,
+            WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+        )
+        spinner.stop()
+        # join back the main thread
+        spinner.join()
