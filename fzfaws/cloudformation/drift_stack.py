@@ -3,9 +3,7 @@
 detect drift status of the selected cloudformations stack
 """
 import json
-import sys
 import time
-from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.utils.spinner import Spinner
 
