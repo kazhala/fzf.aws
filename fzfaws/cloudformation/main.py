@@ -11,6 +11,7 @@ from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.cloudformation.create_stack import create_stack
 from fzfaws.cloudformation.drift_stack import drift_stack
 from fzfaws.cloudformation.changeset_stack import changeset_stack
+from fzfaws.cloudformation.validate_stack import validate_stack
 from fzfaws.utils.pyfzf import Pyfzf
 
 
@@ -289,6 +290,38 @@ def cloudformation(raw_args):
         default=False,
         help="use a different region, set the flag without argument to use fzf and select a region",
     )
+
+    validate_cmd = subparsers.add_parser(
+        "validate",
+        description="validate the selected template, by default, search a template through s3",
+    )
+    validate_cmd.add_argument(
+        "-l",
+        "--local",
+        nargs="?",
+        action="store",
+        default=False,
+        help="upload local file",
+    )
+    validate_cmd.add_argument(
+        "-r", "--root", action="store_true", default=False, help="search file from root"
+    )
+    validate_cmd.add_argument(
+        "-P",
+        "--profile",
+        nargs="?",
+        action="store",
+        default=False,
+        help="use a different profile, set the flag without argument to use fzf and select a profile",
+    )
+    validate_cmd.add_argument(
+        "-R",
+        "--region",
+        nargs="?",
+        action="store",
+        default=False,
+        help="use a different region, set the flag without argument to use fzf and select a region",
+    )
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
@@ -357,3 +390,5 @@ def cloudformation(raw_args):
             args.execute,
             args.extra,
         )
+    elif args.subparser_name == "validate":
+        validate_stack(args.profile, args.region, args.local, args.root)
