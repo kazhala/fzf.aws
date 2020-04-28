@@ -17,7 +17,10 @@ class Spinner(threading.Thread):
         speed: number, spin speed in seconds
     """
 
+    instances = []  # type: list
+
     def __init__(self, pattern=None, message=None, speed=None):
+        # type: (str, str, int) -> None
         """construtor of spinner
 
         Args:
@@ -25,11 +28,18 @@ class Spinner(threading.Thread):
             message: string, spinner loading message
             speed: number, spin speed in seconds
         """
+        if message is None:
+            message = "loading.."
+        if speed is None:
+            speed = 0.1
+        if pattern is None:
+            pattern = "|/-\\"
         super().__init__(target=self._spin)
-        self._stopevent = threading.Event()
-        self.pattern = pattern if pattern else '|/-\\'
-        self.message = message if message else 'loading..'
-        self.speed = speed if speed else 0.1
+        self.message = message  # type: str
+        self.speed = speed  # type: float
+        self.pattern = pattern  # type: str
+        self._stopevent = threading.Event()  # type: threading.Event
+        self.__class__.instances.append(self)
 
     def stop(self):
         """stop the spinner"""
@@ -37,9 +47,14 @@ class Spinner(threading.Thread):
 
     def _spin(self):
         """spin the spinner"""
-        while not self._stopevent.isSet():
+        while not self._stopevent.is_set():
             for cursor in self.pattern:
-                sys.stdout.write('%s %s' % (cursor, self.message))
+                sys.stdout.write("%s %s" % (cursor, self.message))
                 sys.stdout.flush()
                 time.sleep(self.speed)
-                sys.stdout.write('\033[2K\033[1G')
+                sys.stdout.write("\033[2K\033[1G")
+
+    @classmethod
+    def get_spinner(cls):
+        # type: () -> list
+        return cls.instances
