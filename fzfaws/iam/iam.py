@@ -19,7 +19,7 @@ class IAM(BaseSession):
     """
 
     def __init__(self, profile=None, region=None):
-        # type: ((bool, str), (bool, str)) -> None
+        # type: (Union[str, bool], Union[str, bool]) -> None
         super().__init__(profile=profile, region=region, service_name="iam")
         self.arns = []  # type: list
 
