@@ -84,25 +84,28 @@ def wait_drift_result(cloudformation, drift_id):
     Returns:
         None
     """
-    print("Drift detection initiated")
-    print(f"DriftDetectionId: {drift_id}")
-    spinner = Spinner(message="Wating for drift detection to complete..")
+    try:
+        print("Drift detection initiated")
+        print(f"DriftDetectionId: {drift_id}")
+        spinner = Spinner(message="Wating for drift detection to complete..")
 
-    spinner.start()
-    while True:
-        time.sleep(5)
-        response = cloudformation.client.describe_stack_drift_detection_status(
-            StackDriftDetectionId=drift_id
-        )
-        if response["DetectionStatus"] != "DETECTION_IN_PROGRESS":
-            break
-    spinner.stop()
-    spinner.join()
-    response.pop("ResponseMetadata", None)
-    print(json.dumps(response, indent=4, default=str))
-    print(80 * "-")
-    if response["DetectionStatus"] == "DETECTION_COMPLETE":
-        print(f"StackDriftStatus: {response['StackDriftStatus']}")
-        print(f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
-    else:
-        print("Drift detection failed")
+        spinner.start()
+        while True:
+            time.sleep(5)
+            response = cloudformation.client.describe_stack_drift_detection_status(
+                StackDriftDetectionId=drift_id
+            )
+            if response["DetectionStatus"] != "DETECTION_IN_PROGRESS":
+                break
+        spinner.stop()
+        response.pop("ResponseMetadata", None)
+        print(json.dumps(response, indent=4, default=str))
+        print(80 * "-")
+        if response["DetectionStatus"] == "DETECTION_COMPLETE":
+            print(f"StackDriftStatus: {response['StackDriftStatus']}")
+            print(f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
+        else:
+            print("Drift detection failed")
+    except:
+        Spinner.clear_spinner()
+        raise

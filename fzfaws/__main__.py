@@ -52,12 +52,6 @@ def main():
         print("Exit..")
     except (ClientError, Exception) as e:
         print(e)
-    finally:
-        # clear all spinner thread and exit
-        for spinner in Spinner.get_spinner():
-            spinner.stop()
-            spinner.join()
-        sys.exit()
 
 
 if __name__ == "__main__":

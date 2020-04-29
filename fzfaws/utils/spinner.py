@@ -44,6 +44,7 @@ class Spinner(threading.Thread):
     def stop(self):
         """stop the spinner"""
         self._stopevent.set()
+        self.join()
 
     def _spin(self):
         """spin the spinner"""
@@ -55,6 +56,7 @@ class Spinner(threading.Thread):
                 sys.stdout.write("\033[2K\033[1G")
 
     @classmethod
-    def get_spinner(cls):
-        # type: () -> list
-        return cls.instances
+    def clear_spinner(cls):
+        # type: () -> None
+        for spinner in cls.instances:
+            spinner.stop()

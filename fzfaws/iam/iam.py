@@ -36,42 +36,45 @@ class IAM(BaseSession):
             service: string, only display role that could be assumed by this service
             multi_select: bool, allow multi selection
         """
-        fzf = Pyfzf()  # type: Pyfzf
-        spinner = Spinner(message="Fetching iam roles..")  # type: Spinner
-        if arns is None:
-            spinner.start()
-            paginator = self.client.get_paginator("list_roles")
-            for result in paginator.paginate():
-                if service:
-                    for role in result.get("Roles", []):
-                        statements = role.get("AssumeRolePolicyDocument", {}).get(
-                            "Statement", []
-                        )
-                        for statement in statements:
-                            if (
-                                statement.get("Principal", {}).get("Service", "")
-                                == service
-                            ):
-                                fzf.append_fzf(
-                                    "RoleName: %s  Arn: %s"
-                                    % (
-                                        role.get("RoleName", "N/A"),
-                                        role.get("Arn", "N/A"),
+        try:
+            fzf = Pyfzf()  # type: Pyfzf
+            spinner = Spinner(message="Fetching iam roles..")  # type: Spinner
+            if arns is None:
+                spinner.start()
+                paginator = self.client.get_paginator("list_roles")
+                for result in paginator.paginate():
+                    if service:
+                        for role in result.get("Roles", []):
+                            statements = role.get("AssumeRolePolicyDocument", {}).get(
+                                "Statement", []
+                            )
+                            for statement in statements:
+                                if (
+                                    statement.get("Principal", {}).get("Service", "")
+                                    == service
+                                ):
+                                    fzf.append_fzf(
+                                        "RoleName: %s  Arn: %s"
+                                        % (
+                                            role.get("RoleName", "N/A"),
+                                            role.get("Arn", "N/A"),
+                                        )
                                     )
-                                )
+                    else:
+                        fzf.process_list(result.get("Roles", []), "RoleName", "Arn")
+                spinner.stop()
+                arns = fzf.execute_fzf(
+                    empty_allow=empty_allow,
+                    print_col=4,
+                    header=header,
+                    multi_select=multi_select,
+                )
+                if not multi_select:
+                    self.arns = [arns]
                 else:
-                    fzf.process_list(result.get("Roles", []), "RoleName", "Arn")
-            spinner.stop()
-            spinner.join()
-            arns = fzf.execute_fzf(
-                empty_allow=empty_allow,
-                print_col=4,
-                header=header,
-                multi_select=multi_select,
-            )
-            if not multi_select:
-                self.arns = [arns]
+                    self.arns = list(arns)
             else:
-                self.arns = list(arns)
-        else:
-            self.arns = arns
+                self.arns = arns
+        except:
+            Spinner.clear_spinner()
+            raise

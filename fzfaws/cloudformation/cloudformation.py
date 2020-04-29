@@ -92,18 +92,20 @@ class Cloudformation(BaseSession):
             SystemExit: on system attempting to quit
                 The above exceptions are handled and correctly stop all threads
         """
-        spinner = Spinner(message=message)
-        # spinner is a child thread
-        spinner.start()
-        waiter = self.client.get_waiter(waiter_name)
-        waiter.wait(
-            StackName=self.stack_name,
-            WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
-            **kwargs
-        )
-        spinner.stop()
-        # join back the thread to main thread
-        spinner.join()
+        try:
+            spinner = Spinner(message=message)
+            # spinner is a child thread
+            spinner.start()
+            waiter = self.client.get_waiter(waiter_name)
+            waiter.wait(
+                StackName=self.stack_name,
+                WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+                **kwargs
+            )
+            spinner.stop()
+        except:
+            Spinner.clear_spinner()
+            raise
 
     def execute_with_capabilities(self, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled

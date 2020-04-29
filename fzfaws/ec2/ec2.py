@@ -123,14 +123,16 @@ class EC2(BaseSession):
             None
             will pause the program until finish or error raised
         """
-        spinner = Spinner(message=message)
-        # spinner is a child thread
-        spinner.start()
-        waiter = self.client.get_waiter(waiter_name)
-        waiter.wait(
-            InstanceIds=self.instance_ids,
-            WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
-        )
-        spinner.stop()
-        # join back the main thread
-        spinner.join()
+        try:
+            spinner = Spinner(message=message)
+            # spinner is a child thread
+            spinner.start()
+            waiter = self.client.get_waiter(waiter_name)
+            waiter.wait(
+                InstanceIds=self.instance_ids,
+                WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+            )
+            spinner.stop()
+        except:
+            Spinner.clear_spinner()
+            raise
