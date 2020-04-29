@@ -16,21 +16,28 @@ from fzfaws.utils.exceptions import UserError, InvalidFileType, NoSelectionMade
 
 
 def validate_stack(
-    profile=False, region=False, local_path=False, root=False, no_print=False
+    profile=False,
+    region=False,
+    local_path=False,
+    root=False,
+    bucket=None,
+    no_print=False,
 ):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool) -> None
+    # type: (Union[bool, str], Union[bool, str], Union[bool, str], str, bool) -> None
     """validate the selected cloudformation template using boto3 api
 
     :param profile: Use a different profile for this operation
     :type profile: Union[bool, str], optional
     :param region: Use a different region for this operation
     :type region: Union[bool, str], optional
-    :param local: Select a template from local machine
+    :param local_path: Select a template from local machine
     :type local_path: Union[bool, str], optional
     :param root: Search local file from root directory
     :type root: bool, optional
     :param no_print: Don't print the response, only check excpetion
     :type no_print: bool, optional
+    :param bucket: specify a bucket/bucketpath to skip s3 selection
+    :type bucket: str, optional
     """
     cloudformation = Cloudformation(profile, region)
     if local_path:
@@ -47,9 +54,12 @@ def validate_stack(
                 TemplateBody=file_body.read()
             )
     else:
-        s3 = S3()
-        s3.set_s3_bucket(header="select a bucket which contains the template")
-        s3.set_s3_object()
+        s3 = S3(profile, region)
+        s3.set_bucket_and_path(bucket)
+        if not s3.bucket_name:
+            s3.set_s3_bucket(header="select a bucket which contains the template")
+        if not s3.bucket_path:
+            s3.set_s3_object()
 
         check_is_valid(s3.bucket_path)
 
