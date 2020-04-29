@@ -31,25 +31,33 @@ def validate_stack(
     :type root: bool, optional
     :param no_print: Don't print the response, only check excpetion
     :type no_print: bool, optional
-    :raises UserError: when input file type is wrong or when the user didn't select a selection in fzf
     """
-    try:
-        cloudformation = Cloudformation(profile, region)
-        if local_path:
-            if type(local_path) != str:
-                fzf = Pyfzf()
-                local_path = fzf.get_local_file(
-                    search_from_root=root,
-                    cloudformation=True,
-                    header="select a cloudformation template to validate",
-                )
-            check_is_valid(local_path)
-            with open(str(local_path), "r") as file_body:
-                response = cloudformation.client.validate_template(
-                    TemplateBody=file_body.read()
-                )
-            if not no_print:
-                response.pop("ResponseMetadata", None)
-                print(json.dumps(response, indent=4, default=str))
-    except (InvalidFileType, NoSelectionMade) as e:
-        raise UserError(e)
+    cloudformation = Cloudformation(profile, region)
+    if local_path:
+        if type(local_path) != str:
+            fzf = Pyfzf()
+            local_path = fzf.get_local_file(
+                search_from_root=root,
+                cloudformation=True,
+                header="select a cloudformation template to validate",
+            )
+        check_is_valid(local_path)
+        with open(str(local_path), "r") as file_body:
+            response = cloudformation.client.validate_template(
+                TemplateBody=file_body.read()
+            )
+    else:
+        s3 = S3()
+        s3.set_s3_bucket(header="select a bucket which contains the template")
+        s3.set_s3_object()
+
+        check_is_valid(s3.bucket_path)
+
+        template_body_loacation = s3.get_object_url()  # type: str
+        response = cloudformation.client.validate_template(
+            TemplateURL=template_body_loacation
+        )
+
+    if not no_print:
+        response.pop("ResponseMetadata", None)
+        print(json.dumps(response, indent=4, default=str))

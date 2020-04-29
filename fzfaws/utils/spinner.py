@@ -57,6 +57,5 @@ class Spinner(threading.Thread):
 
     @classmethod
     def clear_spinner(cls):
-        # type: () -> None
         for spinner in cls.instances:
             spinner.stop()
