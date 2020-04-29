@@ -92,6 +92,15 @@ def cloudformation(raw_args):
 
     create_cmd = subparsers.add_parser("create", description="create a new stack")
     create_cmd.add_argument(
+        "-b",
+        "--bucket",
+        nargs=1,
+        action="store",
+        default=[],
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
+        + "using this flag and skip s3 bucket/path selection",
+    )
+    create_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
@@ -371,7 +380,13 @@ def cloudformation(raw_args):
 
     if args.subparser_name == "create":
         create_stack(
-            args.profile, args.region, args.local, args.root, args.wait, args.extra
+            args.profile,
+            args.region,
+            args.local,
+            args.root,
+            args.wait,
+            args.extra,
+            args.bucket,
         )
     elif args.subparser_name == "update":
         update_stack(

@@ -22,9 +22,15 @@ from fzfaws.cloudformation.validate_stack import validate_stack
 
 
 def create_stack(
-    profile=False, region=False, local_path=False, root=False, wait=False, extra=False
+    profile=False,
+    region=False,
+    local_path=False,
+    root=False,
+    wait=False,
+    extra=False,
+    bucket=None,
 ):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool, bool, bool) -> None
+    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool, bool, bool, str) -> None
     """handle the creation of the cloudformation stack
 
     :param profile: use a different profile for this operation
@@ -39,6 +45,8 @@ def create_stack(
     :type wait: bool, optional
     :param extra: configure extra options for the stack, (tags, IAM, termination protection etc..)
     :type extra: bool, optional
+    :param bucket: specify a bucket/bucketpath to skip s3 selection
+    :type bucket: str, optional
     :raises NoNameEntered: when the new stack receive empty string as stack_name
     """
 
@@ -92,8 +100,11 @@ def create_stack(
     # if no local file flag, get from s3
     else:
         s3 = S3(cloudformation.profile, cloudformation.region)
-        s3.set_s3_bucket()
-        s3.set_s3_object()
+        s3.set_bucket_and_path(bucket)
+        if not s3.bucket_name:
+            s3.set_s3_bucket(header="select a bucket which contains the template")
+        if not s3.bucket_path:
+            s3.set_s3_object()
 
         check_is_valid(s3.bucket_path)
 
