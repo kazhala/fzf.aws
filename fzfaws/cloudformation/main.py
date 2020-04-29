@@ -296,6 +296,15 @@ def cloudformation(raw_args):
         description="validate the selected template, by default, search a template through s3",
     )
     validate_cmd.add_argument(
+        "-b",
+        "--bucket",
+        nargs=1,
+        action="store",
+        default=[],
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
+        + "using this flag and skip s3 bucket/path selection",
+    )
+    validate_cmd.add_argument(
         "-l",
         "--local",
         nargs="?",
@@ -348,13 +357,17 @@ def cloudformation(raw_args):
             changeset_cmd.print_help()
         exit()
 
+    # when user set --profile/region flag but without argument
+    # argparse will have a None value instead of default value False
+    # convert to True for better processing
     if args.profile == None:
-        # when user set --profile flag but without argument
         args.profile = True
     if args.region == None:
         args.region = True
     if hasattr(args, "local") and args.local == None:
         args.local = True
+    if hasattr(args, "bucket"):
+        args.bucket = args.bucket[0] if args.bucket else None
 
     if args.subparser_name == "create":
         create_stack(
@@ -391,4 +404,4 @@ def cloudformation(raw_args):
             args.extra,
         )
     elif args.subparser_name == "validate":
-        validate_stack(args.profile, args.region, args.local, args.root)
+        validate_stack(args.profile, args.region, args.local, args.root, args.bucket)
