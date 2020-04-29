@@ -17,6 +17,7 @@ from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
+from fzfaws.cloudformation.validate_stack import validate_stack
 
 
 def update_stack(
@@ -30,28 +31,31 @@ def update_stack(
     dryrun=False,
     cloudformation=None,
 ):
+    # type: (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, Cloudformation) -> Union[None, dict]
     """handle the update of cloudformation stacks
 
-    Args:
-        profile: string or bool, use a different profile for this operation
-        region: string or bool, use a different region for this operation
-        replace: bool, replace current template for update
-        local_path: string or bool, if True, use fzf to obtain local file. If string, skip fzf
-        root: bool, search from $HOME
-        wait: bool, pause the function and wait for updated to complate
-        extra: bool, configure extra settings during updating stacks
-            iam role, sns, rollback etc
-        dryrun: bool, instead of updating the stack, return the updated information
-            Used for changeset_stack() getting update information
-        cloudformation: object, instance of Cloudformation
-    Returns:
-        If is called from changeset_stack() then it will return a dict based on
-        the arguments changeset_stack recieved
-        example:
-            {'Parameters': value, 'Tags': value, 'TemplateBody': value, 'TemplateURL': value}
-    Raises:
-        NoSelectionMade: when the required fzf selection recieved empty result
-        SubprocessError: when the local file search reciped empty result through fzf
+    :param profile: use a different profile for this operation
+    :type profile: Union[bool, str], optional
+    :param region: use a different region for this operation
+    :type region: Union[bool, str], optional
+    :param replace: replace the template during update
+    :type replace: bool, optional
+    :param local_path: Select a template from local machine
+    :type local_path: Union[bool, str], optional
+    :param root: Search local file from root directory
+    :type root: bool, optional
+    :param wait: wait for stack to be completed before exiting the program
+    :type wait: bool, optional
+    :param extra: configure extra options for the stack, (tags, IAM, termination protection etc..)
+    :type extra: bool, optional
+    :param bucket: specify a bucket/bucketpath to skip s3 selection
+    :type bucket: str, optional
+    :param dryrun: don't update, rather return update information, used for changeset_stack()
+    :type dryrun: bool, optional
+    :param cloudformation: a cloudformation instance, when calling from changeset_stack(), pass cloudformation in
+    :type cloudformation: Cloudformation, optional
+    :return: If dryrun is set, return all the update details as dict {'Parameters': value, 'Tags': value...}
+    :rtype: Union[None, dict]
     """
 
     if not cloudformation:
@@ -113,7 +117,15 @@ def update_stack(
 
             # double check file type, ensure yaml or json
             check_is_valid(local_path)
-            file_data = {}
+
+            validate_stack(
+                cloudformation.profile,
+                cloudformation.region,
+                local_path=local_path,
+                no_print=True,
+            )
+
+            file_data = {}  # type: dict
             if is_yaml(local_path):
                 file_data = process_yaml_file(local_path)
             elif is_json(local_path):
@@ -145,13 +157,21 @@ def update_stack(
             s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
             s3.set_s3_bucket()
             s3.set_s3_object()
+
+            check_is_valid(s3.bucket_path)
+
+            validate_stack(
+                cloudformation.profile,
+                cloudformation.region,
+                bucket="%s/%s" % (s3.bucket_name, s3.bucket_path),
+                no_print=True,
+            )
+
             file_type = ""  # type: str
             if is_yaml(s3.bucket_path):
                 file_type = "yaml"
             elif is_json(s3.bucket_path):
                 file_type = "json"
-
-            check_is_valid(s3.bucket_path)
 
             file_data = s3.get_object_data(file_type)
             if "Parameters" in file_data:
