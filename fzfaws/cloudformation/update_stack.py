@@ -28,6 +28,7 @@ def update_stack(
     root=False,
     wait=False,
     extra=False,
+    bucket=None,
     dryrun=False,
     cloudformation=None,
 ):
@@ -155,8 +156,11 @@ def update_stack(
         # if no local file flag, get from s3
         else:
             s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
-            s3.set_s3_bucket()
-            s3.set_s3_object()
+            s3.set_bucket_and_path(bucket)
+            if not s3.bucket_name:
+                s3.set_s3_bucket()
+            if not s3.bucket_path:
+                s3.set_s3_object()
 
             check_is_valid(s3.bucket_path)
 
