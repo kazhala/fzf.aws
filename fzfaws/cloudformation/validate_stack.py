@@ -4,15 +4,10 @@ search local files or s3 files and then use boto3 api to
 validate the template syntax
 """
 import json
-from fzfaws.cloudformation.helper.file_validation import (
-    is_yaml,
-    is_json,
-    check_is_valid,
-)
+from fzfaws.cloudformation.helper.file_validation import check_is_valid
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.s3.s3 import S3
-from fzfaws.utils.exceptions import UserError, InvalidFileType, NoSelectionMade
 
 
 def validate_stack(

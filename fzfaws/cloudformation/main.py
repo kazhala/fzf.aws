@@ -1,4 +1,4 @@
-"""Entry point for all cloudformation operations
+"""Entry point for all cloudformation operations, internal use only
 
 process the raw_args passed in from __main__.py which is sys.argv[2:]
 read sub command {update,create,delete,drift,changeset} and route
@@ -16,18 +16,11 @@ from fzfaws.utils.pyfzf import Pyfzf
 
 
 def cloudformation(raw_args):
-    """Entry of cloudformation operations
+    # type (list) -> None
+    """parse the argument and route traffic to appropriate handler, internal use only
 
-    Args:
-        raw_args: raw args from the command line starting from the second position
-    Returns:
-        None
-    Raises:
-        subprocess.CalledProcessError: When user exit the fzf subshell by ctrl-c
-        ClientError: aws boto3 exceptions
-        KeyboardInterrupt: ctrl-c during python operations
-        NoSelectionMade: when the require fzf selection received empty result
-        NoNameEntered: when the required name entry is empty
+    :param raw_args: list of args to be parsed
+    :type raw_args: list
     """
 
     parser = argparse.ArgumentParser(
