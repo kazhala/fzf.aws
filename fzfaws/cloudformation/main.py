@@ -253,6 +253,15 @@ def cloudformation(raw_args):
         "changeset", description="create a change set for the selected stack"
     )
     changeset_cmd.add_argument(
+        "-b",
+        "--bucket",
+        nargs=1,
+        action="store",
+        default=[],
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
+        + "using this flag and skip s3 bucket/path selection",
+    )
+    changeset_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
@@ -427,6 +436,7 @@ def cloudformation(raw_args):
             args.info,
             args.execute,
             args.extra,
+            args.bucket,
         )
     elif args.subparser_name == "validate":
         validate_stack(args.profile, args.region, args.local, args.root, args.bucket)

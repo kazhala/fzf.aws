@@ -11,11 +11,13 @@ from fzfaws.utils.util import get_confirmation
 
 
 def describe_changes(cloudformation, changeset_name):
+    # (Cloudformation, str) -> None
     """get the result of the changeset
 
-    Args:
-        stack_name: string, name of the stack
-        changeset_name: string, name of the changeset
+    :param cloudformation: an instance of the Cloudformation class
+    :type cloudformation: Cloudformation
+    :param changeset_name: the name of the changeset
+    :type changeset_name: str
     """
 
     response = cloudformation.client.describe_change_set(
@@ -37,22 +39,32 @@ def changeset_stack(
     info=False,
     execute=False,
     extra=False,
+    bucket=None,
 ):
+    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, str) -> None
     """handle changeset actions
 
-    Args:
-        profile: string or bool, use a different profile for this operation
-        region: string or bool, use a different region for this operation
-        replace: bool, create changeset with replace template option
-        local_path: string or bool, use local template rather than s3
-        root: bool, search from root
-        wait: bool, pause the function and wait for changeset create complete
-        info: bool, display result of a changeset
-        execute: bool, execute the selected changeset
-        extra: bool, configure extra settings during chagset creation
-            E.g. iam, sns, rolback etc configuration
-    Raises:
-        NoNameEntered: when the new changeset receive empty string for new name
+    :param profile: use a different profile for this operation
+    :type profile: Union[bool, str], optional
+    :param region: use a different region for this operation
+    :type region: Union[bool, str], optional
+    :param replace: replace the template during update
+    :type replace: bool, optional
+    :param local_path: Select a template from local machine
+    :type local_path: Union[bool, str], optional
+    :param root: Search local file from root directory
+    :type root: bool, optional
+    :param wait: wait for stack to be completed before exiting the program
+    :type wait: bool, optional
+    :param info: display result of a changeset
+    :type info: bool, optional
+    :param execute: execute changeset
+    :type execute: bool, optional
+    :param extra: configure extra options for the stack, (tags, IAM, termination protection etc..)
+    :type extra: bool, optional
+    :param bucket: specify a bucket/bucketpath to skip s3 selection
+    :type bucket: str, optional
+    :raises NoNameEntered: If no changset name is entered
     """
 
     cloudformation = Cloudformation(profile, region)
@@ -106,6 +118,7 @@ def changeset_stack(
             root,
             wait,
             extra,
+            bucket,
             dryrun=True,
             cloudformation=cloudformation,
         )
