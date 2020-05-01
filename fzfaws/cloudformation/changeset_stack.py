@@ -40,8 +40,9 @@ def changeset_stack(
     execute=False,
     extra=False,
     bucket=None,
+    version=False,
 ):
-    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, str) -> None
+    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, str, Union[bool, str]) -> None
     """handle changeset actions
 
     :param profile: use a different profile for this operation
@@ -64,6 +65,8 @@ def changeset_stack(
     :type extra: bool, optional
     :param bucket: specify a bucket/bucketpath to skip s3 selection
     :type bucket: str, optional
+    :param version: use previous version of template in s3 bucket
+    :type version: Union[bool, str], optional
     :raises NoNameEntered: If no changset name is entered
     """
 
@@ -119,6 +122,7 @@ def changeset_stack(
             wait,
             extra,
             bucket,
+            version,
             dryrun=True,
             cloudformation=cloudformation,
         )

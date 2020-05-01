@@ -271,6 +271,14 @@ def cloudformation(raw_args):
         + "using this flag and skip s3 bucket/path selection",
     )
     changeset_cmd.add_argument(
+        "-v",
+        "--version",
+        nargs="?",
+        action="store",
+        default=False,
+        help="use a previous version of the template in s3 bucket",
+    )
+    changeset_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
@@ -457,6 +465,7 @@ def cloudformation(raw_args):
             args.execute,
             args.extra,
             args.bucket,
+            args.version,
         )
     elif args.subparser_name == "validate":
         validate_stack(
