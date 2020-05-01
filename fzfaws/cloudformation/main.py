@@ -40,6 +40,14 @@ def cloudformation(raw_args):
         + "using this flag and skip s3 bucket/path selection",
     )
     update_cmd.add_argument(
+        "-v",
+        "--version",
+        nargs="?",
+        action="store",
+        default=False,
+        help="use a previous version of the template in s3 bucket",
+    )
+    update_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
@@ -427,6 +435,7 @@ def cloudformation(raw_args):
             args.wait,
             args.extra,
             args.bucket,
+            args.version,
         )
     elif args.subparser_name == "delete":
         if args.iam == None:

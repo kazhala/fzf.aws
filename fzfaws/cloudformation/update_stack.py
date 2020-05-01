@@ -29,10 +29,11 @@ def update_stack(
     wait=False,
     extra=False,
     bucket=None,
+    version=False,
     dryrun=False,
     cloudformation=None,
 ):
-    # type: (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, Cloudformation) -> Union[None, dict]
+    # type: (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, Union[bool, str], bool, Cloudformation) -> Union[None, dict]
     """handle the update of cloudformation stacks
 
     :param profile: use a different profile for this operation
@@ -51,6 +52,8 @@ def update_stack(
     :type extra: bool, optional
     :param bucket: specify a bucket/bucketpath to skip s3 selection
     :type bucket: str, optional
+    :param version: use a previous version of the template on s3 bucket
+    :type version: Union[str, bool], optional
     :param dryrun: don't update, rather return update information, used for changeset_stack()
     :type dryrun: bool, optional
     :param cloudformation: a cloudformation instance, when calling from changeset_stack(), pass cloudformation in
@@ -164,10 +167,16 @@ def update_stack(
 
             check_is_valid(s3.bucket_path)
 
+            if version == True:
+                version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
+                    "VersionId", False
+                )
+
             validate_stack(
                 cloudformation.profile,
                 cloudformation.region,
                 bucket="%s/%s" % (s3.bucket_name, s3.bucket_path),
+                version=version if version else False,
                 no_print=True,
             )
 
@@ -190,7 +199,7 @@ def update_stack(
             else:
                 updated_parameters = []
 
-            template_body_loacation = s3.get_object_url()
+            template_body_loacation = s3.get_object_url(version)
 
             cloudformation_args = {
                 "cloudformation_action": cloudformation.client.update_stack,
