@@ -29,8 +29,9 @@ def create_stack(
     wait=False,
     extra=False,
     bucket=None,
+    version=False,
 ):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool, bool, bool, str) -> None
+    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool, bool, bool, str, Union[bool, str]) -> None
     """handle the creation of the cloudformation stack
 
     :param profile: use a different profile for this operation
@@ -47,6 +48,8 @@ def create_stack(
     :type extra: bool, optional
     :param bucket: specify a bucket/bucketpath to skip s3 selection
     :type bucket: str, optional
+    :param version: use a previous version of the template
+    :type version: Union[bool, str], optional
     :raises NoNameEntered: when the new stack receive empty string as stack_name
     """
 
@@ -108,10 +111,16 @@ def create_stack(
 
         check_is_valid(s3.bucket_path)
 
+        if version == True:
+            version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
+                "VersionId", False
+            )
+
         validate_stack(
             cloudformation.profile,
             cloudformation.region,
             bucket="%s/%s" % (s3.bucket_name, s3.bucket_path),
+            version=version if version else False,
             no_print=True,
         )
 
@@ -135,7 +144,7 @@ def create_stack(
         else:
             create_parameters = []
 
-        template_body_loacation = s3.get_object_url()
+        template_body_loacation = s3.get_object_url(version)
         cloudformation_args = {
             "cloudformation_action": cloudformation.client.create_stack,
             "StackName": stack_name,

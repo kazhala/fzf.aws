@@ -64,7 +64,7 @@ def validate_stack(
 
         if version == True:
             version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
-                "VersionId"
+                "VersionId", False
             )
 
         template_body_loacation = s3.get_object_url(version)  # type: str
