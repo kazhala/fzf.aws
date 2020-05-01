@@ -312,6 +312,9 @@ def cloudformation(raw_args):
         help="Execute update based on selected changeset",
     )
     changeset_cmd.add_argument(
+        "-d", "--delete", action="store_true", help="delete the selected changeset"
+    )
+    changeset_cmd.add_argument(
         "-E",
         "--extra",
         action="store_true",
@@ -463,6 +466,7 @@ def cloudformation(raw_args):
             args.wait,
             args.info,
             args.execute,
+            args.delete,
             args.extra,
             args.bucket,
             args.version,

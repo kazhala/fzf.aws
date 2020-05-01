@@ -38,11 +38,12 @@ def changeset_stack(
     wait=False,
     info=False,
     execute=False,
+    delete=False,
     extra=False,
     bucket=None,
     version=False,
 ):
-    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, str, Union[bool, str]) -> None
+    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, bool, str, Union[bool, str]) -> None
     """handle changeset actions
 
     :param profile: use a different profile for this operation
@@ -61,6 +62,8 @@ def changeset_stack(
     :type info: bool, optional
     :param execute: execute changeset
     :type execute: bool, optional
+    :param delete: delete changeset
+    :type delete: bool, optional
     :param extra: configure extra options for the stack, (tags, IAM, termination protection etc..)
     :type extra: bool, optional
     :param bucket: specify a bucket/bucketpath to skip s3 selection
@@ -74,7 +77,7 @@ def changeset_stack(
     cloudformation.set_stack()
 
     # if not creating new changeset
-    if info or execute:
+    if info or execute or delete:
         fzf = Pyfzf()
         response = cloudformation.client.list_change_sets(
             StackName=cloudformation.stack_name
@@ -89,7 +92,7 @@ def changeset_stack(
             "Status",
             "Description",
         )
-        selected_changeset = fzf.execute_fzf()
+        selected_changeset = fzf.execute_fzf(multi_select=delete)
 
         if info:
             describe_changes(cloudformation, selected_changeset)
@@ -105,6 +108,15 @@ def changeset_stack(
                     "stack_update_complete", "Wating for stack to be updated.."
                 )
                 print("Stack updated")
+
+        elif delete:
+            for changeset in selected_changeset:
+                print("(dryrun) Delete changeset %s" % changeset)
+            if get_confirmation("Confirm?"):
+                for changeset in selected_changeset:
+                    cloudformation.client.delete_change_set(
+                        ChangeSetName=changeset, StackName=cloudformation.stack_name
+                    )
 
     else:
         changeset_name = input("Enter name of this changeset: ")
