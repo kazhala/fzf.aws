@@ -16,9 +16,10 @@ def validate_stack(
     local_path=False,
     root=False,
     bucket=None,
+    version=False,
     no_print=False,
 ):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], str, bool) -> None
+    # type: (Union[bool, str], Union[bool, str], Union[bool, str], str, Union[bool, str], bool) -> None
     """validate the selected cloudformation template using boto3 api
 
     :param profile: Use a different profile for this operation
@@ -29,11 +30,14 @@ def validate_stack(
     :type local_path: Union[bool, str], optional
     :param root: Search local file from root directory
     :type root: bool, optional
-    :param no_print: Don't print the response, only check excpetion
-    :type no_print: bool, optional
     :param bucket: specify a bucket/bucketpath to skip s3 selection
     :type bucket: str, optional
+    :param version: use a previous version of the template
+    :type version: Union[bool, str], optional
+    :param no_print: Don't print the response, only check excpetion
+    :type no_print: bool, optional
     """
+
     cloudformation = Cloudformation(profile, region)
     if local_path:
         if type(local_path) != str:
@@ -58,7 +62,12 @@ def validate_stack(
 
         check_is_valid(s3.bucket_path)
 
-        template_body_loacation = s3.get_object_url()  # type: str
+        if version == True:
+            version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
+                "VersionId"
+            )
+
+        template_body_loacation = s3.get_object_url(version)  # type: str
         response = cloudformation.client.validate_template(
             TemplateURL=template_body_loacation
         )

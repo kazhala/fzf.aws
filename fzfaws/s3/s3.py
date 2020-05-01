@@ -36,7 +36,7 @@ class S3(BaseSession):
         super().__init__(profile=profile, region=region, service_name="s3")
         self.bucket_name = None
         self.bucket_path = ""
-        self.path_list = []
+        self.path_list = []  # type: list
 
     def set_s3_bucket(self, header=""):
         """list bucket through fzf and let user select a bucket
@@ -317,15 +317,28 @@ class S3(BaseSession):
             body_dict = process_json_body(body)
         return body_dict
 
-    def get_object_url(self):
-        """return the object url of the current selected object"""
+    def get_object_url(self, version=None):
+        # type: (str) -> str
+        """return the object url of the current selected object
+
+        :param version: get url for versioned object
+        :type version: str, optional
+        """
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response["LocationConstraint"]
-        return "https://s3-%s.amazonaws.com/%s/%s" % (
-            bucket_location,
-            self.bucket_name,
-            self.bucket_path,
-        )
+        if not version:
+            return "https://s3-%s.amazonaws.com/%s/%s" % (
+                bucket_location,
+                self.bucket_name,
+                self.bucket_path,
+            )
+        else:
+            return "https://s3-%s.amazonaws.com/%s/%s?versionId=%s" % (
+                bucket_location,
+                self.bucket_name,
+                self.bucket_path,
+                version,
+            )
 
     def get_s3_destination_key(self, local_path, recursive=False):
         """set the s3 key for upload destination

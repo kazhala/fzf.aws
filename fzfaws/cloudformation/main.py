@@ -336,6 +336,13 @@ def cloudformation(raw_args):
         "-r", "--root", action="store_true", default=False, help="search file from root"
     )
     validate_cmd.add_argument(
+        "-v",
+        "--version",
+        nargs="?",
+        default=False,
+        help="use previous versions of the cloudformation template",
+    )
+    validate_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -388,6 +395,8 @@ def cloudformation(raw_args):
         args.local = True
     if hasattr(args, "bucket"):
         args.bucket = args.bucket[0] if args.bucket else None
+    if hasattr(args, "version") and args.version == None:
+        args.version = True
 
     if args.subparser_name == "create":
         create_stack(
@@ -432,4 +441,6 @@ def cloudformation(raw_args):
             args.bucket,
         )
     elif args.subparser_name == "validate":
-        validate_stack(args.profile, args.region, args.local, args.root, args.bucket)
+        validate_stack(
+            args.profile, args.region, args.local, args.root, args.bucket, args.version
+        )

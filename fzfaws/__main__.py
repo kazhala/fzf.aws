@@ -13,7 +13,6 @@ from fzfaws.utils.exceptions import (
 from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
 from fzfaws.s3.main import s3
-from fzfaws.utils.spinner import Spinner
 
 
 def main():
