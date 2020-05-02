@@ -233,21 +233,31 @@ class ParamProcessor:
 
         fzf = Pyfzf()
         if type_name == "AWS::EC2::KeyPair::KeyName":
-            response = self.ec2.client.describe_key_pairs()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_key_pairs, message="Fetching KeyPairs.."
+            )
             response_list = response["KeyPairs"]
             fzf.process_list(response_list, "KeyName")
         elif type_name == "AWS::EC2::SecurityGroup::Id":
-            response = self.ec2.client.describe_security_groups()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_security_groups,
+                message="Fetching SecurityGroups..",
+            )
             response_list = response["SecurityGroups"]
             for sg in response["SecurityGroups"]:
                 sg["Name"] = get_name_tag(sg)
             fzf.process_list(response_list, "GroupId", "GroupName", "Name")
         elif type_name == "AWS::EC2::AvailabilityZone::Name":
-            response = self.ec2.client.describe_availability_zones()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_availability_zones,
+                message="Fetching AvailabilityZones..",
+            )
             response_list = response["AvailabilityZones"]
             fzf.process_list(response_list, "ZoneName")
         elif type_name == "AWS::EC2::Instance::Id":
-            response = self.ec2.client.describe_instances()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_instances, message="Fetching EC2 instances.."
+            )
             response_list = []
             for instance in response["Reservations"]:
                 response_list.append(
@@ -258,13 +268,18 @@ class ParamProcessor:
                 )
             fzf.process_list(response_list, "InstanceId", "Name")
         elif type_name == "AWS::EC2::SecurityGroup::GroupName":
-            response = self.ec2.client.describe_security_groups()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_security_groups,
+                message="Fetching SecurityGroups..",
+            )
             response_list = response["SecurityGroups"]
             for sg in response["SecurityGroups"]:
                 sg["Name"] = get_name_tag(sg)
             fzf.process_list(response_list, "GroupName", "Name")
         elif type_name == "AWS::EC2::Subnet::Id":
-            response = self.ec2.client.describe_subnets()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_subnets, message="Fethcing Subnets.."
+            )
             response_list = response["Subnets"]
             for subnet in response["Subnets"]:
                 subnet["Name"] = get_name_tag(subnet)
@@ -272,13 +287,17 @@ class ParamProcessor:
                 response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
             )
         elif type_name == "AWS::EC2::Volume::Id":
-            response = self.ec2.client.describe_volumes()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_volumes, message="Fetching EBS volumes.."
+            )
             response_list = response["Volumes"]
             for volume in response["Volumes"]:
                 volume["Name"] = get_name_tag(volume)
             fzf.process_list(response_list, "VolumeId", "Name")
         elif type_name == "AWS::EC2::VPC::Id":
-            response = self.ec2.client.describe_vpcs()
+            response = EC2.basic_fetch_spinner(
+                self.ec2.client.describe_vpcs, message="Fetching VPCs.."
+            )
             response_list = response["Vpcs"]
             for vpc in response["Vpcs"]:
                 vpc["Name"] = get_name_tag(vpc)
