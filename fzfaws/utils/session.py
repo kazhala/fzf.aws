@@ -4,6 +4,7 @@ Wraps around boto3 session for better profile region management
 """
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.spinner import Spinner
 
 
 class BaseSession:
@@ -35,7 +36,7 @@ class BaseSession:
         if profile and type(profile) == bool:
             fzf = Pyfzf()
             for profile in session.available_profiles:
-                fzf.append_fzf('%s\n' % profile)
+                fzf.append_fzf("%s\n" % profile)
             selected_profile = fzf.execute_fzf(print_col=1)
         elif profile and type(profile) == str:
             selected_profile = profile
@@ -44,17 +45,36 @@ class BaseSession:
             fzf = Pyfzf()
             regions = session.get_available_regions(service_name)
             for region in regions:
-                fzf.append_fzf('%s\n' % region)
+                fzf.append_fzf("%s\n" % region)
             selected_region = fzf.execute_fzf(print_col=1)
         elif region and type(region) == str:
             selected_region = region
         self.profile = selected_profile
         self.region = selected_region
-        self.session = Session(region_name=selected_region,
-                               profile_name=selected_profile)
+        self.session = Session(
+            region_name=selected_region, profile_name=selected_profile
+        )
         self.client = self.session.client(service_name)
 
         # only certain service support resource
         resources = self.session.get_available_resources()
         if service_name in resources:
             self.resource = self.session.resource(service_name)
+
+    @classmethod
+    def basic_fetch_spinner(cls, action, message=None, **kwargs):
+        """used for basic fetching information from boto3 with spinner
+
+        :param action: function to execute
+        :type action: Callable
+        :param message: loading message
+        :type message: str, optional
+        """
+        try:
+            spinner = Spinner(message=message)
+            spinner.start()
+            response = action(**kwargs)
+            spinner.stop()
+            return response
+        except:
+            Spinner.clear_spinner()
