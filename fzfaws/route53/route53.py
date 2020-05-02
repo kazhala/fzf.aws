@@ -5,6 +5,7 @@ Wraps around boto3.client('route53') and supports region and profile
 import re
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.spinner import Spinner
 
 
 class Route53(BaseSession):
@@ -29,7 +30,7 @@ class Route53(BaseSession):
             zone_id: string, which hostedzone should action be perfomed
             zone_ids: list, list of zone id
         """
-        super().__init__(profile=profile, region=region, service_name='route53')
+        super().__init__(profile=profile, region=region, service_name="route53")
         self.zone_id = zone_id
         self.zone_ids = zone_ids
 
@@ -41,29 +42,35 @@ class Route53(BaseSession):
             zone_ids: list, list of zone ids
             multi_select: bool, set multiple zone_id
         """
-        if zone_id:
-            self.zone_id = zone_id
-        elif zone_ids:
-            self.zone_ids = zone_ids
-        else:
-            fzf = Pyfzf()
-            paginator = self.client.get_paginator('list_hosted_zones')
-            for result in paginator.paginate():
-                result = self._process_hosted_zone(result['HostedZones'])
-                fzf.process_list(result, 'Id', 'Name')
-            if not multi_select:
-                self.zone_id = fzf.execute_fzf(empty_allow=True)
+        try:
+            if zone_id:
+                self.zone_id = zone_id
+            elif zone_ids:
+                self.zone_ids = zone_ids
             else:
-                self.zone_ids = fzf.execute_fzf(
-                    empty_allow=True, multi_select=multi_select)
+                fzf = Pyfzf()
+                spinner = Spinner(message="Fetching hostedzones..")
+                paginator = self.client.get_paginator("list_hosted_zones")
+                spinner.start()
+                for result in paginator.paginate():
+                    spinner.stop()
+                    result = self._process_hosted_zone(result["HostedZones"])
+                    fzf.process_list(result, "Id", "Name")
+                if not multi_select:
+                    self.zone_id = fzf.execute_fzf(empty_allow=True)
+                else:
+                    self.zone_ids = fzf.execute_fzf(
+                        empty_allow=True, multi_select=multi_select
+                    )
+        except:
+            Spinner.clear_spinner()
+            raise
 
     def _process_hosted_zone(self, hostedzone_list):
         """process hostedzone as the response is not raw id"""
         id_list = []
-        id_pattern = r'/hostedzone/(?P<id>.*)$'
+        id_pattern = r"/hostedzone/(?P<id>.*)$"
         for hosted_zone in hostedzone_list:
-            raw_zone_id = re.search(
-                id_pattern, hosted_zone['Id']).group('id')
-            id_list.append(
-                {'Id': raw_zone_id, 'Name': hosted_zone['Name']})
+            raw_zone_id = re.search(id_pattern, hosted_zone["Id"]).group("id")
+            id_list.append({"Id": raw_zone_id, "Name": hosted_zone["Name"]})
         return id_list
