@@ -74,32 +74,23 @@ class ParamProcessor:
                 param_header += (
                     "Description: %s\n" % self.params[parameter_key]["Description"]
                 )
-                # print(f"Description: {self.params[parameter_key]['Description']}")
             if "ConstraintDescription" in self.params[parameter_key]:
                 param_header += (
                     "ConstraintDescription: %s\n"
                     % self.params[parameter_key]["ConstraintDescription"]
                 )
-                # print(
-                #     f"ConstraintDescription: {self.params[parameter_key]['ConstraintDescription']}"
-                # )
             if "AllowedPattern" in self.params[parameter_key]:
                 param_header += (
                     "AllowedPattern: %s\n"
                     % self.params[parameter_key]["AllowedPattern"]
                 )
-                # print(f"AllowedPattern: {self.params[parameter_key]['AllowedPattern']}")
             parameter_type = self.params[parameter_key]["Type"]
             param_header += "Type: %s\n" % parameter_type
-            # print(f"Type: {parameter_type}")
             if (
                 parameter_type == "List<Number>"
                 or parameter_type == "CommaDelimitedList"
             ):
                 param_header += "For list type parameters, use comma to sperate items(e.g. values: value1, value2)"
-                # print(
-                #     "For list type parameters, use comma to sperate items(e.g. values: value1, value2)"
-                # )
 
             if check_dict_value_in_list(
                 parameter_key, self.original_params, "ParameterKey"
@@ -143,6 +134,13 @@ class ParamProcessor:
                         "ParameterValue": str(parameter_value),
                     }
                 )
+            if (
+                "AllowedValues" in self.params[parameter_key]
+                or parameter_type in self._aws_specific_param
+                or parameter_type in self._aws_specific_list_param
+            ):
+                print(param_header.rstrip())
+            print("ParameterValue: %s" % parameter_value)
 
     def _get_user_input(
         self,
@@ -219,12 +217,8 @@ class ParamProcessor:
                 value_type,
                 default,
             )
-            # print(
-            #     "Choose a value for %s(%s: %s)" % (parameter_key, value_type, default)
-            # )
         else:
             return "Choose a value for %s" % parameter_key
-            # print("Choose a value for %s" % parameter_key)
 
     def _get_selected_param_value(self, type_name, param_header):
         """use fzf to display aws specific parameters
