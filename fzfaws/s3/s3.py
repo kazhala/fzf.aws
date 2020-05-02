@@ -3,9 +3,7 @@
 A centralized position to initial boto3.client('s3'), better
 management if user decide to change region or use different profile
 """
-import boto3
 import re
-import json
 from botocore.exceptions import ClientError
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
@@ -120,7 +118,7 @@ class S3(BaseSession):
                         % (self.bucket_name, self.bucket_path),
                     )
                     if not selected_path:
-                        raise
+                        raise NoSelectionMade
                     if selected_path == "..":
                         self.bucket_path = parents.pop()
                     else:
@@ -182,7 +180,7 @@ class S3(BaseSession):
                         continue
                     fzf.append_fzf("Key: %s\n" % file.get("Key"))
             if multi_select:
-                self.path_list = fzf.execute_fzf(print_col=-1, multi_select=True)
+                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
                 self.bucket_path = fzf.execute_fzf(print_col=-1)
         else:
@@ -220,7 +218,7 @@ class S3(BaseSession):
                     "Bucket might be empty or there was no selection made"
                 )
             if multi_select:
-                self.path_list = fzf.execute_fzf(print_col=-1, multi_select=True)
+                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
                 self.bucket_path = fzf.execute_fzf(print_col=-1)
 
@@ -391,7 +389,10 @@ class S3(BaseSession):
         fzf.append_fzf(
             "append: interactively select a path and then input new path/name to append"
         )
-        return fzf.execute_fzf(
-            print_col=1,
-            header="Please select which level of the bucket would you like to operate in",
-        ).split(":")[0]
+        selected_option = str(
+            fzf.execute_fzf(
+                print_col=1,
+                header="Please select which level of the bucket would you like to operate in",
+            )
+        )
+        return selected_option.split(":")[0]
