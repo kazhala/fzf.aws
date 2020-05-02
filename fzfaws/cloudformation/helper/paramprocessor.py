@@ -168,6 +168,7 @@ class ParamProcessor:
         :rtype: str
         """
 
+        user_input = None
         # execute fzf if allowed_value array exists
         if "AllowedValues" in self.params[parameter_key]:
             param_header += self._print_parameter_key(
@@ -192,14 +193,15 @@ class ParamProcessor:
                 param_header += self._print_parameter_key(
                     parameter_key, value_type, default
                 )
-                user_input = self._get_list_param_value(parameter_type)
+                user_input = self._get_list_param_value(parameter_type, param_header)
             else:
+                print(param_header.rstrip())
                 if not value_type:
-                    user_input = input(f"{parameter_key}: ")
+                    user_input = input("%s: " % parameter_key)
                 elif value_type == "Default":
-                    user_input = input(f"{parameter_key}(Default: {default}): ")
+                    user_input = input("%s(Default: %s): " % (parameter_key, default))
                 elif value_type == "Original":
-                    user_input = input(f"{parameter_key}(Original: {default}): ")
+                    user_input = input("%s(Original: %s): " % (parameter_key, default))
         if not user_input and default:
             return default
         elif user_input == "''":
@@ -292,15 +294,15 @@ class ParamProcessor:
             return self.route53.zone_id
         return fzf.execute_fzf(empty_allow=True, header=param_header)
 
-    def _get_list_param_value(self, type_name):
+    def _get_list_param_value(self, type_name, param_header):
         """handler if parameter type is a list type
 
-        Args:
-            type_name: string, type of the parameter
-        Returns:
-            processed list of selection from the user
-            example:
-                ['value', 'value']
+        :param type_name: name of the type of the parameter
+        :type type_name: str
+        :param param_header: information about the current parameter
+        :type param_header: str
+        :return: processed list of selection from the user
+        :rtype: list
         """
 
         fzf = Pyfzf()
@@ -308,7 +310,6 @@ class ParamProcessor:
             response = self.ec2.client.describe_availability_zones()
             response_list = response["AvailabilityZones"]
             fzf.process_list(response_list, "ZoneName")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::Instance::Id>":
             response = self.ec2.client.describe_instances()
             raw_response_list = response["Reservations"]
@@ -321,21 +322,18 @@ class ParamProcessor:
                     }
                 )
             fzf.process_list(response_list, "InstanceId", "Name")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::SecurityGroup::GroupName>":
             response = self.ec2.client.describe_security_groups()
             response_list = response["SecurityGroups"]
             for sg in response_list:
                 sg["Name"] = get_name_tag(sg)
             fzf.process_list(response_list, "GroupName")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::SecurityGroup::Id>":
             response = self.ec2.client.describe_security_groups()
             response_list = response["SecurityGroups"]
             for sg in response_list:
                 sg["Name"] = get_name_tag(sg)
             fzf.process_list(response_list, "GroupId", "GroupName", "Name")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::Subnet::Id>":
             response = self.ec2.client.describe_subnets()
             response_list = response["Subnets"]
@@ -344,21 +342,19 @@ class ParamProcessor:
             fzf.process_list(
                 response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
             )
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::Volume::Id>":
             response = self.ec2.client.describe_volumes()
             response_list = response["Volumes"]
             for volume in response_list:
                 volume["Name"] = get_name_tag(volume)
             fzf.process_list(response_list, "VolumeId", "Name")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::EC2::VPC::Id>":
             response = self.ec2.client.describe_vpcs()
             response_list = response["Vpcs"]
             for vpc in response_list:
                 vpc["Name"] = get_name_tag(vpc)
             fzf.process_list(response_list, "VpcId", "IsDefault", "CidrBlock", "Name")
-            return fzf.execute_fzf(multi_select=True, empty_allow=True)
         elif type_name == "List<AWS::Route53::HostedZone::Id>":
             self.route53.set_zone_id(multi_select=True)
             return self.route53.zone_ids
+        return fzf.execute_fzf(multi_select=True, empty_allow=True, header=param_header)
