@@ -2,6 +2,11 @@ import subprocess
 import os
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
 
+try:
+    from typing import Union
+except:
+    pass
+
 
 class Pyfzf:
     """A simple wrapper class for fzf utilizing subprocess module.
@@ -69,6 +74,8 @@ class Pyfzf:
         cmd_list.append(
             "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
         )
+        selection_name = b""  # type: Union[str, bytes]
+
         if header:
             cmd_list.append("--header=%s" % header)
 
@@ -95,7 +102,7 @@ class Pyfzf:
                 )
             else:
                 selection_name = subprocess.check_output(
-                    ("awk", "{print $%s}" % (print_col)), stdin=echo_selection.stdout
+                    ("awk", "{print $%s}" % (print_col)), stdin=echo_selection.stdout,
                 )
 
             if not selection_name and not empty_allow:
@@ -188,6 +195,7 @@ class Pyfzf:
                     stdout=subprocess.PIPE,
                     shell=True,
                 )
+        selected_file_path = b""
         try:
             cmd_list = ["fzf", "--expect=ctrl-c"]
             cmd_list.append(
