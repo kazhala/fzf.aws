@@ -53,9 +53,9 @@ class Route53(BaseSession):
                 paginator = self.client.get_paginator("list_hosted_zones")
                 spinner.start()
                 for result in paginator.paginate():
-                    spinner.stop()
                     result = self._process_hosted_zone(result["HostedZones"])
                     fzf.process_list(result, "Id", "Name")
+                spinner.stop()
                 if not multi_select:
                     self.zone_id = fzf.execute_fzf(empty_allow=True)
                 else:

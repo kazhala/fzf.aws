@@ -55,6 +55,24 @@ class Spinner(threading.Thread):
                 time.sleep(self.speed)
                 sys.stdout.write("\033[2K\033[1G")
 
+    def execute_with_spinner(self, action, **kwargs):
+        # type: (Callable, str, **kwargs) -> Any
+        """used for basic fetching information from boto3 with spinner
+
+        :param action: function to execute
+        :type action: Callable
+        :param message: loading message
+        :type message: str, optional
+        """
+        try:
+            self.start()
+            response = action(**kwargs)
+            self.stop()
+            return response
+        except:
+            Spinner.clear_spinner()
+            raise
+
     @classmethod
     def clear_spinner(cls):
         for spinner in cls.instances:

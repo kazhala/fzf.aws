@@ -125,7 +125,6 @@ class EC2(BaseSession):
         """
         try:
             spinner = Spinner(message=message)
-            # spinner is a child thread
             spinner.start()
             waiter = self.client.get_waiter(waiter_name)
             waiter.wait(

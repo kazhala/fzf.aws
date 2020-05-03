@@ -1,4 +1,5 @@
 """contains funtions related to processing a new template"""
+from fzfaws.utils.spinner import Spinner
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import (
     search_dict_in_list,
@@ -233,9 +234,8 @@ class ParamProcessor:
 
         fzf = Pyfzf()
         if type_name == "AWS::EC2::KeyPair::KeyName":
-            response = EC2.basic_fetch_spinner(
-                self.ec2.client.describe_key_pairs, message="Fetching KeyPairs.."
-            )
+            spinner = Spinner(message="Fetching KeyPairs..")
+            response = spinner.execute_with_spinner(self.ec2.client.describe_key_pairs)
             response_list = response["KeyPairs"]
             fzf.process_list(response_list, "KeyName")
         elif type_name == "AWS::EC2::SecurityGroup::Id":
