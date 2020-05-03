@@ -135,3 +135,32 @@ class EC2(BaseSession):
         except:
             Spinner.clear_spinner()
             raise
+
+    def get_security_groups(self, multi_select=False, return_attr="id", header=None):
+        """use paginator to get the user selected security groups
+
+        :param multi_select: allow multiple value selection
+        :type multi_select: bool, optional
+        :param return_attr: what attribute to return (id|name)
+        :type return_attr: str, optional
+        :param header: header to display in fzf
+        :type header: str, optional
+        """
+        try:
+            fzf = Pyfzf()
+            spinner = Spinner(message="Fetching SecurityGroups..")
+            spinner.start()
+            paginator = self.client.get_paginator("describe_security_groups")
+            for result in paginator.paginate():
+                response_list = result["SecurityGroups"]
+                for item in response_list:
+                    item["Name"] = get_name_tag(item)
+                if return_attr == "id":
+                    fzf.process_list(response_list, "GroupId", "GroupName", "Name")
+                elif return_attr == "name":
+                    fzf.process_list(response_list, "GroupName", "Name")
+            spinner.stop()
+            return fzf.execute_fzf(empty_allow=True, header=header)
+        except:
+            Spinner.clear_spinner()
+            raise

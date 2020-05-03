@@ -63,6 +63,7 @@ class BaseSession:
 
     @classmethod
     def basic_fetch_spinner(cls, action, message=None, **kwargs):
+        # type: (Callable, str, **kwargs) -> dict
         """used for basic fetching information from boto3 with spinner
 
         :param action: function to execute
@@ -78,3 +79,4 @@ class BaseSession:
             return response
         except:
             Spinner.clear_spinner()
+            raise

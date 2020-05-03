@@ -61,8 +61,6 @@ class Spinner(threading.Thread):
 
         :param action: function to execute
         :type action: Callable
-        :param message: loading message
-        :type message: str, optional
         """
         try:
             self.start()
