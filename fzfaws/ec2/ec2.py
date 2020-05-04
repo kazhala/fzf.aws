@@ -145,6 +145,8 @@ class EC2(BaseSession):
         :type return_attr: str, optional
         :param header: header to display in fzf
         :type header: str, optional
+        :return: selected security groups/ids
+        :rtype: Union[str, list]
         """
         try:
             fzf = Pyfzf()
@@ -159,6 +161,37 @@ class EC2(BaseSession):
                     fzf.process_list(response_list, "GroupId", "GroupName", "Name")
                 elif return_attr == "name":
                     fzf.process_list(response_list, "GroupName", "Name")
+            spinner.stop()
+            return fzf.execute_fzf(empty_allow=True, header=header)
+        except:
+            Spinner.clear_spinner()
+            raise
+
+    def get_instance_id(self, multi_select=False, header=None):
+        """use paginator to get instance id and return it
+
+        :param multi_select: allow multiple value selection
+        :type multi_select: bool, optional
+        :param header: header to display in fzf header
+        :type header: str, optional
+        :return: selected instance id
+        :rtype: Union[str, list]
+        """
+        try:
+            fzf = Pyfzf()
+            spinner = Spinner(message="Fetching EC2 instances..")
+            spinner.start()
+            paginator = self.client.get_paginator("describe_instances")
+            for result in paginator.paginate():
+                response_list = []
+                for instance in result["Reservations"]:
+                    response_list.append(
+                        {
+                            "InstanceId": instance["Instances"][0]["InstanceId"],
+                            "Name": get_name_tag(instance["Instances"][0]),
+                        }
+                    )
+                fzf.process_list(response_list, "InstanceId", "Name")
             spinner.stop()
             return fzf.execute_fzf(empty_allow=True, header=header)
         except:
