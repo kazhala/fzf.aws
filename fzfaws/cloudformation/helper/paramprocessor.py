@@ -4,7 +4,6 @@ from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import (
     search_dict_in_list,
     check_dict_value_in_list,
-    get_name_tag,
 )
 from fzfaws.ec2.ec2 import EC2
 from fzfaws.route53.route53 import Route53
