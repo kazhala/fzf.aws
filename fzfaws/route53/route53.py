@@ -11,43 +11,28 @@ from fzfaws.utils.spinner import Spinner
 class Route53(BaseSession):
     """wrapper class for route53
 
-    Handles all operation related to route53
-
-    Attributes:
-        client: object, boto3.client('route53'), init from BaseSession
-        resource: object, boto3.resource('route53'), init from BaseSession
-        profile: string, current profile using for this session
-        region: string, current region using for this session
-        zone_id: string, selected zone id
+    :param profile: profile to use for this operation
+    :type profile: Union[bool, str], optional
+    :param region: region to use for this operation
+    :type region: Union[bool, str], optional
     """
 
-    def __init__(self, profile=None, region=None, zone_id=None, zone_ids=None):
+    def __init__(self, profile=None, region=None):
         """construct route53 class
-
-        Args:
-            profile: string or bool, use different profile for current operation
-            region: string or bool, use different region for current operation
-            zone_id: string, which hostedzone should action be perfomed
-            zone_ids: list, list of zone id
         """
         super().__init__(profile=profile, region=region, service_name="route53")
-        self.zone_id = zone_id
-        self.zone_ids = zone_ids
+        self.zone_ids = []  # type: list
 
-    def set_zone_id(self, zone_id=None, zone_ids=None, multi_select=False):
+    def set_zone_id(self, zone_ids=None, multi_select=False):
         """set the hostedzone
 
-        Args:
-            zone_id: string
-            zone_ids: list, list of zone ids
-            multi_select: bool, set multiple zone_id
+        :param zone_ids: list of zone_ids to set
+        :type zone_ids: list, optional
+        :param multi_select: allow multi_select
+        :type multi_select: bool, optional
         """
         try:
-            if zone_id:
-                self.zone_id = zone_id
-            elif zone_ids:
-                self.zone_ids = zone_ids
-            else:
+            if zone_ids is None:
                 fzf = Pyfzf()
                 spinner = Spinner(message="Fetching hostedzones..")
                 paginator = self.client.get_paginator("list_hosted_zones")
@@ -56,12 +41,13 @@ class Route53(BaseSession):
                     result = self._process_hosted_zone(result["HostedZones"])
                     fzf.process_list(result, "Id", "Name")
                 spinner.stop()
+                zone_ids = fzf.execute_fzf(multi_select=multi_select, empty_allow=True)
                 if not multi_select:
-                    self.zone_id = fzf.execute_fzf(empty_allow=True)
+                    self.zone_ids = [str(zone_ids)]
                 else:
-                    self.zone_ids = fzf.execute_fzf(
-                        empty_allow=True, multi_select=multi_select
-                    )
+                    self.zone_ids = list(zone_ids)
+            else:
+                self.zone_ids = zone_ids
         except:
             Spinner.clear_spinner()
             raise

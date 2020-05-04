@@ -259,7 +259,7 @@ class ParamProcessor:
             return self.ec2.get_vpc_id(header=param_header)
         elif type_name == "AWS::Route53::HostedZone::Id":
             self.route53.set_zone_id()
-            return self.route53.zone_id
+            return self.route53.zone_ids[0]
         return fzf.execute_fzf(empty_allow=True, header=param_header)
 
     def _get_list_param_value(self, type_name, param_header):
