@@ -254,13 +254,14 @@ class ParamProcessor:
         elif type_name == "AWS::EC2::Subnet::Id":
             return self.ec2.get_subnet_id(header=param_header)
         elif type_name == "AWS::EC2::Volume::Id":
-            response = EC2.basic_fetch_spinner(
-                self.ec2.client.describe_volumes, message="Fetching EBS volumes.."
-            )
-            response_list = response["Volumes"]
-            for volume in response["Volumes"]:
-                volume["Name"] = get_name_tag(volume)
-            fzf.process_list(response_list, "VolumeId", "Name")
+            return self.ec2.get_volume_id(header=param_header)
+            # response = EC2.basic_fetch_spinner(
+            #     self.ec2.client.describe_volumes, message="Fetching EBS volumes.."
+            # )
+            # response_list = response["Volumes"]
+            # for volume in response["Volumes"]:
+            #     volume["Name"] = get_name_tag(volume)
+            # fzf.process_list(response_list, "VolumeId", "Name")
         elif type_name == "AWS::EC2::VPC::Id":
             response = EC2.basic_fetch_spinner(
                 self.ec2.client.describe_vpcs, message="Fetching VPCs.."

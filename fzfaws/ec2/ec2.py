@@ -162,7 +162,9 @@ class EC2(BaseSession):
                 elif return_attr == "name":
                     fzf.process_list(response_list, "GroupName", "Name")
             spinner.stop()
-            return fzf.execute_fzf(empty_allow=True, header=header)
+            return fzf.execute_fzf(
+                multi_select=multi_select, empty_allow=True, header=header
+            )
         except:
             Spinner.clear_spinner()
             raise
@@ -193,7 +195,9 @@ class EC2(BaseSession):
                     )
                 fzf.process_list(response_list, "InstanceId", "Name")
             spinner.stop()
-            return fzf.execute_fzf(empty_allow=True, header=header)
+            return fzf.execute_fzf(
+                multi_select=multi_select, empty_allow=True, header=header
+            )
         except:
             Spinner.clear_spinner()
             raise
@@ -221,7 +225,37 @@ class EC2(BaseSession):
                     response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
                 )
             spinner.stop()
-            return fzf.execute_fzf(empty_allow=True, header=header)
+            return fzf.execute_fzf(
+                multi_select=multi_select, empty_allow=True, header=header
+            )
+        except:
+            Spinner.clear_spinner()
+            raise
+
+    def get_volume_id(self, multi_select=False, header=None):
+        """get user selected volume id through fzf
+
+        :param multi_select: allow multiple value selection
+        :type multi_select: bool, optional
+        :param header: header to display in fzf header
+        :type header: str, optional
+        :return: selected volume id
+        :rtype: Union[str, list]
+        """
+        try:
+            fzf = Pyfzf()
+            spinner = Spinner(message="Fetching EBS volumes..")
+            spinner.start()
+            paginator = self.client.get_paginator("describe_volumes")
+            for result in paginator.paginate():
+                response_list = result["Volumes"]
+                for volume in response_list:
+                    volume["Name"] = get_name_tag(volume)
+                fzf.process_list(response_list, "VolumeId", "Name")
+            spinner.stop()
+            return fzf.execute_fzf(
+                multi_select=multi_select, empty_allow=True, header=header
+            )
         except:
             Spinner.clear_spinner()
             raise
