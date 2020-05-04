@@ -155,8 +155,8 @@ class EC2(BaseSession):
             paginator = self.client.get_paginator("describe_security_groups")
             for result in paginator.paginate():
                 response_list = result["SecurityGroups"]
-                for item in response_list:
-                    item["Name"] = get_name_tag(item)
+                for sg in response_list:
+                    sg["Name"] = get_name_tag(sg)
                 if return_attr == "id":
                     fzf.process_list(response_list, "GroupId", "GroupName", "Name")
                 elif return_attr == "name":
@@ -219,8 +219,8 @@ class EC2(BaseSession):
             paginator = self.client.get_paginator("describe_subnets")
             for result in paginator.paginate():
                 response_list = result["Subnets"]
-                for item in response_list:
-                    item["Name"] = get_name_tag(item)
+                for subnet in response_list:
+                    subnet["Name"] = get_name_tag(subnet)
                 fzf.process_list(
                     response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
                 )
