@@ -252,15 +252,7 @@ class ParamProcessor:
         elif type_name == "AWS::EC2::SecurityGroup::GroupName":
             return self.ec2.get_security_groups(return_attr="name", header=param_header)
         elif type_name == "AWS::EC2::Subnet::Id":
-            response = EC2.basic_fetch_spinner(
-                self.ec2.client.describe_subnets, message="Fethcing Subnets.."
-            )
-            response_list = response["Subnets"]
-            for subnet in response["Subnets"]:
-                subnet["Name"] = get_name_tag(subnet)
-            fzf.process_list(
-                response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
-            )
+            return self.ec2.get_subnet_id(header=param_header)
         elif type_name == "AWS::EC2::Volume::Id":
             response = EC2.basic_fetch_spinner(
                 self.ec2.client.describe_volumes, message="Fetching EBS volumes.."

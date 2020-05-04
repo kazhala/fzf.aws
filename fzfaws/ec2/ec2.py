@@ -197,3 +197,31 @@ class EC2(BaseSession):
         except:
             Spinner.clear_spinner()
             raise
+
+    def get_subnet_id(self, multi_select=False, header=None):
+        """get user selected subnet id through fzf
+
+        :param multi_select: allow multiple value selection
+        :type multi_select: bool, optional
+        :param header: header to display in fzf header
+        :type header: str, optional
+        :return: selected subnet id
+        :rtype: Union[str, list]
+        """
+        try:
+            fzf = Pyfzf()
+            spinner = Spinner(message="Fetching Subnets..")
+            spinner.start()
+            paginator = self.client.get_paginator("describe_subnets")
+            for result in paginator.paginate():
+                response_list = result["Subnets"]
+                for item in response_list:
+                    item["Name"] = get_name_tag(item)
+                fzf.process_list(
+                    response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
+                )
+            spinner.stop()
+            return fzf.execute_fzf(empty_allow=True, header=header)
+        except:
+            Spinner.clear_spinner()
+            raise
