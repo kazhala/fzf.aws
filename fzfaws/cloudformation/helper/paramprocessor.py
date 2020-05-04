@@ -255,21 +255,8 @@ class ParamProcessor:
             return self.ec2.get_subnet_id(header=param_header)
         elif type_name == "AWS::EC2::Volume::Id":
             return self.ec2.get_volume_id(header=param_header)
-            # response = EC2.basic_fetch_spinner(
-            #     self.ec2.client.describe_volumes, message="Fetching EBS volumes.."
-            # )
-            # response_list = response["Volumes"]
-            # for volume in response["Volumes"]:
-            #     volume["Name"] = get_name_tag(volume)
-            # fzf.process_list(response_list, "VolumeId", "Name")
         elif type_name == "AWS::EC2::VPC::Id":
-            response = EC2.basic_fetch_spinner(
-                self.ec2.client.describe_vpcs, message="Fetching VPCs.."
-            )
-            response_list = response["Vpcs"]
-            for vpc in response["Vpcs"]:
-                vpc["Name"] = get_name_tag(vpc)
-            fzf.process_list(response_list, "VpcId", "IsDefault", "CidrBlock", "Name")
+            return self.ec2.get_vpc_id(header=param_header)
         elif type_name == "AWS::Route53::HostedZone::Id":
             self.route53.set_zone_id()
             return self.route53.zone_id
