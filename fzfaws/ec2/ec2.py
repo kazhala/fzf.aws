@@ -2,7 +2,6 @@
 
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
-import boto3
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_name_tag, search_dict_in_list
@@ -10,16 +9,12 @@ from fzfaws.utils.spinner import Spinner
 
 
 class EC2(BaseSession):
-    """ec2 wrapper class
+    """handles operation for all ec2 related task with boto3.client('ec2')
 
-    handles operation for all ec2 related task with boto3.client('ec2')
-
-    Attributes:
-        session: BaseSession.session, boto3 session
-        client: BaseSession.client, boto3 client
-        resource: BaseSession.resource, boto3 resource
-        instance_list: list, list of dict information about selected instances
-        instance_ids: list, list of string, ec2 ids
+    :param profile: profile to use for this operation
+    :type profile: Union[bool, str]
+    :param region: region to use for this operation
+    :type region: Union[bool, str]
     """
 
     def __init__(self, profile=None, region=None):
@@ -31,7 +26,6 @@ class EC2(BaseSession):
             region: string or bool, use a different region for this operation
         """
         super().__init__(profile=profile, region=region, service_name="ec2")
-        self.instance = {}  # type: dict
         self.instance_list = []  # type: list
         self.instance_ids = []  # type: list
 
@@ -83,13 +77,11 @@ class EC2(BaseSession):
 
             if multi_select:
                 self.instance_ids = list(selected_instance_ids)
-                for instance in self.instance_ids:
-                    self.instance_list.append(
-                        search_dict_in_list(instance, response_list, "InstanceId")
-                    )
             else:
-                self.instance = search_dict_in_list(
-                    selected_instance_ids, response_list, "InstanceId"
+                self.instance_ids = [str(selected_instance_ids)]
+            for instance in self.instance_ids:
+                self.instance_list.append(
+                    search_dict_in_list(instance, response_list, "InstanceId")
                 )
         except:
             Spinner.clear_spinner()
