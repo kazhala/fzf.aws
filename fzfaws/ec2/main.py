@@ -241,7 +241,7 @@ def ec2(raw_args):
         args.region = True
 
     if args.subparser_name == "ssh":
-        username = args.user[0]
+        username = args.user[0] if args.user else None
         ssh_instance(args.profile, args.region, args.bastion, username)
     elif args.subparser_name == "start":
         start_instance(args.profile, args.region, args.wait, args.check)
