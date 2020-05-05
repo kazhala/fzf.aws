@@ -9,7 +9,9 @@ from fzfaws.ec2.ec2 import EC2
 home = os.path.expanduser("~")
 
 
-def ssh_instance(profile=False, region=False, bastion=False, username="ec2-user"):
+def ssh_instance(
+    profile=False, region=False, bastion=False, username="ec2-user", tunnel=False
+):
     """function to handle ssh operation intot the ec2 instance
 
     :param profile: profile to use for this operation
@@ -20,7 +22,12 @@ def ssh_instance(profile=False, region=False, bastion=False, username="ec2-user"
     :type bastion: bool, optional
     :param username: username to ssh inot
     :type username: str, optional
+    :param tunnel: connect to a instance through ssh tunnel, pass in str to specify username
+    :type tunnel: Union[bool, str], optional
     """
+    if type(tunnel) == str:
+        username = tunnel
+        tunnel = True
 
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance(multi_select=False)

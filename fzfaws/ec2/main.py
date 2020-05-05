@@ -52,10 +52,20 @@ def ec2(raw_args):
     )
     ssh_cmd.add_argument(
         "-A",
-        "--bastion",
+        "--forward",
         action="store_true",
         default=False,
-        help="Add this flag when you are connecting to a bastion host using ssh forwarding",
+        help="Add this flag to enable ssh forwarding, same with ssh -A",
+    )
+    ssh_cmd.add_argument(
+        "-t",
+        "--tunnel",
+        nargs="?",
+        action="store",
+        default=False,
+        help="Use this flag to connect to a instance through ssh forwarding,"
+        + "you will be making two fzf selection and then you will be directly connect to the target instance"
+        + "pass in an optional parameter to specify the username to use for tunnal",
     )
     ssh_cmd.add_argument(
         "-P",
@@ -242,7 +252,9 @@ def ec2(raw_args):
 
     if args.subparser_name == "ssh":
         username = args.user[0] if args.user else None
-        ssh_instance(args.profile, args.region, args.bastion, username)
+        if args.tunnel == None:
+            args.tunnel = True
+        ssh_instance(args.profile, args.region, args.forward, username, args.tunnel)
     elif args.subparser_name == "start":
         start_instance(args.profile, args.region, args.wait, args.check)
     elif args.subparser_name == "stop":
