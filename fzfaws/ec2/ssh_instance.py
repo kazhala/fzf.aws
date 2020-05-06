@@ -29,6 +29,33 @@ def check_instance_status(instance):
         )
 
 
+def get_instance_ip(instance, ip_type="dns"):
+    # type: (dict) -> str
+    """get instance ip
+
+    :param instance: instance detail
+    :type instance: dict
+    :param ip_type: what ip to get
+    :type ip_type: str, optional
+    """
+    if ip_type == "dns":
+        if instance.get("PublicDnsName") and instance["PublicDnsName"] != " ":
+            return instance["PublicDnsName"]
+        else:
+            ip_type = "public"
+    if ip_type == "public":
+        if instance.get("PublicIpAddress") and instance["PublicIpAddress"] != " ":
+            return instance["PublicDnsName"]
+        else:
+            ip_type = "private"
+    if ip_type == "private":
+        if instance.get("PrivateIpAddress") and instance["PrivateIpAddress"] != " ":
+            return instance["PrivateIpAddress"]
+        raise EC2Error(
+            "%s doesn't have an available ip associated, instance is likely not running"
+        )
+
+
 def ssh_instance(
     profile=False, region=False, bastion=False, username="ec2-user", tunnel=False
 ):
@@ -72,13 +99,7 @@ def ssh_instance(
                 [
                     "-i",
                     ssh_key,
-                    "%s@%s"
-                    % (
-                        username,
-                        ec2.instance_list[0]["PublicDnsName"]
-                        if ec2.instance_list[0]["PublicDnsName"] != "N/A"
-                        else ec2.instance_list[0]["PublicIpAddress"],
-                    ),
+                    "%s@%s" % (username, get_instance_ip(ec2.instance_list[0])),
                 ]
             )
         else:
@@ -107,22 +128,10 @@ def ssh_instance(
                 "-A",
                 "-i",
                 ssh_key,
-                "%s@%s"
-                % (
-                    username,
-                    ec2.instance_list[0]["PublicDnsName"]
-                    if ec2.instance_list[0]["PublicDnsName"] != "N/A"
-                    else ec2.instance_list[0]["PublicIpAddress"],
-                ),
+                "%s@%s" % (username, get_instance_ip(ec2.instance_list[0])),
                 "-t",
                 "ssh",
-                "%s@%s"
-                % (
-                    destination_username,
-                    ec2.instance_list[1]["PublicDnsName"]
-                    if ec2.instance_list[1]["PublicDnsName"] != "N/A"
-                    else ec2.instance_list[1]["PublicIpAddress"],
-                ),
+                "%s@%s" % (destination_username, get_instance_ip(ec2.instance_list[1])),
             ]
         else:
             raise EC2Error("Key pair not detected in the specified directory")
