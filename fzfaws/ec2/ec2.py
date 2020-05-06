@@ -64,6 +64,9 @@ class EC2(BaseSession):
                             "PublicIpAddress": instance["Instances"][0].get(
                                 "PublicIpAddress", "N/A"
                             ),
+                            "PrivateIpAddress": instance["Instances"][0].get(
+                                "PrivateIpAddress", "N/A"
+                            ),
                         }
                     )
                 fzf.process_list(
@@ -75,6 +78,7 @@ class EC2(BaseSession):
                     "KeyName",
                     "PublicDnsName",
                     "PublicIpAddress",
+                    "PrivateIpAddress",
                 )
             spinner.stop()
             selected_instance_ids = fzf.execute_fzf(

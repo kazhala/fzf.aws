@@ -63,8 +63,8 @@ def ec2(raw_args):
         nargs="?",
         action="store",
         default=False,
-        help="Use this flag to connect to a instance through ssh forwarding,"
-        + "you will be making two fzf selection and then you will be directly connect to the target instance"
+        help="Use this flag to connect to a instance through ssh forwarding, "
+        + "you will be making two fzf selection and then you will be directly connect to the target instance "
         + "pass in an optional parameter to specify the username to use for tunnal",
     )
     ssh_cmd.add_argument(
