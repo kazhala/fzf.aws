@@ -43,7 +43,7 @@ class NoSelectionMade(Exception):
     pass
 
 
-class UserError(Exception):
+class EC2Error(Exception):
     """Generic exception when the error is caused by user"""
 
     pass

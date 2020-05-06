@@ -29,12 +29,16 @@ class EC2(BaseSession):
         self.instance_list = []  # type: list
         self.instance_ids = []  # type: list
 
-    def set_ec2_instance(self, multi_select=True):
+    def set_ec2_instance(self, multi_select=True, header=None):
         # type: (bool) -> None
-        """list all ec2 in the current selected region
+        """set ec2 instance for current operation
 
-        store the selected instance details in the instance attribute
+        :param multi_select: enable multi select
+        :type multi_select: bool, optional
+        :param header: helper information to display in fzf header
+        :type header: str, optional
         """
+
         try:
             response_list = []  # type: list
             fzf = Pyfzf()
@@ -73,15 +77,22 @@ class EC2(BaseSession):
                     "PublicIpAddress",
                 )
             spinner.stop()
-            selected_instance_ids = fzf.execute_fzf(multi_select=multi_select)
+            selected_instance_ids = fzf.execute_fzf(
+                multi_select=multi_select, header=header
+            )
 
             if multi_select:
                 self.instance_ids = list(selected_instance_ids)
+                for instance in self.instance_ids:
+                    self.instance_list.append(
+                        search_dict_in_list(instance, response_list, "InstanceId")
+                    )
             else:
-                self.instance_ids = [str(selected_instance_ids)]
-            for instance in self.instance_ids:
+                self.instance_ids.append(str(selected_instance_ids))
                 self.instance_list.append(
-                    search_dict_in_list(instance, response_list, "InstanceId")
+                    search_dict_in_list(
+                        selected_instance_ids, response_list, "InstanceId"
+                    )
                 )
         except:
             Spinner.clear_spinner()
