@@ -109,18 +109,27 @@ class S3(BaseSession):
                     spinner.start()
                     if len(parents) > 0:
                         fzf.append_fzf("..\n")
+                    preview = ""  # type: str
                     for result in paginator.paginate(
                         Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter="/"
                     ):
                         for prefix in result.get("CommonPrefixes", []):
                             fzf.append_fzf(prefix.get("Prefix"))
                             fzf.append_fzf("\n")
+                        for content in result.get("Contents", []):
+                            preview += content.get("Key")
+                            preview += " "
                     spinner.stop()
+
+                    # has to use tr to transform the string to new line during preview by fzf
+                    # not sure why, but if directly use \n, fzf preview interpret as a new command
+                    # TODO: findout why
                     selected_path = fzf.execute_fzf(
                         empty_allow=True,
                         print_col=0,
                         header="PWD: s3://%s/%s (press ESC to use current path)"
                         % (self.bucket_name, self.bucket_path),
+                        preview="echo %s | tr ' ' '\n'" % preview.rstrip(),
                     )
                     if not selected_path:
                         raise NoSelectionMade
