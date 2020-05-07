@@ -13,6 +13,7 @@ from fzfaws.cloudformation.helper.process_file import (
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils.util import get_confirmation
+from fzfaws.utils.spinner import Spinner
 
 
 class S3(BaseSession):
@@ -42,8 +43,9 @@ class S3(BaseSession):
         Args:
             header: string, optionally display header in fzf
         """
-        response = self.client.list_buckets()
         fzf = Pyfzf()
+        spinner = Spinner()
+        response = spinner.execute_with_spinner(self.client.list_buckets)
         fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = fzf.execute_fzf(header=header)
 
@@ -140,10 +142,7 @@ class S3(BaseSession):
                     self.bucket_path += new_path
                 if get_confirmation(
                     "S3 file path will be set to s3://%s/%s"
-                    % (
-                        self.bucket_name,
-                        self.bucket_path if self.bucket_path else "root",
-                    )
+                    % (self.bucket_name, self.bucket_path if self.bucket_path else "",)
                 ):
                     print(
                         "S3 file path is set to %s"
