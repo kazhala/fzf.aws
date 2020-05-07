@@ -105,6 +105,8 @@ class S3(BaseSession):
                 parents = []
                 # interactively search down 'folders' in s3
                 while True:
+                    spinner = Spinner()
+                    spinner.start()
                     if len(parents) > 0:
                         fzf.append_fzf("..\n")
                     for result in paginator.paginate(
@@ -113,6 +115,7 @@ class S3(BaseSession):
                         for prefix in result.get("CommonPrefixes", []):
                             fzf.append_fzf(prefix.get("Prefix"))
                             fzf.append_fzf("\n")
+                    spinner.stop()
                     selected_path = fzf.execute_fzf(
                         empty_allow=True,
                         print_col=0,
@@ -129,6 +132,8 @@ class S3(BaseSession):
                     # reset fzf string
                     fzf.fzf_string = ""
             except ClientError:
+                raise
+            except KeyboardInterrupt:
                 raise
             except:
                 if selected_option == "append":
@@ -150,6 +155,8 @@ class S3(BaseSession):
                     )
                 else:
                     raise NoSelectionMade("S3 file path was not configured, exiting..")
+            finally:
+                Spinner.clear_spinner()
 
     def set_s3_object(self, version=False, multi_select=False, deletemark=False):
         """list object within a bucket and let user select a object.
