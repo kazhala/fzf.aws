@@ -106,28 +106,28 @@ def create_stack(
         s3.set_bucket_and_path(bucket)
         if not s3.bucket_name:
             s3.set_s3_bucket(header="select a bucket which contains the template")
-        if not s3.bucket_path:
+        if not s3.path_list[0]:
             s3.set_s3_object()
 
-        check_is_valid(s3.bucket_path)
+        check_is_valid(s3.path_list[0])
 
         if version == True:
-            version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
+            version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
                 "VersionId", False
             )
 
         validate_stack(
             cloudformation.profile,
             cloudformation.region,
-            bucket="%s/%s" % (s3.bucket_name, s3.bucket_path),
+            bucket="%s/%s" % (s3.bucket_name, s3.path_list[0]),
             version=version if version else False,
             no_print=True,
         )
 
         file_type = ""  # type: str
-        if is_yaml(s3.bucket_path):
+        if is_yaml(s3.path_list[0]):
             file_type = "yaml"
-        elif is_json(s3.bucket_path):
+        elif is_json(s3.path_list[0]):
             file_type = "json"
 
         stack_name = input("StackName: ")

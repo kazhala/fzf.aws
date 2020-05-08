@@ -57,13 +57,13 @@ def validate_stack(
         s3.set_bucket_and_path(bucket)
         if not s3.bucket_name:
             s3.set_s3_bucket(header="select a bucket which contains the template")
-        if not s3.bucket_path:
+        if not s3.path_list[0]:
             s3.set_s3_object()
 
-        check_is_valid(s3.bucket_path)
+        check_is_valid(s3.path_list[0])
 
         if version == True:
-            version = s3.get_object_version(s3.bucket_name, s3.bucket_path)[0].get(
+            version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
                 "VersionId", False
             )
 
