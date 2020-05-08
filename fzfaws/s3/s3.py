@@ -28,7 +28,6 @@ class S3(BaseSession):
     def __init__(self, profile=None, region=None):
         super().__init__(profile=profile, region=region, service_name="s3")
         self.bucket_name = ""  # type: str
-        self.bucket_path = ""
         self.path_list = [""]  # type: list
 
     def set_s3_bucket(self, header=""):
@@ -38,7 +37,7 @@ class S3(BaseSession):
         :type header: str, optional
         """
         fzf = Pyfzf()
-        spinner = Spinner()
+        spinner = Spinner(message="Fethcing s3 buckets..")
         response = spinner.execute_with_spinner(self.client.list_buckets)
         fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = str(fzf.execute_fzf(header=header))
@@ -57,15 +56,9 @@ class S3(BaseSession):
         if result == "accesspoint":
             self.bucket_name = match[0][0:-1]
             self.path_list[0](match[1])
-            # self.bucket_path = match[1]
-            # if self.bucket_path:
-            #     self.path_list.append(self.bucket_path)
         elif result == "bucketpath":
             self.bucket_name = bucket.split("/")[0]
             self.path_list[0] = "/".join(bucket.split("/")[1:])
-            # self.bucket_path = "/".join(bucket.split("/")[1:])
-            # if self.bucket_path:
-            #     self.path_list.append(self.bucket_path)
         else:
             raise InvalidS3PathPattern(
                 "Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)"
@@ -86,9 +79,6 @@ class S3(BaseSession):
         """
         selected_option = self._get_path_option()
         if selected_option == "input":
-            # self.bucket_path = input("Input the path(newname or newpath/): ")
-            # bucket_path = input("Input the path(newname or newpath/): ")
-            # self.path_list.append(bucket_path)
             self.path_list[0] = input("Input the path(newname or newpath/): ")
         elif selected_option == "root":
             print("S3 file path is set to root")
@@ -99,7 +89,7 @@ class S3(BaseSession):
                 parents = []
                 # interactively search down 'folders' in s3
                 while True:
-                    spinner = Spinner()
+                    spinner = Spinner(message="Fetching s3 objects..")
                     spinner.start()
                     if len(parents) > 0:
                         fzf.append_fzf("..\n")
@@ -179,57 +169,74 @@ class S3(BaseSession):
             NoSelectionMade: when there is no selection made, bucket is empty
             ClientError: boto3 error
         """
-        if not version:
+        try:
             fzf = Pyfzf()
-            paginator = self.client.get_paginator("list_objects")
-            for result in paginator.paginate(Bucket=self.bucket_name):
-                for file in result.get("Contents", []):
-                    if file.get("Key").endswith("/") or not file.get("Key"):
-                        # user created dir in S3 console will appear in the result and is not operatable
-                        continue
-                    fzf.append_fzf("Key: %s\n" % file.get("Key"))
-            if multi_select:
-                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
-            else:
-                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
-        else:
-            fzf = Pyfzf()
-            key_list = []
-            paginator = self.client.get_paginator("list_object_versions")
-            for result in paginator.paginate(Bucket=self.bucket_name):
-                for version in result.get("DeleteMarkers", []):
-                    if version.get("Key").endswith("/") or not version.get("Key"):
-                        continue
-                    color_string = (
-                        "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+            spinner = Spinner(message="Fetching s3 objects..")
+            if not version:
+                spinner.start()
+                paginator = self.client.get_paginator("list_objects")
+                for result in paginator.paginate(Bucket=self.bucket_name):
+                    for file in result.get("Contents", []):
+                        if file.get("Key").endswith("/") or not file.get("Key"):
+                            # user created dir in S3 console will appear in the result and is not operatable
+                            continue
+                        fzf.append_fzf("Key: %s\n" % file.get("Key"))
+                spinner.stop()
+                if multi_select:
+                    self.path_list = list(
+                        fzf.execute_fzf(print_col=-1, multi_select=True)
                     )
-                    if color_string not in key_list:
-                        key_list.append(color_string)
-                if not deletemark:
-                    for version in result.get("Versions", []):
+                else:
+                    self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+            else:
+                spinner.start()
+                key_list = []
+                paginator = self.client.get_paginator("list_object_versions")
+                for result in paginator.paginate(Bucket=self.bucket_name):
+                    for version in result.get("DeleteMarkers", []):
                         if version.get("Key").endswith("/") or not version.get("Key"):
                             continue
                         color_string = (
                             "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
                         )
-                        norm_string = "Key: %s" % version.get("Key")
-                        if color_string not in key_list and norm_string not in key_list:
-                            key_list.append(norm_string)
-                        elif color_string in key_list and version.get("IsLatest"):
-                            # handle the case where delete marker is associated, object is visible because new version has published
-                            key_list.remove(color_string)
-                            key_list.append(norm_string)
-            if key_list:
-                for item in key_list:
-                    fzf.append_fzf(item + "\n")
-            else:
-                raise NoSelectionMade(
-                    "Bucket might be empty or there was no selection made"
-                )
-            if multi_select:
-                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
-            else:
-                self.path_list[0] = fzf.execute_fzf(print_col=-1)
+                        if color_string not in key_list:
+                            key_list.append(color_string)
+                    if not deletemark:
+                        for version in result.get("Versions", []):
+                            if version.get("Key").endswith("/") or not version.get(
+                                "Key"
+                            ):
+                                continue
+                            color_string = (
+                                "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+                            )
+                            norm_string = "Key: %s" % version.get("Key")
+                            if (
+                                color_string not in key_list
+                                and norm_string not in key_list
+                            ):
+                                key_list.append(norm_string)
+                            elif color_string in key_list and version.get("IsLatest"):
+                                # handle the case where delete marker is associated, object is visible because new version has published
+                                key_list.remove(color_string)
+                                key_list.append(norm_string)
+                if key_list:
+                    for item in key_list:
+                        fzf.append_fzf(item + "\n")
+                else:
+                    raise NoSelectionMade(
+                        "Bucket might be empty or there was no selection made"
+                    )
+                spinner.stop()
+                if multi_select:
+                    self.path_list = list(
+                        fzf.execute_fzf(print_col=-1, multi_select=True)
+                    )
+                else:
+                    self.path_list[0] = fzf.execute_fzf(print_col=-1)
+        except:
+            Spinner.clear_spinner()
+            raise
 
     def get_object_version(
         self, bucket=None, key=None, delete=False, select_all=False, non_current=False
@@ -238,7 +245,7 @@ class S3(BaseSession):
 
         Args:
             bucket: string, if not set, class instance's bucket_name would be used
-            key: string, if not set, class instance's bucket_path would be used
+            key: string, if not set, class instance's path_list[0] would be used
             delete: bool, allow to choose delete marker
             select_all: bool, skip fzf and pull all version into the return list
             non_current: bool, only put non_current versions into the list
@@ -314,15 +321,22 @@ class S3(BaseSession):
         Args:
             file_type: string, yaml/json, if specified, will load the file into dict
         """
-        s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
-        body = s3_object.get()["Body"].read()
-        body = str(body, "utf-8")
-        body_dict = {}
-        if file_type == "yaml":
-            body_dict = process_yaml_body(body)
-        elif file_type == "json":
-            body_dict = process_json_body(body)
-        return body_dict
+        try:
+            spinner = Spinner(message="Reading file from s3..")
+            spinner.start()
+            s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
+            body = s3_object.get()["Body"].read()
+            body = str(body, "utf-8")
+            body_dict = {}
+            if file_type == "yaml":
+                body_dict = process_yaml_body(body)
+            elif file_type == "json":
+                body_dict = process_json_body(body)
+            spinner.stop()
+            return body_dict
+        except:
+            Spinner.clear_spinner()
+            raise
 
     def get_object_url(self, version=None):
         # type: (str) -> str
