@@ -505,7 +505,11 @@ def s3(raw_args):
     if args.profile == None:
         # when user set --profile flag but without argument
         args.profile = True
-    if hasattr(args, "bucket") and args.subparser_name != "ls":
+    if (
+        hasattr(args, "bucket")
+        and args.subparser_name != "bucket"
+        and args.subparser_name != "ls"
+    ):
         args.bucket = args.bucket[0] if args.bucket else None
 
     if args.subparser_name == "upload":
