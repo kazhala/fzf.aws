@@ -4,8 +4,6 @@ upload local files/directories to s3
 """
 import os
 import sys
-import fnmatch
-import subprocess
 from s3transfer import S3Transfer
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.pyfzf import Pyfzf
@@ -16,7 +14,18 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 
 
-def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidden=False, root=False, sync=False, exclude=[], include=[], extra_config=False):
+def upload_s3(
+    profile=False,
+    bucket=None,
+    local_paths=[],
+    recursive=False,
+    hidden=False,
+    root=False,
+    sync=False,
+    exclude=[],
+    include=[],
+    extra_config=False,
+):
     """upload local files/directories to s3
 
     upload through boto3 s3 client
@@ -47,7 +56,7 @@ def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidde
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()
-    if not s3.bucket_path:
+    if not s3.path_list[0]:
         s3.set_s3_path()
 
     fzf = Pyfzf()
@@ -56,13 +65,18 @@ def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidde
         # don't allow multi_select for recursive operation
         multi_select = True if not recursive else False
         local_paths = fzf.get_local_file(
-            search_from_root=root, directory=recursive, hidden=hidden, empty_allow=recursive, multi_select=multi_select)
+            search_from_root=root,
+            directory=recursive,
+            hidden=hidden,
+            empty_allow=recursive,
+            multi_select=multi_select,
+        )
 
     # get the first item from the array since recursive operation doesn't support multi_select
     if isinstance(local_paths, list):
-        local_path = local_paths[0]
+        local_path = str(local_paths[0])
     else:
-        local_path = local_paths
+        local_path = str(local_paths)
 
     # construct extra argument
     extra_args = S3Args(s3)
@@ -70,8 +84,12 @@ def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidde
         extra_args.set_extra_args(upload=True)
 
     if sync:
-        sync_s3(exclude=exclude, include=include, from_path=local_path,
-                to_path='s3://%s/%s' % (s3.bucket_name, s3.bucket_path))
+        sync_s3(
+            exclude=exclude,
+            include=include,
+            from_path=local_path,
+            to_path="s3://%s/%s" % (s3.bucket_name, s3.path_list[0]),
+        )
 
     elif recursive:
         upload_list = []
@@ -82,43 +100,68 @@ def upload_s3(profile=False, bucket=None, local_paths=[], recursive=False, hidde
 
                 if not exclude_file(exclude, include, relative_path):
                     destination_key = s3.get_s3_destination_key(
-                        relative_path, recursive=True)
-                    print('(dryrun) upload: %s to s3://%s/%s' %
-                          (relative_path, s3.bucket_name, destination_key))
+                        relative_path, recursive=True
+                    )
+                    print(
+                        "(dryrun) upload: %s to s3://%s/%s"
+                        % (relative_path, s3.bucket_name, destination_key)
+                    )
                     upload_list.append(
-                        {'local_path': full_path, 'bucket': s3.bucket_name, 'key': destination_key, 'relative': relative_path})
+                        {
+                            "local_path": full_path,
+                            "bucket": s3.bucket_name,
+                            "key": destination_key,
+                            "relative": relative_path,
+                        }
+                    )
 
-        if get_confirmation('Confirm?'):
+        if get_confirmation("Confirm?"):
             for item in upload_list:
-                print('upload: %s to s3://%s/%s' %
-                      (item['relative'], item['bucket'], item['key']))
+                print(
+                    "upload: %s to s3://%s/%s"
+                    % (item["relative"], item["bucket"], item["key"])
+                )
                 transfer = S3Transfer(s3.client)
                 # TODO: see bottom
-                transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
-                transfer.upload_file(item['local_path'], item['bucket'], item['key'],
-                                     callback=S3Progress(item['local_path']), extra_args=extra_args.extra_args)
+                transfer.ALLOWED_UPLOAD_ARGS.append("GrantWriteACP")
+                transfer.upload_file(
+                    item["local_path"],
+                    item["bucket"],
+                    item["key"],
+                    callback=S3Progress(item["local_path"]),
+                    extra_args=extra_args.extra_args,
+                )
                 # remove the progress bar
-                sys.stdout.write('\033[2K\033[1G')
+                sys.stdout.write("\033[2K\033[1G")
     else:
         for filepath in local_paths:
             # get the formated s3 destination
             destination_key = s3.get_s3_destination_key(filepath)
-            print('(dryrun) upload: %s to s3://%s/%s' %
-                  (filepath, s3.bucket_name, destination_key))
+            print(
+                "(dryrun) upload: %s to s3://%s/%s"
+                % (filepath, s3.bucket_name, destination_key)
+            )
 
-        if get_confirmation('Confirm?'):
+        if get_confirmation("Confirm?"):
             for filepath in local_paths:
                 destination_key = s3.get_s3_destination_key(filepath)
-                print('upload: %s to s3://%s/%s' %
-                      (filepath, s3.bucket_name, destination_key))
+                print(
+                    "upload: %s to s3://%s/%s"
+                    % (filepath, s3.bucket_name, destination_key)
+                )
                 transfer = S3Transfer(s3.client)
 
                 # TODO: Require help, GrantWriteACP raise errors, ALLOWED_UPLOAD_ARGS only allow GrantWriteACL
                 # However, in all documentation, AWS is using GrantWriteACP not GrantWriteACL, even the read is GrantReadACP
                 # I've opened issue https://github.com/boto/s3transfer/issues/163
                 # doesn't seem like I'm going to get any response ¯\_(ツ)_/¯, but the hack below will work
-                transfer.ALLOWED_UPLOAD_ARGS.append('GrantWriteACP')
-                transfer.upload_file(filepath, s3.bucket_name, destination_key,
-                                     callback=S3Progress(filepath), extra_args=extra_args.extra_args)
+                transfer.ALLOWED_UPLOAD_ARGS.append("GrantWriteACP")
+                transfer.upload_file(
+                    filepath,
+                    s3.bucket_name,
+                    destination_key,
+                    callback=S3Progress(filepath),
+                    extra_args=extra_args.extra_args,
+                )
                 # remove the progress bar
-                sys.stdout.write('\033[2K\033[1G')
+                sys.stdout.write("\033[2K\033[1G")

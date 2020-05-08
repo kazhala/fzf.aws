@@ -15,18 +15,11 @@ from fzfaws.s3.ls_s3 import ls_s3
 
 
 def s3(raw_args):
-    """main function for s3 operations
+    # type: (list) -> None
+    """parse arguments and direct traffic to handler, internal use only
 
-    Args:
-        raw_args: raws args from __main__.py, starting from sys.argv[2:]
-    Returns:
-        None
-    Raises:
-        subprocess.CalledProcessError: When user exit the fzf subshell by ctrl-c
-        ClientError: aws boto3 exceptions
-        KeyboardInterrupt: ctrl-c during python operations
-        NoNameEntered: when the required name entry is empty
-        NoSelectionMade: when required fzf selection is not made
+    :param raw_args: list of args to be parsed
+    :type raw_args: list
     """
 
     parser = argparse.ArgumentParser(

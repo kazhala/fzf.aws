@@ -4,8 +4,6 @@ Main reason to create a class is to handle different account profile usage
 and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
-import boto3
-import sys
 import re
 import json
 from fzfaws.utils.session import BaseSession
