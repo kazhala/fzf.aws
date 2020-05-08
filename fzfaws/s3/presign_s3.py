@@ -3,7 +3,6 @@
 Generate presigning url for an s3 object
 """
 from fzfaws.s3.s3 import S3
-from fzfaws.utils.exceptions import InvalidParameterType
 
 
 def presign_s3(profile=False, bucket=None, version=False, expires_in=3600):
@@ -28,30 +27,29 @@ def presign_s3(profile=False, bucket=None, version=False, expires_in=3600):
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
         s3.set_s3_bucket()
-    if not s3.bucket_path:
+    if not s3.path_list[0]:
         s3.set_s3_object(version=version, multi_select=True)
 
     if version:
         obj_versions = s3.get_object_version()
         for obj_version in obj_versions:
             presign_param = {
-                'Bucket': s3.bucket_name,
-                'Key': obj_version.get('Key'),
-                'VersionId': obj_version.get('VersionId')
+                "Bucket": s3.bucket_name,
+                "Key": obj_version.get("Key"),
+                "VersionId": obj_version.get("VersionId"),
             }
             url = s3.client.generate_presigned_url(
-                'get_object', Params=presign_param, ExpiresIn=expires_in)
-            print(80*'-')
-            print('%s:' % obj_version.get('Key'))
+                "get_object", Params=presign_param, ExpiresIn=expires_in
+            )
+            print(80 * "-")
+            print("%s:" % obj_version.get("Key"))
             print(url)
     else:
         for s3_key in s3.path_list:
-            presign_param = {
-                'Bucket': s3.bucket_name,
-                'Key': s3_key
-            }
+            presign_param = {"Bucket": s3.bucket_name, "Key": s3_key}
             url = s3.client.generate_presigned_url(
-                'get_object', Params=presign_param, ExpiresIn=expires_in)
-            print(80*'-')
-            print('%s:' % s3_key)
+                "get_object", Params=presign_param, ExpiresIn=expires_in
+            )
+            print(80 * "-")
+            print("%s:" % s3_key)
             print(url)

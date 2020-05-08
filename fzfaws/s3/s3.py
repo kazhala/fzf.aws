@@ -17,48 +17,38 @@ from fzfaws.utils.spinner import Spinner
 
 
 class S3(BaseSession):
-    """s3 client wrapper class to interact with boto3.client('s3')
+    """handles operation for all s3 related task with boto3.client('s3')
 
-    handles operations directly related to boto3
-
-    Attributes:
-        client: object, boto3 client
-        resource: object, boto3 resource
-        bucket_name: string, name of the selected bucket to interact
-        bucket_path: string, path of where the operation should happen
-            Note: this attribute may not be a valid s3 key, if recusive operation, is only a sub prefix of s3
-            To obtain the destination key during recursive operation, call get_s3_destination_key
-        path_list: list, list of s3 path, would be set when multi_select of set_s3_object is used
+    :param profile: profile to use for this operation
+    :type profile: Union[bool, str], optional
+    :param region: region to use for this operation
+    :type region: Union[bool, str], optional
     """
 
     def __init__(self, profile=None, region=None):
         super().__init__(profile=profile, region=region, service_name="s3")
-        self.bucket_name = None
+        self.bucket_name = ""  # type: str
         self.bucket_path = ""
-        self.path_list = []  # type: list
+        self.path_list = [""]  # type: list
 
     def set_s3_bucket(self, header=""):
         """list bucket through fzf and let user select a bucket
 
-        Args:
-            header: string, optionally display header in fzf
+        :param header: header to display in fzf header
+        :type header: str, optional
         """
         fzf = Pyfzf()
         spinner = Spinner()
         response = spinner.execute_with_spinner(self.client.list_buckets)
         fzf.process_list(response["Buckets"], "Name")
-        self.bucket_name = fzf.execute_fzf(header=header)
+        self.bucket_name = str(fzf.execute_fzf(header=header))
 
     def set_bucket_and_path(self, bucket=None):
-        """method to set both bucket and path
+        """method to set both bucket and path, skip fzf selection
 
-        use this method to skip fzf selection and
-        set both bucket and path directly
-
-        Args:
-            bucket: string, format(Bucket/ or Bucket/path/ or Bucket/filename)
-        Raises:
-            InvalidS3PathPattern: when the specified s3 path is invalid pattern
+        :param bucket: bucket/path to set, format(Bucket/ or Bucket/path/ or Bucket/filename)
+        :type bucket: str, optional
+        :raises InvalidS3PathPattern: whne the input format is not valid
         """
         if not bucket:
             return
@@ -66,14 +56,16 @@ class S3(BaseSession):
         result, match = self._validate_input_path(bucket)
         if result == "accesspoint":
             self.bucket_name = match[0][0:-1]
-            self.bucket_path = match[1]
-            if self.bucket_path:
-                self.path_list.append(self.bucket_path)
+            self.path_list[0](match[1])
+            # self.bucket_path = match[1]
+            # if self.bucket_path:
+            #     self.path_list.append(self.bucket_path)
         elif result == "bucketpath":
             self.bucket_name = bucket.split("/")[0]
-            self.bucket_path = "/".join(bucket.split("/")[1:])
-            if self.bucket_path:
-                self.path_list.append(self.bucket_path)
+            self.path_list[0] = "/".join(bucket.split("/")[1:])
+            # self.bucket_path = "/".join(bucket.split("/")[1:])
+            # if self.bucket_path:
+            #     self.path_list.append(self.bucket_path)
         else:
             raise InvalidS3PathPattern(
                 "Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)"
@@ -85,17 +77,19 @@ class S3(BaseSession):
         s3 folders are not actually folder, found this path listing on
         https://github.com/boto/boto3/issues/134#issuecomment-116766812
 
-        This method would set the 'path' for s3 however the self.bucket_path cannot be used
+        This method would set the 'path' for s3 however the self.path_list cannot be used
         as the destination of upload immediately. This only set the path
         without handling different upload sceanario. Please use the
         get_s3_destination_key after set_s3_path to obtain the correct destination key
 
-        Raises:
-            NoSelectionMade: when user did not confirm their s3 path, exit
+        :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
         selected_option = self._get_path_option()
         if selected_option == "input":
-            self.bucket_path = input("Input the path(newname or newpath/): ")
+            # self.bucket_path = input("Input the path(newname or newpath/): ")
+            # bucket_path = input("Input the path(newname or newpath/): ")
+            # self.path_list.append(bucket_path)
+            self.path_list[0] = input("Input the path(newname or newpath/): ")
         elif selected_option == "root":
             print("S3 file path is set to root")
         elif selected_option == "append" or selected_option == "interactively":
@@ -111,7 +105,7 @@ class S3(BaseSession):
                         fzf.append_fzf("..\n")
                     preview = ""  # type: str
                     for result in paginator.paginate(
-                        Bucket=self.bucket_name, Prefix=self.bucket_path, Delimiter="/"
+                        Bucket=self.bucket_name, Prefix=self.path_list[0], Delimiter="/"
                     ):
                         for prefix in result.get("CommonPrefixes", []):
                             fzf.append_fzf(prefix.get("Prefix"))
@@ -128,16 +122,16 @@ class S3(BaseSession):
                         empty_allow=True,
                         print_col=0,
                         header="PWD: s3://%s/%s (press ESC to use current path)"
-                        % (self.bucket_name, self.bucket_path),
+                        % (self.bucket_name, self.path_list[0]),
                         preview="echo %s | tr ' ' '\n'" % preview.rstrip(),
                     )
                     if not selected_path:
                         raise NoSelectionMade
                     if selected_path == "..":
-                        self.bucket_path = parents.pop()
+                        self.path_list[0] = parents.pop()
                     else:
-                        parents.append(self.bucket_path)
-                        self.bucket_path = selected_path
+                        parents.append(self.path_list[0])
+                        self.path_list[0] = selected_path
                     # reset fzf string
                     fzf.fzf_string = ""
             except ClientError:
@@ -148,19 +142,19 @@ class S3(BaseSession):
                 if selected_option == "append":
                     print(
                         "Current PWD is s3://%s/%s"
-                        % (self.bucket_name, self.bucket_path)
+                        % (self.bucket_name, self.path_list[0])
                     )
                     new_path = input(
                         "Input the new path to append(newname or newpath/): "
                     )
-                    self.bucket_path += new_path
+                    self.path_list[0] += new_path
                 if get_confirmation(
                     "S3 file path will be set to s3://%s/%s"
-                    % (self.bucket_name, self.bucket_path if self.bucket_path else "",)
+                    % (self.bucket_name, self.path_list[0],)
                 ):
                     print(
                         "S3 file path is set to %s"
-                        % (self.bucket_path if self.bucket_path else "root")
+                        % (self.path_list[0] if self.path_list[0] else "root")
                     )
                 else:
                     raise NoSelectionMade("S3 file path was not configured, exiting..")
@@ -197,7 +191,7 @@ class S3(BaseSession):
             if multi_select:
                 self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
-                self.bucket_path = fzf.execute_fzf(print_col=-1)
+                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
         else:
             fzf = Pyfzf()
             key_list = []
@@ -235,7 +229,7 @@ class S3(BaseSession):
             if multi_select:
                 self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
-                self.bucket_path = fzf.execute_fzf(print_col=-1)
+                self.path_list[0] = fzf.execute_fzf(print_col=-1)
 
     def get_object_version(
         self, bucket=None, key=None, delete=False, select_all=False, non_current=False
@@ -320,7 +314,7 @@ class S3(BaseSession):
         Args:
             file_type: string, yaml/json, if specified, will load the file into dict
         """
-        s3_object = self.resource.Object(self.bucket_name, self.bucket_path)
+        s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
         body = s3_object.get()["Body"].read()
         body = str(body, "utf-8")
         body_dict = {}
@@ -343,13 +337,13 @@ class S3(BaseSession):
             return "https://s3-%s.amazonaws.com/%s/%s" % (
                 bucket_location,
                 self.bucket_name,
-                self.bucket_path,
+                self.path_list[0],
             )
         else:
             return "https://s3-%s.amazonaws.com/%s/%s?versionId=%s" % (
                 bucket_location,
                 self.bucket_name,
-                self.bucket_path,
+                self.path_list[0],
                 version,
             )
 
@@ -367,22 +361,22 @@ class S3(BaseSession):
             recursive: bool, recursive operation
         """
         if recursive:
-            if not self.bucket_path:
+            if not self.path_list[0]:
                 return local_path
-            elif self.bucket_path[-1] != "/":
-                return self.bucket_path + "/" + local_path
+            elif self.path_list[0][-1] != "/":
+                return self.path_list[0] + "/" + local_path
             else:
-                return self.bucket_path + local_path
+                return self.path_list[0] + local_path
         else:
-            if not self.bucket_path:
+            if not self.path_list[0]:
                 # if operation is at root level, return the file name
                 return local_path.split("/")[-1]
-            elif self.bucket_path[-1] == "/":
+            elif self.path_list[0][-1] == "/":
                 # if specified s3 path, append the file name
                 key = local_path.split("/")[-1]
-                return self.bucket_path + key
+                return self.path_list[0] + key
             else:
-                return self.bucket_path
+                return self.path_list[0]
 
     def _validate_input_path(self, user_input):
         """validate if the user input path is valid format"""
