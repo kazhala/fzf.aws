@@ -61,6 +61,12 @@ class BaseSession:
         if service_name in resources:
             self.resource = self.session.resource(service_name)
 
+    def get_paginated_result(self, paginator_name: str, **kwargs):
+        response = []
+        for result in self.client.get_paginator(paginator_name).paginate(**kwargs):
+            response.append(result)
+        return response
+
     @classmethod
     def basic_fetch_spinner(cls, action, message=None, **kwargs):
         # type: (Callable, str, **kwargs) -> dict

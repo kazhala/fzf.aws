@@ -19,8 +19,8 @@ class IAM(BaseSession):
 
     def __init__(
         self,
-        profile: Optional[Union[str, bool, None]] = None,
-        region: Optional[Union[str, bool, None]] = None,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
     ) -> None:
         super().__init__(profile=profile, region=region, service_name="iam")
         self.arns: List[str] = [""]
@@ -51,8 +51,7 @@ class IAM(BaseSession):
             spinner = Spinner(message="Fetching iam roles..")
             if arns is None:
                 spinner.start()
-                paginator = self.client.get_paginator("list_roles")
-                for result in paginator.paginate():
+                for result in self.get_paginated_result("list_roles"):
                     if service:
                         for role in result.get("Roles", []):
                             statements = role.get("AssumeRolePolicyDocument", {}).get(
