@@ -37,7 +37,7 @@ class BaseSession:
             fzf = Pyfzf()
             for profile in session.available_profiles:
                 fzf.append_fzf("%s\n" % profile)
-            selected_profile = fzf.execute_fzf(print_col=1)
+            selected_profile = str(fzf.execute_fzf(print_col=1))
         elif profile and type(profile) == str:
             selected_profile = profile
 
@@ -46,7 +46,7 @@ class BaseSession:
             regions = session.get_available_regions(service_name)
             for region in regions:
                 fzf.append_fzf("%s\n" % region)
-            selected_region = fzf.execute_fzf(print_col=1)
+            selected_region = str(fzf.execute_fzf(print_col=1))
         elif region and type(region) == str:
             selected_region = region
         self.profile = selected_profile

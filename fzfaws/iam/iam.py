@@ -5,40 +5,50 @@ Wraps around boto3.client('iam') and handles profile
 from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.spinner import Spinner
+from typing import Union, Optional, List
 
 
 class IAM(BaseSession):
-    """wraps around the boto3.client('iam')
+    """Handles all iam related operations here
 
-    Handles all iam related operations here
-
-    Attributes:
-        client: object, boto3 client
-        resource: object, boto3 resource
-        arns: list, selected iam arns
+    :param profile: profile to use for this operation
+    :type profile: Union[str, bool], optional
+    :param region: region to use for this operation
+    :type region: Union[str, bool], optional
     """
 
-    def __init__(self, profile=None, region=None):
-        # type: (Union[str, bool], Union[str, bool]) -> None
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool, None]] = None,
+        region: Optional[Union[str, bool, None]] = None,
+    ) -> None:
         super().__init__(profile=profile, region=region, service_name="iam")
-        self.arns = []  # type: list
+        self.arns: List[str] = [""]
 
     def set_arns(
-        self, arns=None, header=None, empty_allow=True, service=None, multi_select=False
-    ):
-        # type: (list, str, bool, str, bool) -> None
+        self,
+        arns: Optional[Union[List, str]] = None,
+        header: Optional[str] = None,
+        empty_allow: Optional[bool] = True,
+        service: Optional[str] = None,
+        multi_select: Optional[bool] = False,
+    ) -> None:
         """set the role arn
 
-        Args:
-            arn: list, list of arn to set
-            header: string, helper message to display in fzf header
-            empty_allow: bool, allow empty selection
-            service: string, only display role that could be assumed by this service
-            multi_select: bool, allow multi selection
+        :param arns: list of arn to set
+        :type arns: list, optional
+        :param header: helper message to display in fzf header
+        :type header: str, optional
+        :param empty_allow: allow empty selection
+        :type empty_allow: bool, optional
+        :param service: only display role that could be assumed by this service
+        :type service: str, optional
+        :param multi_select: allow multi selection
+        :type multi_select: bool, optional
         """
         try:
-            fzf = Pyfzf()  # type: Pyfzf
-            spinner = Spinner(message="Fetching iam roles..")  # type: Spinner
+            fzf = Pyfzf()
+            spinner = Spinner(message="Fetching iam roles..")
             if arns is None:
                 spinner.start()
                 paginator = self.client.get_paginator("list_roles")
@@ -69,12 +79,10 @@ class IAM(BaseSession):
                     header=header,
                     multi_select=multi_select,
                 )
-                if not multi_select:
-                    self.arns = [arns]
-                else:
-                    self.arns = list(arns)
-            else:
-                self.arns = arns
+            if type(arns) == str:
+                self.arns[0] = str(arns)
+            elif type(arns) == list:
+                self.arns = list(arns)
         except:
             Spinner.clear_spinner()
             raise

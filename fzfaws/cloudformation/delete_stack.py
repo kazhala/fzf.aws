@@ -30,35 +30,36 @@ def delete_stack(profile=False, region=False, wait=False, iam=False):
     cloudformation.set_stack()
 
     logical_id_list = []
-    if cloudformation.stack_details['StackStatus'] == 'DELETE_FAILED':
+    if cloudformation.stack_details["StackStatus"] == "DELETE_FAILED":
         print(
-            'The stack is in the failed state, specify any resource to skip during deletion')
+            "The stack is in the failed state, specify any resource to skip during deletion"
+        )
         logical_id_list = cloudformation.get_stack_resources(empty_allow=True)
 
-    cloudformation_args = {
-        'StackName': cloudformation.stack_name
-    }
+    cloudformation_args = {"StackName": cloudformation.stack_name}
     if logical_id_list:
-        cloudformation_args['RetainResources'] = logical_id_list
+        cloudformation_args["RetainResources"] = logical_id_list
 
     if iam and type(iam) == str:
-        cloudformation_args['RoleARN'] = iam
+        cloudformation_args["RoleARN"] = iam
     elif iam and type(iam) == bool:
         iam = IAM(profile=cloudformation.profile)
-        iam.set_arn(
-            header='Select a iam role with permissions to delete the current stack', service='cloudformation.amazonaws.com')
-        if iam.arn:
-            cloudformation_args['RoleARN'] = iam.arn
+        iam.set_arns(
+            header="Select a iam role with permissions to delete the current stack",
+            service="cloudformation.amazonaws.com",
+        )
+        if iam.arns[0]:
+            cloudformation_args["RoleARN"] = iam.arns[0]
 
     if not get_confirmation(
-            f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"):
+        f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"
+    ):
         exit()
 
     response = cloudformation.client.delete_stack(**cloudformation_args)
-    print('Stack deletion initiated')
+    print("Stack deletion initiated")
 
     # wait for completion
     if wait:
-        cloudformation.wait('stack_delete_complete',
-                            'Wating for stack to be deleted..')
-        print('Stack deleted')
+        cloudformation.wait("stack_delete_complete", "Wating for stack to be deleted..")
+        print("Stack deleted")
