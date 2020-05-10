@@ -6,11 +6,28 @@ from fzfaws.utils.session import BaseSession
 
 
 class TestIAM(unittest.TestCase):
+    def setUp(self):
+        self.iam = IAM(profile="default", region="ap-southeast-2")
+
     def test_constructor(self):
-        iam = IAM(profile="default", region="ap-southeast-2")
-        self.assertEqual([""], iam.arns)
-        self.assertEquals("default", iam.profile)
-        self.assertEquals("ap-southeast-2", iam.region)
+        self.assertEqual([""], self.iam.arns)
+        self.assertEquals("default", self.iam.profile)
+        self.assertEquals("ap-southeast-2", self.iam.region)
+
+        iam = IAM()
+        self.assertEquals(None, iam.profile)
+        self.assertEquals(None, iam.region)
+
+    @patch.object(BaseSession, "get_paginated_result")
+    @patch.object(Pyfzf, "append_fzf")
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_no_result(self, mocked_fzf_execute, mocked_fzf_append, mocked_result):
+        mocked_result.return_value = []
+        mocked_fzf_execute.return_value = ""
+        self.iam.set_arns(service="cloudformation.amazonaws.com")
+        mocked_fzf_append.assert_not_called()
+        mocked_fzf_execute.assert_called_once()
+        self.assertEqual("", self.iam.arns[0])
 
     @patch.object(BaseSession, "get_paginated_result")
     @patch.object(Pyfzf, "process_list")
@@ -19,18 +36,6 @@ class TestIAM(unittest.TestCase):
     def test_setarns(
         self, mocked_fzf_execute, mocked_fzf_append, mocked_fzf_list, mocked_result
     ):
-        iam = IAM()
-        self.assertEquals(None, iam.profile)
-        self.assertEquals(None, iam.region)
-
-        # no result test
-        mocked_result.return_value = []
-        mocked_fzf_execute.return_value = ""
-        iam.set_arns(service="cloudformation.amazonaws.com")
-        mocked_fzf_append.assert_not_called()
-        mocked_fzf_execute.assert_called_once()
-        self.assertEqual("", iam.arns[0])
-
         # test service IAM
         mocked_result.return_value = [
             {
@@ -63,16 +68,16 @@ class TestIAM(unittest.TestCase):
         mocked_fzf_execute.return_value = (
             "arn:aws:iam::378756445655:role/admincloudformaitontest"
         )
-        iam.set_arns(service="cloudformation.amazonaws.com")
+        self.iam.set_arns(service="cloudformation.amazonaws.com")
         mocked_fzf_append.assert_called_with(
             "RoleName: admincloudformaitontest  Arn: arn:aws:iam::378756445655:role/admincloudformaitontest"
         )
         self.assertEqual(
-            "arn:aws:iam::378756445655:role/admincloudformaitontest", iam.arns[0]
+            "arn:aws:iam::378756445655:role/admincloudformaitontest", self.iam.arns[0]
         )
 
         # no restriction test
-        iam.set_arns()
+        self.iam.set_arns()
         mocked_fzf_list.assert_called_with(
             [
                 {

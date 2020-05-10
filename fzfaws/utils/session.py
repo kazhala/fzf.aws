@@ -4,7 +4,6 @@ Wraps around boto3 session for better profile region management
 """
 from boto3.session import Session
 from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.spinner import Spinner
 
 
 class BaseSession:
@@ -66,23 +65,3 @@ class BaseSession:
         for result in self.client.get_paginator(paginator_name).paginate(**kwargs):
             response.append(result)
         return response
-
-    @classmethod
-    def basic_fetch_spinner(cls, action, message=None, **kwargs):
-        # type: (Callable, str, **kwargs) -> dict
-        """used for basic fetching information from boto3 with spinner
-
-        :param action: function to execute
-        :type action: Callable
-        :param message: loading message
-        :type message: str, optional
-        """
-        try:
-            spinner = Spinner(message=message)
-            spinner.start()
-            response = action(**kwargs)
-            spinner.stop()
-            return response
-        except:
-            Spinner.clear_spinner()
-            raise
