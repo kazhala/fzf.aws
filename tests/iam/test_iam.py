@@ -11,12 +11,12 @@ class TestIAM(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual([""], self.iam.arns)
-        self.assertEquals("default", self.iam.profile)
-        self.assertEquals("ap-southeast-2", self.iam.region)
+        self.assertEqual("default", self.iam.profile)
+        self.assertEqual("ap-southeast-2", self.iam.region)
 
         iam = IAM()
-        self.assertEquals(None, iam.profile)
-        self.assertEquals(None, iam.region)
+        self.assertEqual(None, iam.profile)
+        self.assertEqual(None, iam.region)
 
     @patch.object(BaseSession, "get_paginated_result")
     @patch.object(Pyfzf, "append_fzf")
