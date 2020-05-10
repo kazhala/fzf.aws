@@ -23,6 +23,15 @@ class TestIAM(unittest.TestCase):
         self.assertEquals(None, iam.profile)
         self.assertEquals(None, iam.region)
 
+        # no result test
+        mocked_result.return_value = []
+        mocked_fzf_execute.return_value = ""
+        iam.set_arns(service="cloudformation.amazonaws.com")
+        mocked_fzf_append.assert_not_called()
+        mocked_fzf_execute.assert_called_once()
+        self.assertEqual("", iam.arns[0])
+
+        # test service IAM
         mocked_result.return_value = [
             {
                 "Roles": [
@@ -62,6 +71,7 @@ class TestIAM(unittest.TestCase):
             "arn:aws:iam::378756445655:role/admincloudformaitontest", iam.arns[0]
         )
 
+        # no restriction test
         iam.set_arns()
         mocked_fzf_list.assert_called_with(
             [
