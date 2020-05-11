@@ -74,4 +74,6 @@ class Spinner(threading.Thread):
     @classmethod
     def clear_spinner(cls):
         for spinner in cls.instances:
-            spinner.stop()
+            if spinner.isAlive():
+                spinner.stop()
+        cls.instances[:] = []
