@@ -1,3 +1,5 @@
+import io
+import sys
 import unittest
 from unittest.mock import patch
 from fzfaws.iam.iam import IAM
@@ -8,6 +10,11 @@ from fzfaws.utils.session import BaseSession
 class TestIAM(unittest.TestCase):
     def setUp(self):
         self.iam = IAM(profile="default", region="ap-southeast-2")
+        capturedOutput = io.StringIO()
+        sys.stdout = capturedOutput
+
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
 
     def test_constructor(self):
         self.assertEqual([""], self.iam.arns)
