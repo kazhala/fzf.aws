@@ -22,6 +22,8 @@ class IAM(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
+        """construtor
+        """
         super().__init__(profile=profile, region=region, service_name="iam")
         self.arns: List[str] = [""]
 

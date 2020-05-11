@@ -29,8 +29,6 @@ class TestSpinner(unittest.TestCase):
 
     @patch.object(Spinner, "join")
     def test_spin(self, mocked_join):
-        # capturedOutput = io.StringIO()
-        # sys.stdout = capturedOutput
         self.spinner.start()
         self.assertTrue(Spinner.instances)
         sleep(0.4)

@@ -6,27 +6,29 @@ during wait operation for aws
 import sys
 import time
 import threading
+from typing import Any, Callable, Optional
 
 
 class Spinner(threading.Thread):
     """create a spinner in command line async
 
-    Attributes:
-        pattern: string, defualt='|/-\\'
-        message: string, message to display, default='loading..'
-        speed: number, spin speed in seconds
+    :param pattern: pattern to display during spin
+    :type pattern: str, optional
+    :param message: message to display during spin
+    :type message: str, optional
+    :param speed: speed to spin
+    :type speed: float, optional
     """
 
-    instances = []  # type: list
+    instances: list = []
 
-    def __init__(self, pattern=None, message=None, speed=None):
-        # type: (str, str, int) -> None
+    def __init__(
+        self,
+        pattern: Optional[str] = None,
+        message: Optional[str] = None,
+        speed: Optional[float] = None,
+    ) -> None:
         """construtor of spinner
-
-        Args:
-            pattern: string, spinner spin pattern
-            message: string, spinner loading message
-            speed: number, spin speed in seconds
         """
         if message is None:
             message = "loading.."
@@ -35,19 +37,21 @@ class Spinner(threading.Thread):
         if pattern is None:
             pattern = "|/-\\"
         super().__init__(target=self._spin)
-        self.message = message  # type: str
-        self.speed = speed  # type: float
-        self.pattern = pattern  # type: str
-        self._stopevent = threading.Event()  # type: threading.Event
+        self.message: str = message
+        self.speed: float = speed
+        self.pattern: str = pattern
+        self._stopevent = threading.Event()
         self.__class__.instances.append(self)
 
-    def stop(self):
-        """stop the spinner"""
+    def stop(self) -> None:
+        """stop the spinner
+        """
         self._stopevent.set()
         self.join()
 
-    def _spin(self):
-        """spin the spinner"""
+    def _spin(self) -> None:
+        """spin the spinner
+        """
         while not self._stopevent.is_set():
             for cursor in self.pattern:
                 sys.stdout.write("%s %s" % (cursor, self.message))
@@ -55,8 +59,7 @@ class Spinner(threading.Thread):
                 time.sleep(self.speed)
                 sys.stdout.write("\033[2K\033[1G")
 
-    def execute_with_spinner(self, action, **kwargs):
-        # type: (Callable, str, **kwargs) -> Any
+    def execute_with_spinner(self, action: Callable, **kwargs) -> Any:
         """used for basic fetching information from boto3 with spinner
 
         :param action: function to execute
@@ -72,7 +75,7 @@ class Spinner(threading.Thread):
             raise
 
     @classmethod
-    def clear_spinner(cls):
+    def clear_spinner(cls) -> None:
         for spinner in cls.instances:
             if spinner.isAlive():
                 spinner.stop()
