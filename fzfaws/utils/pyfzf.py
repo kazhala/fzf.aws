@@ -1,11 +1,8 @@
 import subprocess
 import os
+import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-
-try:
-    from typing import Union
-except:
-    pass
+from typing import Union
 
 
 class Pyfzf:
@@ -21,6 +18,27 @@ class Pyfzf:
 
     def __init__(self):
         self.fzf_string = ""
+        if sys.maxsize > 2 ** 32:
+            arch = "amd64"
+        else:
+            arch = "386"
+
+        if sys.platform.startswith("darwin"):
+            system = "darwin"
+        elif sys.platform.startswith("linux"):
+            system = "linux"
+        else:
+            print("Your system doesn't seem to be compatible with fzfaws")
+            print(
+                "fzfaws currently is only compatible with python3.5+ on MacOS or Linux"
+            )
+            exit(1)
+        self.fzf_path = (
+            "fzf"
+            if os.getenv("FZFAWS_FZF_EXE", "binary") == "system"
+            else "%s/../libs/fzf-0.21.1-%s_%s"
+            % (os.path.dirname(os.path.abspath(__file__)), system, arch)
+        )
 
     def append_fzf(self, new_string):
         """Append stings to fzf_string
@@ -70,7 +88,7 @@ class Pyfzf:
         # remove the empty line at the end
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = ["fzf", "--ansi", "--expect=ctrl-c"]
+        cmd_list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         cmd_list.append(
             "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
         )
@@ -197,7 +215,7 @@ class Pyfzf:
                 )
         selected_file_path = b""
         try:
-            cmd_list = ["fzf", "--expect=ctrl-c"]
+            cmd_list = [self.fzf_path, "--expect=ctrl-c"]
             cmd_list.append(
                 "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
             )
