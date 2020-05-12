@@ -57,18 +57,33 @@ def check_dict_value_in_list(value: Any, target_list: list, key_name: str) -> bo
     return False
 
 
-def get_confirmation(message):
+def get_confirmation(message: str) -> bool:
+    """get user confirmation
+
+    :param message: message to ask
+    :type message: str
+    :return: user confirm status
+    :rtype: bool
+    """
     confirm = None
     while confirm != "y" and confirm != "n":
         confirm = input("%s(y/n): " % message).lower()
     return True if confirm == "y" else False
 
 
-def get_name_tag(list_item):
-    """get the name tag of the item"""
-    if "Tags" in list_item and check_dict_value_in_list(
-        "Name", list_item["Tags"], "Key"
-    ):
-        return search_dict_in_list("Name", list_item["Tags"], "Key")["Value"]
+def get_name_tag(response_item: dict) -> str:
+    """get the name tag of the item
+
+    This only specific use for boto3 response that contains name tag
+
+    :param list_item: boto3 respoonse dict
+    :type list_item: dict
+    :return: name tag
+    :rtype: str
+    """
+    if check_dict_value_in_list("Name", response_item.get("Tags", []), "Key"):
+        return search_dict_in_list("Name", response_item.get("Tags", []), "Key").get(
+            "Value", "N/A"
+        )
     else:
         return "N/A"
