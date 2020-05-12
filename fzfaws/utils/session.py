@@ -65,6 +65,8 @@ class BaseSession:
 
         :param paginator_name: paginator name, check boto3 doc
         :type paginator_name: str
+        :return: list of paginated results
+        :rtype: list
         """
         response = []
         for result in self.client.get_paginator(paginator_name).paginate(**kwargs):
