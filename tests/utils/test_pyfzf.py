@@ -33,6 +33,7 @@ class TestPyfzf(unittest.TestCase):
         mocked_output.return_value = b"hello"
         result = self.fzf.execute_fzf()
         self.assertEqual(result, "hello")
+        self.assertEqual(mocked_output.call_count, 3)
 
         mocked_output.return_value = b""
         self.assertRaises(NoSelectionMade, self.fzf.execute_fzf)

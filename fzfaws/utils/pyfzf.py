@@ -223,7 +223,7 @@ class Pyfzf:
                     stdout=subprocess.PIPE,
                     shell=True,
                 )
-        selected_file_path: Union[bytes, str] = b""
+        selected_file_path: bytes = b""
 
         try:
             # TODO: refactor with execute_fzf to one command to process fzf arg
@@ -250,9 +250,9 @@ class Pyfzf:
                 raise NoSelectionMade("No selection was made")
             elif empty_allow and directory:
                 # return current directory
-                selected_file_path = os.getcwd()
-                print("%s will be used" % selected_file_path)
-                return selected_file_path
+                curdir = os.getcwd()
+                print("%s will be used" % curdir)
+                return curdir
             elif empty_allow:
                 return [] if empty_allow else ""
         if multi_select:
