@@ -284,26 +284,25 @@ class Pyfzf:
         except:
             return False
 
-    def process_list(self, response_list, key_name, *arg_keys, gap=2):
+    def process_list(self, response_list: list, key_name: str, *arg_keys, gap: int = 2):
         """process list passed in and formatted for fzf
 
         processes the list passed into it and prepare the fzf operation
         Note: you will need to invoke fzf.execute_fzf() to pop the fzf
 
-        Args:
-            response_list: list, the list to process
-            key_name: string, key in response_list to print
-            *arg_keys: specify any numbers of key to print
-            gap: number, gap between text
-        Returns:
-            A string which contains the value from response_list[key_name]
-        Exceptions:
-            EmptyList: when the input list resulted in empty result
         Example:
             list = [{'Name': 1, 'Mame': 2}, {'Name': 2, 'Mame': 3}]
             fzf.process_list(list, 'Name', 'Mame', gap=4)
             fzf.execute_fzf(empty_allow=False)
             if first entry is selected, it will return 1
+
+        :param response_list: list to process
+        :type response_list: list
+        :param key_name: key_name to search and add into response
+        :type key_name: str
+        :param gap: gap between each key
+        :type gap: int, optional
+        :raises EmptyList: when the list is empty and did not get any result
         """
         for item in response_list:
             self.append_fzf("%s: %s" % (key_name, item.get(key_name, "N/A")))
