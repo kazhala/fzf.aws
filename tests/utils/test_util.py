@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from fzfaws.utils.util import (
+from fzfaws.utils import (
     check_dict_value_in_list,
     get_confirmation,
     remove_dict_from_list,
