@@ -5,7 +5,6 @@
 [[ ! -d "$HOME"/.aws ]] && mkdir "$HOME"/.aws
 [[ -f "$HOME"/.aws/credentials ]] && rm "$HOME"/.aws/credentials
 [[ -f "$HOME"/.aws/config ]] && rm "$HOME"/.aws/config
-export AWS_DEFAULT_REGION="ap-southeast-2"
 
 cat << EOF > "$HOME"/.aws/credentials
 [default]
@@ -19,6 +18,8 @@ EOF
 cat << EOF > "$HOME"/.aws/config
 [default]
 region = ap-southeast-2
-[root]
+output = json
+[profile root]
 region = ap-southeast-2
+output = json
 EOF
