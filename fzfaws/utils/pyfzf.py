@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-from typing import Union
+from typing import Optional, Union
 
 
 class Pyfzf:
@@ -11,13 +11,10 @@ class Pyfzf:
     To create a entry into fzf, use Pyfzf.append_fzf() and pass in the string.
     To create mutiple entries, would require manually pass in \n to seperate each entry.
     For a list of response from boto3, it is recommanded to use the process_list() function.
-
-    Attributes:
-        fzf_string: the string that will be passed into fzf in subprocess
     """
 
-    def __init__(self):
-        self.fzf_string = ""
+    def __init__(self) -> None:
+        self.fzf_string: str = ""
         if sys.maxsize > 2 ** 32:
             arch = "amd64"
         else:
@@ -33,47 +30,36 @@ class Pyfzf:
                 "fzfaws currently is only compatible with python3.5+ on MacOS or Linux"
             )
             exit(1)
-        self.fzf_path = (
+        self.fzf_path: str = (
             "fzf"
             if os.getenv("FZFAWS_FZF_EXE", "binary") == "system"
             else "%s/../libs/fzf-0.21.1-%s_%s"
             % (os.path.dirname(os.path.abspath(__file__)), system, arch)
         )
 
-    def append_fzf(self, new_string):
+    def append_fzf(self, new_string: str) -> None:
         """Append stings to fzf_string
 
         To have mutiple entries, seperate them by \n
+        Example:fzf.append_fzf('hello')
+                fzf.append_fzf('\n')
+                fzf.append_fzf('world')
 
-        Args:
-            new_string: string, string to add to fzf
-        Example:
-            fzf.append_fzf('hello')
-            fzf.append_fzf('\n')
-            fzf.append_fzf('world')
+        :param new_string: strings to append to fzf entry
+        :type new_string: str
         """
         self.fzf_string += new_string
 
     def execute_fzf(
         self,
-        empty_allow=False,
-        print_col=2,
-        preview=None,
-        multi_select=False,
-        header=None,
-    ):
+        empty_allow: bool = False,
+        print_col: int = 2,
+        preview: Optional[str] = None,
+        multi_select: bool = False,
+        header: Optional[str] = None,
+    ) -> Union[str, list]:
         """execute fzf and return formated string
 
-        Args:
-            empty_allow: bool, determine if empty selection is allowed
-            print_col: number, which column to print after selection, starts with 1
-                more details about preview, see fzf documentation
-                use -1 to print everything except first column, useful when you have filenames with spaces
-            preview: string, display preview for each entry, require shell script string
-            multi_select: bool, if multi select is allowed
-            header: string, display helper information/title
-        Returns:
-            return the string value of the selected entry, depending ont the print_col
         Example:
             fzf = Pyfzf()
             fzf.append_fzf('Hello: hello')
@@ -83,16 +69,30 @@ class Pyfzf:
             print(fzf.execute_fzf(empty_allow=True, print_col=1, preview='cat {}', multi_select=True))
             Above example would return 'Hello:'' if the first entry is selected, print col is 1
             if print_col was 2, 'hello' would be printed
+
+        :param empty_allow: determine if empty selection is allowed
+        :type empty_allow: bool, optional
+        :param print_col: which column of the result to print (used by awk), -1 print everything except first col
+        :type print_col: int, optional
+        :param preview: display preview in fzf, e.g.(echo 'hello')
+        :type preview: str, optional
+        :param multi_select: enable fzf multi selection
+        :type multi_select: bool, optional
+        :param header: header to display in fzf
+        :type header: str, optional
+        :raises NoSelectionMade: when user did not make a selection and empty_allow is False
+        :return: selected entry from fzf
+        :rtype: Union[list, str]
         """
 
-        # remove the empty line at the end
+        # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         cmd_list.append(
             "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
         )
-        selection_name = b""  # type: Union[str, bytes]
+        selection_name: bytes = b""
 
         if header:
             cmd_list.append("--header=%s" % header)
@@ -108,9 +108,10 @@ class Pyfzf:
         try:
             # get the output of fzf and check if ctrl-c is pressed
             selection = subprocess.check_output(cmd_list, stdin=fzf_input.stdout)
+            # if first line contains ctrl-c, exit
             self._check_ctrl_c(selection)
 
-            # reopen the pipeline and delete the first line(key information)
+            # reopen the pipeline, first line will be empty if pass previous test
             echo_selection = subprocess.Popen(
                 ["echo", selection], stdout=subprocess.PIPE
             )
@@ -126,6 +127,8 @@ class Pyfzf:
             if not selection_name and not empty_allow:
                 raise NoSelectionMade("No selection was made")
         except subprocess.CalledProcessError:
+            # this exception may happend if user didn't make a selection in fzf
+            # thus ending with non zero exit code
             if not empty_allow:
                 raise NoSelectionMade("No selection was made")
             elif empty_allow:
