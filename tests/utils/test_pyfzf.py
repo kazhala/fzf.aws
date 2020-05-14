@@ -28,8 +28,9 @@ class TestPyfzf(unittest.TestCase):
         self.fzf.append_fzf("world\n")
         self.assertEqual("hello\nworld\n", self.fzf.fzf_string)
 
+    @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
-    def test_execute_fzf(self, mocked_output):
+    def test_execute_fzf(self, mocked_output, mocked_popen):
         mocked_output.return_value = b"hello"
         result = self.fzf.execute_fzf()
         self.assertEqual(result, "hello")
@@ -50,8 +51,9 @@ class TestPyfzf(unittest.TestCase):
         result = self.fzf.execute_fzf(multi_select=True)
         self.assertEqual(result, ["hello", "world"])
 
+    @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
-    def test_check_ctrl_c(self, mocked_output):
+    def test_check_ctrl_c(self, mocked_output, mocked_popen):
         mocked_output.return_value = b"ctrl-c"
         self.assertRaises(KeyboardInterrupt, self.fzf.execute_fzf)
         mocked_output.return_value = b"hello"
@@ -60,8 +62,9 @@ class TestPyfzf(unittest.TestCase):
         except:
             self.fail("ctrl-c test failed, unexpected exception raise")
 
+    @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
-    def test_get_local_file(self, mocked_output):
+    def test_get_local_file(self, mocked_output, mocked_popen):
         mocked_output.return_value = b""
         self.assertRaises(NoSelectionMade, self.fzf.get_local_file)
 
@@ -77,7 +80,8 @@ class TestPyfzf(unittest.TestCase):
         result = self.fzf.get_local_file(multi_select=True)
         self.assertEqual(result, ["hello", "world"])
 
-    def test_check_fd(self):
+    @patch.object(subprocess, "Popen")
+    def test_check_fd(self, mocked_popen):
         result = self.fzf._check_fd()
         self.assertEqual(type(result), bool)
 
