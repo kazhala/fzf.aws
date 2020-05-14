@@ -19,7 +19,7 @@ class TestPyfzf(unittest.TestCase):
     def test_constructor(self):
         self.assertRegex(
             self.fzf.fzf_path,
-            r".*fzf.aws/fzfaws.*/libs/fzf-[0-9]\.[0-9]+\.[0-9]-(linux|darwin)_(386|amd64)",
+            r".*/fzfaws.*/libs/fzf-[0-9]\.[0-9]+\.[0-9]-(linux|darwin)_(386|amd64)",
         )
         self.assertEqual("", self.fzf.fzf_string)
 
