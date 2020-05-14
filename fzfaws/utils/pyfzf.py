@@ -88,7 +88,7 @@ class Pyfzf:
         # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
+        cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         cmd_list.append(
             "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
         )
@@ -147,30 +147,37 @@ class Pyfzf:
 
     def get_local_file(
         self,
-        search_from_root=False,
-        cloudformation=False,
-        directory=False,
-        hidden=False,
-        empty_allow=False,
-        multi_select=False,
-        header=None,
-    ):
+        search_from_root: bool = False,
+        cloudformation: bool = False,
+        directory: bool = False,
+        hidden: bool = False,
+        empty_allow: bool = False,
+        multi_select: bool = False,
+        header: Optional[str] = None,
+    ) -> Union[str, list]:
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
         all files would be populated.
         Note: could be extremely slow to seach if fd not installed
 
-        Args:
-            search_from_root: bool, whether to search from root dir
-            cloudformation: bool, if this is triggered by cloudformation operations
-                only json and yaml will be populated
-            directory: bool, search directory
-            hidden: include hidden files/folders with search using fd
-            empty_allow: bool, allow empty selection, if set, use current directory
-            header: string, display helper text/title
-        Returns:
-            the file path of the selected file
+        :param search_from_root: search files from root
+        :type search_from_root: bool, optional
+        :param cloudformation: only search yaml or json
+        :type cloudformation: bool, optional
+        :param directory: search directory
+        :type directory: bool, optional
+        :param hidden: search hidden file, only has effect when fd installed
+        :type hidden: bool, optional
+        :param empty_allow: allow empty selection
+        :type empty_allow: bool, optional
+        :param multi_select: allow multi selection
+        :type multi_select: bool, optional
+        :param header: header display in fzf
+        :type header: str, optional
+        :raises NoSelectionMade: when empty_allow=False and no selection was made
+        :return: selected file path or folder path
+        :rtype: Union[str, list]
         """
 
         if search_from_root:
@@ -179,7 +186,7 @@ class Pyfzf:
         if not header and directory and empty_allow:
             header = "Exit without selection will use %s" % os.getcwd()
         if self._check_fd():
-            cmd_list = []
+            cmd_list: list = []
             if directory:
                 cmd_list.extend(["fd", "--type", "d"])
             elif cloudformation:
@@ -216,8 +223,10 @@ class Pyfzf:
                     stdout=subprocess.PIPE,
                     shell=True,
                 )
-        selected_file_path = b""
+        selected_file_path: Union[bytes, str] = b""
+
         try:
+            # TODO: refactor with execute_fzf to one command to process fzf arg
             cmd_list = [self.fzf_path, "--expect=ctrl-c"]
             cmd_list.append(
                 "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
@@ -234,29 +243,32 @@ class Pyfzf:
             self._check_ctrl_c(selected_file_path)
             if not empty_allow and not selected_file_path:
                 raise NoSelectionMade("No selection was made")
+
         except subprocess.CalledProcessError:
+            # subprocess exception will raise when user press ecs to exit fzf
             if not empty_allow:
                 raise NoSelectionMade("No selection was made")
             elif empty_allow and directory:
+                # return current directory
                 selected_file_path = os.getcwd()
                 print("%s will be used" % selected_file_path)
                 return selected_file_path
             elif empty_allow:
-                return
+                return [] if empty_allow else ""
         if multi_select:
             # multi_select would return everything seperate by \n
             return str(selected_file_path, "utf-8").strip().splitlines()
         else:
             return str(selected_file_path, "utf-8").strip()
 
-    def _check_ctrl_c(self, raw_bytes):
+    def _check_ctrl_c(self, raw_bytes: bytes) -> None:
         """check if ctrl_c is pressed during fzf invokation
 
         If ctrl_c is pressed, exit entire program instead of
         keep moving forward
 
-        Args:
-            raw_bytes: the raw output of fzf
+        :param raw_bytes: the raw output from fzf subprocess
+        :type raw_bytes: bytes
         """
         check_init = subprocess.Popen(["echo", raw_bytes], stdout=subprocess.PIPE)
         key_press = subprocess.check_output(["head", "-1"], stdin=check_init.stdout)

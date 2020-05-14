@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import io
 import sys
+import os
 from unittest.mock import patch
 from fzfaws.utils import Pyfzf
 from fzfaws.utils.exceptions import NoSelectionMade
@@ -28,10 +29,8 @@ class TestPyfzf(unittest.TestCase):
         self.fzf.append_fzf("world\n")
         self.assertEqual("hello\nworld\n", self.fzf.fzf_string)
 
-    @patch.object(Pyfzf, "_check_ctrl_c")
     @patch.object(subprocess, "check_output")
-    def test_execute_fzf(self, mocked_output, mocked_ctrlc):
-        mocked_ctrlc.return_value = None
+    def test_execute_fzf(self, mocked_output):
         mocked_output.return_value = b"hello"
         result = self.fzf.execute_fzf()
         self.assertEqual(result, "hello")
@@ -43,6 +42,14 @@ class TestPyfzf(unittest.TestCase):
         result = self.fzf.execute_fzf(empty_allow=True)
         self.assertEqual("", result)
 
+        mocked_output.return_value = b"hello"
+        result = self.fzf.execute_fzf(multi_select=True)
+        self.assertEqual(result, ["hello"])
+
+        mocked_output.return_value = b"hello\nworld"
+        result = self.fzf.execute_fzf(multi_select=True)
+        self.assertEqual(result, ["hello", "world"])
+
     @patch.object(subprocess, "check_output")
     def test_check_ctrl_c(self, mocked_output):
         mocked_output.return_value = b"ctrl-c"
@@ -52,3 +59,20 @@ class TestPyfzf(unittest.TestCase):
             self.fzf.execute_fzf()
         except:
             self.fail("ctrl-c test failed, unexpected exception raise")
+
+    @patch.object(subprocess, "check_output")
+    def test_get_local_file(self, mocked_output):
+        mocked_output.return_value = b""
+        self.assertRaises(NoSelectionMade, self.fzf.get_local_file)
+
+        mocked_output.return_value = b"hello"
+        result = self.fzf.get_local_file()
+        self.assertEqual("hello", result)
+
+        mocked_output.return_value = b"hello"
+        result = self.fzf.get_local_file(multi_select=True)
+        self.assertEqual(result, ["hello"])
+
+        mocked_output.return_value = b"hello\nworld\n"
+        result = self.fzf.get_local_file(multi_select=True)
+        self.assertEqual(result, ["hello", "world"])
