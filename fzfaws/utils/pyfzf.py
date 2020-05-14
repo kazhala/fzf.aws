@@ -276,7 +276,8 @@ class Pyfzf:
             raise KeyboardInterrupt
 
     def _check_fd(self):
-        """check if fd is intalled on the machine"""
+        """check if fd is intalled on the machine
+        """
         try:
             subprocess.run(["fd", "-V"], stdout=subprocess.DEVNULL)
             return True
@@ -305,10 +306,10 @@ class Pyfzf:
             if first entry is selected, it will return 1
         """
         for item in response_list:
-            self.append_fzf(f"{key_name}: {item.get(key_name)}")
+            self.append_fzf("%s: %s" % (key_name, item.get(key_name, "N/A")))
             for arg in arg_keys:
                 self.append_fzf(gap * " ")
-                self.append_fzf(f"{arg}: {item.get(arg)}")
+                self.append_fzf("%s: %s" % (arg, item.get(arg, "N/A")))
             self.append_fzf("\n")
         if not self.fzf_string:
             raise EmptyList("Result list was empty, exiting..")

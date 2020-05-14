@@ -2,10 +2,9 @@ import unittest
 import subprocess
 import io
 import sys
-import os
 from unittest.mock import patch
 from fzfaws.utils import Pyfzf
-from fzfaws.utils.exceptions import NoSelectionMade
+from fzfaws.utils.exceptions import EmptyList, NoSelectionMade
 
 
 class TestPyfzf(unittest.TestCase):
@@ -76,3 +75,23 @@ class TestPyfzf(unittest.TestCase):
         mocked_output.return_value = b"hello\nworld\n"
         result = self.fzf.get_local_file(multi_select=True)
         self.assertEqual(result, ["hello", "world"])
+
+    def test_check_fd(self):
+        result = self.fzf._check_fd()
+        self.assertEqual(type(result), bool)
+
+    def test_process_list(self):
+        self.fzf.fzf_string = ""
+        self.assertRaises(EmptyList, self.fzf.process_list, [], "123")
+
+        test_list = [{"foo": 1, "boo": 2}, {"foo": "b"}]
+        self.fzf.process_list(test_list, "foo")
+        self.assertEqual(self.fzf.fzf_string, "foo: 1\nfoo: b\n")
+
+        self.fzf.fzf_string = ""
+        self.fzf.process_list(test_list, "boo")
+        self.assertEqual(self.fzf.fzf_string, "boo: 2\nboo: N/A\n")
+
+        self.fzf.fzf_string = ""
+        self.fzf.process_list(test_list, "www")
+        self.assertEqual(self.fzf.fzf_string, "www: N/A\nwww: N/A\n")
