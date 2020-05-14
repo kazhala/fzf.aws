@@ -7,20 +7,6 @@ os: linux
 install:
   - pip install -r ./requirements.txt
 before_script:
-  - |
-    [ ! -d "$HOME"/.aws ] && mkdir "$HOME"/.aws
-    [ -f "$HOME"/.aws/credentials ] && rm "$HOME"/.aws/credentials
-    [ -f "$HOME"/.aws/config ] && rm "$HOME"/.aws/config
-    echo "[default]" >> "$HOME"/.aws/credentials
-    echo "aws_access_key_id = 111111111" >> "$HOME"/.aws/credentials
-    echo "aws_secret_access_key = 111111111" >> "$HOME"/.aws/credentials
-    echo "[root]" >> "$HOME"/.aws/credentials
-    echo "aws_access_key_id = 111111111" >> "$HOME"/.aws/credentials
-    echo "aws_secret_access_key = 111111111" >> "$HOME"/.aws/credentials
-    echo "[default]" >> "$HOME"/.aws/config
-    echo "region = ap-southeast-2" >> "$HOME"/.aws/config
-    echo "[root]" >> "$HOME"/.aws/config
-    echo "region = ap-southeast-2" >> "$HOME"/.aws/config
-    export AWS_DEFAULT_REGION="ap-southeast-2"
+  - ./scripts/init_test.sh
 script:
   - python -m unittest discover
