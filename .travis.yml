@@ -7,6 +7,6 @@ os: linux
 install:
   - pip install -r ./requirements.txt
 before_script:
-  - ./scripts/init_test.sh
+  - ./scripts/init_test
 script:
   - python -m unittest discover
