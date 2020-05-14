@@ -2,7 +2,6 @@ import io
 import sys
 from time import sleep
 import unittest
-from unittest.mock import patch
 from fzfaws.utils.spinner import Spinner
 
 
@@ -27,14 +26,12 @@ class TestSpinner(unittest.TestCase):
         self.assertEqual(spinner.pattern, "1234")
         self.assertEqual(spinner.speed, 0.01)
 
-    @patch.object(Spinner, "join")
-    def test_spin(self, mocked_join):
+    def test_spin(self):
         self.spinner.start()
         self.assertTrue(Spinner.instances)
         sleep(0.4)
         self.spinner.stop()
         self.assertRegex(self.capturedOutput.getvalue(), r".*[|/-\\]\sloading.*")
-        mocked_join.assert_called_once()
         Spinner.clear_spinner()
         self.assertEqual(Spinner.instances, [])
 
