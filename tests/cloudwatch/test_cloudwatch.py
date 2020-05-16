@@ -152,7 +152,7 @@ class TestCloudWwatch(unittest.TestCase):
         mocked_fzf_execute.reset_mock()
         mocked_fzf_list.reset_mock()
         mocked_result = []
-        self.cloudwatch.arns = []
+        self.cloudwatch.arns = [""]
         self.cloudwatch.set_arns()
         self.assertEqual(self.cloudwatch.arns, [""])
         mocked_fzf_list.assert_not_called()
