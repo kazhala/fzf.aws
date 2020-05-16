@@ -2,7 +2,7 @@ import io
 import sys
 from time import sleep
 import unittest
-from fzfaws.utils.spinner import Spinner
+from fzfaws.utils import Spinner
 
 
 class TestSpinner(unittest.TestCase):

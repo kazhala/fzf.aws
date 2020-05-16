@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, PropertyMock
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils import BaseSession
+from fzfaws.utils import Pyfzf
 from boto3.session import Session
 
 

@@ -31,9 +31,9 @@ class IAM(BaseSession):
         self,
         arns: Optional[Union[List, str]] = None,
         header: Optional[str] = None,
-        empty_allow: Optional[bool] = True,
+        empty_allow: bool = True,
         service: Optional[str] = None,
-        multi_select: Optional[bool] = False,
+        multi_select: bool = False,
     ) -> None:
         """set the role arn
 
