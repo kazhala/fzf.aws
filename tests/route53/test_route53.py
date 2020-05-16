@@ -53,6 +53,8 @@ class TestRoute53(unittest.TestCase):
                 "MaxItems": "100",
             }
         ]
+
+        # general test
         mocked_fzf_execute.return_value = "111111"
         self.route53.set_zone_id()
         mocked_fzf_process.assert_called_with(
@@ -65,6 +67,7 @@ class TestRoute53(unittest.TestCase):
         )
         self.assertEqual(self.route53.zone_ids, ["111111"])
 
+        # parameter test
         self.route53.set_zone_id(multi_select=True)
         self.assertEqual(self.route53.zone_ids, ["111111"])
 
@@ -75,7 +78,19 @@ class TestRoute53(unittest.TestCase):
         self.route53.set_zone_id(zone_ids="222222")
         self.assertEqual(self.route53.zone_ids, ["222222"])
 
+        # empty result test
+        self.route53.zone_ids = [""]
+        mocked_fzf_execute.reset_mock()
+        mocked_fzf_process.reset_mock()
+        mocked_fzf_execute.return_value = ""
+        mocked_result.return_value = []
+        self.route53.set_zone_id()
+        mocked_fzf_process.assert_not_called()
+        mocked_fzf_execute.assert_called_once()
+        self.assertEqual(self.route53.zone_ids, [""])
+
     def test_process_hosted_zone(self):
+        # general
         test_list = [
             {
                 "Id": "/hostedzone/111111",
@@ -102,10 +117,12 @@ class TestRoute53(unittest.TestCase):
             result,
         )
 
+        # empty result test
         test_list = []
         result = self.route53._process_hosted_zone(test_list)
         self.assertEqual([], result)
 
+        # missing attr test
         test_list = [
             {"Id": "/hostedzone/111111",},
             {"Id": "/hostedzone/222222",},
