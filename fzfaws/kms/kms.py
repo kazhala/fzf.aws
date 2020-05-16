@@ -46,7 +46,6 @@ class KMS(BaseSession):
         if not keyids:
             fzf = Pyfzf()
             for result in self.get_paginated_result("list_aliases"):
-                print(result)
                 aliases = [
                     alias for alias in result.get("Aliases") if alias.get("TargetKeyId")
                 ]
