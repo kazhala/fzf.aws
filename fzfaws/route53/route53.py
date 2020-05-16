@@ -40,9 +40,8 @@ class Route53(BaseSession):
             if zone_ids is None:
                 fzf = Pyfzf()
                 spinner = Spinner(message="Fetching hostedzones..")
-                paginator = self.client.get_paginator("list_hosted_zones")
                 spinner.start()
-                for result in paginator.paginate():
+                for result in self.get_paginated_result("list_hosted_zones"):
                     result = self._process_hosted_zone(result["HostedZones"])
                     fzf.process_list(result, "Id", "Name")
                 spinner.stop()
@@ -62,5 +61,5 @@ class Route53(BaseSession):
         id_pattern = r"/hostedzone/(?P<id>.*)$"
         for hosted_zone in hostedzone_list:
             raw_zone_id = re.search(id_pattern, hosted_zone["Id"]).group("id")
-            id_list.append({"Id": raw_zone_id, "Name": hosted_zone["Name"]})
+            id_list.append({"Id": raw_zone_id, "Name": hosted_zone.get("Name", "N/A")})
         return id_list
