@@ -31,12 +31,22 @@ class KMS(BaseSession):
         header: Optional[str] = None,
         multi_select: bool = False,
         empty_allow: bool = True,
-    ):
-        """set the key for kms using fzf"""
+    ) -> None:
+        """set the key for kms using fzf
+
+        :param keyids: keyids to set
+        :type keyids: Union[list, str], optional
+        :param header: header information in fzf
+        :type header: str, optional
+        :param multi_select: enable multi select
+        :type multi_select: bool, optional
+        :param empty_allow: allow empty selection
+        :type empty_allow: bool, optional
+        """
         if not keyids:
             fzf = Pyfzf()
-            paginator = self.client.get_paginator("list_aliases")
-            for result in paginator.paginate():
+            for result in self.get_paginated_result("list_aliases"):
+                print(result)
                 aliases = [
                     alias for alias in result.get("Aliases") if alias.get("TargetKeyId")
                 ]
