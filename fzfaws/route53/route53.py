@@ -3,9 +3,8 @@
 Wraps around boto3.client('route53') and supports region and profile
 """
 import re
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.spinner import Spinner
+from fzfaws.utils import BaseSession, Pyfzf, Spinner
+from typing import Union, Optional
 
 
 class Route53(BaseSession):
@@ -17,13 +16,19 @@ class Route53(BaseSession):
     :type region: Union[bool, str], optional
     """
 
-    def __init__(self, profile=None, region=None):
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
+    ) -> None:
         """construct route53 class
         """
         super().__init__(profile=profile, region=region, service_name="route53")
-        self.zone_ids = []  # type: list
+        self.zone_ids: list = [""]
 
-    def set_zone_id(self, zone_ids=None, multi_select=False):
+    def set_zone_id(
+        self, zone_ids: Optional[Union[str, list]] = None, multi_select: bool = False
+    ) -> None:
         """set the hostedzone
 
         :param zone_ids: list of zone_ids to set
@@ -42,19 +47,18 @@ class Route53(BaseSession):
                     fzf.process_list(result, "Id", "Name")
                 spinner.stop()
                 zone_ids = fzf.execute_fzf(multi_select=multi_select, empty_allow=True)
-                if not multi_select:
-                    self.zone_ids = [str(zone_ids)]
-                else:
-                    self.zone_ids = list(zone_ids)
-            else:
-                self.zone_ids = zone_ids
+            if type(zone_ids) == str:
+                self.zone_ids[0] = str(zone_ids)
+            elif type(zone_ids) == list:
+                self.zone_ids = list(zone_ids)
         except:
             Spinner.clear_spinner()
             raise
 
-    def _process_hosted_zone(self, hostedzone_list):
-        """process hostedzone as the response is not raw id"""
-        id_list = []
+    def _process_hosted_zone(self, hostedzone_list: list) -> list:
+        """process hostedzone as the response is not raw id
+        """
+        id_list: list = []
         id_pattern = r"/hostedzone/(?P<id>.*)$"
         for hosted_zone in hostedzone_list:
             raw_zone_id = re.search(id_pattern, hosted_zone["Id"]).group("id")

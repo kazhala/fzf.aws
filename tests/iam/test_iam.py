@@ -3,8 +3,7 @@ import sys
 import unittest
 from unittest.mock import patch
 from fzfaws.iam import IAM
-from fzfaws.utils import Pyfzf
-from fzfaws.utils import BaseSession
+from fzfaws.utils import Pyfzf, BaseSession
 
 
 class TestIAM(unittest.TestCase):
