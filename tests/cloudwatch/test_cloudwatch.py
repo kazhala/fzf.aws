@@ -151,6 +151,7 @@ class TestCloudWwatch(unittest.TestCase):
         # empty result test
         mocked_fzf_execute.reset_mock()
         mocked_fzf_list.reset_mock()
+        mocked_fzf_execute.return_value = ""
         mocked_result = []
         self.cloudwatch.arns = [""]
         self.cloudwatch.set_arns()
