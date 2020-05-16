@@ -1,11 +1,9 @@
 """kms class for interacting with kms service
 
 Handle selection of kms keys
-TODO: handle creation of kms keys with iam capabilities
 """
-import boto3
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.session import BaseSession
+from fzfaws.utils import Pyfzf, BaseSession
+from typing import Union, Optional
 
 
 class KMS(BaseSession):
@@ -13,24 +11,40 @@ class KMS(BaseSession):
 
     handles operation around kms, selection/creation etc
 
-    Attributes:
-        region: region for the operation
-        profile: profile to use for the operation
-        client: initialized boto3 client with region and profile in use
-        resource: initialized boto3 resource with region and profile in use
-        keyid: string, the selected kms key id
+    :param profile: profile to use for this operation
+    :type profile: Union[str, bool], optional
+    :param region: region to use for this operation
+    :type region: Union[str, bool], optional
     """
 
-    def __init__(self, profile=None, region=None):
-        super().__init__(profile=profile, region=region, service_name='kms')
-        self.keyid = None
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
+    ) -> None:
+        super().__init__(profile=profile, region=region, service_name="kms")
+        self.keyids: list = [""]
 
-    def set_keyid(self):
+    def set_keyids(
+        self,
+        keyids: Optional[Union[list, str]] = None,
+        header: Optional[str] = None,
+        multi_select: bool = False,
+        empty_allow: bool = True,
+    ):
         """set the key for kms using fzf"""
-        fzf = Pyfzf()
-        paginator = self.client.get_paginator('list_aliases')
-        for result in paginator.paginate():
-            aliases = [alias for alias in result.get(
-                'Aliases') if alias.get('TargetKeyId')]
-            fzf.process_list(aliases, 'TargetKeyId', 'AliasName', 'AliasArn')
-        self.keyid = fzf.execute_fzf()
+        if not keyids:
+            fzf = Pyfzf()
+            paginator = self.client.get_paginator("list_aliases")
+            for result in paginator.paginate():
+                aliases = [
+                    alias for alias in result.get("Aliases") if alias.get("TargetKeyId")
+                ]
+                fzf.process_list(aliases, "TargetKeyId", "AliasName", "AliasArn")
+            keyids = fzf.execute_fzf(
+                header=header, multi_select=multi_select, empty_allow=empty_allow
+            )
+        if type(keyids) == str:
+            self.keyids[0] = str(keyids)
+        elif type(keyids) == list:
+            self.keyids = list(keyids)
