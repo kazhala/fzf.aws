@@ -28,7 +28,7 @@ class TestCloudWwatch(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
     @patch.object(BaseSession, "get_paginated_result")
-    def set_arns(self, mocked_result, mocked_fzf_list, mocked_fzf_execute):
+    def test_set_arns(self, mocked_result, mocked_fzf_list, mocked_fzf_execute):
         mocked_result.return_value = [
             {
                 "CompositeAlarms": [],
