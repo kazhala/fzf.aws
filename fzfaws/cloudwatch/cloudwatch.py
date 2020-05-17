@@ -46,7 +46,6 @@ class Cloudwatch(BaseSession):
         if not arns:
             fzf = Pyfzf()
             for result in self.get_paginated_result("describe_alarms"):
-                print(result)
                 if result.get("CompositeAlarms"):
                     fzf.process_list(result["CompositeAlarms"], "AlarmArn")
                 if result.get("MetricAlarms"):
