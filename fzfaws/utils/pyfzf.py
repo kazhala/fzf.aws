@@ -91,9 +91,6 @@ class Pyfzf:
         cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS", "").split(" "))
         cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
-        # cmd_list.append(
-        #     "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
-        # )
         selection_name: bytes = b""
 
         if header:
@@ -230,9 +227,8 @@ class Pyfzf:
         try:
             # TODO: refactor with execute_fzf to one command to process fzf arg
             cmd_list = [self.fzf_path, "--expect=ctrl-c"]
-            cmd_list.append(
-                "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
-            )
+            cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS", "").split(" "))
+            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
             if header:
                 cmd_list.append("--header=%s" % header)
             if multi_select:
