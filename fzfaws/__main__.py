@@ -13,6 +13,7 @@ from fzfaws.utils.exceptions import (
 from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
 from fzfaws.s3.main import s3
+from fzfaws.utils import FileLoader
 
 
 def main():
@@ -25,6 +26,9 @@ def main():
         action_command = sys.argv[1]
         if action_command not in available_routes:
             raise NoCommandFound()
+        fileloader = FileLoader()
+        fileloader.load_config_file()
+        # exit()
         if action_command == "cloudformation":
             cloudformation(sys.argv[2:])
         elif action_command == "ec2":
@@ -45,7 +49,7 @@ def main():
         print("Selected file is not a valid template file type")
         print("Exiting..")
     except (KeyboardInterrupt, SystemExit, SystemError):
-        print("\nExit")
+        print("Exit")
     except NoSelectionMade:
         print("No selection was made")
         print("Exit..")

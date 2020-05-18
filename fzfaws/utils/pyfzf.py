@@ -32,7 +32,7 @@ class Pyfzf:
             exit(1)
         self.fzf_path: str = (
             "fzf"
-            if os.getenv("FZFAWS_FZF_EXE", "binary") == "system"
+            if os.getenv("FZFAWS_FZF_EXECUTABLE", "binary") == "system"
             else "%s/../libs/fzf-0.21.1-%s_%s"
             % (os.path.dirname(os.path.abspath(__file__)), system, arch)
         )
@@ -89,9 +89,11 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
-        cmd_list.append(
-            "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
-        )
+        cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS", "").split(" "))
+        cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
+        # cmd_list.append(
+        #     "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-o:clear-query"
+        # )
         selection_name: bytes = b""
 
         if header:
