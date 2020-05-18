@@ -41,7 +41,7 @@ class TestFileLoader(unittest.TestCase):
 
     def test_load_config_file(self):
         self.fileloader.path = self.test_yaml
-        self.fileloader.load_config_file()
+        self.fileloader.load_config_file(user=False)
         self.assertEqual(os.environ["FZFAWS_FZF_EXECUTABLE"], "binary")
         self.assertEqual(
             os.environ["FZFAWS_FZF_KEYS"],

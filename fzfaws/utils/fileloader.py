@@ -69,13 +69,18 @@ class FileLoader:
         """
         return json.loads(self.body)
 
-    def load_config_file(self) -> None:
+    def load_config_file(self, user: bool = False) -> None:
         """load config file into dict
 
         process all of the configs and set env variable for run time
+
+        :param user: load user config, otherwise load system config
+        :type user: bool, optional
         """
-        if self.path:
-            config_path = self.path
+        if not user:
+            full_path = os.path.abspath(__file__)
+            path, filename = os.path.split(full_path)
+            config_path = "%s/../../fzfaws.yml" % path
         else:
             home = os.path.expanduser("~")
             base_directory = os.getenv("XDG_CONFIG_HOME", "%s/.config" % home)
@@ -99,8 +104,10 @@ class FileLoader:
         """
         if not fzf_settings:
             return
-        os.environ["FZFAWS_FZF_EXECUTABLE"] = fzf_settings.get("executable", "")
-        os.environ["FZFAWS_FZF_OPTS"] = fzf_settings.get("args", "")
+        if fzf_settings.get("executable"):
+            os.environ["FZFAWS_FZF_EXECUTABLE"] = fzf_settings["executable"]
+        if fzf_settings.get("args"):
+            os.environ["FZFAWS_FZF_OPTS"] = fzf_settings["args"]
         keybinds: list = []
         for key, value in fzf_settings.get("keybinds", {}).items():
             keybinds.append("%s:%s" % (value, key))

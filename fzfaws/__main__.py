@@ -27,7 +27,8 @@ def main():
         if action_command not in available_routes:
             raise NoCommandFound()
         fileloader = FileLoader()
-        fileloader.load_config_file()
+        fileloader.load_config_file(user=False)
+        fileloader.load_config_file(user=True)
         # exit()
         if action_command == "cloudformation":
             cloudformation(sys.argv[2:])
