@@ -16,6 +16,9 @@ class TestFileLoader(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.test_json)
+        os.environ["FZFAWS_FZF_EXECUTABLE"] = "binary"
+        os.environ["FZFAWS_FZF_OPTS"] = ""
+        os.environ["FZFAWS_FZF_KEYS"] = ""
 
     def test_consctructor(self):
         self.assertEqual(self.fileloader.path, "")
