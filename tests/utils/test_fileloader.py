@@ -47,3 +47,29 @@ class TestFileLoader(unittest.TestCase):
             os.environ["FZFAWS_FZF_KEYS"],
             "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-s:toggle-sort",
         )
+
+        self.fileloader._set_fzf_env({"executable": "system"})
+        self.assertEqual(
+            os.environ["FZFAWS_FZF_KEYS"],
+            "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-s:toggle-sort",
+        )
+        self.assertEqual(os.environ["FZFAWS_FZF_EXECUTABLE"], "system")
+        self.assertRegex(os.environ["FZFAWS_FZF_OPTS"], r"^--color=dark\s--color=.*")
+
+    def test_set_fzf_env(self):
+        # empty test
+        result = self.fileloader._set_fzf_env({})
+        self.assertEqual(None, result)
+
+        # test false for keybinds
+        self.fileloader._set_fzf_env(
+            {"executable": "system", "args": "hello", "keybinds": False}
+        )
+        self.assertEqual(os.environ["FZFAWS_FZF_KEYS"], "")
+        self.assertEqual(os.environ["FZFAWS_FZF_OPTS"], "hello")
+        self.assertEqual(os.environ["FZFAWS_FZF_EXECUTABLE"], "system")
+
+        # test false for args
+        self.fileloader._set_fzf_env({"executable": "system", "args": False})
+        self.assertEqual(os.environ["FZFAWS_FZF_OPTS"], "")
+        self.assertEqual(os.environ["FZFAWS_FZF_EXECUTABLE"], "system")

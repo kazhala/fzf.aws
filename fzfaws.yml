@@ -8,12 +8,15 @@ fzf:
   # so that fzfaws would use your system fzf otherwise
   # fzfaws will use the binary installed within fzfaws
   executable: binary
+
   # customize the default args of fzf
   # set args: false to use system default fzf style
   args: >-
     --color=dark
     --color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,bg+:#4b5263,hl+:#d858fe
     --color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:#61afef,header:#61afef
+    --height 100% --layout=reverse --border --cycle
+
   # for list of keybinds you could set, checkout fzf official doc (https://github.com/junegunn/fzf/blob/master/man/man1/fzf.1)
   # set keybinds: false to disable all keybinds for fzfaws
   keybinds:
