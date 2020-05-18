@@ -1,3 +1,7 @@
+# This is the default config file used by fzfaws.
+# Copy this file to $XDG_CONFIG_HOME/fzfaws/fzfaws.yml or $HOME/.config/fzfaws/fzfaws.yml,
+# and then override below settings to your liking.
+
 # fzf settings for fzfaws
 fzf:
   # set to "system" if you have fzf installed in your system
@@ -5,12 +9,13 @@ fzf:
   # fzfaws will use the binary installed within fzfaws
   executable: binary
   # customize the default args of fzf
+  # set args: false to use system default fzf style
   args: >-
     --color=dark
-    --color=fg:-1,bg:-1,hl:#5fff87,fg+:-1,bg+:-1,hl+:#ffaf5f
-    --color=info:#af87ff,prompt:#5fff87,pointer:#ff87d7,marker:#ff87d7,spinner:#ff87d7
-    --height 100% --layout=reverse --border --cycle
+    --color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,bg+:#4b5263,hl+:#d858fe
+    --color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:#61afef,header:#61afef
   # for list of keybinds you could set, checkout fzf official doc (https://github.com/junegunn/fzf/blob/master/man/man1/fzf.1)
+  # set keybinds: false to disable all keybinds for fzfaws
   keybinds:
     toggle-all: alt-a
     jump: alt-j
