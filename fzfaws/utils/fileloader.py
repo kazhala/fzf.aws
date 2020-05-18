@@ -74,22 +74,22 @@ class FileLoader:
 
         process all of the configs and set env variable for run time
         """
-        if not self.path:
+        if self.path:
+            config_path = self.path
+        else:
             home = os.path.expanduser("~")
             base_directory = os.getenv("XDG_CONFIG_HOME", "%s/.config" % home)
             config_path = "%s/fzfaws/fzfaws.yml" % base_directory
-            if not os.path.isfile(config_path):
-                return
-            with open(config_path, "r") as file:
-                try:
-                    body = file.read()
-                    formated_body = yaml.safe_load(body)
-                    self._set_fzf_env(formated_body.get("fzf", {}))
-                except YAMLError as e:
-                    print(
-                        "Config file is malformed, please double check your config file"
-                    )
-                    print(e)
+        if not os.path.isfile(config_path):
+            return
+        with open(config_path, "r") as file:
+            try:
+                body = file.read()
+                formated_body = yaml.safe_load(body)
+                self._set_fzf_env(formated_body.get("fzf", {}))
+            except YAMLError as e:
+                print("Config file is malformed, please double check your config file")
+                print(e)
 
     def _set_fzf_env(self, fzf_settings: dict) -> None:
         """set env for fzf
