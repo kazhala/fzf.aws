@@ -69,19 +69,15 @@ class FileLoader:
         """
         return json.loads(self.body)
 
-    def load_config_file(self, user: bool = False) -> None:
+    def load_config_file(self, config_path: str = None) -> None:
         """load config file into dict
 
         process all of the configs and set env variable for run time
 
-        :param user: load user config, otherwise load system config
-        :type user: bool, optional
+        :param config_path: config path, useful for unit testing only
+        :type user: str, optional
         """
-        if not user:
-            full_path = os.path.abspath(__file__)
-            path, filename = os.path.split(full_path)
-            config_path = "%s/../../fzfaws.yml" % path
-        else:
+        if not config_path:
             home = os.path.expanduser("~")
             base_directory = os.getenv("XDG_CONFIG_HOME", "%s/.config" % home)
             config_path = "%s/fzfaws/fzfaws.yml" % base_directory
@@ -108,15 +104,9 @@ class FileLoader:
             return
         if fzf_settings.get("executable"):
             os.environ["FZFAWS_FZF_EXECUTABLE"] = fzf_settings["executable"]
-        if fzf_settings.get("args") or fzf_settings.get("args") == False:
-            os.environ["FZFAWS_FZF_OPTS"] = (
-                fzf_settings["args"] if fzf_settings["args"] != False else ""
-            )
-        if fzf_settings.get("keybinds") == False:
-            os.environ["FZFAWS_FZF_KEYS"] = ""
-        elif (
-            fzf_settings.get("keybinds") and type(fzf_settings.get("keybinds")) == dict
-        ):
+        if fzf_settings.get("args"):
+            os.environ["FZFAWS_FZF_OPTS"] = fzf_settings["args"]
+        if fzf_settings.get("keybinds"):
             keybinds: list = []
             for key, value in fzf_settings.get("keybinds").items():
                 keybinds.append("%s:%s" % (value, key))
