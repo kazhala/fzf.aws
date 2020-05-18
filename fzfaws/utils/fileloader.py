@@ -91,6 +91,8 @@ class FileLoader:
             try:
                 body = file.read()
                 formated_body = yaml.safe_load(body)
+                if not formated_body:
+                    return
                 self._set_fzf_env(formated_body.get("fzf", {}))
             except YAMLError as e:
                 print("Config file is malformed, please double check your config file")
@@ -106,11 +108,18 @@ class FileLoader:
             return
         if fzf_settings.get("executable"):
             os.environ["FZFAWS_FZF_EXECUTABLE"] = fzf_settings["executable"]
-        if fzf_settings.get("args"):
-            os.environ["FZFAWS_FZF_OPTS"] = fzf_settings["args"]
-        keybinds: list = []
-        for key, value in fzf_settings.get("keybinds", {}).items():
-            keybinds.append("%s:%s" % (value, key))
-        if keybinds:
-            key_args = "--bind=%s" % ",".join(keybinds)
-            os.environ["FZFAWS_FZF_KEYS"] = key_args
+        if fzf_settings.get("args") or fzf_settings.get("args") == False:
+            os.environ["FZFAWS_FZF_OPTS"] = (
+                fzf_settings["args"] if fzf_settings["args"] != False else ""
+            )
+        if fzf_settings.get("keybinds") == False:
+            os.environ["FZFAWS_FZF_KEYS"] = ""
+        elif (
+            fzf_settings.get("keybinds") and type(fzf_settings.get("keybinds")) == dict
+        ):
+            keybinds: list = []
+            for key, value in fzf_settings.get("keybinds").items():
+                keybinds.append("%s:%s" % (value, key))
+            if keybinds:
+                key_args = "--bind=%s" % ",".join(keybinds)
+                os.environ["FZFAWS_FZF_KEYS"] = key_args

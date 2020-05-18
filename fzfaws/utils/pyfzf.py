@@ -89,8 +89,10 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
-        cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS", "").split(" "))
-        cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
+        if os.getenv("FZFAWS_FZF_OPTS"):
+            cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
+        if os.getenv("FZFAWS_FZF_KEYS"):
+            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
         selection_name: bytes = b""
 
         if header:
@@ -227,8 +229,10 @@ class Pyfzf:
         try:
             # TODO: refactor with execute_fzf to one command to process fzf arg
             cmd_list = [self.fzf_path, "--expect=ctrl-c"]
-            cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS", "").split(" "))
-            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
+            if os.getenv("FZFAWS_FZF_OPTS"):
+                cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
+            if os.getenv("FZFAWS_FZF_KEYS"):
+                cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
             if header:
                 cmd_list.append("--header=%s" % header)
             if multi_select:
