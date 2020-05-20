@@ -43,13 +43,41 @@ class TestFileLoader(unittest.TestCase):
         if "foo" not in result["dictBody"]:
             self.fail("Json file is not read properly")
 
+    @patch.object(FileLoader, "_set_ec2_env")
     @patch.object(FileLoader, "_set_gloable_env")
     @patch.object(FileLoader, "_set_fzf_env")
-    def test_load_config_file(self, mocked_set_fzf, mocked_set_global):
+    def test_load_config_file(self, mocked_set_fzf, mocked_set_global, mocked_set_ec2):
         self.fileloader.path = self.test_yaml
         self.fileloader.load_config_file(config_path=self.test_yaml)
         mocked_set_fzf.assert_called_once()
         mocked_set_global.assert_called_once()
+        mocked_set_ec2.assert_called_once()
+
+    def test_set_ec2_env(self):
+        # normal test
+        self.fileloader.load_config_file(config_path=self.test_yaml)
+        self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/.ssh")
+        self.assertEqual(
+            os.environ["FZFAWS_EC2_WAITER"],
+            json.dumps({"delay": 15, "max_attempts": 40}),
+        )
+
+        # reset
+        os.environ["FZFAWS_EC2_WAITER"] = ""
+        os.environ["FZFAWS_EC2_KEYPAIRS"] = ""
+
+        # empty test
+        self.fileloader._set_ec2_env({})
+        self.assertEqual(os.getenv("FZFAWS_EC2_WAITER", ""), "")
+
+        # custom settings
+        self.fileloader._set_ec2_env(
+            {"keypair": "$HOME/Anywhere/aws", "waiter": {"max_attempts": 40},}
+        )
+        self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/Anywhere/aws")
+        self.assertEqual(
+            os.environ["FZFAWS_EC2_WAITER"], json.dumps({"max_attempts": 40}),
+        )
 
     def test_set_global_env(self):
         # normal test
@@ -64,7 +92,7 @@ class TestFileLoader(unittest.TestCase):
 
         # empty test
         self.fileloader._set_gloable_env({})
-        self.assertEqual(os.environ["FZFAWS_GLOBAL_WAITER"], "")
+        self.assertEqual(os.getenv("FZFAWS_GLOBAL_WAITER", ""), "")
 
         # custom settings
         self.fileloader._set_gloable_env({"waiter": {"delay": 10}})
