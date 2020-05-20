@@ -33,3 +33,12 @@ global:
   waiter:
     delay: 15
     max_attempts: 40
+
+# settings for individual services
+services:
+  ec2:
+    # location of your keypair, full path
+    keypair: $HOME/.ssh
+    waiter:
+      delay: 15
+      max_attempts: 40

@@ -91,9 +91,26 @@ class FileLoader:
                     return
                 self._set_fzf_env(formated_body.get("fzf", {}))
                 self._set_gloable_env(formated_body.get("global", {}))
+                if not formated_body.get("services"):
+                    return
+                else:
+                    self._set_ec2_env(formated_body["services"].get("ec2", {}))
             except YAMLError as e:
                 print("Config file is malformed, please double check your config file")
                 print(e)
+
+    def _set_ec2_env(self, ec2_settings: dict) -> None:
+        """ec2 service settings
+
+        :param ec2_settings: ec2 settings from config file
+        :type ec2_settings: dict
+        """
+        if not ec2_settings:
+            return
+        if ec2_settings.get("keypair"):
+            os.environ["FZFAWS_EC2_KEYPAIRS"] = ec2_settings.get("keypair", "")
+        if ec2_settings.get("waiter"):
+            os.environ["FZFAWS_EC2_WAITER"] = json.dumps(ec2_settings.get("waiter", {}))
 
     def _set_gloable_env(self, global_settings: dict) -> None:
         """set global settings
