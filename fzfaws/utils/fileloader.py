@@ -90,9 +90,23 @@ class FileLoader:
                 if not formated_body:
                     return
                 self._set_fzf_env(formated_body.get("fzf", {}))
+                self._set_gloable_env(formated_body.get("global", {}))
             except YAMLError as e:
                 print("Config file is malformed, please double check your config file")
                 print(e)
+
+    def _set_gloable_env(self, global_settings: dict) -> None:
+        """set global settings
+
+        :param global_settings: loaded global seetings from config file
+        :type global_settings: dict
+        """
+        if not global_settings:
+            return
+        if global_settings.get("waiter"):
+            os.environ["FZFAWS_GLOBAL_WAITER"] = json.dumps(
+                global_settings.get("waiter", {})
+            )
 
     def _set_fzf_env(self, fzf_settings: dict) -> None:
         """set env for fzf

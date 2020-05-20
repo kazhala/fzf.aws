@@ -24,3 +24,12 @@ fzf:
     jump: alt-j
     top: alt-0
     toggle-sort: alt-s
+
+# common settings for all services
+global:
+  # waiter config for waiting
+  # e.g. wait for ec2 instance to start.
+  # default: maximum 40 requests, 15 seconds between each requests.
+  waiter:
+    delay: 15
+    max_attempts: 40
