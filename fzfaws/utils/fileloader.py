@@ -111,6 +111,9 @@ class FileLoader:
             os.environ["FZFAWS_EC2_KEYPAIRS"] = ec2_settings.get("keypair", "")
         if ec2_settings.get("waiter"):
             os.environ["FZFAWS_EC2_WAITER"] = json.dumps(ec2_settings.get("waiter", {}))
+        if ec2_settings.get("default_args"):
+            for key, value in ec2_settings.get("default_args").items():
+                os.environ["FZFAWS_EC2_%s" % key.upper()] = value
 
     def _set_gloable_env(self, global_settings: dict) -> None:
         """set global settings

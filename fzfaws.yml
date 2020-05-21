@@ -44,3 +44,14 @@ services:
     waiter:
       delay: 15
       max_attempts: 40
+
+    profile: default
+    region: ap-southeast-2
+
+    # default argument for ec2 calls
+    default_args:
+      # fzfaws ec2 ssh
+      ssh: -A
+      start: -w
+      stop: -w
+      terminate: -w
