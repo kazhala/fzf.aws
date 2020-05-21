@@ -86,17 +86,27 @@ class TestFileLoader(unittest.TestCase):
             os.environ["FZFAWS_GLOBAL_WAITER"],
             json.dumps({"delay": 15, "max_attempts": 40}),
         )
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "ap-southeast-2")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "default")
 
         # reset
         os.environ["FZFAWS_GLOBAL_WAITER"] = ""
+        os.environ["FZFAWS_GLOBAL_PROFILE"] = ""
+        os.environ["FZFAWS_GLOBAL_REGION"] = ""
 
         # empty test
         self.fileloader._set_gloable_env({})
         self.assertEqual(os.getenv("FZFAWS_GLOBAL_WAITER", ""), "")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "")
 
         # custom settings
-        self.fileloader._set_gloable_env({"waiter": {"delay": 10}})
+        self.fileloader._set_gloable_env(
+            {"profile": "root", "region": "us-east-1", "waiter": {"delay": 10}}
+        )
         self.assertEqual(os.environ["FZFAWS_GLOBAL_WAITER"], json.dumps({"delay": 10}))
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "us-east-1")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "root")
 
     def test_set_fzf_env(self):
         # normal test

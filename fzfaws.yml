@@ -27,12 +27,14 @@ fzf:
 
 # common settings for all services
 global:
-  # waiter config for waiting
+  # global waiter config for waiting, it can be override in services
   # e.g. wait for ec2 instance to start.
   # default: maximum 40 requests, 15 seconds between each requests.
   waiter:
     delay: 15
     max_attempts: 40
+  profile: default
+  region: ap-southeast-2
 
 # settings for individual services
 services:

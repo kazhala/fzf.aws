@@ -124,6 +124,10 @@ class FileLoader:
             os.environ["FZFAWS_GLOBAL_WAITER"] = json.dumps(
                 global_settings.get("waiter", {})
             )
+        if global_settings.get("profile"):
+            os.environ["FZFAWS_GLOBAL_PROFILE"] = global_settings["profile"]
+        if global_settings.get("region"):
+            os.environ["FZFAWS_GLOBAL_REGION"] = global_settings["region"]
 
     def _set_fzf_env(self, fzf_settings: dict) -> None:
         """set env for fzf
