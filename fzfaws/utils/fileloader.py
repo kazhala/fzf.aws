@@ -96,9 +96,32 @@ class FileLoader:
                 else:
                     self._set_ec2_env(formated_body["services"].get("ec2", {}))
                     self._set_s3_env(formated_body["services"].get("s3", {}))
+                    self._set_cloudformation_env(
+                        formated_body["services"].get("cloudformation", {})
+                    )
             except YAMLError as e:
                 print("Config file is malformed, please double check your config file")
                 print(e)
+
+    def _set_cloudformation_env(self, cloudformation_settings: dict) -> None:
+        """cloudformation settings
+
+        :param cloudformation_settings: settins from config file
+        :type cloudformation_settings: dict
+        """
+        if not cloudformation_settings:
+            return
+        if cloudformation_settings.get("profile"):
+            os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = cloudformation_settings[
+                "profile"
+            ]
+        if cloudformation_settings.get("region"):
+            os.environ["FZFAWS_CLOUDFORMATION_REGION"] = cloudformation_settings[
+                "region"
+            ]
+        if cloudformation_settings.get("default_args"):
+            for key, value in cloudformation_settings["default_args"].items():
+                os.environ["FZFAWS_CLOUDFORMATION_%s" % key.upper()] = value
 
     def _set_s3_env(self, s3_settings: dict) -> None:
         """s3 service settings

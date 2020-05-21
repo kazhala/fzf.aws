@@ -77,3 +77,12 @@ services:
       upload: -H -E
       download: -H
       presign: -e 3600
+
+  cloudformation:
+    profile: default
+    region: ap-southeast-2
+
+    default_args:
+      create: -w -E
+      update: -w -E
+      delete: -w

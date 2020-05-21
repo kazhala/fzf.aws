@@ -41,12 +41,18 @@ class TestFileLoader(unittest.TestCase):
         if "foo" not in result["dictBody"]:
             self.fail("Json file is not read properly")
 
+    @patch.object(FileLoader, "_set_cloudformation_env")
     @patch.object(FileLoader, "_set_s3_env")
     @patch.object(FileLoader, "_set_ec2_env")
     @patch.object(FileLoader, "_set_gloable_env")
     @patch.object(FileLoader, "_set_fzf_env")
     def test_load_config_file(
-        self, mocked_set_fzf, mocked_set_global, mocked_set_ec2, mocked_set_s3
+        self,
+        mocked_set_fzf,
+        mocked_set_global,
+        mocked_set_ec2,
+        mocked_set_s3,
+        mocked_set_cloudformation,
     ):
         self.fileloader.path = self.test_yaml
         self.fileloader.load_config_file(config_path=self.test_yaml)
@@ -54,6 +60,39 @@ class TestFileLoader(unittest.TestCase):
         mocked_set_global.assert_called_once()
         mocked_set_ec2.assert_called_once()
         mocked_set_s3.assert_called_once()
+        mocked_set_cloudformation.assert_called_once()
+
+    def test_set_cloudformation_env(self):
+        # normal test
+        self.fileloader.load_config_file(config_path=self.test_yaml)
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "default")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "ap-southeast-2")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-w -E")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "-w")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "-w -E")
+
+        # reset
+        os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_REGION"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_CREATE"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_DELETE"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_UPDATE"] = ""
+
+        # empty test
+        self.fileloader._set_cloudformation_env({})
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "")
+
+        # custom settings
+        self.fileloader._set_cloudformation_env(
+            {"profile": "root", "region": "us-east-2", "default_args": {"create": "-l"}}
+        )
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "us-east-2")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-l")
 
     def test_set_s3_env(self):
         # normal test
