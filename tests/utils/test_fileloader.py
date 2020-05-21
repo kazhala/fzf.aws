@@ -72,22 +72,44 @@ class TestFileLoader(unittest.TestCase):
                 }
             ),
         )
+        self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "default")
+        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-H -E")
+        self.assertEqual(os.environ["FZFAWS_S3_DOWNLOAD"], "-H")
+        self.assertEqual(os.environ["FZFAWS_S3_PRESIGN"], "-e 3600")
+        self.assertEqual(os.getenv("FZFAWS_S3_LS", ""), "")
 
         # reset
         os.environ["FZFAWS_S3_TRANSFER"] = ""
+        os.environ["FZFAWS_S3_PROFILE"] = ""
+        os.environ["FZFAWS_S3_UPLOAD"] = ""
+        os.environ["FZFAWS_S3_DOWNLOAD"] = ""
+        os.environ["FZFAWS_S3_PRESIGN"] = ""
 
         # empty test
         self.fileloader._set_s3_env({})
         self.assertEqual(os.getenv("FZFAWS_S3_TRANSFER", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_S3_PROFILE", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_S3_UPLOAD", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_S3_DOWNLOAD", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_S3_PRESIGN", ""), "")
 
         # custom settings
         self.fileloader._set_s3_env(
-            {"transfer_config": {"multipart_threshold": 1, "multipart_chunksize": 1}}
+            {
+                "transfer_config": {"multipart_threshold": 1, "multipart_chunksize": 1},
+                "profile": "root",
+                "default_args": {"upload": "-R", "ls": "-b"},
+            }
         )
         self.assertEqual(
             os.environ["FZFAWS_S3_TRANSFER"],
             json.dumps({"multipart_threshold": 1, "multipart_chunksize": 1,}),
         )
+        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-R")
+        self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_S3_LS"], "-b")
+        self.assertEqual(os.getenv("FZFAWS_S3_DOWNLOAD", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_S3_PRESIGN", ""), "")
 
     def test_set_ec2_env(self):
         # normal test

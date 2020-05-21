@@ -70,3 +70,10 @@ services:
       max_io_queue: 100
       num_download_attempts: 5
       use_threads: true
+
+    profile: default
+
+    default_args:
+      upload: -H -E
+      download: -H
+      presign: -e 3600

@@ -110,8 +110,13 @@ class FileLoader:
             return
         if s3_settings.get("transfer_config"):
             os.environ["FZFAWS_S3_TRANSFER"] = json.dumps(
-                s3_settings.get("transfer_config", {})
+                s3_settings["transfer_config"]
             )
+        if s3_settings.get("profile"):
+            os.environ["FZFAWS_S3_PROFILE"] = s3_settings["profile"]
+        if s3_settings.get("default_args"):
+            for key, value in s3_settings.get("default_args").items():
+                os.environ["FZFAWS_S3_%s" % key.upper()] = value
 
     def _set_ec2_env(self, ec2_settings: dict) -> None:
         """ec2 service settings
