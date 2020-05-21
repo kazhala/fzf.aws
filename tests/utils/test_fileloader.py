@@ -18,8 +18,6 @@ class TestFileLoader(unittest.TestCase):
     def tearDown(self):
         os.remove(self.test_json)
         os.environ["FZFAWS_FZF_EXECUTABLE"] = "binary"
-        os.environ["FZFAWS_FZF_OPTS"] = ""
-        os.environ["FZFAWS_FZF_KEYS"] = ""
 
     def test_consctructor(self):
         self.assertEqual(self.fileloader.path, "")
@@ -63,12 +61,16 @@ class TestFileLoader(unittest.TestCase):
         )
         self.assertEqual(os.environ["FZFAWS_EC2_START"], "-w")
         self.assertEqual(os.environ["FZFAWS_EC2_STOP"], "-w")
+        self.assertEqual(os.environ["FZFAWS_EC2_REGION"], "ap-southeast-2")
+        self.assertEqual(os.environ["FZFAWS_EC2_PROFILE"], "default")
 
         # reset
         os.environ["FZFAWS_EC2_WAITER"] = ""
         os.environ["FZFAWS_EC2_KEYPAIRS"] = ""
         os.environ["FZFAWS_EC2_START"] = ""
         os.environ["FZFAWS_EC2_STOP"] = ""
+        os.environ["FZFAWS_EC2_PROFILE"] = ""
+        os.environ["FZFAWS_EC2_REGION"] = ""
 
         # empty test
         self.fileloader._set_ec2_env({})
@@ -76,6 +78,8 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(os.getenv("FZFAWS_EC2_START", ""), "")
         self.assertEqual(os.getenv("FZFAWS_EC2_STOP", ""), "")
         self.assertEqual(os.getenv("FZFAWS_EC2_KEYPAIRS", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_EC2_REGION", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_EC2_PROFILE", ""), "")
 
         # custom settings
         self.fileloader._set_ec2_env(
@@ -83,6 +87,8 @@ class TestFileLoader(unittest.TestCase):
                 "keypair": "$HOME/Anywhere/aws",
                 "waiter": {"max_attempts": 40},
                 "default_args": {"ssh": "-A"},
+                "region": "us-east-1",
+                "profile": "root",
             }
         )
         self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/Anywhere/aws")
@@ -90,6 +96,8 @@ class TestFileLoader(unittest.TestCase):
             os.environ["FZFAWS_EC2_WAITER"], json.dumps({"max_attempts": 40}),
         )
         self.assertEqual(os.environ["FZFAWS_EC2_SSH"], "-A")
+        self.assertEqual(os.environ["FZFAWS_EC2_REGION"], "us-east-1")
+        self.assertEqual(os.environ["FZFAWS_EC2_PROFILE"], "root")
 
     def test_set_global_env(self):
         # normal test

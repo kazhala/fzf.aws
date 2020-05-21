@@ -51,7 +51,6 @@ services:
     # default argument for ec2 calls
     default_args:
       # fzfaws ec2 ssh
-      ssh: -A
       start: -w
       stop: -w
       terminate: -w

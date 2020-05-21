@@ -114,6 +114,10 @@ class FileLoader:
         if ec2_settings.get("default_args"):
             for key, value in ec2_settings.get("default_args").items():
                 os.environ["FZFAWS_EC2_%s" % key.upper()] = value
+        if ec2_settings.get("profile"):
+            os.environ["FZFAWS_EC2_PROFILE"] = ec2_settings["profile"]
+        if ec2_settings.get("region"):
+            os.environ["FZFAWS_EC2_REGION"] = ec2_settings["region"]
 
     def _set_gloable_env(self, global_settings: dict) -> None:
         """set global settings
