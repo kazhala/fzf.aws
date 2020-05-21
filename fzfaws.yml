@@ -39,7 +39,7 @@ global:
 # settings for individual services
 services:
   ec2:
-    # location of your keypair, full path
+    # location of your keypair, so that fzfaws ec2 ssh knws where to find the pem file
     keypair: $HOME/.ssh
     waiter:
       delay: 15
@@ -49,8 +49,24 @@ services:
     region: ap-southeast-2
 
     # default argument for ec2 calls
+    # e.g. fzfaws ec2 start [ARGS]
     default_args:
-      # fzfaws ec2 ssh
       start: -w
       stop: -w
       terminate: -w
+
+  s3:
+    # This is the s3 transfer config that determines
+    # how files would be uploaded to s3
+    # more information https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html#TransferConfig
+    transfer_config:
+      # the threshhold for multi part upload, in MB
+      multipart_threshold: 8
+      multipart_chunksize: 8
+      max_concurrency: 10
+
+      # You'd probably don't want to mess with anything beyond here.
+      io_chunksize: 256
+      max_io_queue: 100
+      num_download_attempts: 5
+      use_threads: true

@@ -95,9 +95,23 @@ class FileLoader:
                     return
                 else:
                     self._set_ec2_env(formated_body["services"].get("ec2", {}))
+                    self._set_s3_env(formated_body["services"].get("s3", {}))
             except YAMLError as e:
                 print("Config file is malformed, please double check your config file")
                 print(e)
+
+    def _set_s3_env(self, s3_settings: dict) -> None:
+        """s3 service settings
+
+        :param s3_settings: s3 settings from config file
+        :type s3_settings: dict
+        """
+        if not s3_settings:
+            return
+        if s3_settings.get("transfer_config"):
+            os.environ["FZFAWS_S3_TRANSFER"] = json.dumps(
+                s3_settings.get("transfer_config", {})
+            )
 
     def _set_ec2_env(self, ec2_settings: dict) -> None:
         """ec2 service settings
