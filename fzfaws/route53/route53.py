@@ -36,23 +36,18 @@ class Route53(BaseSession):
         :param multi_select: allow multi_select
         :type multi_select: bool, optional
         """
-        try:
-            if zone_ids is None:
-                fzf = Pyfzf()
-                spinner = Spinner(message="Fetching hostedzones..")
-                spinner.start()
-                for result in self.get_paginated_result("list_hosted_zones"):
+        if zone_ids is None:
+            fzf = Pyfzf()
+            with Spinner.spin(message="Fetching hostedzones ..."):
+                paginator = self.client.get_paginator("list_hosted_zones")
+                for result in paginator.paginate():
                     result = self._process_hosted_zone(result["HostedZones"])
                     fzf.process_list(result, "Id", "Name")
-                spinner.stop()
-                zone_ids = fzf.execute_fzf(multi_select=multi_select, empty_allow=True)
-            if type(zone_ids) == str:
-                self.zone_ids[0] = str(zone_ids)
-            elif type(zone_ids) == list:
-                self.zone_ids = list(zone_ids)
-        except:
-            Spinner.clear_spinner()
-            raise
+            zone_ids = fzf.execute_fzf(multi_select=multi_select, empty_allow=True)
+        if type(zone_ids) == str:
+            self.zone_ids[0] = str(zone_ids)
+        elif type(zone_ids) == list:
+            self.zone_ids = list(zone_ids)
 
     def _process_hosted_zone(self, hostedzone_list: list) -> list:
         """process hostedzone as the response is not raw id

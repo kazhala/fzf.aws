@@ -2,7 +2,7 @@
 
 Wraps around boto3 client
 """
-from fzfaws.utils import Pyfzf, BaseSession
+from fzfaws.utils import Pyfzf, BaseSession, Spinner
 from typing import Union, Optional
 
 
@@ -46,8 +46,10 @@ class SNS(BaseSession):
         """
         if not arns:
             fzf = Pyfzf()
-            for result in self.get_paginated_result("list_topics"):
-                fzf.process_list(result.get("Topics", []), "TopicArn")
+            with Spinner.spin(message="Fetching sns topics ..."):
+                paginator = self.client.get_paginator("list_topics")
+                for result in paginator.paginate():
+                    fzf.process_list(result.get("Topics", []), "TopicArn")
             arns = fzf.execute_fzf(
                 empty_allow=empty_allow, multi_select=multi_select, header=header
             )

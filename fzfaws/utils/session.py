@@ -4,7 +4,7 @@ Wraps around boto3 session for better profile region management
 """
 from boto3.session import Session
 from fzfaws.utils import Pyfzf
-from typing import Any, Union, Optional, Callable
+from typing import Any, Union, Optional
 
 
 class BaseSession:
@@ -56,19 +56,3 @@ class BaseSession:
         resources = self.session.get_available_resources()
         if service_name in resources:
             self.resource = self.session.resource(service_name)
-
-    def get_paginated_result(self, paginator_name: str, **kwargs) -> list:
-        """helper function to retrieve all pginated result
-
-        The purpose of this function rather than inline is for
-        better unit testing
-
-        :param paginator_name: paginator name, check boto3 doc
-        :type paginator_name: str
-        :return: list of paginated results
-        :rtype: list
-        """
-        response = []
-        for result in self.client.get_paginator(paginator_name).paginate(**kwargs):
-            response.append(result)
-        return response

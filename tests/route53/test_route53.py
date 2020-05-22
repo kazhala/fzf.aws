@@ -3,7 +3,8 @@ import io
 import sys
 from unittest.mock import patch
 from fzfaws.route53 import Route53
-from fzfaws.utils import BaseSession, Pyfzf
+from fzfaws.utils import Pyfzf
+from botocore.paginate import Paginator
 
 
 class TestRoute53(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestRoute53(unittest.TestCase):
 
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
-    @patch.object(BaseSession, "get_paginated_result")
+    @patch.object(Paginator, "paginate")
     def test_set_zone_id(self, mocked_result, mocked_fzf_process, mocked_fzf_execute):
         mocked_result.return_value = [
             {

@@ -49,4 +49,4 @@ class TestSession(unittest.TestCase):
         stubber.add_response("describe_instances", response)
         stubber.activate()
         service_response = ec2.describe_instances()
-        self.assertEqual(service_response, 1)
+        self.assertEqual(service_response, {"Reservations": []})
