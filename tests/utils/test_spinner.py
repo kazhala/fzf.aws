@@ -39,3 +39,15 @@ class TestSpinner(unittest.TestCase):
         new_spinner = Spinner()
         response = new_spinner.execute_with_spinner(lambda x: x, x=1)
         self.assertEqual(response, 1)
+
+    def test_context(self):
+        with Spinner.spin(message="hello"):
+            response = 1 + 1
+        self.assertEqual(response, 2)
+        self.assertRegex(self.capturedOutput.getvalue(), r".*[|/-\\]\shello.*")
+
+        try:
+            with Spinner.spin():
+                raise Exception
+        except:
+            self.assertEqual(Spinner.instances, [])
