@@ -3,7 +3,8 @@ import io
 import unittest
 from unittest.mock import patch
 from fzfaws.kms import KMS
-from fzfaws.utils import Pyfzf, BaseSession
+from fzfaws.utils import Pyfzf
+from botocore.paginate import Paginator
 
 
 class TestKMS(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestKMS(unittest.TestCase):
 
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
-    @patch.object(BaseSession, "get_paginated_result")
+    @patch.object(Paginator, "paginate")
     def test_set_keyids(self, mocked_result, mocked_fzf_list, mocked_fzf_execute):
         mocked_result.return_value = [
             {

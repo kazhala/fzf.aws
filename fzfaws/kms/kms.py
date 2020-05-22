@@ -2,7 +2,7 @@
 
 Handle selection of kms keys
 """
-from fzfaws.utils import Pyfzf, BaseSession
+from fzfaws.utils import Pyfzf, BaseSession, Spinner
 from typing import Union, Optional
 
 
@@ -45,11 +45,15 @@ class KMS(BaseSession):
         """
         if not keyids:
             fzf = Pyfzf()
-            for result in self.get_paginated_result("list_aliases"):
-                aliases = [
-                    alias for alias in result.get("Aliases") if alias.get("TargetKeyId")
-                ]
-                fzf.process_list(aliases, "TargetKeyId", "AliasName", "AliasArn")
+            with Spinner.spin(message="Fetching kms keys ..."):
+                paginator = self.client.get_paginator("list_aliases")
+                for result in paginator.paginate():
+                    aliases = [
+                        alias
+                        for alias in result.get("Aliases")
+                        if alias.get("TargetKeyId")
+                    ]
+                    fzf.process_list(aliases, "TargetKeyId", "AliasName", "AliasArn")
             keyids = fzf.execute_fzf(
                 header=header, multi_select=multi_select, empty_allow=empty_allow
             )

@@ -3,7 +3,7 @@
 Wraps around boto3 session for better profile region management
 """
 from boto3.session import Session
-from fzfaws.utils import Pyfzf, Spinner
+from fzfaws.utils import Pyfzf
 from typing import Any, Union, Optional, Callable
 
 
@@ -71,18 +71,4 @@ class BaseSession:
         response = []
         for result in self.client.get_paginator(paginator_name).paginate(**kwargs):
             response.append(result)
-        return response
-
-    def get_boto3_response(self, action: Callable, *args, **kwargs) -> Optional[Any]:
-        """helper function to retrieve response from boto3
-
-        The purpose of this function is mainly for unit testing. Moto doesn't
-        have enough coverage to cover the use case of fzfaws, hence using this
-        to easier mock the response. This is obviously not ideal, will improve
-        either with Moto or come up with a better mock on boto3
-
-        :param action: boto3 command to execute
-        :type action: Callable
-        """
-        response = action(*args, **kwargs)
         return response

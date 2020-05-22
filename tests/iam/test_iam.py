@@ -3,7 +3,8 @@ import sys
 import unittest
 from unittest.mock import patch
 from fzfaws.iam import IAM
-from fzfaws.utils import Pyfzf, BaseSession
+from fzfaws.utils import Pyfzf
+from botocore.paginate import Paginator
 
 
 class TestIAM(unittest.TestCase):
@@ -24,7 +25,7 @@ class TestIAM(unittest.TestCase):
         self.assertEqual(None, iam.profile)
         self.assertEqual(None, iam.region)
 
-    @patch.object(BaseSession, "get_paginated_result")
+    @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "process_list")
     @patch.object(Pyfzf, "append_fzf")
     @patch.object(Pyfzf, "execute_fzf")

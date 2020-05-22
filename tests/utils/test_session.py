@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch, PropertyMock
 from fzfaws.utils import BaseSession, Pyfzf
 from boto3.session import Session
+import boto3
+from botocore.stub import Stubber
 
 
 class TestSession(unittest.TestCase):
@@ -38,3 +40,13 @@ class TestSession(unittest.TestCase):
         session = BaseSession(profile=None, region=True, service_name="ec2")
         self.assertEqual("ap-southeast-2", session.region)
         mocked_fzf_append.assert_called_with("ap-southeast-1\n")
+
+    # TODO: reference only for now
+    def test_random(self):
+        ec2 = boto3.client("ec2")
+        stubber = Stubber(ec2)
+        response = {"Reservations": []}
+        stubber.add_response("describe_instances", response)
+        stubber.activate()
+        service_response = ec2.describe_instances()
+        self.assertEqual(service_response, 1)

@@ -6,7 +6,7 @@ during wait operation for aws
 import sys
 import time
 import threading
-from typing import Any, Callable, Iterator, Optional, ContextManager
+from typing import Any, Callable, Iterator, Optional
 from contextlib import contextmanager
 
 

@@ -48,12 +48,11 @@ class IAM(BaseSession):
         :param multi_select: allow multi selection
         :type multi_select: bool, optional
         """
-        try:
+        if arns is None:
             fzf = Pyfzf()
-            spinner = Spinner(message="Fetching iam roles..")
-            if arns is None:
-                spinner.start()
-                for result in self.get_paginated_result("list_roles"):
+            with Spinner.spin(message="Fetching iam roles.."):
+                paginator = self.client.get_paginator("list_roles")
+                for result in paginator.paginate():
                     if service:
                         for role in result.get("Roles", []):
                             statements = role.get("AssumeRolePolicyDocument", {}).get(
@@ -73,17 +72,13 @@ class IAM(BaseSession):
                                     )
                     else:
                         fzf.process_list(result.get("Roles", []), "RoleName", "Arn")
-                spinner.stop()
-                arns = fzf.execute_fzf(
-                    empty_allow=empty_allow,
-                    print_col=4,
-                    header=header,
-                    multi_select=multi_select,
-                )
-            if type(arns) == str:
-                self.arns[0] = str(arns)
-            elif type(arns) == list:
-                self.arns = list(arns)
-        except:
-            Spinner.clear_spinner()
-            raise
+            arns = fzf.execute_fzf(
+                empty_allow=empty_allow,
+                print_col=4,
+                header=header,
+                multi_select=multi_select,
+            )
+        if type(arns) == str:
+            self.arns[0] = str(arns)
+        elif type(arns) == list:
+            self.arns = list(arns)

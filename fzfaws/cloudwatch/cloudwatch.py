@@ -2,7 +2,7 @@
 
 wrapps around boto3 client for centerilised management
 """
-from fzfaws.utils import Pyfzf, BaseSession
+from fzfaws.utils import Pyfzf, BaseSession, Spinner
 from typing import Union, Optional
 
 
@@ -45,11 +45,13 @@ class Cloudwatch(BaseSession):
         """
         if not arns:
             fzf = Pyfzf()
-            for result in self.get_paginated_result("describe_alarms"):
-                if result.get("CompositeAlarms"):
-                    fzf.process_list(result["CompositeAlarms"], "AlarmArn")
-                if result.get("MetricAlarms"):
-                    fzf.process_list(result["MetricAlarms"], "AlarmArn")
+            with Spinner.spin(message="Fetching cloudwatch alarms ..."):
+                paginator = self.client.get_paginator("describe_alarms")
+                for result in paginator.paginate():
+                    if result.get("CompositeAlarms"):
+                        fzf.process_list(result["CompositeAlarms"], "AlarmArn")
+                    if result.get("MetricAlarms"):
+                        fzf.process_list(result["MetricAlarms"], "AlarmArn")
             arns = fzf.execute_fzf(
                 empty_allow=empty_allow, multi_select=multi_select, header=header
             )

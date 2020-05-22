@@ -3,7 +3,8 @@ import sys
 import unittest
 from unittest.mock import patch
 from fzfaws.cloudwatch import Cloudwatch
-from fzfaws.utils import BaseSession, Pyfzf
+from fzfaws.utils import Pyfzf
+from botocore.paginate import Paginator
 
 
 class TestCloudWwatch(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestCloudWwatch(unittest.TestCase):
 
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
-    @patch.object(BaseSession, "get_paginated_result")
+    @patch.object(Paginator, "paginate")
     def test_set_arns(self, mocked_result, mocked_fzf_list, mocked_fzf_execute):
         mocked_result.return_value = [
             {
@@ -38,8 +39,6 @@ class TestCloudWwatch(unittest.TestCase):
                         "AlarmArn": "arn:aws:cloudwatch:ap-southeast-2:11111111:alarm:Auto-check-drift-CloudWatchAlarms-11111111",
                         "AlarmDescription": "Drift status of cloudformation stacks",
                         "StateValue": "OK",
-                        "StateReason": "Threshold Crossed: 1 out of the last 1 datapoints [0.0 (23/04/20 13:17:00)] was not greater than or equal to the threshold (1.0) (minimum 1 datapoint for ALARM -> OK transition).",
-                        "StateReasonData": '{"version":"1.0","queryDate":"2020-04-23T13:18:50.528+0000","startDate":"2020-04-23T13:17:00.000+0000","statistic":"Sum","period":60,"recentDatapoints":[0.0],"threshold":1.0}',
                         "MetricName": "drift",
                         "Namespace": "Cloudformation",
                         "Statistic": "Sum",
@@ -53,8 +52,6 @@ class TestCloudWwatch(unittest.TestCase):
                         "AlarmArn": "arn:aws:cloudwatch:ap-southeast-2:11111111:alarm:awseb-e-wphtqnu48q-stack-AWSEBCloudwatchAlarmHigh-11111111",
                         "AlarmDescription": "ElasticBeanstalk Default Scale Up alarm",
                         "StateValue": "OK",
-                        "StateReason": "Threshold Crossed: 1 datapoint [41021.666666666664 (07/04/20 23:31:00)] was not greater than the threshold (6000000.0).",
-                        "StateReasonData": '{"version":"1.0","queryDate":"2020-04-07T23:41:46.393+0000","startDate":"2020-04-07T23:31:00.000+0000","statistic":"Average","period":300,"recentDatapoints":[41021.666666666664],"threshold":6000000.0}',
                         "MetricName": "NetworkOut",
                         "Namespace": "AWS/EC2",
                         "Statistic": "Average",
@@ -93,8 +90,6 @@ class TestCloudWwatch(unittest.TestCase):
                     "AlarmArn": "arn:aws:cloudwatch:ap-southeast-2:11111111:alarm:Auto-check-drift-CloudWatchAlarms-11111111",
                     "AlarmDescription": "Drift status of cloudformation stacks",
                     "StateValue": "OK",
-                    "StateReason": "Threshold Crossed: 1 out of the last 1 datapoints [0.0 (23/04/20 13:17:00)] was not greater than or equal to the threshold (1.0) (minimum 1 datapoint for ALARM -> OK transition).",
-                    "StateReasonData": '{"version":"1.0","queryDate":"2020-04-23T13:18:50.528+0000","startDate":"2020-04-23T13:17:00.000+0000","statistic":"Sum","period":60,"recentDatapoints":[0.0],"threshold":1.0}',
                     "MetricName": "drift",
                     "Namespace": "Cloudformation",
                     "Statistic": "Sum",
@@ -108,8 +103,6 @@ class TestCloudWwatch(unittest.TestCase):
                     "AlarmArn": "arn:aws:cloudwatch:ap-southeast-2:11111111:alarm:awseb-e-wphtqnu48q-stack-AWSEBCloudwatchAlarmHigh-11111111",
                     "AlarmDescription": "ElasticBeanstalk Default Scale Up alarm",
                     "StateValue": "OK",
-                    "StateReason": "Threshold Crossed: 1 datapoint [41021.666666666664 (07/04/20 23:31:00)] was not greater than the threshold (6000000.0).",
-                    "StateReasonData": '{"version":"1.0","queryDate":"2020-04-07T23:41:46.393+0000","startDate":"2020-04-07T23:31:00.000+0000","statistic":"Average","period":300,"recentDatapoints":[41021.666666666664],"threshold":6000000.0}',
                     "MetricName": "NetworkOut",
                     "Namespace": "AWS/EC2",
                     "Statistic": "Average",
