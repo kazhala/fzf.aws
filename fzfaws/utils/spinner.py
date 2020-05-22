@@ -6,7 +6,8 @@ during wait operation for aws
 import sys
 import time
 import threading
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterator, Optional, ContextManager
+from contextlib import contextmanager
 
 
 class Spinner(threading.Thread):
@@ -80,3 +81,29 @@ class Spinner(threading.Thread):
             if spinner.is_alive():
                 spinner.stop()
         cls.instances[:] = []
+
+    @classmethod
+    @contextmanager
+    def spin(
+        cls,
+        pattern: Optional[str] = None,
+        message: Optional[str] = None,
+        speed: Optional[float] = None,
+    ) -> Iterator[None]:
+        """context manager to handle spinner exit
+
+        :param pattern: pattern to display during spin
+        :type pattern: str, optional
+        :param message: message to display during spin
+        :type message: str, optional
+        :param speed: speed to spin
+        :type speed: float, optional
+        """
+        try:
+            spinner = cls(pattern=pattern, message=message, speed=speed)
+            spinner.start()
+            yield
+            spinner.stop()
+        except:
+            cls.clear_spinner()
+            raise
