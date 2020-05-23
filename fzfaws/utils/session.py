@@ -4,7 +4,7 @@ Wraps around boto3 session for better profile region management
 """
 from boto3.session import Session
 from fzfaws.utils import Pyfzf
-from typing import Any, Union, Optional
+from typing import Union, Optional
 
 
 class BaseSession:

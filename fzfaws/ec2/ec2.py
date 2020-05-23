@@ -2,10 +2,8 @@
 
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.util import get_name_tag, search_dict_in_list
-from fzfaws.utils.spinner import Spinner
+from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, search_dict_in_list, Spinner
+from typing import Union, Optional
 
 
 class EC2(BaseSession):
@@ -17,17 +15,16 @@ class EC2(BaseSession):
     :type region: Union[bool, str]
     """
 
-    def __init__(self, profile=None, region=None):
-        # type: (Union[str, bool], Union[str, bool]) -> None
-        """region is limited due to ec2 not avalilable in all region
-
-        Args:
-            profile: string or bool, use a different profile for this operation
-            region: string or bool, use a different region for this operation
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
+    ) -> None:
+        """constructor
         """
         super().__init__(profile=profile, region=region, service_name="ec2")
-        self.instance_list = []  # type: list
-        self.instance_ids = []  # type: list
+        self.instance_list: list = []
+        self.instance_ids: list = []
 
     def set_ec2_instance(self, multi_select=True, header=None):
         # type: (bool) -> None
