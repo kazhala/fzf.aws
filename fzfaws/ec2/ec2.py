@@ -26,8 +26,7 @@ class EC2(BaseSession):
         self.instance_list: list = []
         self.instance_ids: list = []
 
-    def set_ec2_instance(self, multi_select=True, header=None):
-        # type: (bool) -> None
+    def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
         """set ec2 instance for current operation
 
         :param multi_select: enable multi select
@@ -36,15 +35,13 @@ class EC2(BaseSession):
         :type header: str, optional
         """
 
-        try:
-            response_list = []  # type: list
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching EC2 instances..")
-            spinner.start()
+        response_list: list = []
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching EC2 instances ..."):
             paginator = self.client.get_paginator("describe_instances")
             for result in paginator.paginate():
+                # clear response_list and prepare new list for fzf
                 response_list = []
-                # prepare the list for fzf
                 for instance in result["Reservations"]:
                     response_list.append(
                         {
@@ -77,27 +74,21 @@ class EC2(BaseSession):
                     "PublicIpAddress",
                     "PrivateIpAddress",
                 )
-            spinner.stop()
-            selected_instance_ids = fzf.execute_fzf(
-                multi_select=multi_select, header=header
-            )
+        selected_instance_ids = fzf.execute_fzf(
+            multi_select=multi_select, header=header
+        )
 
-            if multi_select:
-                self.instance_ids = list(selected_instance_ids)
-                for instance in self.instance_ids:
-                    self.instance_list.append(
-                        search_dict_in_list(instance, response_list, "InstanceId")
-                    )
-            else:
-                self.instance_ids.append(str(selected_instance_ids))
+        if multi_select:
+            self.instance_ids = list(selected_instance_ids)
+            for instance in self.instance_ids:
                 self.instance_list.append(
-                    search_dict_in_list(
-                        selected_instance_ids, response_list, "InstanceId"
-                    )
+                    search_dict_in_list(instance, response_list, "InstanceId")
                 )
-        except:
-            Spinner.clear_spinner()
-            raise
+        else:
+            self.instance_ids.append(str(selected_instance_ids))
+            self.instance_list.append(
+                search_dict_in_list(selected_instance_ids, response_list, "InstanceId")
+            )
 
     def print_instance_details(self):
         # type: () -> None
