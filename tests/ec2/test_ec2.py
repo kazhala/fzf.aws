@@ -11,8 +11,8 @@ from fzfaws.utils import Pyfzf
 
 class TestEC2(unittest.TestCase):
     def setUp(self):
-        capturedOutput = io.StringIO()
-        sys.stdout = capturedOutput
+        self.capturedOutput = io.StringIO()
+        sys.stdout = self.capturedOutput
         self.ec2 = EC2()
 
     def tearDown(self):
@@ -132,3 +132,26 @@ class TestEC2(unittest.TestCase):
         mocked_result.return_value = [{"Reservations": []}]
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [])
+
+    def test_print_instance_details(self):
+        self.ec2.instance_ids = ["11111111"]
+        self.ec2.instance_list = [
+            {
+                "InstanceId": "11111111",
+                "InstanceType": "t2.micro",
+                "Status": "running",
+                "Name": "meal-Bean-10PYXE0G1F4HS",
+                "KeyName": "ap-southeast-2_playground",
+                "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                "PublicIpAddress": "13.238.143.201",
+                "PrivateIpAddress": "172.31.2.33",
+            }
+        ]
+        self.ec2.print_instance_details()
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "InstanceId: 11111111  Name: meal-Bean-10PYXE0G1F4HS\n",
+        )
+
+    def test_wait(self):
+        pass

@@ -91,8 +91,7 @@ class EC2(BaseSession):
                 search_dict_in_list(selected_instance_ids, response_list, "InstanceId")
             )
 
-    def print_instance_details(self):
-        # type: () -> None
+    def print_instance_details(self) -> None:
         """display information of selected instances
 
         call this method before calling boto3 to do any ec2 opeartion
