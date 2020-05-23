@@ -1,8 +1,12 @@
 import sys
+import json
 import io
+import os
 import unittest
 from unittest.mock import patch
 from fzfaws.ec2 import EC2
+from botocore.paginate import Paginator
+from fzfaws.utils import Pyfzf
 
 
 class TestEC2(unittest.TestCase):
@@ -17,7 +21,114 @@ class TestEC2(unittest.TestCase):
     def test_constructor(self):
         self.assertEqual(self.ec2.profile, None)
         self.assertEqual(self.ec2.region, None)
+        self.assertEqual(self.ec2.instance_ids, [""])
+        self.assertEqual(self.ec2.instance_list, [])
 
         ec2 = EC2(profile="root", region="us-east-1")
         self.assertEqual(ec2.profile, "root")
         self.assertEqual(ec2.region, "us-east-1")
+        self.assertEqual(self.ec2.instance_ids, [""])
+        self.assertEqual(self.ec2.instance_list, [])
+
+    @patch.object(Paginator, "paginate")
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_set_ec2_instance(self, mocked_fzf_execute, mocked_fzf_list, mocked_result):
+        # normal multi select test
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(file_path, "../data/ec2_instance.json")
+        with open(json_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        self.ec2.set_ec2_instance()
+        mocked_fzf_list.assert_called_with(
+            [
+                {
+                    "InstanceId": "11111111",
+                    "InstanceType": "t2.micro",
+                    "Status": "running",
+                    "Name": "meal-Bean-10PYXE0G1F4HS",
+                    "KeyName": "ap-southeast-2_playground",
+                    "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                    "PublicIpAddress": "13.238.143.201",
+                    "PrivateIpAddress": "172.31.2.33",
+                },
+                {
+                    "InstanceId": "22222222",
+                    "InstanceType": "t2.micro",
+                    "Status": "stopped",
+                    "Name": "default-ubuntu",
+                    "KeyName": "ap-southeast-2_playground",
+                    "PublicDnsName": "",
+                    "PublicIpAddress": "N/A",
+                    "PrivateIpAddress": "172.31.11.122",
+                },
+            ],
+            "InstanceId",
+            "Status",
+            "InstanceType",
+            "Name",
+            "KeyName",
+            "PublicDnsName",
+            "PublicIpAddress",
+            "PrivateIpAddress",
+        )
+        mocked_fzf_execute.assert_called_with(multi_select=True, header=None)
+        self.assertEqual(self.ec2.instance_ids, ["11111111", "22222222"])
+        self.assertEqual(
+            self.ec2.instance_list,
+            [
+                {
+                    "InstanceId": "11111111",
+                    "InstanceType": "t2.micro",
+                    "Status": "running",
+                    "Name": "meal-Bean-10PYXE0G1F4HS",
+                    "KeyName": "ap-southeast-2_playground",
+                    "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                    "PublicIpAddress": "13.238.143.201",
+                    "PrivateIpAddress": "172.31.2.33",
+                },
+                {
+                    "InstanceId": "22222222",
+                    "InstanceType": "t2.micro",
+                    "Status": "stopped",
+                    "Name": "default-ubuntu",
+                    "KeyName": "ap-southeast-2_playground",
+                    "PublicDnsName": "",
+                    "PublicIpAddress": "N/A",
+                    "PrivateIpAddress": "172.31.11.122",
+                },
+            ],
+        )
+
+        # normal single select test
+        self.ec2.instance_list.clear()
+        self.ec2.instance_ids = [""]
+        mocked_fzf_execute.return_value = "11111111"
+        self.ec2.set_ec2_instance(multi_select=False, header="hello")
+        self.assertEqual(self.ec2.instance_ids, ["11111111"])
+        self.assertEqual(
+            self.ec2.instance_list,
+            [
+                {
+                    "InstanceId": "11111111",
+                    "InstanceType": "t2.micro",
+                    "Status": "running",
+                    "Name": "meal-Bean-10PYXE0G1F4HS",
+                    "KeyName": "ap-southeast-2_playground",
+                    "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                    "PublicIpAddress": "13.238.143.201",
+                    "PrivateIpAddress": "172.31.2.33",
+                }
+            ],
+        )
+        mocked_fzf_execute.assert_called_with(multi_select=False, header="hello")
+
+        # empty test
+        self.ec2.instance_list.clear()
+        self.ec2.instance_ids = [""]
+        mocked_fzf_execute.return_value = ""
+        mocked_result.return_value = [{"Reservations": []}]
+        self.assertEqual(self.ec2.instance_ids, [""])
+        self.assertEqual(self.ec2.instance_list, [])

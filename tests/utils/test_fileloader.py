@@ -10,10 +10,10 @@ class TestFileLoader(unittest.TestCase):
         self.fileloader = FileLoader()
         full_path = os.path.abspath(__file__)
         path, filename = os.path.split(full_path)
-        self.test_json = "%s/test.json" % path
+        self.test_json = os.path.join(path, "test.json")
         with open(self.test_json, "w") as file:
             file.write(json.dumps({"hello": "world", "foo": "boo"}))
-        self.test_yaml = "%s/../../fzfaws.yml" % path
+        self.test_yaml = os.path.join(path, "../../fzfaws.yml")
 
     def tearDown(self):
         os.remove(self.test_json)

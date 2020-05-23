@@ -24,7 +24,7 @@ class EC2(BaseSession):
         """
         super().__init__(profile=profile, region=region, service_name="ec2")
         self.instance_list: list = []
-        self.instance_ids: list = []
+        self.instance_ids: list = [""]
 
     def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
         """set ec2 instance for current operation
@@ -85,7 +85,8 @@ class EC2(BaseSession):
                     search_dict_in_list(instance, response_list, "InstanceId")
                 )
         else:
-            self.instance_ids.append(str(selected_instance_ids))
+            self.instance_ids[0] = str(selected_instance_ids)
+            self.instance_list[:] = []
             self.instance_list.append(
                 search_dict_in_list(selected_instance_ids, response_list, "InstanceId")
             )
