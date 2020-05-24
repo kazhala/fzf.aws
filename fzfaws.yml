@@ -42,8 +42,8 @@ services:
     # location of your keypair, so that fzfaws ec2 ssh knws where to find the pem file
     keypair: $HOME/.ssh
     waiter:
-      delay: 15
-      max_attempts: 40
+      delay: 10
+      max_attempts: 50
 
     profile: default
     region: ap-southeast-2

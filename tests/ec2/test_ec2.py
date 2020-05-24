@@ -157,21 +157,26 @@ class TestEC2(unittest.TestCase):
 
     @patch.object(Waiter, "wait")
     def test_wait(self, mocked_wait):
-        def test_waiter_args(obj, **kwargs):
+        def test_waiter_arg1(obj, **kwargs):
             self.assertEqual(kwargs["InstanceIds"], ["11111111"])
             self.assertEqual(kwargs["WaiterConfig"], {"Delay": 15, "MaxAttempts": 40})
 
-        mocked_wait.side_effect = test_waiter_args
+        def test_waiter_arg2(obj, **kwargs):
+            self.assertEqual(kwargs["InstanceIds"], ["22222222"])
+            self.assertEqual(kwargs["WaiterConfig"], {"Delay": 10, "MaxAttempts": 50})
+
+        mocked_wait.side_effect = test_waiter_arg1
         self.ec2.instance_ids = ["11111111"]
         self.ec2.wait("instance_status_ok", "hello")
         self.assertRegex(
             self.capturedOutput.getvalue(), r"^| hello.*$",
         )
 
+        mocked_wait.side_effect = test_waiter_arg2
         fileloader = FileLoader()
         config_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
         )
         fileloader.load_config_file(config_path=config_path)
-        self.ec2.instance_ids = ["11111111"]
+        self.ec2.instance_ids = ["22222222"]
         self.ec2.wait("instance_status_ok", "hello")
