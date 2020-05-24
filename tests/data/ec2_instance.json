@@ -63,7 +63,7 @@
                 "Ipv6Addresses": [],
                 "MacAddress": "02:64:51:b4:45:a4",
                 "NetworkInterfaceId": "eni-0d848e742c792b713",
-                "OwnerId": "378756445655",
+                "OwnerId": "111111",
                 "PrivateDnsName": "ip-172-31-2-33.ap-southeast-2.compute.internal",
                 "PrivateIpAddress": "172.31.2.33",
                 "PrivateIpAddresses": [
@@ -116,7 +116,7 @@
               { "Key": "WebServer", "Value": "yes" },
               {
                 "Key": "aws:cloudformation:stack-id",
-                "Value": "arn:aws:cloudformation:ap-southeast-2:378756445655:stack/awseb-e-wphtqnu48q-stack/26833f80-62c0-11ea-bba2-0a630e7b8d5e"
+                "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/awseb-e-wphtqnu48q-stack/26833f80-62c0-11ea-bba2-0a630e7b8d5e"
               },
               {
                 "Key": "aws:autoscaling:groupName",
@@ -146,7 +146,7 @@
             }
           }
         ],
-        "OwnerId": "378756445655",
+        "OwnerId": "111111",
         "RequesterId": "948300366556",
         "ReservationId": "r-06c0fddd3cabbce40"
       },
@@ -206,7 +206,7 @@
                 "Ipv6Addresses": [],
                 "MacAddress": "02:bb:40:3b:84:84",
                 "NetworkInterfaceId": "eni-0ab30ec7d8d5962d7",
-                "OwnerId": "378756445655",
+                "OwnerId": "111111",
                 "PrivateDnsName": "ip-172-31-11-122.ap-southeast-2.compute.internal",
                 "PrivateIpAddress": "172.31.11.122",
                 "PrivateIpAddresses": [
@@ -251,7 +251,7 @@
             }
           }
         ],
-        "OwnerId": "378756445655",
+        "OwnerId": "111111",
         "ReservationId": "r-001a66c85fa610ab4"
       }
     ],

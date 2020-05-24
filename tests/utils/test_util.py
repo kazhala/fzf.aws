@@ -99,7 +99,7 @@ class TestUtil(unittest.TestCase):
                         {"Key": "WebServer", "Value": "yes"},
                         {
                             "Key": "aws:cloudformation:stack-id",
-                            "Value": "arn:aws:cloudformation:ap-southeast-2:378756445655:stack/awseb-e-wphtqnu48q-stack/26833f80-62c0-11ea-bba2-0a630e7b8d5e",
+                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/awseb-e-wphtqnu48q-stack/26833f80-62c0-11ea-bba2-0a630e7b8d5e",
                         },
                         {
                             "Key": "aws:autoscaling:groupName",

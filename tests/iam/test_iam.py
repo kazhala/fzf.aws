@@ -39,7 +39,7 @@ class TestIAM(unittest.TestCase):
                         "Path": "/",
                         "RoleName": "admincloudformaitontest",
                         "RoleId": "AROAVQL5EWXLRDZGWYAU2",
-                        "Arn": "arn:aws:iam::378756445655:role/admincloudformaitontest",
+                        "Arn": "arn:aws:iam::111111:role/admincloudformaitontest",
                         "CreateDate": "2010-09-09",
                         "AssumeRolePolicyDocument": {
                             "Version": "2012-10-17",
@@ -63,11 +63,11 @@ class TestIAM(unittest.TestCase):
 
         # general test
         mocked_fzf_execute.return_value = (
-            "arn:aws:iam::378756445655:role/admincloudformaitontest"
+            "arn:aws:iam::111111:role/admincloudformaitontest"
         )
         self.iam.set_arns()
         self.assertEqual(
-            self.iam.arns, ["arn:aws:iam::378756445655:role/admincloudformaitontest"]
+            self.iam.arns, ["arn:aws:iam::111111:role/admincloudformaitontest"]
         )
         mocked_fzf_append.assert_not_called()
         mocked_fzf_list.assert_called_with(
@@ -76,7 +76,7 @@ class TestIAM(unittest.TestCase):
                     "Path": "/",
                     "RoleName": "admincloudformaitontest",
                     "RoleId": "AROAVQL5EWXLRDZGWYAU2",
-                    "Arn": "arn:aws:iam::378756445655:role/admincloudformaitontest",
+                    "Arn": "arn:aws:iam::111111:role/admincloudformaitontest",
                     "CreateDate": "2010-09-09",
                     "AssumeRolePolicyDocument": {
                         "Version": "2012-10-17",
@@ -102,7 +102,7 @@ class TestIAM(unittest.TestCase):
         # parameter test
         self.iam.set_arns(service="cloudformation.amazonaws.com")
         mocked_fzf_append.assert_called_with(
-            "RoleName: admincloudformaitontest  Arn: arn:aws:iam::378756445655:role/admincloudformaitontest"
+            "RoleName: admincloudformaitontest  Arn: arn:aws:iam::111111:role/admincloudformaitontest"
         )
 
         mocked_fzf_append.reset_mock()

@@ -180,3 +180,71 @@ class TestEC2(unittest.TestCase):
         fileloader.load_config_file(config_path=config_path)
         self.ec2.instance_ids = ["22222222"]
         self.ec2.wait("instance_status_ok", "hello")
+
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Paginator, "paginate")
+    def test_get_security_groups(
+        self, mocked_result, mocked_fzf_execute, mocked_fzf_list
+    ):
+        # normal nomulti select test
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(file_path, "../data/ec2_sg.json")
+        with open(json_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        mocked_fzf_execute.return_value = "sg-006ae18653dc5acd7"
+        assert_array = [
+            {
+                "GroupName": "hellotesting-EC2InstanceSecurityGroup",
+                "GroupId": "sg-006ae18653dc5acd7",
+                "Tags": [
+                    {"Key": "hasdf", "Value": "asdfa"},
+                    {
+                        "Key": "aws:cloudformation:stack-id",
+                        "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/hellotesting/05feb330-88f3-11ea-ae79-0aa5d4eec80a",
+                    },
+                    {
+                        "Key": "aws:cloudformation:logical-id",
+                        "Value": "EC2InstanceSecurityGroup",
+                    },
+                    {"Key": "aws:cloudformation:stack-name", "Value": "hellotesting",},
+                ],
+                "VpcId": "vpc-5c03313b",
+                "Name": "N/A",
+            },
+            {
+                "GroupName": "default-ssh",
+                "GroupId": "sg-0106a116cd9343134",
+                "Tags": [
+                    {
+                        "Key": "aws:cloudformation:stack-id",
+                        "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/SG-default/fd03c970-6d70-11ea-ba51-0a97b58f1090",
+                    },
+                    {"Key": "aws:cloudformation:stack-name", "Value": "SG-default"},
+                    {"Key": "aws:cloudformation:logical-id", "Value": "DefaultSSHSG",},
+                    {"Key": "Name", "Value": "default-ssh"},
+                ],
+                "VpcId": "vpc-5c03313b",
+                "Name": "default-ssh",
+            },
+        ]
+        self.ec2.get_security_groups()
+        mocked_fzf_list.assert_called_with(
+            assert_array, "GroupId", "GroupName", "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            multi_select=False, empty_allow=True, header=None
+        )
+
+        # custom settings
+        mocked_fzf_execute.return_value = ["sg-006ae18653dc5acd7"]
+        self.ec2.get_security_groups(
+            multi_select=True, return_attr="name", header="hello"
+        )
+        mocked_fzf_list.assert_called_with(
+            assert_array, "GroupName", "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            multi_select=True, empty_allow=True, header="hello"
+        )

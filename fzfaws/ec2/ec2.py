@@ -128,7 +128,9 @@ class EC2(BaseSession):
                 WaiterConfig={"Delay": delay, "MaxAttempts": max_attempts},
             )
 
-    def get_security_groups(self, multi_select=False, return_attr="id", header=None):
+    def get_security_groups(
+        self, multi_select: bool = False, return_attr: str = "id", header: str = None
+    ) -> Union[str, list]:
         """use paginator to get the user selected security groups
 
         :param multi_select: allow multiple value selection
@@ -140,10 +142,8 @@ class EC2(BaseSession):
         :return: selected security groups/ids
         :rtype: Union[str, list]
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching SecurityGroups..")
-            spinner.start()
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching SecurityGroups ..."):
             paginator = self.client.get_paginator("describe_security_groups")
             for result in paginator.paginate():
                 response_list = result["SecurityGroups"]
@@ -153,13 +153,9 @@ class EC2(BaseSession):
                     fzf.process_list(response_list, "GroupId", "GroupName", "Name")
                 elif return_attr == "name":
                     fzf.process_list(response_list, "GroupName", "Name")
-            spinner.stop()
-            return fzf.execute_fzf(
-                multi_select=multi_select, empty_allow=True, header=header
-            )
-        except:
-            Spinner.clear_spinner()
-            raise
+        return fzf.execute_fzf(
+            multi_select=multi_select, empty_allow=True, header=header
+        )
 
     def get_instance_id(self, multi_select=False, header=None):
         """use paginator to get instance id and return it

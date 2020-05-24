@@ -1,0 +1,48 @@
+[
+  {
+    "SecurityGroups": [
+      {
+        "GroupName": "hellotesting-EC2InstanceSecurityGroup",
+        "GroupId": "sg-006ae18653dc5acd7",
+        "Tags": [
+          { "Key": "hasdf", "Value": "asdfa" },
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/hellotesting/05feb330-88f3-11ea-ae79-0aa5d4eec80a"
+          },
+          {
+            "Key": "aws:cloudformation:logical-id",
+            "Value": "EC2InstanceSecurityGroup"
+          },
+          { "Key": "aws:cloudformation:stack-name", "Value": "hellotesting" }
+        ],
+        "VpcId": "vpc-5c03313b"
+      },
+      {
+        "GroupName": "default-ssh",
+        "GroupId": "sg-0106a116cd9343134",
+        "Tags": [
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/SG-default/fd03c970-6d70-11ea-ba51-0a97b58f1090"
+          },
+          { "Key": "aws:cloudformation:stack-name", "Value": "SG-default" },
+          { "Key": "aws:cloudformation:logical-id", "Value": "DefaultSSHSG" },
+          { "Key": "Name", "Value": "default-ssh" }
+        ],
+        "VpcId": "vpc-5c03313b"
+      }
+    ],
+    "ResponseMetadata": {
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "content-type": "text/xml;charset=UTF-8",
+        "transfer-encoding": "chunked",
+        "vary": "accept-encoding",
+        "date": "Sun, 24 May 2020 23:33:31 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]
