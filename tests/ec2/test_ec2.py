@@ -7,6 +7,8 @@ from unittest.mock import patch
 from fzfaws.ec2 import EC2
 from botocore.paginate import Paginator
 from fzfaws.utils import Pyfzf
+from botocore.waiter import Waiter
+from fzfaws.utils import FileLoader
 
 
 class TestEC2(unittest.TestCase):
@@ -153,5 +155,23 @@ class TestEC2(unittest.TestCase):
             "InstanceId: 11111111  Name: meal-Bean-10PYXE0G1F4HS\n",
         )
 
-    def test_wait(self):
-        pass
+    @patch.object(Waiter, "wait")
+    def test_wait(self, mocked_wait):
+        def test_waiter_args(obj, **kwargs):
+            self.assertEqual(kwargs["InstanceIds"], ["11111111"])
+            self.assertEqual(kwargs["WaiterConfig"], {"Delay": 15, "MaxAttempts": 40})
+
+        mocked_wait.side_effect = test_waiter_args
+        self.ec2.instance_ids = ["11111111"]
+        self.ec2.wait("instance_status_ok", "hello")
+        self.assertRegex(
+            self.capturedOutput.getvalue(), r"^| hello.*$",
+        )
+
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
+        self.ec2.instance_ids = ["11111111"]
+        self.ec2.wait("instance_status_ok", "hello")
