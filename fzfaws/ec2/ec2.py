@@ -2,6 +2,8 @@
 
 A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
+import os
+import json
 from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, search_dict_in_list, Spinner
 from typing import Union, Optional
 
@@ -102,31 +104,29 @@ class EC2(BaseSession):
                 "InstanceId: %s  Name: %s" % (instance["InstanceId"], instance["Name"])
             )
 
-    def wait(self, waiter_name, message=None, delay=15, attempts=40):
-        # type: (str, str, int, int) -> None
+    def wait(self, waiter_name: str, message: str = None) -> None:
         """wait for the operation to be completed
 
-        Args:
-            waiter_name: string, name from boto3 waiter
-            message: string, message to display during loading
-            delay: number, how long between each attempt
-            attempts: number, max attempts, usually 60mins, so 30 * 120
-        Returns:
-            None
-            will pause the program until finish or error raised
+        :param waiter_name: name of boto3 waiter
+        :type waiter_name: str
+        :param message: message to display during loading
+        :type message: str, optional
         """
-        try:
-            spinner = Spinner(message=message)
-            spinner.start()
+        with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
+            waiter_config = os.getenv(
+                "FZFAWS_EC2_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
+            )
+            delay: int = 15
+            max_attempts: int = 40
+            if waiter_config:
+                waiter_config = json.loads(waiter_config)
+                delay = int(waiter_config.get("delay", 15))
+                max_attempts = int(waiter_config.get("max_attempts", 40))
             waiter.wait(
                 InstanceIds=self.instance_ids,
-                WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+                WaiterConfig={"Delay": delay, "MaxAttempts": max_attempts},
             )
-            spinner.stop()
-        except:
-            Spinner.clear_spinner()
-            raise
 
     def get_security_groups(self, multi_select=False, return_attr="id", header=None):
         """use paginator to get the user selected security groups
