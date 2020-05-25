@@ -213,7 +213,9 @@ class EC2(BaseSession):
             multi_select=multi_select, empty_allow=True, header=header
         )
 
-    def get_volume_id(self, multi_select=False, header=None):
+    def get_volume_id(
+        self, multi_select: bool = False, header: str = None
+    ) -> Union[str, list]:
         """get user selected volume id through fzf
 
         :param multi_select: allow multiple value selection
@@ -223,23 +225,18 @@ class EC2(BaseSession):
         :return: selected volume id
         :rtype: Union[str, list]
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching EBS volumes..")
-            spinner.start()
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching EBS volumes ..."):
             paginator = self.client.get_paginator("describe_volumes")
             for result in paginator.paginate():
+                print(result)
                 response_list = result["Volumes"]
                 for volume in response_list:
                     volume["Name"] = get_name_tag(volume)
                 fzf.process_list(response_list, "VolumeId", "Name")
-            spinner.stop()
-            return fzf.execute_fzf(
-                multi_select=multi_select, empty_allow=True, header=header
-            )
-        except:
-            Spinner.clear_spinner()
-            raise
+        return fzf.execute_fzf(
+            multi_select=multi_select, empty_allow=True, header=header
+        )
 
     def get_vpc_id(self, multi_select=False, header=None):
         """get user selected vpc id through fzf

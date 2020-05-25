@@ -1,0 +1,56 @@
+[
+  {
+    "Volumes": [
+      {
+        "VolumeId": "vol-014718fdbcdf5ade8",
+        "Iops": 100,
+        "VolumeType": "gp2"
+      },
+      {
+        "VolumeId": "vol-0cf11109cc650dce6",
+        "Iops": 100,
+        "VolumeType": "gp2"
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "c0ff174f-c69a-40c1-b315-8dc6d12cf0cb",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "c0ff174f-c69a-40c1-b315-8dc6d12cf0cb",
+        "content-type": "text/xml;charset=UTF-8",
+        "content-length": "4216",
+        "vary": "accept-encoding",
+        "date": "Mon, 25 May 2020 01:10:43 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  },
+  {
+    "Volumes": [
+      {
+        "VolumeId": "vol-03d755609d4783573",
+        "Iops": 100,
+        "VolumeType": "gp2"
+      },
+      {
+        "VolumeId": "vol-04bf0dd95936347fc",
+        "Iops": 100,
+        "VolumeType": "gp2"
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "c0ff174f-c69a-40c1-b315-8dc6d12cf0cb",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "c0ff174f-c69a-40c1-b315-8dc6d12cf0cb",
+        "content-type": "text/xml;charset=UTF-8",
+        "content-length": "4216",
+        "vary": "accept-encoding",
+        "date": "Mon, 25 May 2020 01:10:43 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]

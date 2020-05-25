@@ -342,3 +342,45 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
         )
+
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Paginator, "paginate")
+    def test_get_volume_id(self, mocked_result, mocked_fzf_execute, mocked_fzf_list):
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_volume.json"
+        )
+        with open(data_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        # normal test
+        mocked_fzf_execute.return_value = "11111111"
+        self.ec2.get_volume_id()
+        mocked_fzf_list.assert_called_with(
+            [
+                {
+                    "VolumeId": "vol-03d755609d4783573",
+                    "Iops": 100,
+                    "VolumeType": "gp2",
+                    "Name": "N/A",
+                },
+                {
+                    "VolumeId": "vol-04bf0dd95936347fc",
+                    "Iops": 100,
+                    "VolumeType": "gp2",
+                    "Name": "N/A",
+                },
+            ],
+            "VolumeId",
+            "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            multi_select=False, empty_allow=True, header=None
+        )
+
+        # custom settings
+        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        self.ec2.get_volume_id(multi_select=True, header="hello")
+        mocked_fzf_execute.assert_called_with(
+            multi_select=True, empty_allow=True, header="hello"
+        )
