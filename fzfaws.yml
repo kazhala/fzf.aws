@@ -43,7 +43,7 @@ services:
     keypair: $HOME/.ssh
     waiter:
       delay: 10
-      max_attempts: 50
+      max_attempts: 60
 
     profile: default
     region: ap-southeast-2

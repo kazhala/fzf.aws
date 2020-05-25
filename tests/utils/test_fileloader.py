@@ -8,12 +8,11 @@ from fzfaws.utils import FileLoader
 class TestFileLoader(unittest.TestCase):
     def setUp(self):
         self.fileloader = FileLoader()
-        full_path = os.path.abspath(__file__)
-        path, filename = os.path.split(full_path)
-        self.test_json = os.path.join(path, "test.json")
+        curr_path = os.path.dirname(os.path.abspath(__file__))
+        self.test_json = os.path.join(curr_path, "test.json")
         with open(self.test_json, "w") as file:
             file.write(json.dumps({"hello": "world", "foo": "boo"}))
-        self.test_yaml = os.path.join(path, "../../fzfaws.yml")
+        self.test_yaml = os.path.join(curr_path, "../../fzfaws.yml")
 
     def tearDown(self):
         os.remove(self.test_json)
@@ -156,7 +155,7 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/.ssh")
         self.assertEqual(
             os.environ["FZFAWS_EC2_WAITER"],
-            json.dumps({"delay": 15, "max_attempts": 40}),
+            json.dumps({"delay": 10, "max_attempts": 60}),
         )
         self.assertEqual(os.environ["FZFAWS_EC2_START"], "-w")
         self.assertEqual(os.environ["FZFAWS_EC2_STOP"], "-w")

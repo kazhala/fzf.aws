@@ -163,7 +163,7 @@ class TestEC2(unittest.TestCase):
 
         def test_waiter_arg2(obj, **kwargs):
             self.assertEqual(kwargs["InstanceIds"], ["22222222"])
-            self.assertEqual(kwargs["WaiterConfig"], {"Delay": 10, "MaxAttempts": 50})
+            self.assertEqual(kwargs["WaiterConfig"], {"Delay": 10, "MaxAttempts": 60})
 
         mocked_wait.side_effect = test_waiter_arg1
         self.ec2.instance_ids = ["11111111"]
