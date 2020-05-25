@@ -248,3 +248,34 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
         )
+
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Paginator, "paginate")
+    def test_get_instance_id(self, mocked_result, mocked_fzf_execute, mocked_fzf_list):
+        # normal test
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(file_path, "../data/ec2_instance.json")
+        with open(json_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        mocked_fzf_execute.return_value = "11111111"
+        self.ec2.get_instance_id()
+        mocked_fzf_list.assert_called_with(
+            [
+                {"InstanceId": "11111111", "Name": "meal-Bean-10PYXE0G1F4HS"},
+                {"InstanceId": "22222222", "Name": "default-ubuntu"},
+            ],
+            "InstanceId",
+            "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            multi_select=False, empty_allow=True, header=None
+        )
+
+        # custom settings
+        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        self.ec2.get_instance_id(multi_select=True, header="hello")
+        mocked_fzf_execute.assert_called_with(
+            multi_select=True, empty_allow=True, header="hello"
+        )

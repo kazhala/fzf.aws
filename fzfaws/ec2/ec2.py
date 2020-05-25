@@ -157,7 +157,9 @@ class EC2(BaseSession):
             multi_select=multi_select, empty_allow=True, header=header
         )
 
-    def get_instance_id(self, multi_select=False, header=None):
+    def get_instance_id(
+        self, multi_select: bool = False, header: str = None
+    ) -> Union[str, list]:
         """use paginator to get instance id and return it
 
         :param multi_select: allow multiple value selection
@@ -167,10 +169,8 @@ class EC2(BaseSession):
         :return: selected instance id
         :rtype: Union[str, list]
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching EC2 instances..")
-            spinner.start()
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching EC2 instances ..."):
             paginator = self.client.get_paginator("describe_instances")
             for result in paginator.paginate():
                 response_list = []
@@ -182,13 +182,9 @@ class EC2(BaseSession):
                         }
                     )
                 fzf.process_list(response_list, "InstanceId", "Name")
-            spinner.stop()
-            return fzf.execute_fzf(
-                multi_select=multi_select, empty_allow=True, header=header
-            )
-        except:
-            Spinner.clear_spinner()
-            raise
+        return fzf.execute_fzf(
+            multi_select=multi_select, empty_allow=True, header=header
+        )
 
     def get_subnet_id(self, multi_select=False, header=None):
         """get user selected subnet id through fzf
