@@ -279,3 +279,66 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
         )
+
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Paginator, "paginate")
+    def test_get_subnet_id(self, mocked_result, mocked_fzf_execute, mocked_fzf_list):
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_subnet.json"
+        )
+        with open(data_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        # normal test
+        mocked_fzf_execute.return_value = "11111111"
+        self.ec2.get_subnet_id()
+        mocked_fzf_list.assert_called_with(
+            [
+                {
+                    "AvailabilityZone": "ap-southeast-2a",
+                    "CidrBlock": "172.31.32.0/20",
+                    "SubnetId": "subnet-d31f089a",
+                    "VpcId": "vpc-5c03313b",
+                    "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-d31f089a",
+                    "Name": "N/A",
+                },
+                {
+                    "AvailabilityZone": "ap-southeast-2c",
+                    "CidrBlock": "10.1.3.0/24",
+                    "SubnetId": "subnet-07ff9f753e9552040",
+                    "VpcId": "vpc-0f07bd18d891bc5c0",
+                    "Tags": [
+                        {
+                            "Key": "aws:cloudformation:stack-id",
+                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4",
+                        },
+                        {"Key": "Name", "Value": "playground-PublicC"},
+                        {
+                            "Key": "aws:cloudformation:logical-id",
+                            "Value": "PublicSubnetC",
+                        },
+                        {
+                            "Key": "aws:cloudformation:stack-name",
+                            "Value": "VPC-playground",
+                        },
+                    ],
+                    "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-07ff9f753e9552040",
+                    "Name": "playground-PublicC",
+                },
+            ],
+            "SubnetId",
+            "AvailabilityZone",
+            "CidrBlock",
+            "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            multi_select=False, empty_allow=True, header=None
+        )
+
+        # custom settings
+        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        self.ec2.get_subnet_id(multi_select=True, header="hello")
+        mocked_fzf_execute.assert_called_with(
+            multi_select=True, empty_allow=True, header="hello"
+        )

@@ -1,0 +1,137 @@
+[
+  {
+    "Subnets": [
+      {
+        "AvailabilityZone": "ap-southeast-2a",
+        "AvailabilityZoneId": "apse2-az3",
+        "AvailableIpAddressCount": 251,
+        "CidrBlock": "10.1.1.0/24",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": true,
+        "State": "available",
+        "SubnetId": "subnet-0084be888f20fa8eb",
+        "VpcId": "vpc-0f07bd18d891bc5c0",
+        "OwnerId": "111111",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [
+          { "Key": "Name", "Value": "playground-PublicA" },
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4"
+          },
+          { "Key": "aws:cloudformation:stack-name", "Value": "VPC-playground" },
+          { "Key": "aws:cloudformation:logical-id", "Value": "PublicSubnetA" }
+        ],
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-0084be888f20fa8eb"
+      },
+      {
+        "AvailabilityZone": "ap-southeast-2c",
+        "AvailabilityZoneId": "apse2-az2",
+        "AvailableIpAddressCount": 4091,
+        "CidrBlock": "172.31.16.0/20",
+        "DefaultForAz": true,
+        "MapPublicIpOnLaunch": true,
+        "State": "available",
+        "SubnetId": "subnet-e6099cbe",
+        "VpcId": "vpc-5c03313b",
+        "OwnerId": "111111",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-e6099cbe"
+      },
+      {
+        "AvailabilityZone": "ap-southeast-2b",
+        "AvailabilityZoneId": "apse2-az1",
+        "AvailableIpAddressCount": 4087,
+        "CidrBlock": "172.31.0.0/20",
+        "DefaultForAz": true,
+        "MapPublicIpOnLaunch": true,
+        "State": "available",
+        "SubnetId": "subnet-c9cad0ae",
+        "VpcId": "vpc-5c03313b",
+        "OwnerId": "111111",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-c9cad0ae"
+      },
+      {
+        "AvailabilityZone": "ap-southeast-2b",
+        "AvailabilityZoneId": "apse2-az1",
+        "AvailableIpAddressCount": 250,
+        "CidrBlock": "10.1.2.0/24",
+        "DefaultForAz": false,
+        "MapPublicIpOnLaunch": true,
+        "State": "available",
+        "SubnetId": "subnet-029243503997e8d5c",
+        "VpcId": "vpc-0f07bd18d891bc5c0",
+        "OwnerId": "111111",
+        "AssignIpv6AddressOnCreation": false,
+        "Ipv6CidrBlockAssociationSet": [],
+        "Tags": [
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4"
+          },
+          { "Key": "aws:cloudformation:logical-id", "Value": "PublicSubnetB" },
+          { "Key": "aws:cloudformation:stack-name", "Value": "VPC-playground" },
+          { "Key": "Name", "Value": "playground-PublicB" }
+        ],
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-029243503997e8d5c"
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "fed1de0e-ce5f-45ae-8b2b-43ee83015928",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "fed1de0e-ce5f-45ae-8b2b-43ee83015928",
+        "content-type": "text/xml;charset=UTF-8",
+        "content-length": "7169",
+        "vary": "accept-encoding",
+        "date": "Mon, 25 May 2020 00:41:07 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  },
+  {
+    "Subnets": [
+      {
+        "AvailabilityZone": "ap-southeast-2a",
+        "CidrBlock": "172.31.32.0/20",
+        "SubnetId": "subnet-d31f089a",
+        "VpcId": "vpc-5c03313b",
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-d31f089a"
+      },
+      {
+        "AvailabilityZone": "ap-southeast-2c",
+        "CidrBlock": "10.1.3.0/24",
+        "SubnetId": "subnet-07ff9f753e9552040",
+        "VpcId": "vpc-0f07bd18d891bc5c0",
+        "Tags": [
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4"
+          },
+          { "Key": "Name", "Value": "playground-PublicC" },
+          { "Key": "aws:cloudformation:logical-id", "Value": "PublicSubnetC" },
+          { "Key": "aws:cloudformation:stack-name", "Value": "VPC-playground" }
+        ],
+        "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-07ff9f753e9552040"
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "fed1de0e-ce5f-45ae-8b2b-43ee83015928",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "fed1de0e-ce5f-45ae-8b2b-43ee83015928",
+        "content-type": "text/xml;charset=UTF-8",
+        "content-length": "7169",
+        "vary": "accept-encoding",
+        "date": "Mon, 25 May 2020 00:41:07 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]

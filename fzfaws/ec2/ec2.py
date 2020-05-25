@@ -186,7 +186,9 @@ class EC2(BaseSession):
             multi_select=multi_select, empty_allow=True, header=header
         )
 
-    def get_subnet_id(self, multi_select=False, header=None):
+    def get_subnet_id(
+        self, multi_select: bool = False, header: str = None
+    ) -> Union[str, list]:
         """get user selected subnet id through fzf
 
         :param multi_select: allow multiple value selection
@@ -196,25 +198,20 @@ class EC2(BaseSession):
         :return: selected subnet id
         :rtype: Union[str, list]
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching Subnets..")
-            spinner.start()
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching Subnets ..."):
             paginator = self.client.get_paginator("describe_subnets")
             for result in paginator.paginate():
+                print(result)
                 response_list = result["Subnets"]
                 for subnet in response_list:
                     subnet["Name"] = get_name_tag(subnet)
                 fzf.process_list(
                     response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
                 )
-            spinner.stop()
-            return fzf.execute_fzf(
-                multi_select=multi_select, empty_allow=True, header=header
-            )
-        except:
-            Spinner.clear_spinner()
-            raise
+        return fzf.execute_fzf(
+            multi_select=multi_select, empty_allow=True, header=header
+        )
 
     def get_volume_id(self, multi_select=False, header=None):
         """get user selected volume id through fzf
