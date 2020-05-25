@@ -238,7 +238,9 @@ class EC2(BaseSession):
             multi_select=multi_select, empty_allow=True, header=header
         )
 
-    def get_vpc_id(self, multi_select=False, header=None):
+    def get_vpc_id(
+        self, multi_select: bool = False, header: str = None
+    ) -> Union[str, list]:
         """get user selected vpc id through fzf
 
         :param multi_select: allow multiple value selection
@@ -248,10 +250,8 @@ class EC2(BaseSession):
         :return: selected vpc id
         :rtype: Union[str, list]
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching VPCs..")
-            spinner.start()
+        fzf = Pyfzf()
+        with Spinner.spin(message="Fetching VPCs ..."):
             paginator = self.client.get_paginator("describe_vpcs")
             for result in paginator.paginate():
                 response_list = result["Vpcs"]
@@ -260,10 +260,6 @@ class EC2(BaseSession):
                 fzf.process_list(
                     response_list, "VpcId", "IsDefault", "CidrBlock", "Name"
                 )
-            spinner.stop()
-            return fzf.execute_fzf(
-                empty_allow=True, multi_select=multi_select, header=header
-            )
-        except:
-            Spinner.clear_spinner()
-            raise
+        return fzf.execute_fzf(
+            empty_allow=True, multi_select=multi_select, header=header
+        )

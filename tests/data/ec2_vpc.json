@@ -1,0 +1,44 @@
+[
+  {
+    "Vpcs": [
+      {
+        "CidrBlock": "10.1.0.0/16",
+        "State": "available",
+        "VpcId": "vpc-0f07bd18d891bc5c0",
+        "OwnerId": "111111",
+        "InstanceTenancy": "default",
+        "IsDefault": false,
+        "Tags": [
+          { "Key": "aws:cloudformation:stack-name", "Value": "VPC-playground" },
+          { "Key": "aws:cloudformation:logical-id", "Value": "CustomVPC" },
+          { "Key": "Name", "Value": "playground" },
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4"
+          }
+        ]
+      },
+      {
+        "CidrBlock": "172.31.0.0/16",
+        "State": "available",
+        "VpcId": "vpc-5c03313b",
+        "OwnerId": "111111",
+        "InstanceTenancy": "default",
+        "IsDefault": true
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "9e8541da-3f3e-4f6f-8e5b-d5378a287453",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "9e8541da-3f3e-4f6f-8e5b-d5378a287453",
+        "content-type": "text/xml;charset=UTF-8",
+        "content-length": "2441",
+        "vary": "accept-encoding",
+        "date": "Mon, 25 May 2020 03:43:29 GMT",
+        "server": "AmazonEC2"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]

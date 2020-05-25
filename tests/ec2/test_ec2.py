@@ -384,3 +384,65 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
         )
+
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Paginator, "paginate")
+    def test_get_vpc_id(self, mocked_result, mocked_fzf_execute, mocked_fzf_list):
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_vpc.json"
+        )
+        with open(data_path, "r") as json_file:
+            mocked_result.return_value = json.load(json_file)
+
+        # normal test
+        mocked_fzf_execute.return_value = "11111111"
+        self.ec2.get_vpc_id()
+        mocked_fzf_list.assert_called_with(
+            [
+                {
+                    "CidrBlock": "10.1.0.0/16",
+                    "State": "available",
+                    "VpcId": "vpc-0f07bd18d891bc5c0",
+                    "OwnerId": "111111",
+                    "InstanceTenancy": "default",
+                    "IsDefault": False,
+                    "Tags": [
+                        {
+                            "Key": "aws:cloudformation:stack-name",
+                            "Value": "VPC-playground",
+                        },
+                        {"Key": "aws:cloudformation:logical-id", "Value": "CustomVPC"},
+                        {"Key": "Name", "Value": "playground"},
+                        {
+                            "Key": "aws:cloudformation:stack-id",
+                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4",
+                        },
+                    ],
+                    "Name": "playground",
+                },
+                {
+                    "CidrBlock": "172.31.0.0/16",
+                    "State": "available",
+                    "VpcId": "vpc-5c03313b",
+                    "OwnerId": "111111",
+                    "InstanceTenancy": "default",
+                    "IsDefault": True,
+                    "Name": "N/A",
+                },
+            ],
+            "VpcId",
+            "IsDefault",
+            "CidrBlock",
+            "Name",
+        )
+        mocked_fzf_execute.assert_called_with(
+            empty_allow=True, multi_select=False, header=None
+        )
+
+        # custom settings
+        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        self.ec2.get_vpc_id(multi_select=True, header="hello")
+        mocked_fzf_execute.assert_called_with(
+            empty_allow=True, multi_select=True, header="hello"
+        )
