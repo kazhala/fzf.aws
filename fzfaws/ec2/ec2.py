@@ -25,7 +25,7 @@ class EC2(BaseSession):
         """constructor
         """
         super().__init__(profile=profile, region=region, service_name="ec2")
-        self.instance_list: list = []
+        self.instance_list: list = [{}]
         self.instance_ids: list = [""]
 
     def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
@@ -82,10 +82,12 @@ class EC2(BaseSession):
 
         if multi_select:
             self.instance_ids = list(selected_instance_ids)
+            self.instance_list[:] = []
             for instance in self.instance_ids:
                 self.instance_list.append(
                     search_dict_in_list(instance, response_list, "InstanceId")
                 )
+            print(self.instance_list)
         else:
             self.instance_ids[0] = str(selected_instance_ids)
             self.instance_list[:] = []
