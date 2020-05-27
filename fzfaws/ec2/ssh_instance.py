@@ -4,14 +4,14 @@ perform ssh operation
 """
 import os
 import subprocess
-from fzfaws.ec2.ec2 import EC2
+from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
+from typing import Optional, Union
 
 home = os.path.expanduser("~")
 
 
-def check_instance_status(instance):
-    # type: (dict) -> None
+def check_instance_status(instance: dict) -> None:
     """check if instance is in running status
 
     :param instance: instance details to be checked
@@ -29,14 +29,15 @@ def check_instance_status(instance):
         )
 
 
-def get_instance_ip(instance, ip_type="dns"):
-    # type: (dict) -> str
+def get_instance_ip(instance: dict, ip_type: str = "dns") -> Optional[str]:
     """get instance ip
 
     :param instance: instance detail
     :type instance: dict
     :param ip_type: what ip to get
     :type ip_type: str, optional
+    :return: selected instance ip address or dns address
+    :rtype: str
     """
     if ip_type == "dns":
         if instance.get("PublicDnsName") and instance["PublicDnsName"] != " ":
@@ -57,8 +58,12 @@ def get_instance_ip(instance, ip_type="dns"):
 
 
 def ssh_instance(
-    profile=False, region=False, bastion=False, username="ec2-user", tunnel=False
-):
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    bastion: bool = False,
+    username: str = "ec2-user",
+    tunnel: Union[bool, str] = False,
+) -> None:
     """function to handle ssh operation intot the ec2 instance
 
     :param profile: profile to use for this operation
@@ -83,7 +88,9 @@ def ssh_instance(
     )
 
     check_instance_status(ec2.instance_list[0])
-    ssh_key_location = os.getenv("FAWS_KEY_LOCATION", default="%s/.ssh" % (home))
+    ssh_key_location = os.path.expanduser(
+        os.getenv("FZFAWS_EC2_KEYPAIRS", default="~/.ssh")
+    )
     os.chdir(ssh_key_location)
     ssh_key = "%s/%s.pem" % (ssh_key_location, ec2.instance_list[0]["KeyName"])
 
