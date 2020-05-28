@@ -2,11 +2,10 @@ import os
 import io
 import sys
 import unittest
-import subprocess
-from unittest.mock import patch, MagicMock
-from fzfaws.ec2.ssh_instance import ssh_instance
+from unittest.mock import patch
+from fzfaws.ec2.ssh_instance import ssh_instance, check_instance_status
 from fzfaws.ec2 import EC2
-from fzfaws.utils import FileLoader
+from fzfaws.utils.exceptions import EC2Error
 
 
 class TestSSH(unittest.TestCase):
@@ -92,3 +91,16 @@ class TestSSH(unittest.TestCase):
             "11111111",
             "ubuntu",
         )
+
+    def test_check_instance_status(self):
+        self.assertRaises(
+            EC2Error,
+            check_instance_status,
+            {"Status": "stopped", "InstanceId": "11111111"},
+        )
+        self.assertRaises(
+            EC2Error,
+            check_instance_status,
+            {"Status": "pending", "InstanceId": "11111111"},
+        )
+        check_instance_status({"Status": "running", "InstanceId": "11111111"})
