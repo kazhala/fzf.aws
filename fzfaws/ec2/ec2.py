@@ -87,7 +87,6 @@ class EC2(BaseSession):
                 self.instance_list.append(
                     search_dict_in_list(instance, response_list, "InstanceId")
                 )
-            print(self.instance_list)
         else:
             self.instance_ids[0] = str(selected_instance_ids)
             self.instance_list[:] = []
