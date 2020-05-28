@@ -20,16 +20,16 @@ def check_instance_status(instance: dict) -> None:
     if instance["Status"] == "stopped":
         raise EC2Error(
             "%s is currently stopped, run faws ec2 start to start the instance"
-            % instance["ID"]
+            % instance["InstanceId"]
         )
     elif instance["Status"] != "running":
         raise EC2Error(
             "%s is still in %s state, please wait"
-            % (instance["ID"], instance["Status"])
+            % (instance["InstanceId"], instance["Status"])
         )
 
 
-def get_instance_ip(instance: dict, ip_type: str = "dns") -> Optional[str]:
+def get_instance_ip(instance: dict, ip_type: str = "dns") -> str:
     """get instance ip
 
     :param instance: instance detail
@@ -55,6 +55,7 @@ def get_instance_ip(instance: dict, ip_type: str = "dns") -> Optional[str]:
         raise EC2Error(
             "%s doesn't have an available ip associated, instance is likely not running"
         )
+    return ""
 
 
 def ssh_instance(
@@ -88,60 +89,38 @@ def ssh_instance(
     )
 
     check_instance_status(ec2.instance_list[0])
-    ssh_key_location = os.path.expanduser(
+    ssh_key_location: str = os.path.expanduser(
         os.getenv("FZFAWS_EC2_KEYPAIRS", default="~/.ssh")
     )
     os.chdir(ssh_key_location)
-    ssh_key = "%s/%s.pem" % (ssh_key_location, ec2.instance_list[0]["KeyName"])
+    ssh_key: str = os.path.join(
+        ssh_key_location, "%s.pem" % ec2.instance_list[0].get("KeyName", "")
+    )
 
     if not tunnel:
-        print("Instance is running, ready to connect")
-        # check for file existence
-        if os.path.isfile(ssh_key):
-            cmd_list = ["ssh"]
-            if bastion:
-                cmd_list.append("-A")
-            # if for custom VPC doesn't have public dns name, use public ip address
-            cmd_list.extend(
-                [
-                    "-i",
-                    ssh_key,
-                    "%s@%s" % (username, get_instance_ip(ec2.instance_list[0])),
-                ]
-            )
-        else:
-            raise EC2Error("Key pair not detected in the specified directory")
-
+        cmd_list: list = construct_normal_ssh(
+            ssh_key, get_instance_ip(ec2.instance_list[0]), username, bastion
+        )
     else:
+        jumpbox_ip = get_instance_ip(ec2.instance_list[0])
+        jumpbox_username = username
         print("Jumpbox instance is running")
-        if type(tunnel) == str:
-            destination_username = tunnel
-        else:
-            destination_username = username
         ec2.set_ec2_instance(
             multi_select=False, header="select the destination instance"
         )
-
-        check_instance_status(ec2.instance_list[1])
+        check_instance_status(ec2.instance_list[0])
         print("Instance is running, ready to connect")
-
-        destination_ssh_key = "%s/%s.pem" % (
-            ssh_key_location,
-            ec2.instance_list[1]["KeyName"],
-        )
-        if os.path.isfile(ssh_key) and os.path.isfile(destination_ssh_key):
-            cmd_list = [
-                "ssh",
-                "-A",
-                "-i",
-                ssh_key,
-                "%s@%s" % (username, get_instance_ip(ec2.instance_list[0])),
-                "-t",
-                "ssh",
-                "%s@%s" % (destination_username, get_instance_ip(ec2.instance_list[1])),
-            ]
+        if type(tunnel) == str:
+            dest_username = str(tunnel)
         else:
-            raise EC2Error("Key pair not detected in the specified directory")
+            dest_username = username
+        cmd_list: list = construct_tunnel_ssh(
+            ssh_key,
+            jumpbox_ip,
+            jumpbox_username,
+            get_instance_ip(ec2.instance_list[0]),
+            dest_username,
+        )
 
     ssh = subprocess.Popen(cmd_list, shell=False)
     # allow user input
@@ -150,3 +129,76 @@ def ssh_instance(
         print(stdoutdata)
     if stderrdata:
         print(stderrdata)
+
+
+def construct_normal_ssh(
+    ssh_key: str, instance_ip: str, username: str, bastion: bool
+) -> list:
+    """construct ssh command for subprocess
+
+    :param ssh_key: ssh key path
+    :type ssh_key: str
+    :param instance_ip: ip of the instance
+    :type instance_ip: list
+    :param username: username to ssh inot
+    :type username: str
+    :param bastion: use ssh forwading
+    :type bastion: bool
+    :raises EC2Error: the selected ec2 instance is not in running state or key pair not detected
+    :return: cmd list to ssh
+    :rtype: list
+    """
+
+    print("Instance is running, ready to connect")
+    # check for file existence
+    if os.path.isfile(ssh_key):
+        cmd_list: list = ["ssh"]
+        if bastion:
+            cmd_list.append("-A")
+        # if for custom VPC doesn't have public dns name, use public ip address
+        cmd_list.extend(
+            ["-i", ssh_key, "%s@%s" % (username, instance_ip),]
+        )
+    else:
+        raise EC2Error("Key pair not detected in the specified directory")
+    return cmd_list
+
+
+def construct_tunnel_ssh(
+    ssh_key: str,
+    jumpbox_ip: str,
+    jumpbox_username: str,
+    dest_ip: str,
+    dest_username: str,
+) -> list:
+    """construct ssh tunnel command for subprocess
+
+    :param ssh_key: ssh key path
+    :type ssh_key: str
+    :param jumpbox_ip: ip of the instance
+    :type jumpbox_ip: list
+    :param jumpbox_username: username for jumpbox
+    :type jumpbox_username: str
+    :param dest_ip: ip of the destination instance
+    :type dest_ip: list
+    :param dest_username: username for destiantion
+    :type dest_username: str
+    :raises EC2Error: the selected ec2 instance is not in running state or key pair not detected
+    :return: cmd list to ssh
+    :rtype: list
+    """
+
+    if os.path.isfile(ssh_key):
+        cmd_list: list = [
+            "ssh",
+            "-A",
+            "-i",
+            ssh_key,
+            "%s@%s" % (jumpbox_username, jumpbox_ip),
+            "-t",
+            "ssh",
+            "%s@%s" % (dest_username, dest_ip),
+        ]
+    else:
+        raise EC2Error("Key pair not detected in the specified directory")
+    return cmd_list
