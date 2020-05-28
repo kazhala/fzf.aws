@@ -1,6 +1,7 @@
+import os
 import unittest
 from unittest.mock import patch, PropertyMock
-from fzfaws.utils import BaseSession, Pyfzf
+from fzfaws.utils import BaseSession, Pyfzf, FileLoader
 from boto3.session import Session
 import boto3
 from botocore.stub import Stubber
@@ -11,12 +12,29 @@ class TestSession(unittest.TestCase):
         session = BaseSession(service_name="ec2")
         self.assertEqual(None, session.profile)
         self.assertEqual(None, session.region)
+        fileloader = FileLoader()
+        curr_path = os.path.dirname(os.path.abspath(__file__))
+        fileloader.load_config_file(
+            config_path=os.path.join(curr_path, "../../fzfaws.yml")
+        )
 
     def test_param_profile_region(self):
         session = BaseSession(
             profile="root", region="ap-southeast-2", service_name="ec2"
         )
         self.assertEqual("root", session.profile)
+        self.assertEqual("ap-southeast-2", session.region)
+
+        session = BaseSession(profile=None, region=None, service_name="ec2")
+        self.assertEqual("default", session.profile)
+        self.assertEqual("ap-southeast-2", session.region)
+
+        session = BaseSession(profile=None, region=None, service_name="s3")
+        self.assertEqual("default", session.profile)
+        self.assertEqual("ap-southeast-2", session.region)
+
+        session = BaseSession(profile=None, region=None, service_name="cloudformation")
+        self.assertEqual("default", session.profile)
         self.assertEqual("ap-southeast-2", session.region)
 
     @patch.object(Pyfzf, "append_fzf")

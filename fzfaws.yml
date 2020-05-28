@@ -40,7 +40,7 @@ global:
 services:
   ec2:
     # location of your keypair, so that fzfaws ec2 ssh knws where to find the pem file
-    keypair: $HOME/.ssh
+    keypair: ~/.ssh
     waiter:
       delay: 10
       max_attempts: 60
@@ -79,9 +79,6 @@ services:
       presign: -e 3600
 
   cloudformation:
-    profile: default
-    region: ap-southeast-2
-
     default_args:
       create: -w -E
       update: -w -E

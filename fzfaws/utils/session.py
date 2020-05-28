@@ -2,6 +2,7 @@
 
 Wraps around boto3 session for better profile region management
 """
+import os
 from boto3.session import Session
 from fzfaws.utils import Pyfzf
 from typing import Union, Optional
@@ -45,6 +46,18 @@ class BaseSession:
             selected_region = str(fzf.execute_fzf(print_col=1))
         elif region and type(region) == str:
             selected_region = str(region)
+
+        if not selected_profile:
+            selected_profile = os.getenv(
+                "FZFAWS_%s_PROFILE" % service_name.upper(),
+                os.getenv("FZFAWS_GLOBAL_PROFILE", None),
+            )
+        if not selected_region:
+            selected_region = os.getenv(
+                "FZFAWS_%s_REGION" % service_name.upper(),
+                os.getenv("FZFAWS_GLOBAL_REGION", None),
+            )
+
         self.profile: Optional[str] = selected_profile
         self.region: Optional[str] = selected_region
         self.session = Session(
