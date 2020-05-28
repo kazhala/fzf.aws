@@ -3,7 +3,12 @@ import io
 import sys
 import unittest
 from unittest.mock import patch
-from fzfaws.ec2.ssh_instance import ssh_instance, check_instance_status, get_instance_ip
+from fzfaws.ec2.ssh_instance import (
+    construct_normal_ssh,
+    ssh_instance,
+    check_instance_status,
+    get_instance_ip,
+)
 from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
 
@@ -145,3 +150,27 @@ class TestSSH(unittest.TestCase):
             "private",
         )
         self.assertEqual(result, "3333333")
+
+    @patch("os.path.isfile")
+    def test_construct_norma_ssh(self, mocked_isfile):
+        mocked_isfile.return_value = True
+        result = construct_normal_ssh(
+            ssh_key="haha.pem",
+            instance_ip="11111111",
+            username="ec2-user",
+            bastion=False,
+        )
+        self.assertEqual(result, ["ssh", "-i", "haha.pem", "ec2-user@11111111"])
+
+        result = construct_normal_ssh(
+            ssh_key="haha.pem",
+            instance_ip="11111111",
+            username="ec2-user",
+            bastion=True,
+        )
+        self.assertEqual(result, ["ssh", "-A", "-i", "haha.pem", "ec2-user@11111111"])
+
+        mocked_isfile.return_value = False
+        self.assertRaises(
+            EC2Error, construct_normal_ssh, "haha.pem", "11111111", "ec2-user", False
+        )
