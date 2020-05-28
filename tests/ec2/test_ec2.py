@@ -24,13 +24,13 @@ class TestEC2(unittest.TestCase):
         self.assertEqual(self.ec2.profile, None)
         self.assertEqual(self.ec2.region, None)
         self.assertEqual(self.ec2.instance_ids, [""])
-        self.assertEqual(self.ec2.instance_list, [])
+        self.assertEqual(self.ec2.instance_list, [{}])
 
         ec2 = EC2(profile="root", region="us-east-1")
         self.assertEqual(ec2.profile, "root")
         self.assertEqual(ec2.region, "us-east-1")
         self.assertEqual(self.ec2.instance_ids, [""])
-        self.assertEqual(self.ec2.instance_list, [])
+        self.assertEqual(self.ec2.instance_list, [{}])
 
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "process_list")
@@ -105,7 +105,8 @@ class TestEC2(unittest.TestCase):
         )
 
         # normal single select test
-        self.ec2.instance_list.clear()
+        # self.ec2.instance_list.clear()
+        self.ec2.instance_list[:] = [{}]
         self.ec2.instance_ids = [""]
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.set_ec2_instance(multi_select=False, header="hello")
@@ -128,12 +129,13 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.assert_called_with(multi_select=False, header="hello")
 
         # empty test
-        self.ec2.instance_list.clear()
+        # self.ec2.instance_list.clear()
+        self.ec2.instance_list[:] = [{}]
         self.ec2.instance_ids = [""]
         mocked_fzf_execute.return_value = ""
         mocked_result.return_value = [{"Reservations": []}]
         self.assertEqual(self.ec2.instance_ids, [""])
-        self.assertEqual(self.ec2.instance_list, [])
+        self.assertEqual(self.ec2.instance_list, [{}])
 
     def test_print_instance_details(self):
         self.ec2.instance_ids = ["11111111"]

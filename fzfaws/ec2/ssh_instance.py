@@ -6,7 +6,7 @@ import os
 import subprocess
 from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
-from typing import Optional, Union
+from typing import Union
 
 home = os.path.expanduser("~")
 
@@ -98,9 +98,8 @@ def ssh_instance(
     )
 
     if not tunnel:
-        cmd_list: list = construct_normal_ssh(
-            ssh_key, get_instance_ip(ec2.instance_list[0]), username, bastion
-        )
+        instance_ip = get_instance_ip(ec2.instance_list[0])
+        cmd_list: list = construct_normal_ssh(ssh_key, instance_ip, username, bastion)
     else:
         jumpbox_ip = get_instance_ip(ec2.instance_list[0])
         jumpbox_username = username
@@ -114,12 +113,9 @@ def ssh_instance(
             dest_username = str(tunnel)
         else:
             dest_username = username
+        dest_ip = get_instance_ip(ec2.instance_list[0])
         cmd_list: list = construct_tunnel_ssh(
-            ssh_key,
-            jumpbox_ip,
-            jumpbox_username,
-            get_instance_ip(ec2.instance_list[0]),
-            dest_username,
+            ssh_key, jumpbox_ip, jumpbox_username, dest_ip, dest_username,
         )
 
     ssh = subprocess.Popen(cmd_list, shell=False)
