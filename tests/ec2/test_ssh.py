@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 from fzfaws.ec2.ssh_instance import (
     construct_normal_ssh,
+    construct_tunnel_ssh,
     ssh_instance,
     check_instance_status,
     get_instance_ip,
@@ -152,7 +153,7 @@ class TestSSH(unittest.TestCase):
         self.assertEqual(result, "3333333")
 
     @patch("os.path.isfile")
-    def test_construct_norma_ssh(self, mocked_isfile):
+    def test_construct_normal_ssh(self, mocked_isfile):
         mocked_isfile.return_value = True
         result = construct_normal_ssh(
             ssh_key="haha.pem",
@@ -173,4 +174,35 @@ class TestSSH(unittest.TestCase):
         mocked_isfile.return_value = False
         self.assertRaises(
             EC2Error, construct_normal_ssh, "haha.pem", "11111111", "ec2-user", False
+        )
+
+    @patch("os.path.isfile")
+    def test_construct_tunnel_ssh(self, mocked_isfile):
+        mocked_isfile.return_value = True
+        result = construct_tunnel_ssh(
+            "haha.pem", "11111111", "ec2-user", "22222222", "ubuntu"
+        )
+        self.assertEqual(
+            result,
+            [
+                "ssh",
+                "-A",
+                "-i",
+                "haha.pem",
+                "ec2-user@11111111",
+                "-t",
+                "ssh",
+                "ubuntu@22222222",
+            ],
+        )
+
+        mocked_isfile.return_value = False
+        self.assertRaises(
+            EC2Error,
+            construct_tunnel_ssh,
+            "haha.pem",
+            "11111111",
+            "ec2-user",
+            "22222222",
+            "ubuntu",
         )
