@@ -16,7 +16,9 @@ class TestFileLoader(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.test_json)
-        os.environ["FZFAWS_FZF_EXECUTABLE"] = "binary"
+        os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_REGION"] = ""
+        self.fileloader.load_config_file(config_path=self.test_yaml)
 
     def test_consctructor(self):
         self.assertEqual(self.fileloader.path, "")
@@ -64,23 +66,21 @@ class TestFileLoader(unittest.TestCase):
     def test_set_cloudformation_env(self):
         # normal test
         self.fileloader.load_config_file(config_path=self.test_yaml)
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "default")
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "ap-southeast-2")
+        self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_PROFILE", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_REGION", ""), "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-w -E")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "-w")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "-w -E")
 
         # reset
-        os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = ""
-        os.environ["FZFAWS_CLOUDFORMATION_REGION"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_CREATE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_DELETE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_UPDATE"] = ""
 
         # empty test
         self.fileloader._set_cloudformation_env({})
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "")
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "")
+        self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_PROFILE", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_REGION", ""), "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "")
@@ -152,7 +152,7 @@ class TestFileLoader(unittest.TestCase):
     def test_set_ec2_env(self):
         # normal test
         self.fileloader.load_config_file(config_path=self.test_yaml)
-        self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/.ssh")
+        self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "~/.ssh")
         self.assertEqual(
             os.environ["FZFAWS_EC2_WAITER"],
             json.dumps({"delay": 10, "max_attempts": 60}),

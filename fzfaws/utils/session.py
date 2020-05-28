@@ -48,15 +48,13 @@ class BaseSession:
             selected_region = str(region)
 
         if not selected_profile:
-            selected_profile = os.getenv(
-                "FZFAWS_%s_PROFILE" % service_name.upper(),
-                os.getenv("FZFAWS_GLOBAL_PROFILE", None),
-            )
+            selected_profile = os.getenv("FZFAWS_%s_PROFILE" % service_name.upper(), "")
+            if not selected_profile:
+                selected_profile = os.getenv("FZFAWS_GLOBAL_PROFILE", None)
         if not selected_region:
-            selected_region = os.getenv(
-                "FZFAWS_%s_REGION" % service_name.upper(),
-                os.getenv("FZFAWS_GLOBAL_REGION", None),
-            )
+            selected_region = os.getenv("FZFAWS_%s_REGION" % service_name.upper(), "")
+            if not selected_region:
+                selected_region = os.getenv("FZFAWS_GLOBAL_REGION", None)
 
         self.profile: Optional[str] = selected_profile
         self.region: Optional[str] = selected_region

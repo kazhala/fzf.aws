@@ -1,7 +1,6 @@
-import os
 import unittest
 from unittest.mock import patch, PropertyMock
-from fzfaws.utils import BaseSession, Pyfzf, FileLoader
+from fzfaws.utils import BaseSession, Pyfzf
 from boto3.session import Session
 import boto3
 from botocore.stub import Stubber
@@ -10,13 +9,8 @@ from botocore.stub import Stubber
 class TestSession(unittest.TestCase):
     def test_empty_init(self):
         session = BaseSession(service_name="ec2")
-        self.assertEqual(None, session.profile)
-        self.assertEqual(None, session.region)
-        fileloader = FileLoader()
-        curr_path = os.path.dirname(os.path.abspath(__file__))
-        fileloader.load_config_file(
-            config_path=os.path.join(curr_path, "../../fzfaws.yml")
-        )
+        self.assertEqual("default", session.profile)
+        self.assertEqual("ap-southeast-2", session.region)
 
     def test_param_profile_region(self):
         session = BaseSession(
