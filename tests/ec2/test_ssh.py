@@ -3,7 +3,7 @@ import io
 import sys
 import unittest
 from unittest.mock import patch
-from fzfaws.ec2.ssh_instance import ssh_instance, check_instance_status
+from fzfaws.ec2.ssh_instance import ssh_instance, check_instance_status, get_instance_ip
 from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
 
@@ -104,3 +104,44 @@ class TestSSH(unittest.TestCase):
             {"Status": "pending", "InstanceId": "11111111"},
         )
         check_instance_status({"Status": "running", "InstanceId": "11111111"})
+
+    def test_get_instance_ip(self):
+        self.assertRaises(EC2Error, get_instance_ip, {})
+        result = get_instance_ip({"PublicDnsName": "11111111"})
+        self.assertEqual(result, "11111111")
+
+        result = get_instance_ip({"PublicIpAddress": "11111111"})
+        self.assertEqual(result, "11111111")
+
+        result = get_instance_ip({"PrivateIpAddress": "11111111"})
+        self.assertEqual(result, "11111111")
+
+        result = get_instance_ip(
+            {
+                "PublicDnsName": "11111111",
+                "PublicIpAddress": "22222222",
+                "PrivateIpAddress": "3333333",
+            },
+            "dns",
+        )
+        self.assertEqual(result, "11111111")
+
+        result = get_instance_ip(
+            {
+                "PublicDnsName": "11111111",
+                "PublicIpAddress": "22222222",
+                "PrivateIpAddress": "3333333",
+            },
+            "public",
+        )
+        self.assertEqual(result, "22222222")
+
+        result = get_instance_ip(
+            {
+                "PublicDnsName": "11111111",
+                "PublicIpAddress": "22222222",
+                "PrivateIpAddress": "3333333",
+            },
+            "private",
+        )
+        self.assertEqual(result, "3333333")

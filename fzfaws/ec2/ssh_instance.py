@@ -46,7 +46,7 @@ def get_instance_ip(instance: dict, ip_type: str = "dns") -> str:
             ip_type = "public"
     if ip_type == "public":
         if instance.get("PublicIpAddress") and instance["PublicIpAddress"] != " ":
-            return instance["PublicDnsName"]
+            return instance["PublicIpAddress"]
         else:
             ip_type = "private"
     if ip_type == "private":
