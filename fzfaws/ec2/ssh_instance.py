@@ -64,6 +64,7 @@ def ssh_instance(
     bastion: bool = False,
     username: str = "ec2-user",
     tunnel: Union[bool, str] = False,
+    keypath: str = "",
 ) -> None:
     """function to handle ssh operation intot the ec2 instance
 
@@ -77,6 +78,8 @@ def ssh_instance(
     :type username: str, optional
     :param tunnel: connect to a instance through ssh tunnel, pass in str to specify username
     :type tunnel: Union[bool, str], optional
+    :param keypath: path to key pem
+    :type keypath: str, optional
     :raises EC2Error: the selected ec2 instance is not in running state or key pair not detected
     """
 
@@ -95,7 +98,7 @@ def ssh_instance(
     os.chdir(ssh_key_location)
     ssh_key: str = os.path.join(
         ssh_key_location, "%s.pem" % ec2.instance_list[0].get("KeyName", "")
-    )
+    ) if not keypath else keypath
 
     if not tunnel:
         instance_ip = get_instance_ip(ec2.instance_list[0])
@@ -156,7 +159,7 @@ def construct_normal_ssh(
             ["-i", ssh_key, "%s@%s" % (username, instance_ip),]
         )
     else:
-        raise EC2Error("Key pair not detected in the specified directory")
+        raise EC2Error("Key pair not detected in the specified location")
     return cmd_list
 
 
@@ -196,5 +199,5 @@ def construct_tunnel_ssh(
             "%s@%s" % (dest_username, dest_ip),
         ]
     else:
-        raise EC2Error("Key pair not detected in the specified directory")
+        raise EC2Error("Key pair not detected in the specified location")
     return cmd_list
