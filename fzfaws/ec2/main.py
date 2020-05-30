@@ -203,6 +203,42 @@ def ec2(raw_args):
         "ls", description="print the information of the selected instance"
     )
     ls_cmd.add_argument(
+        "--ipv4",
+        action="store_true",
+        default=False,
+        help="print out the selected instance ipv4 address",
+    )
+    ls_cmd.add_argument(
+        "--privateip",
+        action="store_true",
+        default=False,
+        help="print out the selected instance private ip address",
+    )
+    ls_cmd.add_argument(
+        "--dns",
+        action="store_true",
+        default=False,
+        help="print out the selected instance public dns address",
+    )
+    ls_cmd.add_argument(
+        "--az",
+        action="store_true",
+        default=False,
+        help="print out the selected instance availability zone",
+    )
+    ls_cmd.add_argument(
+        "--keyname",
+        action="store_true",
+        default=False,
+        help="print out the selected instance keyname",
+    )
+    ls_cmd.add_argument(
+        "--instanceid",
+        action="store_true",
+        default=False,
+        help="print out the selected instance id",
+    )
+    ls_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -267,4 +303,13 @@ def ec2(raw_args):
     elif args.subparser_name == "terminate":
         terminate_instance(args.profile, args.region, args.wait)
     elif args.subparser_name == "ls":
-        ls_instance(args.profile, args.region)
+        ls_instance(
+            args.profile,
+            args.region,
+            args.ipv4,
+            args.privateip,
+            args.dns,
+            args.az,
+            args.keyname,
+            args.instanceid,
+        )
