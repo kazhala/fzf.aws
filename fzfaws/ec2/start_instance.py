@@ -3,11 +3,17 @@
 Contains the main function for starting ec2 instances
 """
 import json
-from fzfaws.utils.util import get_confirmation
-from fzfaws.ec2.ec2 import EC2
+from fzfaws.utils import get_confirmation
+from fzfaws.ec2 import EC2
+from typing import Union
 
 
-def start_instance(profile=False, region=False, wait=False, check=False):
+def start_instance(
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    wait: bool = False,
+    check: bool = False,
+) -> None:
     """start the selected instance
 
     :param profile: profile to use for this operation
@@ -25,7 +31,7 @@ def start_instance(profile=False, region=False, wait=False, check=False):
 
     ec2.print_instance_details()
     if get_confirmation("Above instance will be started, continue?"):
-        print("Starting instance now..")
+        print("Starting instance now ...")
         response = ec2.client.start_instances(InstanceIds=ec2.instance_ids,)
         response.pop("ResponseMetadata", None)
         print(json.dumps(response, indent=4, default=str))
