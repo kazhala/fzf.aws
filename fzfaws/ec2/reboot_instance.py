@@ -2,11 +2,14 @@
 
 contains main function for rebooting instance
 """
-from fzfaws.ec2.ec2 import EC2
-from fzfaws.utils.util import get_confirmation
+from fzfaws.ec2 import EC2
+from fzfaws.utils import get_confirmation
+from typing import Union
 
 
-def reboot_instance(profile=False, region=False):
+def reboot_instance(
+    profile: Union[str, bool] = False, region: Union[str, bool] = False
+) -> None:
     """reboot the selected instances
 
     :param profile: profile to use for this operation
