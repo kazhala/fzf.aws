@@ -42,6 +42,7 @@ class TestEC2Start(unittest.TestCase):
         start_instance(False, False, False, False)
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
+        mocked_wait.assert_not_called()
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*Instance start initiated.*",
         )
@@ -63,6 +64,7 @@ class TestEC2Start(unittest.TestCase):
         start_instance("root", "us-east-1", False, True)
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
+        mocked_wait.assert_called_once()
         self.assertRegex(
             self.capturedOutput.getvalue(), r"Starting instance now.*",
         )

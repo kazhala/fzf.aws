@@ -3,11 +3,17 @@
 contains main function for stopping the instance
 """
 import json
-from fzfaws.ec2.ec2 import EC2
-from fzfaws.utils.util import get_confirmation
+from fzfaws.ec2 import EC2
+from fzfaws.utils import get_confirmation
+from typing import Union
 
 
-def stop_instance(profile=False, region=False, hibernate=False, wait=False):
+def stop_instance(
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    hibernate: bool = False,
+    wait: bool = False,
+) -> None:
     """stop the selected instance
 
 
@@ -26,7 +32,7 @@ def stop_instance(profile=False, region=False, hibernate=False, wait=False):
 
     ec2.print_instance_details()
     if get_confirmation("Above instance will be stopped, continue?"):
-        print("Stopping instance now..")
+        print("Stopping instance now ...")
         response = ec2.client.stop_instances(
             InstanceIds=ec2.instance_ids, Hibernate=hibernate
         )
