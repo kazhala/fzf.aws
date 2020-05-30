@@ -70,3 +70,25 @@ class TestEC2Start(unittest.TestCase):
             self.capturedOutput.getvalue(), r".*Instance start initiated.*",
         )
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance is ready")
+
+        # remock
+        ec2 = boto3.client("ec2")
+        stubber = Stubber(ec2)
+        response = {"StartingInstances": []}
+        stubber.add_response("start_instances", response)
+        stubber.activate()
+        mocked_client.return_value = ec2
+        mocked_confirmation.return_value = True
+        mocked_set_instance.reset_mock()
+        mocked_detail.reset_mock()
+
+        start_instance("root", "us-east-1", True, False)
+        mocked_set_instance.assert_called_once()
+        mocked_detail.assert_called_once()
+        self.assertRegex(
+            self.capturedOutput.getvalue(), r"Starting instance now.*",
+        )
+        self.assertRegex(
+            self.capturedOutput.getvalue(), r".*Instance start initiated.*",
+        )
+        self.assertRegex(self.capturedOutput.getvalue(), r".*Instance is running")
