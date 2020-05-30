@@ -3,11 +3,16 @@
 contains main function for terminating the instance
 """
 import json
-from fzfaws.ec2.ec2 import EC2
-from fzfaws.utils.util import get_confirmation
+from fzfaws.ec2 import EC2
+from fzfaws.utils import get_confirmation
+from typing import Union
 
 
-def terminate_instance(profile=False, region=False, wait=False):
+def terminate_instance(
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    wait: bool = False,
+) -> None:
     """terminate the instance
 
     :param profile: profile to use for this operation
