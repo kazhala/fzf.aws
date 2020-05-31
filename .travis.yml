@@ -9,4 +9,4 @@ install:
 before_script:
   - ./scripts/init_test
 script:
-  - python -m unittest discover
+  - ./scripts/run_test
