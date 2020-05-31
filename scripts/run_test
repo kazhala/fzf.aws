@@ -10,6 +10,4 @@ cd "${mydir}"/../
 while IFS= read -r -d $'\0' line; do
   echo "running test for ${line}"
   python -m unittest discover "${line}"
-done < <(
-  find tests -type d -depth 1 -not -path "*pycache*" -not -path "*data" -print0
-)
+done < <(find tests -mindepth 1 -maxdepth 1 -type d -not -path '*pycache*' -not -path '*data' -print0)
