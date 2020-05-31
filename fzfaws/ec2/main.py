@@ -239,6 +239,18 @@ def ec2(raw_args):
         help="print out the selected instance id",
     )
     ls_cmd.add_argument(
+        "--sgid",
+        action="store_true",
+        default=False,
+        help="print out the selected security group id",
+    )
+    ls_cmd.add_argument(
+        "--sgname",
+        action="store_true",
+        default=False,
+        help="print out the selected security group name",
+    )
+    ls_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -312,4 +324,6 @@ def ec2(raw_args):
             args.az,
             args.keyname,
             args.instanceid,
+            args.sgname,
+            args.sgid,
         )
