@@ -28,6 +28,28 @@ def ls_instance(
     :type profile: Union[bool, str], optional
     :param region: region to use for this operation
     :type region: Union[bool, str], optional
+    :param ipv4: print instance ipv4 address
+    :type ipv4: bool, optional
+    :param privateip: print private ip address of the instance
+    :type privateip: bool, optional
+    :param dns: print dns of the instance
+    :type dns: bool, optional
+    :param az: print availability zone of instance
+    :type az: bool, optional
+    :param keyname: print keyname of the instance
+    :type keyname: bool, optional
+    :param instanceid: print instance id of the instance
+    :type instanceid: bool, optional
+    :param sgname: print selected security group name
+    :type sgname: bool, optional
+    :param sgid: print selected security group id
+    :type sgid: bool, optional
+    :param subnetid: print selected subnet id
+    :type subnetid: bool, optional
+    :param volumeid: print selected volume id
+    :type volumeid: bool, optional
+    :param vpcid: print selected vpc id
+    :type vpcid: bool, optional
     :raises SystemExit: when the response is empty
     """
 
@@ -35,19 +57,24 @@ def ls_instance(
     if sgname or sgid:
         if sgid:
             result = ec2.get_security_groups(multi_select=True, return_attr="id")
-            print(result[0] if result else "")
+            for sg in result:
+                print(sg)
         if sgname:
             result = ec2.get_security_groups(multi_select=True, return_attr="name")
-            print(result[0] if result else "")
+            for sg in result:
+                print(sg)
     elif subnetid:
         result = ec2.get_subnet_id(multi_select=True)
-        print(result[0] if result else "")
+        for ec2 in result:
+            print(ec2)
     elif volumeid:
         result = ec2.get_volume_id(multi_select=True)
-        print(result[0] if result else "")
+        for volume in result:
+            print(volume)
     elif vpcid:
         result = ec2.get_vpc_id(multi_select=True)
-        print(result[0] if result else "")
+        for vpc in result:
+            print(vpc)
     else:
         ec2.set_ec2_instance()
         response = ec2.client.describe_instances(InstanceIds=ec2.instance_ids)
