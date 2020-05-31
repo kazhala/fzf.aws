@@ -21,6 +21,10 @@ def ls_instance(
     subnetid: bool = False,
     volumeid: bool = False,
     vpcid: bool = False,
+    vpc: bool = False,
+    volume: bool = False,
+    sg: bool = False,
+    subnet: bool = False,
 ) -> None:
     """display information about the instance
 
@@ -50,35 +54,60 @@ def ls_instance(
     :type volumeid: bool, optional
     :param vpcid: print selected vpc id
     :type vpcid: bool, optional
+    :param vpc: print information about vpc instead of ec2
+    :type vpc: bool, optional
+    :param volume: print information about volume instead of ec2
+    :type volume: bool, optional
+    :param sg: print information about security group instead of ec2
+    :type sg: bool, optional
+    :param subet: print information about subnet instead of ec2
+    :type subet: bool, optional
     :raises SystemExit: when the response is empty
     """
 
     ec2 = EC2(profile, region)
-    if sgname or sgid:
-        if sgid:
+    if sg or sgid or sgname:
+        if not sgid and not sgname:
             result = ec2.get_security_groups(multi_select=True, return_attr="id")
-            for sg in result:
-                print(sg)
-        if sgname:
-            result = ec2.get_security_groups(multi_select=True, return_attr="name")
-            for sg in result:
-                print(sg)
-    elif subnetid:
+            if result:
+                response = ec2.client.describe_security_groups(GroupIds=result)
+                dump_response(response)
+        else:
+            if sgid:
+                result = ec2.get_security_groups(multi_select=True, return_attr="id")
+                for item in result:
+                    print(item)
+            if sgname:
+                result = ec2.get_security_groups(multi_select=True, return_attr="name")
+                for item in result:
+                    print(item)
+    elif subnet or subnetid:
         result = ec2.get_subnet_id(multi_select=True)
-        for ec2 in result:
-            print(ec2)
-    elif volumeid:
+        if not subnetid:
+            response = ec2.client.describe_subnets(SubnetIds=result)
+            dump_response(response)
+        else:
+            for item in result:
+                print(item)
+    elif volume or volumeid:
         result = ec2.get_volume_id(multi_select=True)
-        for volume in result:
-            print(volume)
-    elif vpcid:
+        if not volumeid:
+            response = ec2.client.describe_volumes(VolumeIds=result)
+            dump_response(response)
+        else:
+            for item in result:
+                print(item)
+    elif vpc or vpcid:
         result = ec2.get_vpc_id(multi_select=True)
-        for vpc in result:
-            print(vpc)
+        if not vpcid:
+            response = ec2.client.describe_vpcs(VpcIds=result)
+            dump_response(response)
+        else:
+            for item in result:
+                print(item)
     else:
         ec2.set_ec2_instance()
         response = ec2.client.describe_instances(InstanceIds=ec2.instance_ids)
-        response.pop("ResponseMetadata", None)
         if (
             not ipv4
             and not privateip
@@ -87,7 +116,7 @@ def ls_instance(
             and not keyname
             and not instanceid
         ):
-            print(json.dumps(response, indent=4, default=str))
+            dump_response(response)
         else:
             if not response["Reservations"]:
                 raise SystemExit
@@ -104,3 +133,8 @@ def ls_instance(
                     print(instance.get("KeyName"))
                 if instanceid:
                     print(instance.get("InstanceId"))
+
+
+def dump_response(response: dict) -> None:
+    response.pop("ResponseMetadata", None)
+    print(json.dumps(response, indent=4, default=str))
