@@ -50,7 +50,43 @@ class TestEC2Main(unittest.TestCase):
     @patch("fzfaws.ec2.main.ls_instance")
     def test_ls_instance(self, mocked_ls):
         ec2(["ls"])
-        mocked_ls.assert_called_with(False, False)
+        mocked_ls.assert_called_with(
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+        )
 
         ec2(["ls", "-P"])
-        mocked_ls.assert_called_with(True, False)
+        mocked_ls.assert_called_with(
+            True,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+        )

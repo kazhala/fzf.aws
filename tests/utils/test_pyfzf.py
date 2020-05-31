@@ -2,13 +2,19 @@ import unittest
 import subprocess
 import io
 import sys
+import os
 from unittest.mock import patch
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from fzfaws.utils.exceptions import EmptyList, NoSelectionMade
 
 
 class TestPyfzf(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         self.fzf = Pyfzf()

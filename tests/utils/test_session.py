@@ -1,12 +1,20 @@
+import os
 import unittest
 from unittest.mock import patch, PropertyMock
-from fzfaws.utils import BaseSession, Pyfzf
+from fzfaws.utils import BaseSession, Pyfzf, FileLoader
 from boto3.session import Session
 import boto3
 from botocore.stub import Stubber
 
 
 class TestSession(unittest.TestCase):
+    def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
+
     def test_empty_init(self):
         session = BaseSession(service_name="ec2")
         self.assertEqual("default", session.profile)

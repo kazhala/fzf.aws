@@ -16,8 +16,10 @@ class TestFileLoader(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.test_json)
+        # reset cloudformation profile/region to align with test config file
         os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_REGION"] = ""
+        # reload config file
         self.fileloader.load_config_file(config_path=self.test_yaml)
 
     def test_consctructor(self):

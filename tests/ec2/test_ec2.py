@@ -13,6 +13,11 @@ from fzfaws.utils import FileLoader
 
 class TestEC2(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         self.ec2 = EC2()
@@ -21,8 +26,8 @@ class TestEC2(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     def test_constructor(self):
-        self.assertEqual(self.ec2.profile, None)
-        self.assertEqual(self.ec2.region, None)
+        self.assertEqual(self.ec2.profile, "default")
+        self.assertEqual(self.ec2.region, "ap-southeast-2")
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [{}])
 
@@ -167,21 +172,19 @@ class TestEC2(unittest.TestCase):
             self.assertEqual(kwargs["InstanceIds"], ["22222222"])
             self.assertEqual(kwargs["WaiterConfig"], {"Delay": 10, "MaxAttempts": 60})
 
+        mocked_wait.side_effect = test_waiter_arg2
+        self.ec2.instance_ids = ["22222222"]
+        self.ec2.wait("instance_status_ok", "hello")
+
+        # test no config for watier
+        del os.environ["FZFAWS_EC2_WAITER"]
+        del os.environ["FZFAWS_GLOBAL_WAITER"]
         mocked_wait.side_effect = test_waiter_arg1
         self.ec2.instance_ids = ["11111111"]
         self.ec2.wait("instance_status_ok", "hello")
         self.assertRegex(
             self.capturedOutput.getvalue(), r"^| hello.*$",
         )
-
-        mocked_wait.side_effect = test_waiter_arg2
-        fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
-        self.ec2.instance_ids = ["22222222"]
-        self.ec2.wait("instance_status_ok", "hello")
 
     @patch.object(Pyfzf, "process_list")
     @patch.object(Pyfzf, "execute_fzf")

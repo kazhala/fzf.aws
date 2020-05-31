@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# purpose of this script is to isolate different
+# tests env so that env variables doesn't get messed up
+# between different tests
+
+mydir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "${mydir}"/../
+
+while IFS= read -r -d $'\0' line; do
+  echo "running test for ${line}"
+  python -m unittest discover "${line}"
+done < <(
+  find \
+    tests \
+    -type d \
+    -d 1 \
+    -not -path "*pycache*" \
+    -not -path "*data" \
+    -print0 \
+)
