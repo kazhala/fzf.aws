@@ -18,6 +18,9 @@ def ls_instance(
     instanceid: bool = False,
     sgname: bool = False,
     sgid: bool = False,
+    subnetid: bool = False,
+    volumeid: bool = False,
+    vpcid: bool = False,
 ) -> None:
     """display information about the instance
 
@@ -36,6 +39,15 @@ def ls_instance(
         if sgname:
             result = ec2.get_security_groups(multi_select=True, return_attr="name")
             print(result[0] if result else "")
+    elif subnetid:
+        result = ec2.get_subnet_id(multi_select=True)
+        print(result[0] if result else "")
+    elif volumeid:
+        result = ec2.get_volume_id(multi_select=True)
+        print(result[0] if result else "")
+    elif vpcid:
+        result = ec2.get_vpc_id(multi_select=True)
+        print(result[0] if result else "")
     else:
         ec2.set_ec2_instance()
         response = ec2.client.describe_instances(InstanceIds=ec2.instance_ids)

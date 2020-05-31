@@ -251,6 +251,24 @@ def ec2(raw_args):
         help="print out the selected security group name",
     )
     ls_cmd.add_argument(
+        "--subnetid",
+        action="store_true",
+        default=False,
+        help="print out the selected subnet id",
+    )
+    ls_cmd.add_argument(
+        "--volumeid",
+        action="store_true",
+        default=False,
+        help="print out the selected volume id",
+    )
+    ls_cmd.add_argument(
+        "--vpcid",
+        action="store_true",
+        default=False,
+        help="print out the selected vpc id",
+    )
+    ls_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -326,4 +344,7 @@ def ec2(raw_args):
             args.instanceid,
             args.sgname,
             args.sgid,
+            args.subnetid,
+            args.volumeid,
+            args.vpcid,
         )

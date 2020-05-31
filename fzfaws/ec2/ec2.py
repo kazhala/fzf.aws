@@ -203,7 +203,6 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching Subnets ..."):
             paginator = self.client.get_paginator("describe_subnets")
             for result in paginator.paginate():
-                print(result)
                 response_list = result["Subnets"]
                 for subnet in response_list:
                     subnet["Name"] = get_name_tag(subnet)
@@ -230,7 +229,6 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching EBS volumes ..."):
             paginator = self.client.get_paginator("describe_volumes")
             for result in paginator.paginate():
-                print(result)
                 response_list = result["Volumes"]
                 for volume in response_list:
                     volume["Name"] = get_name_tag(volume)
