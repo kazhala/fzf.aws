@@ -1,14 +1,20 @@
 import io
 import sys
+import os
 import unittest
 from unittest.mock import patch
 from fzfaws.cloudwatch import Cloudwatch
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
 
 
 class TestCloudWwatch(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
         self.cloudwatch = Cloudwatch()
@@ -17,8 +23,8 @@ class TestCloudWwatch(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     def test_constructor(self):
-        self.assertEqual(self.cloudwatch.profile, None)
-        self.assertEqual(self.cloudwatch.region, None)
+        self.assertEqual(self.cloudwatch.profile, "default")
+        self.assertEqual(self.cloudwatch.region, "ap-southeast-2")
         self.assertEqual(self.cloudwatch.arns, [""])
 
         cloudwatch = Cloudwatch(profile="root", region="us-east-1")

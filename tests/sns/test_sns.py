@@ -1,14 +1,20 @@
 import unittest
+import os
 import io
 import sys
 from unittest.mock import patch
 from fzfaws.sns import SNS
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
 
 
 class TestSNS(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
         self.sns = SNS()
@@ -17,8 +23,8 @@ class TestSNS(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     def test_constructor(self):
-        self.assertEqual(self.sns.profile, None)
-        self.assertEqual(self.sns.region, None)
+        self.assertEqual(self.sns.profile, "default")
+        self.assertEqual(self.sns.region, "ap-southeast-2")
         self.assertEqual(self.sns.arns, [""])
 
         sns = SNS(profile="root", region="us-east-2")

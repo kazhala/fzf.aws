@@ -1,14 +1,20 @@
 import unittest
+import os
 import io
 import sys
 from unittest.mock import patch
 from fzfaws.route53 import Route53
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
 
 
 class TestRoute53(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
         self.route53 = Route53()
@@ -18,13 +24,13 @@ class TestRoute53(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.route53.zone_ids, [""])
-        self.assertEqual(self.route53.profile, None)
-        self.assertEqual(self.route53.region, None)
+        self.assertEqual(self.route53.profile, "default")
+        self.assertEqual(self.route53.region, "ap-southeast-2")
 
-        route53 = Route53(profile="root", region="ap-southeast-2")
+        route53 = Route53(profile="root", region="us-west-1")
         self.assertEqual(route53.zone_ids, [""])
         self.assertEqual(route53.profile, "root")
-        self.assertEqual(route53.region, "ap-southeast-2")
+        self.assertEqual(route53.region, "us-west-1")
 
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")

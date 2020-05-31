@@ -1,14 +1,20 @@
 import sys
+import os
 import io
 import unittest
 from unittest.mock import patch
 from fzfaws.kms import KMS
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
 
 
 class TestKMS(unittest.TestCase):
     def setUp(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
         self.kms = KMS()
@@ -17,8 +23,8 @@ class TestKMS(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     def test_constructor(self):
-        self.assertEqual(self.kms.profile, None)
-        self.assertEqual(self.kms.region, None)
+        self.assertEqual(self.kms.profile, "default")
+        self.assertEqual(self.kms.region, "ap-southeast-2")
         self.assertEqual(self.kms.keyids, [""])
 
         kms = KMS(profile="root", region="us-east-1")

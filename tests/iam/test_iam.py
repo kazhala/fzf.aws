@@ -1,15 +1,21 @@
 import io
+import os
 import sys
 import unittest
 from unittest.mock import patch
 from fzfaws.iam import IAM
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
 
 
 class TestIAM(unittest.TestCase):
     def setUp(self):
-        self.iam = IAM(profile="default", region="ap-southeast-2")
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
+        self.iam = IAM()
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
 
@@ -21,9 +27,10 @@ class TestIAM(unittest.TestCase):
         self.assertEqual("default", self.iam.profile)
         self.assertEqual("ap-southeast-2", self.iam.region)
 
-        iam = IAM()
-        self.assertEqual(None, iam.profile)
-        self.assertEqual(None, iam.region)
+        iam = IAM(profile="root", region="us-east-1")
+        self.assertEqual("root", iam.profile)
+        self.assertEqual("us-east-1", iam.region)
+        self.assertEqual([""], self.iam.arns)
 
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "process_list")
