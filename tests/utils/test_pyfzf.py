@@ -35,6 +35,26 @@ class TestPyfzf(unittest.TestCase):
         self.fzf.append_fzf("world\n")
         self.assertEqual("hello\nworld\n", self.fzf.fzf_string)
 
+    def test_construct_fzf_command(self):
+        cmd_list = self.fzf._construct_fzf_cmd()
+        self.assertEqual(
+            cmd_list,
+            [
+                "/Users/kevinzhuang/Programming/aws/fzf.aws/fzfaws/utils/../libs/fzf-0.21.1-darwin_amd64",
+                "--ansi",
+                "--expect=ctrl-c",
+                "--color=dark",
+                "--color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,bg+:#4b5263,hl+:#d858fe",
+                "--color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:#61afef,header:#61afef",
+                "--height",
+                "100%",
+                "--layout=reverse",
+                "--border",
+                "--cycle",
+                "--bind=alt-a:toggle-all,alt-j:jump,alt-0:top,alt-s:toggle-sort",
+            ],
+        )
+
     @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
     def test_execute_fzf(self, mocked_output, mocked_popen):

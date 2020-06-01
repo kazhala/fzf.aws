@@ -255,6 +255,11 @@ class Pyfzf:
             return str(selected_file_path, "utf-8").strip()
 
     def _construct_fzf_cmd(self) -> list:
+        """construct command for fzf
+
+        :return: command list processable by subprocess
+        :rtype: list
+        """
         cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         if os.getenv("FZFAWS_FZF_OPTS"):
             cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
