@@ -88,11 +88,7 @@ class Pyfzf:
         # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
-        cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
-        if os.getenv("FZFAWS_FZF_OPTS"):
-            cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
-        if os.getenv("FZFAWS_FZF_KEYS"):
-            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
+        cmd_list: list = self._construct_fzf_cmd()
         selection_name: bytes = b""
 
         if header:
@@ -227,12 +223,7 @@ class Pyfzf:
         selected_file_path: bytes = b""
 
         try:
-            # TODO: refactor with execute_fzf to one command to process fzf arg
-            cmd_list = [self.fzf_path, "--expect=ctrl-c"]
-            if os.getenv("FZFAWS_FZF_OPTS"):
-                cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
-            if os.getenv("FZFAWS_FZF_KEYS"):
-                cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
+            cmd_list: list = self._construct_fzf_cmd()
             if header:
                 cmd_list.append("--header=%s" % header)
             if multi_select:
@@ -262,6 +253,14 @@ class Pyfzf:
             return str(selected_file_path, "utf-8").strip().splitlines()
         else:
             return str(selected_file_path, "utf-8").strip()
+
+    def _construct_fzf_cmd(self) -> list:
+        cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
+        if os.getenv("FZFAWS_FZF_OPTS"):
+            cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
+        if os.getenv("FZFAWS_FZF_KEYS"):
+            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
+        return cmd_list
 
     def _check_ctrl_c(self, raw_bytes: bytes) -> None:
         """check if ctrl_c is pressed during fzf invokation

@@ -30,6 +30,7 @@ class TestPyfzf(unittest.TestCase):
         self.assertEqual("", self.fzf.fzf_string)
 
     def test_append_fzf(self):
+        self.fzf.fzf_string = ""
         self.fzf.append_fzf("hello\n")
         self.fzf.append_fzf("world\n")
         self.assertEqual("hello\nworld\n", self.fzf.fzf_string)
