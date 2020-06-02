@@ -1,3 +1,5 @@
+import os
+import json
 import unittest
 from unittest.mock import patch
 from fzfaws.utils import (
@@ -6,6 +8,7 @@ from fzfaws.utils import (
     remove_dict_from_list,
     search_dict_in_list,
     get_name_tag,
+    get_default_args,
 )
 
 
@@ -47,80 +50,13 @@ class TestUtil(unittest.TestCase):
         self.assertFalse(response)
 
     def test_get_name_tag(self):
-        test_data = {
-            "Instances": [
-                {
-                    "AmiLaunchIndex": 0,
-                    "InstanceType": "t2.micro",
-                    "KeyName": "ap-southeast-2_playground",
-                    "Monitoring": {"State": "disabled"},
-                    "Placement": {
-                        "AvailabilityZone": "ap-southeast-2b",
-                        "GroupName": "",
-                        "Tenancy": "default",
-                    },
-                    "PublicIpAddress": "13.238.143.201",
-                    "State": {"Code": 16, "Name": "running"},
-                    "StateTransitionReason": "",
-                    "Architecture": "x86_64",
-                    "BlockDeviceMappings": [
-                        {
-                            "DeviceName": "/dev/xvda",
-                            "Ebs": {
-                                "DeleteOnTermination": True,
-                                "Status": "attached",
-                                "VolumeId": "vol-03d755609d4783573",
-                            },
-                        }
-                    ],
-                    "EbsOptimized": False,
-                    "EnaSupport": True,
-                    "Hypervisor": "xen",
-                    "NetworkInterfaces": [],
-                    "RootDeviceName": "/dev/xvda",
-                    "RootDeviceType": "ebs",
-                    "SecurityGroups": [],
-                    "SourceDestCheck": True,
-                    "Tags": [
-                        {"Key": "aws:ec2launchtemplate:version", "Value": "5"},
-                        {
-                            "Key": "aws:cloudformation:stack-name",
-                            "Value": "awseb-e-wphtqnu48q-stack",
-                        },
-                        {
-                            "Key": "elasticbeanstalk:environment-id",
-                            "Value": "e-wphtqnu48q",
-                        },
-                        {
-                            "Key": "aws:cloudformation:logical-id",
-                            "Value": "AWSEBAutoScalingGroup",
-                        },
-                        {"Key": "Application", "Value": "mealternative"},
-                        {"Key": "WebServer", "Value": "yes"},
-                        {
-                            "Key": "aws:cloudformation:stack-id",
-                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/awseb-e-wphtqnu48q-stack/26833f80-62c0-11ea-bba2-0a630e7b8d5e",
-                        },
-                        {
-                            "Key": "aws:autoscaling:groupName",
-                            "Value": "awseb-e-wphtqnu48q-stack-AWSEBAutoScalingGroup-1NRHWVE3L8P3",
-                        },
-                        {
-                            "Key": "elasticbeanstalk:environment-name",
-                            "Value": "meal-Bean-10PYXE0G1F4HS",
-                        },
-                        {"Key": "Name", "Value": "meal-Bean-10PYXE0G1F4HS"},
-                    ],
-                    "VirtualizationType": "hvm",
-                    "CpuOptions": {"CoreCount": 1, "ThreadsPerCore": 1},
-                    "CapacityReservationSpecification": {
-                        "CapacityReservationPreference": "open"
-                    },
-                    "HibernationOptions": {"Configured": False},
-                }
-            ],
-        }
-        name = get_name_tag(test_data["Instances"][0])
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_instance.json"
+        )
+        with open(data_path, "r") as file:
+            test_data = json.load(file)
+
+        name = get_name_tag(test_data[0]["Reservations"][0]["Instances"][0])
         self.assertEqual(name, "meal-Bean-10PYXE0G1F4HS")
         test_data = {}
         name = get_name_tag(test_data)
