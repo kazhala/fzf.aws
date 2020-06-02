@@ -83,7 +83,7 @@ def ls_instance(
                     print(item)
     elif subnet or subnetid:
         result = ec2.get_subnet_id(multi_select=True)
-        if not subnetid:
+        if not subnetid and result:
             response = ec2.client.describe_subnets(SubnetIds=result)
             dump_response(response)
         else:
@@ -91,7 +91,7 @@ def ls_instance(
                 print(item)
     elif volume or volumeid:
         result = ec2.get_volume_id(multi_select=True)
-        if not volumeid:
+        if not volumeid and result:
             response = ec2.client.describe_volumes(VolumeIds=result)
             dump_response(response)
         else:
@@ -99,7 +99,7 @@ def ls_instance(
                 print(item)
     elif vpc or vpcid:
         result = ec2.get_vpc_id(multi_select=True)
-        if not vpcid:
+        if not vpcid and result:
             response = ec2.client.describe_vpcs(VpcIds=result)
             dump_response(response)
         else:
