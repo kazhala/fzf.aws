@@ -1,6 +1,7 @@
 """contains some common helper functions
 """
 from typing import Any
+import os
 
 
 def remove_dict_from_list(value: Any, target_list: list, key_name: str) -> list:
@@ -86,3 +87,29 @@ def get_name_tag(response_item: dict) -> str:
         )
     else:
         return "N/A"
+
+
+def get_default_args(action_command: str, curr_args: list) -> list:
+    """prepend default args to arg list
+
+    User could specify default args in config file and fileloader
+    would process and put them in env. This function is used
+    to retrieve those env and prepend the arg list so that user
+    could still override their default args.
+
+    :param curr_args: current argument list
+    :type curr_args: list
+    :return: processed arg list
+    :rtype: list
+    """
+    if len(curr_args) < 1:
+        return curr_args
+    action_subcommand = curr_args[0]
+    action_options = curr_args[1:]
+    default_args = os.getenv(
+        "FZFAWS_%s_%s" % (action_command.upper(), action_subcommand.upper())
+    )
+    if not default_args:
+        return curr_args
+    else:
+        return [action_subcommand] + default_args.split() + action_options
