@@ -38,9 +38,8 @@ class TestPyfzf(unittest.TestCase):
     def test_construct_fzf_command(self):
         cmd_list = self.fzf._construct_fzf_cmd()
         self.assertEqual(
-            cmd_list,
+            cmd_list[1:],
             [
-                "/Users/kevinzhuang/Programming/aws/fzf.aws/fzfaws/utils/../libs/fzf-0.21.1-darwin_amd64",
                 "--ansi",
                 "--expect=ctrl-c",
                 "--color=dark",
