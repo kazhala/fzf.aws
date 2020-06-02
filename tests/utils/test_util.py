@@ -9,6 +9,7 @@ from fzfaws.utils import (
     search_dict_in_list,
     get_name_tag,
     get_default_args,
+    FileLoader,
 )
 
 
@@ -61,3 +62,24 @@ class TestUtil(unittest.TestCase):
         test_data = {}
         name = get_name_tag(test_data)
         self.assertEqual(name, "N/A")
+
+    def test_get_default_args(self):
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
+        result = get_default_args("ec2", ["start", "-e", "-m"])
+        self.assertEqual(result, ["start", "-w", "-e", "-m"])
+
+        result = get_default_args("s3", ["upload", "-b", "-x"])
+        self.assertEqual(result, ["upload", "-H", "-E", "-b", "-x"])
+
+        result = get_default_args("s3", ["presign"])
+        self.assertEqual(result, ["presign", "-e", "3600"])
+
+        result = get_default_args("ec2", [])
+        self.assertEqual(result, [])
+
+        result = get_default_args("ec2", ["ssh"])
+        self.assertEqual(result, ["ssh"])
