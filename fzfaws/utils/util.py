@@ -22,7 +22,6 @@ def remove_dict_from_list(value: Any, target_list: list, key_name: str) -> list:
     return return_list
 
 
-# helper function to find dict in list based on key values
 def search_dict_in_list(value: Any, target_list: list, key_name: str) -> dict:
     """helper function to find dict in list based on key values
 
