@@ -9,6 +9,7 @@ from fzfaws.utils import FileLoader, Pyfzf, BaseSession
 from botocore.stub import Stubber
 import boto3
 from fzfaws.utils.exceptions import InvalidS3PathPattern
+from botocore.paginate import Paginator
 
 
 class TestS3(unittest.TestCase):
@@ -49,6 +50,7 @@ class TestS3(unittest.TestCase):
         with open(s3_data_path, "r") as file:
             response = json.load(file)
 
+        # normal test
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
         stubber.add_response("list_buckets", response)
@@ -60,6 +62,7 @@ class TestS3(unittest.TestCase):
         mocked_list.assert_called_with(response["Buckets"], "Name")
         mocked_execute.assert_called_with(header="")
 
+        # empty test
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
         stubber.add_response("list_buckets", {"Buckets": []})
@@ -169,3 +172,62 @@ class TestS3(unittest.TestCase):
         )
         self.assertEqual(result, None)
         self.assertEqual(match, None)
+
+    @patch("fzfaws.s3.s3.get_confirmation")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    @patch.object(Paginator, "paginate")
+    @patch("builtins.input")
+    @patch.object(S3, "_get_path_option")
+    def test_set_s3_path(
+        self,
+        mocked_option,
+        mocked_input,
+        mocked_paginator,
+        mocked_append,
+        mocked_execute,
+        mocked_confirmation,
+    ):
+        # input
+        self.s3.bucket_name = "kazhala-version-testing"
+        mocked_option.return_value = "input"
+        mocked_input.return_value = "hello"
+        self.s3.set_s3_path()
+        self.assertEqual(self.s3.path_list[0], "hello")
+
+        # root
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_option.return_value = "root"
+        self.s3.set_s3_path()
+        self.assertEqual(
+            self.capturedOutput.getvalue(), "S3 file path is set to root\n"
+        )
+
+        # interactively normal
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = [""]
+        mocked_option.return_value = "interactively"
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_object.json"
+        )
+        with open(data_path, "r") as file:
+            response = json.load(file)
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ""
+        mocked_confirmation.return_value = True
+        self.s3.set_s3_path()
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=0,
+            header="PWD: s3://kazhala-version-testing/ (press ESC to use current path)",
+            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+        )
+        mocked_append.assert_called_with("versiontesting/\n")
+        mocked_confirmation.assert_called()
+        self.assertRegex(self.capturedOutput.getvalue(), "S3 file path is set to root")
+
+        # interactively empty
+        mocked_paginator.return_value = []

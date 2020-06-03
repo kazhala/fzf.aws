@@ -12,7 +12,7 @@ from fzfaws.cloudformation.helper.process_file import (
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Optional, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
@@ -93,21 +93,20 @@ class S3(BaseSession):
                 parents = []
                 # interactively search down 'folders' in s3
                 while True:
-                    spinner = Spinner(message="Fetching s3 objects..")
-                    spinner.start()
                     if len(parents) > 0:
                         fzf.append_fzf("..\n")
-                    preview = ""  # type: str
-                    for result in paginator.paginate(
-                        Bucket=self.bucket_name, Prefix=self.path_list[0], Delimiter="/"
-                    ):
-                        for prefix in result.get("CommonPrefixes", []):
-                            fzf.append_fzf(prefix.get("Prefix"))
-                            fzf.append_fzf("\n")
-                        for content in result.get("Contents", []):
-                            preview += content.get("Key")
-                            preview += " "
-                    spinner.stop()
+                    with Spinner.spin(message="Fetching s3 objects ..."):
+                        preview = ""  # type: str
+                        for result in paginator.paginate(
+                            Bucket=self.bucket_name,
+                            Prefix=self.path_list[0],
+                            Delimiter="/",
+                        ):
+                            for prefix in result.get("CommonPrefixes", []):
+                                fzf.append_fzf("%s\n" % prefix.get("Prefix"))
+                            for content in result.get("Contents", []):
+                                preview += content.get("Key")
+                                preview += " "
 
                     # has to use tr to transform the string to new line during preview by fzf
                     # not sure why, but if directly use \n, fzf preview interpret as a new command
@@ -152,8 +151,6 @@ class S3(BaseSession):
                     )
                 else:
                     raise NoSelectionMade("S3 file path was not configured, exiting..")
-            finally:
-                Spinner.clear_spinner()
 
     def set_s3_object(self, version=False, multi_select=False, deletemark=False):
         """list object within a bucket and let user select a object.
@@ -396,8 +393,22 @@ class S3(BaseSession):
             else:
                 return self.path_list[0]
 
-    def _validate_input_path(self, user_input) -> Tuple:
-        """validate if the user input path is valid format"""
+    def _validate_input_path(
+        self, user_input
+    ) -> Union[
+        Tuple[str, Sequence[str]], Tuple[str, Sequence[str]], Tuple[None, None],
+    ]:
+        """validate if the user input path is valid format
+
+        :param user_input: the input from -b flag
+        :type user_input: str
+        :return: tuple of bucket type and bucket path
+        :rtype: Union[
+            Tuple[Literal["accesspoint"], Sequence[str]],
+            Tuple[Literal["bucketpath"], Sequence[str]],
+            Tuple[None, None],
+        ]
+        """
         accesspoint_pattern = r"^(arn:aws.*:s3:[a-z\-0-9]+:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-]{1,63}/)(.*)$"
         path_pattern = r"^(?!arn:.*)(.*?/)(.*)$"
         if re.match(accesspoint_pattern, user_input):

@@ -1,0 +1,163 @@
+[
+  {
+    "ResponseMetadata": {
+      "RequestId": "8DEC05840863DFA3",
+      "HostId": "g4z1WTtPyx45ufvLRB2Jaiovmn3k8qJBR2oyF9LWJF2mKxhYe27x/PHQCNQNt3PO467at6bXMQI=",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amz-id-2": "g4z1WTtPyx45ufvLRB2Jaiovmn3k8qJBR2oyF9LWJF2mKxhYe27x/PHQCNQNt3PO467at6bXMQI=",
+        "x-amz-request-id": "8DEC05840863DFA3",
+        "date": "Wed, 03 Jun 2020 01:59:15 GMT",
+        "x-amz-bucket-region": "ap-southeast-2",
+        "content-type": "application/xml",
+        "transfer-encoding": "chunked",
+        "server": "AmazonS3"
+      },
+      "RetryAttempts": 0
+    },
+    "IsTruncated": false,
+    "Marker": "",
+    "Contents": [
+      {
+        "Key": ".DS_Store",
+        "ETag": "\"52ebcf031c745265d0f5523f1d77299b\"",
+        "Size": 6148,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "Fortnite refund.docx",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "README.md",
+        "ETag": "\"c8420c7e0f9dfb749eb4288a94765003\"",
+        "Size": 3547,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "VideoPageSpec.docx",
+        "ETag": "\"5db708adba3cc8066c4dee937243fa72\"",
+        "Size": 285867,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "boob.docx",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "boto3-s3-filter.png",
+        "ETag": "\"561ad6a91c58cd4c38b690024abb1ef8\"",
+        "Size": 190529,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "cloudformation_parameters.png",
+        "ETag": "\"b5b6f5588090ca1804dc61eedd1432fe\"",
+        "Size": 124541,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "elb.pem",
+        "ETag": "\"ee16280ead59e5d5a9bc2e473d9d576b\"",
+        "Size": 1696,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "lab.pem",
+        "ETag": "\"41673f2973a8761651af0d4c0a719d9c\"",
+        "Size": 1670,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "ooooo.doc",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "version1.com",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "version2.com",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      },
+      {
+        "Key": "version3.com",
+        "ETag": "\"1fdb255a4cf7a2484d109893800955cd\"",
+        "Size": 155568,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Owner": {
+          "DisplayName": "trololo",
+          "ID": "111111"
+        }
+      }
+    ],
+    "Name": "kazhala-file-transfer",
+    "Prefix": "",
+    "Delimiter": "/",
+    "MaxKeys": 1000,
+    "CommonPrefixes": [
+      { "Prefix": "boob/" },
+      { "Prefix": "nonooo/" },
+      { "Prefix": "versiontesting/" }
+    ],
+    "EncodingType": "url"
+  }
+]
