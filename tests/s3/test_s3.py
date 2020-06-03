@@ -303,3 +303,6 @@ class TestS3(unittest.TestCase):
             "Current PWD is s3://kazhala-version-testing/newpath/",
         )
         self.assertEqual(self.s3.path_list, ["newpath/obj1"])
+
+    def test_s3_object(self):
+        pass

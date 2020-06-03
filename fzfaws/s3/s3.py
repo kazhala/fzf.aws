@@ -152,72 +152,78 @@ class S3(BaseSession):
                 else:
                     raise NoSelectionMade("S3 file path was not configured, exiting..")
 
-    def set_s3_object(self, version=False, multi_select=False, deletemark=False):
+    def set_s3_object(
+        self,
+        version: bool = False,
+        multi_select: bool = False,
+        deletemark: bool = False,
+    ) -> None:
         """list object within a bucket and let user select a object.
 
         stores the file path and the filetype into the instance attributes
         using paginator to get all results
 
-        Args:
-            version: bool, enable version find
-                when this set to true, the object search would search through 'list_object_versions'
-                rather than list_objects so that user could still find the object even after
-                they deleted the object
-            multi_select: bool, enable multi_select
-            deletemark: bool, only display object that has deletemark associated with
-                Only works with version=True
-        Exceptions:
-            NoSelectionMade: when there is no selection made, bucket is empty
-            ClientError: boto3 error
+        All of the deleted object are displayed in red color when version mode
+        is enabled.
+
+        :param version: enable version search
+        :type version: bool, optional
+        :param multi_select: enable multi selection
+        :type multi_select: bool, optional
+        :param deletemark: show deletemark object in the list
+        :type deletemark: bool, optional
+        :raises NoSelectionMade: when there is no selection made
         """
-        try:
-            fzf = Pyfzf()
-            spinner = Spinner(message="Fetching s3 objects..")
-            if not version:
-                spinner.start()
-                paginator = self.client.get_paginator("list_objects")
+
+        fzf = Pyfzf()
+        if not version:
+            paginator = self.client.get_paginator("list_objects")
+            with Spinner.spin(message="Fetching s3 objects ..."):
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     for file in result.get("Contents", []):
                         if file.get("Key").endswith("/") or not file.get("Key"):
                             # user created dir in S3 console will appear in the result and is not operatable
                             continue
                         fzf.append_fzf("Key: %s\n" % file.get("Key"))
-                spinner.stop()
-                if multi_select:
-                    self.path_list = list(
-                        fzf.execute_fzf(print_col=-1, multi_select=True)
-                    )
-                else:
-                    self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+            if multi_select:
+                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
-                spinner.start()
-                key_list = []
-                paginator = self.client.get_paginator("list_object_versions")
+                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+        else:
+            key_list: list = []
+            paginator = self.client.get_paginator("list_object_versions")
+            with Spinner.spin(message="Fetching s3 objects ..."):
                 for result in paginator.paginate(Bucket=self.bucket_name):
-                    for version in result.get("DeleteMarkers", []):
-                        if version.get("Key").endswith("/") or not version.get("Key"):
+                    for version_obj in result.get("DeleteMarkers", []):
+                        if version_obj.get("Key").endswith("/") or not version_obj.get(
+                            "Key"
+                        ):
                             continue
-                        color_string = (
-                            "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+                        color_string: str = (
+                            "\033[31m" + "Key: %s" % version_obj.get("Key") + "\033[0m"
                         )
                         if color_string not in key_list:
                             key_list.append(color_string)
                     if not deletemark:
-                        for version in result.get("Versions", []):
-                            if version.get("Key").endswith("/") or not version.get(
-                                "Key"
-                            ):
+                        for version_obj in result.get("Versions", []):
+                            if version_obj.get("Key").endswith(
+                                "/"
+                            ) or not version_obj.get("Key"):
                                 continue
-                            color_string = (
-                                "\033[31m" + "Key: %s" % version.get("Key") + "\033[0m"
+                            color_string: str = (
+                                "\033[31m"
+                                + "Key: %s" % version_obj.get("Key")
+                                + "\033[0m"
                             )
-                            norm_string = "Key: %s" % version.get("Key")
+                            norm_string: str = "Key: %s" % version_obj.get("Key")
                             if (
                                 color_string not in key_list
                                 and norm_string not in key_list
                             ):
                                 key_list.append(norm_string)
-                            elif color_string in key_list and version.get("IsLatest"):
+                            elif color_string in key_list and version_obj.get(
+                                "IsLatest"
+                            ):
                                 # handle the case where delete marker is associated, object is visible because new version has published
                                 key_list.remove(color_string)
                                 key_list.append(norm_string)
@@ -228,16 +234,10 @@ class S3(BaseSession):
                     raise NoSelectionMade(
                         "Bucket might be empty or there was no selection made"
                     )
-                spinner.stop()
-                if multi_select:
-                    self.path_list = list(
-                        fzf.execute_fzf(print_col=-1, multi_select=True)
-                    )
-                else:
-                    self.path_list[0] = fzf.execute_fzf(print_col=-1)
-        except:
-            Spinner.clear_spinner()
-            raise
+            if multi_select:
+                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
+            else:
+                self.path_list[0] = fzf.execute_fzf(print_col=-1)
 
     def get_object_version(
         self, bucket=None, key=None, delete=False, select_all=False, non_current=False
