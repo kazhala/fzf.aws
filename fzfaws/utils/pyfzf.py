@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 
 class Pyfzf:
@@ -57,7 +57,7 @@ class Pyfzf:
         preview: Optional[str] = None,
         multi_select: bool = False,
         header: Optional[str] = None,
-    ) -> Union[str, list]:
+    ) -> Union[list[Any], list[str], str]:
         """execute fzf and return formated string
 
         Example:
@@ -82,7 +82,7 @@ class Pyfzf:
         :type header: str, optional
         :raises NoSelectionMade: when user did not make a selection and empty_allow is False
         :return: selected entry from fzf
-        :rtype: Union[list, str]
+        :rtype: Union[list[Any], list[str], str]
         """
 
         # remove trailing spaces/lines
@@ -151,7 +151,7 @@ class Pyfzf:
         empty_allow: bool = False,
         multi_select: bool = False,
         header: Optional[str] = None,
-    ) -> Union[str, list]:
+    ) -> Union[list[Any], list[str], str]:
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -174,7 +174,7 @@ class Pyfzf:
         :type header: str, optional
         :raises NoSelectionMade: when empty_allow=False and no selection was made
         :return: selected file path or folder path
-        :rtype: Union[str, list]
+        :rtype: Union[list[Any], list[str], str]
         """
 
         if search_from_root:
@@ -254,11 +254,11 @@ class Pyfzf:
         else:
             return str(selected_file_path, "utf-8").strip()
 
-    def _construct_fzf_cmd(self) -> list:
+    def _construct_fzf_cmd(self) -> list[str]:
         """construct command for fzf
 
         :return: command list processable by subprocess
-        :rtype: list
+        :rtype: list[str]
         """
         cmd_list: list = [self.fzf_path, "--ansi", "--expect=ctrl-c"]
         if os.getenv("FZFAWS_FZF_OPTS"):
@@ -290,7 +290,9 @@ class Pyfzf:
         except:
             return False
 
-    def process_list(self, response_list: list, key_name: str, *arg_keys, gap: int = 2):
+    def process_list(
+        self, response_list: list, key_name: str, *arg_keys, gap: int = 2
+    ) -> None:
         """process list passed in and formatted for fzf
 
         processes the list passed into it and prepare the fzf operation
