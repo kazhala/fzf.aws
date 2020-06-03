@@ -3,6 +3,7 @@
 A centralized position to initial boto3.client('s3'), better
 management if user decide to change region or use different profile
 """
+import os
 import re
 from botocore.exceptions import ClientError
 from fzfaws.cloudformation.helper.process_file import (
@@ -11,7 +12,7 @@ from fzfaws.cloudformation.helper.process_file import (
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 
 class S3(BaseSession):
@@ -56,17 +57,17 @@ class S3(BaseSession):
         # check user input
         result, match = self._validate_input_path(bucket)
         if result == "accesspoint":
-            self.bucket_name = match[0]
+            self.bucket_name = match[0][:-1]
             self.path_list[0] = match[1]
         elif result == "bucketpath":
-            self.bucket_name = bucket.split("/")[0]
-            self.path_list[0] = "/".join(bucket.split("/")[1:])
+            self.bucket_name = match[0][:-1]
+            self.path_list[0] = match[1]
         else:
             raise InvalidS3PathPattern(
                 "Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)"
             )
 
-    def set_s3_path(self):
+    def set_s3_path(self) -> None:
         """set 'path' of s3 to upload or download
 
         s3 folders are not actually folder, found this path listing on
@@ -79,6 +80,7 @@ class S3(BaseSession):
 
         :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
+
         selected_option = self._get_path_option()
         if selected_option == "input":
             self.path_list[0] = input("Input the path(newname or newpath/): ")
@@ -394,10 +396,10 @@ class S3(BaseSession):
             else:
                 return self.path_list[0]
 
-    def _validate_input_path(self, user_input):
+    def _validate_input_path(self, user_input) -> Tuple:
         """validate if the user input path is valid format"""
         accesspoint_pattern = r"^(arn:aws.*:s3:[a-z\-0-9]+:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-]{1,63}/)(.*)$"
-        path_pattern = r"^(?!arn:.*)(.*/)+.*$"
+        path_pattern = r"^(?!arn:.*)(.*?/)(.*)$"
         if re.match(accesspoint_pattern, user_input):
             return ("accesspoint", re.match(accesspoint_pattern, user_input).groups())
         elif re.match(path_pattern, user_input):
