@@ -8,6 +8,7 @@ from fzfaws.s3 import S3
 from fzfaws.utils import FileLoader, Pyfzf, BaseSession
 from botocore.stub import Stubber
 import boto3
+from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 
 class TestS3(unittest.TestCase):
@@ -40,6 +41,8 @@ class TestS3(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
     def test_set_s3_bucket(self, mocked_list, mocked_execute, mocked_client):
+        self.s3.bucket_name = ""
+        self.s3.path_list = [""]
         s3_data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../data/s3_bucket.json"
         )
@@ -67,3 +70,48 @@ class TestS3(unittest.TestCase):
         self.assertEqual(self.s3.bucket_name, "")
         mocked_list.assert_called_with([], "Name")
         mocked_execute.assert_called_with(header="hello")
+
+    @patch.object(S3, "_validate_input_path")
+    def test_set_bucket_and_path(self, mocked_validation):
+        self.s3.bucket_name = ""
+        self.s3.path_list = [""]
+        mocked_validation.return_value = ("bucketpath", None)
+        self.s3.set_bucket_and_path(bucket="")
+
+        self.s3.set_bucket_and_path(bucket="kazhala-version-testing/")
+        self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
+        self.assertEqual(self.s3.path_list, [""])
+
+        self.s3.set_bucket_and_path(bucket="kazhala-version-testing/object1")
+        self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
+        self.assertEqual(self.s3.path_list, ["object1"])
+
+        self.s3.set_bucket_and_path(bucket="kazhala-version-testing/folder/folder2/")
+        self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
+        self.assertEqual(self.s3.path_list, ["folder/folder2/"])
+
+        self.s3.set_bucket_and_path(bucket="kazhala-version-testing/folder/object1")
+        self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
+        self.assertEqual(self.s3.path_list, ["folder/object1"])
+
+        mocked_validation.return_value = (None, None)
+        self.assertRaises(
+            InvalidS3PathPattern,
+            self.s3.set_bucket_and_path,
+            bucket="kazhala-version-testing",
+        )
+
+        mocked_validation.return_value = (
+            "accesspoint",
+            ("arn:aws:s3:us-west-2:123456789012:accesspoint/test", "object"),
+        )
+        self.s3.set_bucket_and_path(
+            bucket="arn:aws:s3:us-west-2:123456789012:accesspoint/test/object"
+        )
+        self.assertEqual(
+            self.s3.bucket_name, "arn:aws:s3:us-west-2:123456789012:accesspoint/test"
+        )
+        self.assertEqual(
+            self.s3.bucket_name, "arn:aws:s3:us-west-2:123456789012:accesspoint/test"
+        )
+        self.assertEqual(self.s3.path_list, ["object"])

@@ -44,7 +44,7 @@ class S3(BaseSession):
         fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = str(fzf.execute_fzf(header=header))
 
-    def set_bucket_and_path(self, bucket=None):
+    def set_bucket_and_path(self, bucket: str = None) -> None:
         """method to set both bucket and path, skip fzf selection
 
         :param bucket: bucket/path to set, format(Bucket/ or Bucket/path/ or Bucket/filename)
@@ -56,8 +56,8 @@ class S3(BaseSession):
         # check user input
         result, match = self._validate_input_path(bucket)
         if result == "accesspoint":
-            self.bucket_name = match[0][0:-1]
-            self.path_list[0](match[1])
+            self.bucket_name = match[0]
+            self.path_list[0] = match[1]
         elif result == "bucketpath":
             self.bucket_name = bucket.split("/")[0]
             self.path_list[0] = "/".join(bucket.split("/")[1:])
