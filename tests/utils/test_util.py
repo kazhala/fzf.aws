@@ -81,5 +81,5 @@ class TestUtil(unittest.TestCase):
         result = get_default_args("ec2", [])
         self.assertEqual(result, [])
 
-        result = get_default_args("ec2", ["ssh"])
-        self.assertEqual(result, ["ssh"])
+        result = get_default_args("ec2", ["ls"])
+        self.assertEqual(result, ["ls"])

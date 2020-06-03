@@ -229,5 +229,77 @@ class TestS3(unittest.TestCase):
         mocked_confirmation.assert_called()
         self.assertRegex(self.capturedOutput.getvalue(), "S3 file path is set to root")
 
-        # interactively empty
+        # interactively empty with path
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
         mocked_paginator.return_value = []
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = ["hello/"]
+        mocked_execute.return_value = ""
+        mocked_confirmation.return_value = True
+        self.s3.set_s3_path()
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=0,
+            header="PWD: s3://kazhala-version-testing/hello/ (press ESC to use current path)",
+            preview="echo  | tr ' ' '\n'",
+        )
+        mocked_append.assert_called_with("versiontesting/\n")
+        mocked_confirmation.assert_called()
+        self.assertRegex(
+            self.capturedOutput.getvalue(), "S3 file path is set to hello/"
+        )
+
+        # append normal
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = [""]
+        mocked_option.return_value = "append"
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ""
+        mocked_confirmation.return_value = True
+        mocked_input.return_value = "newpath/"
+        self.s3.set_s3_path()
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=0,
+            header="PWD: s3://kazhala-version-testing/ (press ESC to use current path)",
+            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+        )
+        mocked_append.assert_called_with("versiontesting/\n")
+        self.assertRegex(
+            self.capturedOutput.getvalue(), "S3 file path is set to newpath/"
+        )
+        self.assertRegex(
+            self.capturedOutput.getvalue(),
+            "Current PWD is s3://kazhala-version-testing/",
+        )
+        self.assertEqual(self.s3.path_list, ["newpath/"])
+
+        # append empty with path
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = ["newpath/"]
+        mocked_option.return_value = "append"
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ""
+        mocked_confirmation.return_value = True
+        mocked_input.return_value = "obj1"
+        self.s3.set_s3_path()
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=0,
+            header="PWD: s3://kazhala-version-testing/newpath/ (press ESC to use current path)",
+            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+        )
+        mocked_append.assert_called_with("versiontesting/\n")
+        self.assertRegex(
+            self.capturedOutput.getvalue(), "S3 file path is set to newpath/obj1"
+        )
+        self.assertRegex(
+            self.capturedOutput.getvalue(),
+            "Current PWD is s3://kazhala-version-testing/newpath/",
+        )
+        self.assertEqual(self.s3.path_list, ["newpath/obj1"])
