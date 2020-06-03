@@ -75,21 +75,36 @@ class TestS3(unittest.TestCase):
     def test_set_bucket_and_path(self, mocked_validation):
         self.s3.bucket_name = ""
         self.s3.path_list = [""]
-        mocked_validation.return_value = ("bucketpath", None)
         self.s3.set_bucket_and_path(bucket="")
 
+        mocked_validation.return_value = (
+            "bucketpath",
+            ("kazhala-version-testing/", ""),
+        )
         self.s3.set_bucket_and_path(bucket="kazhala-version-testing/")
         self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
         self.assertEqual(self.s3.path_list, [""])
 
+        mocked_validation.return_value = (
+            "bucketpath",
+            ("kazhala-version-testing/", "object1"),
+        )
         self.s3.set_bucket_and_path(bucket="kazhala-version-testing/object1")
         self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
         self.assertEqual(self.s3.path_list, ["object1"])
 
+        mocked_validation.return_value = (
+            "bucketpath",
+            ("kazhala-version-testing/", "folder/folder2/"),
+        )
         self.s3.set_bucket_and_path(bucket="kazhala-version-testing/folder/folder2/")
         self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
         self.assertEqual(self.s3.path_list, ["folder/folder2/"])
 
+        mocked_validation.return_value = (
+            "bucketpath",
+            ("kazhala-version-testing/", "folder/object1"),
+        )
         self.s3.set_bucket_and_path(bucket="kazhala-version-testing/folder/object1")
         self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
         self.assertEqual(self.s3.path_list, ["folder/object1"])
@@ -103,7 +118,7 @@ class TestS3(unittest.TestCase):
 
         mocked_validation.return_value = (
             "accesspoint",
-            ("arn:aws:s3:us-west-2:123456789012:accesspoint/test", "object"),
+            ("arn:aws:s3:us-west-2:123456789012:accesspoint/test/", "object"),
         )
         self.s3.set_bucket_and_path(
             bucket="arn:aws:s3:us-west-2:123456789012:accesspoint/test/object"
@@ -111,7 +126,46 @@ class TestS3(unittest.TestCase):
         self.assertEqual(
             self.s3.bucket_name, "arn:aws:s3:us-west-2:123456789012:accesspoint/test"
         )
-        self.assertEqual(
-            self.s3.bucket_name, "arn:aws:s3:us-west-2:123456789012:accesspoint/test"
-        )
         self.assertEqual(self.s3.path_list, ["object"])
+
+    def test_validate_input_path(self):
+        result, match = self.s3._validate_input_path("kazhala-version-testing/")
+        self.assertEqual(result, "bucketpath")
+        self.assertEqual(match, ("kazhala-version-testing/", ""))
+
+        result, match = self.s3._validate_input_path("kazhala-version-testing")
+        self.assertEqual(result, None)
+        self.assertEqual(match, None)
+
+        result, match = self.s3._validate_input_path("kazhala-version-testing/hello")
+        self.assertEqual(result, "bucketpath")
+        self.assertEqual(match, ("kazhala-version-testing/", "hello"))
+
+        result, match = self.s3._validate_input_path(
+            "kazhala-version-testing/hello/world"
+        )
+        self.assertEqual(result, "bucketpath")
+        self.assertEqual(match, ("kazhala-version-testing/", "hello/world"))
+
+        result, match = self.s3._validate_input_path(
+            "arn:aws:s3:us-west-2:123456789012:accesspoint/test/hello"
+        )
+        self.assertEqual(result, "accesspoint")
+        self.assertEqual(
+            match, ("arn:aws:s3:us-west-2:123456789012:accesspoint/test/", "hello"),
+        )
+
+        result, match = self.s3._validate_input_path(
+            "arn:aws:s3:us-west-2:123456789012:accesspoint/test/hello/world"
+        )
+        self.assertEqual(result, "accesspoint")
+        self.assertEqual(
+            match,
+            ("arn:aws:s3:us-west-2:123456789012:accesspoint/test/", "hello/world"),
+        )
+
+        result, match = self.s3._validate_input_path(
+            "arn:aws:s3:us-west-2:123456789012:accesspoint/test"
+        )
+        self.assertEqual(result, None)
+        self.assertEqual(match, None)
