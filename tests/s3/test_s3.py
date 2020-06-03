@@ -304,5 +304,28 @@ class TestS3(unittest.TestCase):
         )
         self.assertEqual(self.s3.path_list, ["newpath/obj1"])
 
-    def test_s3_object(self):
-        pass
+    @patch.object(Paginator, "paginate")
+    @patch.object(Pyfzf, "append_fzf")
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_s3_object(self, mocked_execute, mocked_append, mocked_paginator):
+        self.s3.path_list = [""]
+        self.s3.bucket_name = "kazhala-version-testing"
+        # non version single test
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_object.json"
+        )
+        with open(data_path, "r") as file:
+            response = json.load(file)
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ".DS_Store"
+        self.s3.set_s3_object()
+        self.assertEqual(self.s3.path_list[0], ".DS_Store")
+        mocked_append.assert_called_with("Key: version3.com\n")
+
+        # non version multi test
+        mocked_execute.return_value = [".DS_Store", "object1"]
+        self.s3.set_s3_object(multi_select=True)
+        self.assertEqual(self.s3.path_list, [".DS_Store", "object1"])
+        mocked_append.assert_called_with("Key: version3.com\n")
+
+        # version single test
