@@ -1,0 +1,281 @@
+[
+  {
+    "ResponseMetadata": {
+      "RequestId": "A303728B7A828A1E",
+      "HostId": "9Cbjng+P/gRZMDsL4ggWgtsyEOqKlopFjna5Rc+CAUFyWVYd5iSAWdsrFxUCp2xfUD7NdzTEHys=",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amz-id-2": "9Cbjng+P/gRZMDsL4ggWgtsyEOqKlopFjna5Rc+CAUFyWVYd5iSAWdsrFxUCp2xfUD7NdzTEHys=",
+        "x-amz-request-id": "A303728B7A828A1E",
+        "date": "Wed, 03 Jun 2020 23:30:32 GMT",
+        "content-type": "application/xml",
+        "transfer-encoding": "chunked",
+        "server": "AmazonS3"
+      },
+      "RetryAttempts": 0
+    },
+    "IsTruncated": false,
+    "KeyMarker": "",
+    "VersionIdMarker": "",
+    "Versions": [
+      {
+        "ETag": "\"ee16280ead59e5d5a9bc2e473d9d576b\"",
+        "Size": 1696,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Key": " elb.pem",
+        "VersionId": "L2e4FjTfzOFyWZ1wsZwLYZSPWdxys9hZ",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Key": " w tf.txt",
+        "VersionId": "Z8T9aI.xtOmC208ocaUTT7xvbCTiKa9s",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Key": " wtf.txt",
+        "VersionId": "mPwdJWYvnyojsNhzHaZKejFuflfi77Xi",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Key": " wtf.txt",
+        "VersionId": "x5fz_U7sN2gskZf_p0_JuIt8FzBPSMHV",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Key": "../",
+        "VersionId": "qyAYOzTjL_XoaP1w6Ld1.366yEveRBPY",
+        "IsLatest": true,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"52ebcf031c745265d0f5523f1d77299b\"",
+        "Size": 6148,
+        "StorageClass": "STANDARD",
+        "Key": ".DS_Store",
+        "VersionId": "VAv6MOvNZRvwxVIh6g98UD7FJDCgctnT",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"fc54ae197206329aabb171fa9cbab6fb\"",
+        "Size": 6148,
+        "StorageClass": "STANDARD",
+        "Key": ".DS_Store",
+        "VersionId": "wW45OL.UWdeowr5pXg3OwSq0RB53iuo4",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"fc54ae197206329aabb171fa9cbab6fb\"",
+        "Size": 6148,
+        "StorageClass": "STANDARD",
+        "Key": ".DS_Store",
+        "VersionId": "jMTRll2U_btW_GWdokRxWONXdbFI2xNk",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"fc54ae197206329aabb171fa9cbab6fb\"",
+        "Size": 6148,
+        "StorageClass": "STANDARD",
+        "Key": ".DS_Store",
+        "VersionId": "g9AH6dAEyeHyhTIfeoLNyjbHppoQkTlr",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Key": "CHANGELOG.md",
+        "VersionId": "u.zcOPcG3TiLEFmeO1TJisiV8UVL8Dmo",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"c8420c7e0f9dfb749eb4288a94765003\"",
+        "Size": 3547,
+        "StorageClass": "STANDARD",
+        "Key": "README.md",
+        "VersionId": "YQ2gZMjZHDuoiJ41zKWxcPu7ruOroJ8I",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"c8420c7e0f9dfb749eb4288a94765003\"",
+        "Size": 3547,
+        "StorageClass": "STANDARD",
+        "Key": "README.md",
+        "VersionId": "FUOoCOQy5LBquXJNvnN5ep63YgSAnyUd",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"c8420c7e0f9dfb749eb4288a94765003\"",
+        "Size": 3547,
+        "StorageClass": "STANDARD",
+        "Key": "README.md",
+        "VersionId": "w87opRIWOYl8Lpeg9V3MU6EXc6KvQDjO",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"15e8106a89affe4e2d9ccb8347943b82\"",
+        "Size": 1692,
+        "StorageClass": "REDUCED_REDUNDANCY",
+        "Key": "wtf.pem",
+        "VersionId": "uFQYVZPcPUfqhR7jVidSd8x93DOvtrh.",
+        "IsLatest": true,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"9d9ed24f7628dea3aca553993c92a936\"",
+        "Size": 1692,
+        "StorageClass": "STANDARD",
+        "Key": "wtf.pem",
+        "VersionId": "iR5RohpL.H9W4cQM1q7njxeQEkuR_RXs",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"9d9ed24f7628dea3aca553993c92a936\"",
+        "Size": 1692,
+        "StorageClass": "STANDARD",
+        "Key": "wtf.pem",
+        "VersionId": "tYugWNFZJpLartma6Z3MSPvrSF4NXSXw",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"9d9ed24f7628dea3aca553993c92a936\"",
+        "Size": 1692,
+        "StorageClass": "STANDARD",
+        "Key": "wtf.pem",
+        "VersionId": "mCcvCtwUVYeHfO6EAuxgwY7ZA7qfEshe",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      },
+      {
+        "ETag": "\"9d9ed24f7628dea3aca553993c92a936\"",
+        "Size": 1692,
+        "StorageClass": "STANDARD",
+        "Key": "wtf.pem",
+        "VersionId": "8ez0vHghXrHP.Ilt94iv004TnBX8sJE.",
+        "IsLatest": false,
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        }
+      }
+    ],
+    "DeleteMarkers": [
+      {
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        },
+        "Key": " elb.pem",
+        "VersionId": "OlfBg6KcSFDs_iZSm_cSaz8kiVKdrUo_",
+        "IsLatest": true
+      },
+      {
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        },
+        "Key": " w tf.txt",
+        "VersionId": "j1jjZ6lcvHsqf6VkVQXJZ2x6LyeapbeQ",
+        "IsLatest": true
+      },
+      {
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        },
+        "Key": " wtf.txt",
+        "VersionId": "LDLzYD0SxjzfIFRvCvHd.cnEby_r_Iew",
+        "IsLatest": true
+      },
+      {
+        "Owner": {
+          "DisplayName": "kazhala",
+          "ID": "111111"
+        },
+        "Key": ".DS_Store",
+        "VersionId": "2kbjtBh2Eto4_fBFXkvMR2oVdiSeQDPE",
+        "IsLatest": true
+      }
+    ],
+    "Name": "kazhala-version-testing",
+    "Prefix": "",
+    "MaxKeys": 1000,
+    "EncodingType": "url"
+  }
+]

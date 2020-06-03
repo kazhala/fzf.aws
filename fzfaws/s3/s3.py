@@ -12,7 +12,7 @@ from fzfaws.cloudformation.helper.process_file import (
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Optional, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
@@ -31,7 +31,7 @@ class S3(BaseSession):
     ) -> None:
         super().__init__(profile=profile, region=region, service_name="s3")
         self.bucket_name: str = ""
-        self.path_list: list = [""]
+        self.path_list: List[str] = [""]
 
     def set_s3_bucket(self, header: str = "") -> None:
         """list bucket through fzf and let user select a bucket
@@ -111,12 +111,14 @@ class S3(BaseSession):
                     # has to use tr to transform the string to new line during preview by fzf
                     # not sure why, but if directly use \n, fzf preview interpret as a new command
                     # TODO: findout why
-                    selected_path = fzf.execute_fzf(
-                        empty_allow=True,
-                        print_col=0,
-                        header="PWD: s3://%s/%s (press ESC to use current path)"
-                        % (self.bucket_name, self.path_list[0]),
-                        preview="echo %s | tr ' ' '\n'" % preview.rstrip(),
+                    selected_path = str(
+                        fzf.execute_fzf(
+                            empty_allow=True,
+                            print_col=0,
+                            header="PWD: s3://%s/%s (press ESC to use current path)"
+                            % (self.bucket_name, self.path_list[0]),
+                            preview="echo %s | tr ' ' '\n'" % preview.rstrip(),
+                        )
                     )
                     if not selected_path:
                         raise NoSelectionMade
@@ -237,7 +239,7 @@ class S3(BaseSession):
             if multi_select:
                 self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
-                self.path_list[0] = fzf.execute_fzf(print_col=-1)
+                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
 
     def get_object_version(
         self, bucket=None, key=None, delete=False, select_all=False, non_current=False

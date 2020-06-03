@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 
 class Pyfzf:
@@ -57,7 +57,7 @@ class Pyfzf:
         preview: Optional[str] = None,
         multi_select: bool = False,
         header: Optional[str] = None,
-    ) -> Union[list[Any], list[str], str]:
+    ) -> Union[List[Any], List[str], str]:
         """execute fzf and return formated string
 
         Example:
@@ -151,7 +151,7 @@ class Pyfzf:
         empty_allow: bool = False,
         multi_select: bool = False,
         header: Optional[str] = None,
-    ) -> Union[list[Any], list[str], str]:
+    ) -> Union[List[Any], List[str], str]:
         """get local files through fzf
 
         populate the local files into fzf, if search_from_root is true
@@ -254,7 +254,7 @@ class Pyfzf:
         else:
             return str(selected_file_path, "utf-8").strip()
 
-    def _construct_fzf_cmd(self) -> list[str]:
+    def _construct_fzf_cmd(self) -> List[str]:
         """construct command for fzf
 
         :return: command list processable by subprocess
