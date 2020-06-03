@@ -5,15 +5,13 @@ management if user decide to change region or use different profile
 """
 import re
 from botocore.exceptions import ClientError
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.helper.process_file import (
     process_yaml_body,
     process_json_body,
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
-from fzfaws.utils.util import get_confirmation
-from fzfaws.utils.spinner import Spinner
+from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
+from typing import Optional, Union
 
 
 class S3(BaseSession):
@@ -25,20 +23,24 @@ class S3(BaseSession):
     :type region: Union[bool, str], optional
     """
 
-    def __init__(self, profile=None, region=None):
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
+    ) -> None:
         super().__init__(profile=profile, region=region, service_name="s3")
-        self.bucket_name = ""  # type: str
-        self.path_list = [""]  # type: list
+        self.bucket_name: str = ""
+        self.path_list: list = [""]
 
-    def set_s3_bucket(self, header=""):
+    def set_s3_bucket(self, header: str = "") -> None:
         """list bucket through fzf and let user select a bucket
 
         :param header: header to display in fzf header
         :type header: str, optional
         """
         fzf = Pyfzf()
-        spinner = Spinner(message="Fethcing s3 buckets..")
-        response = spinner.execute_with_spinner(self.client.list_buckets)
+        with Spinner.spin(message="Fethcing s3 buckets ..."):
+            response = self.client.list_buckets()
         fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = str(fzf.execute_fzf(header=header))
 

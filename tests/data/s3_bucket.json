@@ -1,0 +1,52 @@
+{
+  "ResponseMetadata": {
+    "RequestId": "8DD6343E48B69544",
+    "HostId": "o501r5OTP2Q+LjhRyta3IChwmmlbyVj9YmyDwHaUt/LoDlm6AduGxsHPP7etH4NF0rHNVy4kHoo=",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amz-id-2": "o501r5OTP2Q+LjhRyta3IChwmmlbyVj9YmyDwHaUt/LoDlm6AduGxsHPP7etH4NF0rHNVy4kHoo=",
+      "x-amz-request-id": "8DD6343E48B69544",
+      "date": "Tue, 02 Jun 2020 23:45:50 GMT",
+      "content-type": "application/xml",
+      "transfer-encoding": "chunked",
+      "server": "AmazonS3"
+    },
+    "RetryAttempts": 0
+  },
+  "Buckets": [
+    {
+      "Name": "cf-templates-jg93xezkazjs-ap-southeast-2"
+    },
+    {
+      "Name": "cf-templates-jg93xezkazjs-us-east-2"
+    },
+    {
+      "Name": "codepipeline-ap-southeast-2-862708448544"
+    },
+    {
+      "Name": "codepipeline-us-east-2-115127936393"
+    },
+    {
+      "Name": "elasticbeanstalk-ap-southeast-2-378756445655"
+    },
+    {
+      "Name": "kazhala-cloudformation-storage"
+    },
+    {
+      "Name": "kazhala-src-buckets"
+    },
+    {
+      "Name": "kazhala-testingsync"
+    },
+    {
+      "Name": "kazhala-version-testing"
+    },
+    {
+      "Name": "mealternative.com"
+    }
+  ],
+  "Owner": {
+    "DisplayName": "lololo",
+    "ID": "1111111111"
+  }
+}

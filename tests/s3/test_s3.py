@@ -1,0 +1,69 @@
+import io
+import json
+import os
+import sys
+import unittest
+from unittest.mock import PropertyMock, patch
+from fzfaws.s3 import S3
+from fzfaws.utils import FileLoader, Pyfzf, BaseSession
+from botocore.stub import Stubber
+import boto3
+
+
+class TestS3(unittest.TestCase):
+    def setUp(self):
+        self.capturedOutput = io.StringIO()
+        sys.stdout = self.capturedOutput
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
+        self.s3 = S3()
+
+    def tearDown(self):
+        sys.stdout = sys.__stdout__
+
+    def test_constructor(self):
+        self.assertEqual(self.s3.profile, "default")
+        self.assertEqual(self.s3.region, "ap-southeast-2")
+        self.assertEqual(self.s3.bucket_name, "")
+        self.assertEqual(self.s3.path_list, [""])
+
+        s3 = S3(profile="root", region="us-east-1")
+        self.assertEqual(s3.profile, "root")
+        self.assertEqual(s3.region, "us-east-1")
+        self.assertEqual(s3.bucket_name, "")
+        self.assertEqual(s3.path_list, [""])
+
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "process_list")
+    def test_set_s3_bucket(self, mocked_list, mocked_execute, mocked_client):
+        s3_data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_bucket.json"
+        )
+        with open(s3_data_path, "r") as file:
+            response = json.load(file)
+
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("list_buckets", response)
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_execute.return_value = "kazhala-version-testing"
+        self.s3.set_s3_bucket()
+        self.assertEqual(self.s3.bucket_name, "kazhala-version-testing")
+        mocked_list.assert_called_with(response["Buckets"], "Name")
+        mocked_execute.assert_called_with(header="")
+
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("list_buckets", {"Buckets": []})
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_execute.return_value = ""
+        self.s3.set_s3_bucket(header="hello")
+        self.assertEqual(self.s3.bucket_name, "")
+        mocked_list.assert_called_with([], "Name")
+        mocked_execute.assert_called_with(header="hello")
