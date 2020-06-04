@@ -8,7 +8,7 @@ from fzfaws.s3 import S3
 from fzfaws.utils import FileLoader, Pyfzf, BaseSession
 from botocore.stub import Stubber
 import boto3
-from fzfaws.utils.exceptions import InvalidS3PathPattern
+from fzfaws.utils.exceptions import InvalidFileType, InvalidS3PathPattern
 from botocore.paginate import Paginator
 
 
@@ -430,3 +430,49 @@ class TestS3(unittest.TestCase):
             result[0],
             {"Key": "wtf.pem", "VersionId": "L2e4FjTfzOFyWZ1wsZwLYZSPWdxys9hZ"},
         )
+
+    @patch.object(BaseSession, "resource", new_callable=PropertyMock)
+    @patch.object(FileLoader, "process_json_body")
+    @patch.object(FileLoader, "process_yaml_body")
+    def test_get_object_data(self, mocked_yaml, mocked_json, mocked_resource):
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = ["wtf.pem"]
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_sg.json"
+        )
+        with open(data_path, "r") as file:
+            s3 = boto3.resource("s3")
+            stubber = Stubber(s3.meta.client)
+            stubber.add_response("get_object", {"Body": file})
+            stubber.activate()
+            mocked_resource.return_value = s3
+            mocked_json.return_value = {"hello"}
+            result = self.s3.get_object_data(file_type="json")
+            mocked_json.assert_called_once()
+        self.assertEqual(result, {"hello"})
+
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        with open(data_path, "r") as file:
+            s3 = boto3.resource("s3")
+            stubber = Stubber(s3.meta.client)
+            stubber.add_response("get_object", {"Body": file})
+            stubber.activate()
+            mocked_resource.return_value = s3
+            mocked_yaml.return_value = {"hello"}
+            result = self.s3.get_object_data(file_type="yaml")
+            mocked_yaml.assert_called_once()
+        self.assertEqual(result, {"hello"})
+
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        with open(data_path, "r") as file:
+            s3 = boto3.resource("s3")
+            stubber = Stubber(s3.meta.client)
+            stubber.add_response("get_object", {"Body": file})
+            stubber.activate()
+            mocked_resource.return_value = s3
+            mocked_yaml.return_value = {"hello"}
+            self.assertRaises(InvalidFileType, self.s3.get_object_data, file_type="txt")

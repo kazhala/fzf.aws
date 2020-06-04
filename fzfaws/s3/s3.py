@@ -10,7 +10,11 @@ from fzfaws.cloudformation.helper.process_file import (
     process_yaml_body,
     process_json_body,
 )
-from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
+from fzfaws.utils.exceptions import (
+    InvalidFileType,
+    InvalidS3PathPattern,
+    NoSelectionMade,
+)
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
@@ -327,31 +331,31 @@ class S3(BaseSession):
                 )
         return selected_versions
 
-    def get_object_data(self, file_type=None):
+    def get_object_data(self, file_type: str = "") -> dict:
         """read the s3 object
 
         read the s3 object file and if is yaml/json file_type, load the file into dict
         currently is only used for cloudformation
 
-        Args:
-            file_type: string, yaml/json, if specified, will load the file into dict
+        :param file_type: type of file to process, supported value: yaml/json
+        :type file_type: str
+        :return: processed dict of json or yaml
+        :raises InvalidFileType: when the file_type is invalid
+        :rtype: dict
         """
-        try:
-            spinner = Spinner(message="Reading file from s3..")
-            spinner.start()
+
+        with Spinner.spin(message="Reading file from s3 ..."):
             s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
             body = s3_object.get()["Body"].read()
-            body = str(body, "utf-8")
             body_dict = {}
+            fileloader = FileLoader(body=body)
             if file_type == "yaml":
-                body_dict = process_yaml_body(body)
+                body_dict = fileloader.process_yaml_body()
             elif file_type == "json":
-                body_dict = process_json_body(body)
-            spinner.stop()
-            return body_dict
-        except:
-            Spinner.clear_spinner()
-            raise
+                body_dict = fileloader.process_json_body()
+            else:
+                raise InvalidFileType
+        return body_dict
 
     def get_object_url(self, version=None):
         # type: (str) -> str
