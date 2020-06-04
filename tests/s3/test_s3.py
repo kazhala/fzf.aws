@@ -509,3 +509,40 @@ class TestS3(unittest.TestCase):
             "https://s3-%s.amazonaws.com/%s/%s?versionId=%s"
             % ("ap-southeast-2", self.s3.bucket_name, self.s3.path_list[0], "111111"),
         )
+
+    def test_get_s3_destination_key(self):
+        # normal test
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = [""]
+        result = self.s3.get_s3_destination_key(local_path="tmp/wtf.pem")
+        self.assertEqual(result, "wtf.pem")
+
+        self.s3.path_list = ["hello.pem"]
+        result = self.s3.get_s3_destination_key(local_path="tmp/wtf.pem")
+        self.assertEqual(result, "hello.pem")
+
+        # path test
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = ["hello/"]
+        result = self.s3.get_s3_destination_key(local_path="tmp/wtf.pem")
+        self.assertEqual(result, "hello/wtf.pem")
+
+        # recursive test
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = [""]
+        result = self.s3.get_s3_destination_key(
+            local_path="tmp/hello.txt", recursive=True
+        )
+        self.assertEqual(result, "tmp/hello.txt")
+
+        self.s3.path_list = ["hello"]
+        result = self.s3.get_s3_destination_key(
+            local_path="tmp/hello.txt", recursive=True
+        )
+        self.assertEqual(result, "hello/tmp/hello.txt")
+
+        self.s3.path_list = ["hello/"]
+        result = self.s3.get_s3_destination_key(
+            local_path="tmp/hello.txt", recursive=True
+        )
+        self.assertEqual(result, "hello/tmp/hello.txt")

@@ -381,7 +381,7 @@ class S3(BaseSession):
                 version,
             )
 
-    def get_s3_destination_key(self, local_path, recursive=False):
+    def get_s3_destination_key(self, local_path: str, recursive: bool = False) -> str:
         """set the s3 key for upload destination
 
         check if the current s3 path ends with '/'
@@ -390,9 +390,12 @@ class S3(BaseSession):
 
         if recursive is set, append '/' to last if '/' does not exist
 
-        Args:
-            local_path: string, local file path
-            recursive: bool, recursive operation
+        :param local_path: local path for download
+        :type local_path: str
+        :param recursive: indicates if it is recursive operation
+        :type recursive: bool, optional
+        :return: formated destination key can be used by boto3
+        :rtype: str
         """
         if recursive:
             if not self.path_list[0]:
