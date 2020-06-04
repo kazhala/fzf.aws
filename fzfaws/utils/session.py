@@ -66,8 +66,12 @@ class BaseSession:
         # only certain service support resource
         resources = self.session.get_available_resources()
         if service_name in resources:
-            self.resource = self.session.resource(service_name)
+            self._resource = self.session.resource(service_name)
 
     @property
     def client(self):
         return self._client
+
+    @property
+    def resource(self):
+        return self._resource
