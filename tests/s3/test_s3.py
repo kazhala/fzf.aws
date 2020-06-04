@@ -543,3 +543,19 @@ class TestS3(unittest.TestCase):
             local_path="tmp/hello.txt", recursive=True
         )
         self.assertEqual(result, "hello/tmp/hello.txt")
+
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_get_path_option(self, mocked_append, mocked_execute):
+        mocked_execute.return_value = "root: operate on the root level of the bucket"
+        result = self.s3._get_path_option()
+        self.assertEqual(result, "root")
+        mocked_append.assert_called_with(
+            "append: interactively select a path and then input new path/name to append"
+        )
+
+        mocked_execute.return_value = (
+            "append: interactively select a path and then input new path/name to append"
+        )
+        result = self.s3._get_path_option()
+        self.assertEqual(result, "append")

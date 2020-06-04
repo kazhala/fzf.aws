@@ -437,8 +437,12 @@ class S3(BaseSession):
         else:
             return (None, None)
 
-    def _get_path_option(self):
-        """pop up fzf for user to select what to do with the path"""
+    def _get_path_option(self) -> str:
+        """pop up fzf for user to select what to do with the path
+
+        :return: selected option
+        :rtype: str
+        """
         fzf = Pyfzf()
         fzf.append_fzf("root: operate on the root level of the bucket\n")
         fzf.append_fzf("interactively: interactively select a path through s3\n")
