@@ -362,5 +362,71 @@ class TestS3(unittest.TestCase):
         self.assertEqual(self.s3.path_list, [" wtf.txt", ".DS_Store"])
         mocked_append.assert_called_with("\x1b[31mKey: .DS_Store\x1b[0m\n")
 
-    def test_get_object_version(self):
-        pass
+    @patch.object(Paginator, "paginate")
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_get_object_version(self, mocked_execute, mocked_process, mocked_paginator):
+        self.s3.path_list = ["wtf.pem"]
+        self.s3.bucket_name = "kazhala-version-testing"
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_object_ver.json"
+        )
+        with open(data_path, "r") as file:
+            response = json.load(file)
+
+        # general test single test
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = "111111"
+        result = self.s3.get_object_version()
+        mocked_process.assert_called()
+        self.assertEqual(result, [{"Key": "wtf.pem", "VersionId": "111111"}])
+
+        # general parameter test
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = "111111"
+        result = self.s3.get_object_version(key="hello")
+        mocked_process.assert_called()
+        self.assertEqual(result, [{"Key": "hello", "VersionId": "111111"}])
+
+        # non-current test
+        wtf = self.s3.get_object_version(non_current=True)
+        mocked_execute.return_value = "111111"
+        self.assertEqual(wtf, [{"Key": "wtf.pem", "VersionId": "111111"}])
+
+        # delete test
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ["111111", "2222222"]
+        result = self.s3.get_object_version(delete=True)
+        mocked_process.assert_called()
+        self.assertEqual(
+            result,
+            [
+                {"Key": "wtf.pem", "VersionId": "111111"},
+                {"Key": "wtf.pem", "VersionId": "2222222"},
+            ],
+        )
+
+        # delete multi test
+        self.s3.path_list = ["wtf.pem", ".DS_Store"]
+        mocked_paginator.return_value = response
+        mocked_execute.return_value = ["111111", "2222222"]
+        result = self.s3.get_object_version(delete=True)
+        mocked_process.assert_called()
+        self.assertEqual(
+            result,
+            [
+                {"Key": "wtf.pem", "VersionId": "111111"},
+                {"Key": "wtf.pem", "VersionId": "2222222"},
+                {"Key": ".DS_Store", "VersionId": "111111"},
+                {"Key": ".DS_Store", "VersionId": "2222222"},
+            ],
+        )
+
+        # select all test
+        self.s3.path_list = ["wtf.pem"]
+        mocked_paginator.return_value = response
+        result = self.s3.get_object_version(select_all=True)
+        self.assertEqual(
+            result[0],
+            {"Key": "wtf.pem", "VersionId": "L2e4FjTfzOFyWZ1wsZwLYZSPWdxys9hZ"},
+        )

@@ -12,7 +12,7 @@ from fzfaws.cloudformation.helper.process_file import (
 )
 from fzfaws.utils.exceptions import InvalidS3PathPattern, NoSelectionMade
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
@@ -248,7 +248,7 @@ class S3(BaseSession):
         delete: bool = False,
         select_all: bool = False,
         non_current: bool = False,
-    ) -> List[dict]:
+    ) -> List[Dict[str, str]]:
         """list object versions through fzf
         
         :param bucket: object's bucketname, if not set, class instance's bucket_name will be used
@@ -316,7 +316,7 @@ class S3(BaseSession):
                         selected_versions.append({"Key": key, "VersionId": result})
                 else:
                     selected_versions.append(
-                        {"Key": key, "VersionId": fzf.execute_fzf()}
+                        {"Key": key, "VersionId": str(fzf.execute_fzf())}
                     )
             else:
                 selected_versions.extend(
