@@ -347,7 +347,7 @@ class S3(BaseSession):
         with Spinner.spin(message="Reading file from s3 ..."):
             s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
             body = s3_object.get()["Body"].read()
-            body_dict = {}
+            body_dict: dict = {}
             fileloader = FileLoader(body=body)
             if file_type == "yaml":
                 body_dict = fileloader.process_yaml_body()
@@ -357,12 +357,13 @@ class S3(BaseSession):
                 raise InvalidFileType
         return body_dict
 
-    def get_object_url(self, version=None):
-        # type: (str) -> str
+    def get_object_url(self, version: str = "") -> str:
         """return the object url of the current selected object
 
         :param version: get url for versioned object
         :type version: str, optional
+        :return: s3 url for the object
+        :rtype: str
         """
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response["LocationConstraint"]

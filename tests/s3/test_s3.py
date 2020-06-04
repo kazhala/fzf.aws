@@ -307,7 +307,7 @@ class TestS3(unittest.TestCase):
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "append_fzf")
     @patch.object(Pyfzf, "execute_fzf")
-    def test_s3_object(self, mocked_execute, mocked_append, mocked_paginator):
+    def test_set_s3_object(self, mocked_execute, mocked_append, mocked_paginator):
         self.s3.path_list = [""]
         self.s3.bucket_name = "kazhala-version-testing"
         # non version single test
@@ -476,3 +476,36 @@ class TestS3(unittest.TestCase):
             mocked_resource.return_value = s3
             mocked_yaml.return_value = {"hello"}
             self.assertRaises(InvalidFileType, self.s3.get_object_data, file_type="txt")
+
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    def test_get_object_url(self, mocked_client):
+        self.s3.bucket_name = "kazhala-version-testing"
+        self.s3.path_list = ["wtf.pem"]
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response(
+            "get_bucket_location", {"LocationConstraint": "ap-southeast-2"}
+        )
+        stubber.activate()
+        mocked_client.return_value = s3
+        result = self.s3.get_object_url()
+        self.assertEqual(
+            result,
+            "https://s3-%s.amazonaws.com/%s/%s"
+            % ("ap-southeast-2", self.s3.bucket_name, self.s3.path_list[0]),
+        )
+
+        # version test
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response(
+            "get_bucket_location", {"LocationConstraint": "ap-southeast-2"}
+        )
+        stubber.activate()
+        mocked_client.return_value = s3
+        result = self.s3.get_object_url(version="111111")
+        self.assertEqual(
+            result,
+            "https://s3-%s.amazonaws.com/%s/%s?versionId=%s"
+            % ("ap-southeast-2", self.s3.bucket_name, self.s3.path_list[0], "111111"),
+        )
