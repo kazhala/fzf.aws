@@ -400,18 +400,15 @@ class S3(BaseSession):
         if recursive:
             if not self.path_list[0]:
                 return local_path
-            elif self.path_list[0][-1] != "/":
-                return self.path_list[0] + "/" + local_path
             else:
-                return self.path_list[0] + local_path
+                return os.path.join(self.path_list[0], local_path)
         else:
             if not self.path_list[0]:
                 # if operation is at root level, return the file name
-                return local_path.split("/")[-1]
-            elif self.path_list[0][-1] == "/":
+                return os.path.basename(local_path)
+            elif self.path_list[0].endswith("/"):
                 # if specified s3 path, append the file name
-                key = local_path.split("/")[-1]
-                return self.path_list[0] + key
+                return os.path.join(self.path_list[0], os.path.basename(local_path))
             else:
                 return self.path_list[0]
 

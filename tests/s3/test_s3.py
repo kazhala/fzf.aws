@@ -520,7 +520,6 @@ class TestS3(unittest.TestCase):
         self.s3.path_list = ["hello.pem"]
         result = self.s3.get_s3_destination_key(local_path="tmp/wtf.pem")
         self.assertEqual(result, "hello.pem")
-
         # path test
         self.s3.bucket_name = "kazhala-version-testing"
         self.s3.path_list = ["hello/"]
@@ -534,13 +533,11 @@ class TestS3(unittest.TestCase):
             local_path="tmp/hello.txt", recursive=True
         )
         self.assertEqual(result, "tmp/hello.txt")
-
         self.s3.path_list = ["hello"]
         result = self.s3.get_s3_destination_key(
             local_path="tmp/hello.txt", recursive=True
         )
         self.assertEqual(result, "hello/tmp/hello.txt")
-
         self.s3.path_list = ["hello/"]
         result = self.s3.get_s3_destination_key(
             local_path="tmp/hello.txt", recursive=True
