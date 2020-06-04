@@ -361,3 +361,6 @@ class TestS3(unittest.TestCase):
         self.s3.set_s3_object(version=True, deletemark=True, multi_select=True)
         self.assertEqual(self.s3.path_list, [" wtf.txt", ".DS_Store"])
         mocked_append.assert_called_with("\x1b[31mKey: .DS_Store\x1b[0m\n")
+
+    def test_get_object_version(self):
+        pass

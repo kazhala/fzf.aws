@@ -242,29 +242,41 @@ class S3(BaseSession):
                 self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
 
     def get_object_version(
-        self, bucket=None, key=None, delete=False, select_all=False, non_current=False
-    ):
+        self,
+        bucket: str = "",
+        key: str = "",
+        delete: bool = False,
+        select_all: bool = False,
+        non_current: bool = False,
+    ) -> List[dict]:
         """list object versions through fzf
+        
+        :param bucket: object's bucketname, if not set, class instance's bucket_name will be used
+        :type bucket: str, optional
+        :param key: object's key, if not set, class instance's path_list[0] will be used
+        :type key: str, optional
+        :param delete: allow to choose delete marker
+        :type delete: bool, optional
+        :param select_all: skip fzf and select all version and put into return list
+        :type select_all: bool, optional
+        :param non_current: only put non_current versions into list
+        :type non_current: bool, optional
+        :return: list of selected versions
+        :rtype: List[dict]
 
-        Args:
-            bucket: string, if not set, class instance's bucket_name would be used
-            key: string, if not set, class instance's path_list[0] would be used
-            delete: bool, allow to choose delete marker
-            select_all: bool, skip fzf and pull all version into the return list
-            non_current: bool, only put non_current versions into the list
-        Returns:
-            selected_versions: list, list of dict the user selected
-                dict: {'Key': s3 key path, 'VersionId': s3 object id}
+        example:
+            [{'Key': s3keypath, 'VersionId': s3objectid}]
         """
+
         bucket = bucket if bucket else self.bucket_name
-        key_list = []
+        key_list: list = []
         if key:
             key_list.append(key)
         else:
             key_list.extend(self.path_list)
-        selected_versions = []
+        selected_versions: list = []
         for key in key_list:
-            version_list = []
+            version_list: list = []
             paginator = self.client.get_paginator("list_object_versions")
             for result in paginator.paginate(Bucket=bucket, Prefix=key):
                 for version in result.get("Versions", []):
