@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-from typing import Any, List, Optional, Union
+from typing import Any, Generator, List, Optional, Union
 
 
 class Pyfzf:
@@ -291,7 +291,7 @@ class Pyfzf:
             return False
 
     def process_list(
-        self, response_list: list, key_name: str, *arg_keys, gap: int = 2
+        self, response_list: Union[list, Generator], key_name: str, *arg_keys
     ) -> None:
         """process list passed in and formatted for fzf
 
@@ -300,7 +300,7 @@ class Pyfzf:
 
         Example:
             list = [{'Name': 1, 'Mame': 2}, {'Name': 2, 'Mame': 3}]
-            fzf.process_list(list, 'Name', 'Mame', gap=4)
+            fzf.process_list(list, 'Name', 'Mame')
             fzf.execute_fzf(empty_allow=False)
             if first entry is selected, it will return 1
 
@@ -315,7 +315,7 @@ class Pyfzf:
         for item in response_list:
             self.append_fzf("%s: %s" % (key_name, item.get(key_name, "N/A")))
             for arg in arg_keys:
-                self.append_fzf(gap * " ")
+                self.append_fzf(" | ")
                 self.append_fzf("%s: %s" % (arg, item.get(arg, "N/A")))
             self.append_fzf("\n")
         if not self.fzf_string:
