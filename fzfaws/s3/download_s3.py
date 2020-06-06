@@ -56,7 +56,7 @@ def download_s3(
         s3.set_s3_bucket()
     if recursive or sync:
         if not s3.path_list[0]:
-            s3.set_s3_path()
+            s3.set_s3_path(download=True)
     else:
         if not s3.path_list[0]:
             s3.set_s3_object(multi_select=True, version=version)

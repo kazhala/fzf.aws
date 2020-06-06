@@ -559,3 +559,8 @@ class TestS3(unittest.TestCase):
         )
         result = self.s3._get_path_option()
         self.assertEqual(result, "append")
+
+        mocked_execute.return_value = "root: operate on the root level of the bucket"
+        result = self.s3._get_path_option(download=True)
+        self.assertEqual(result, "root")
+        mocked_append.assert_called_with("input: manully input the path/name\n")

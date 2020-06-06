@@ -6,10 +6,6 @@ management if user decide to change region or use different profile
 import os
 import re
 from botocore.exceptions import ClientError
-from fzfaws.cloudformation.helper.process_file import (
-    process_yaml_body,
-    process_json_body,
-)
 from fzfaws.utils.exceptions import (
     InvalidFileType,
     InvalidS3PathPattern,
@@ -71,7 +67,7 @@ class S3(BaseSession):
                 "Invalid s3 path pattern, valid pattern(Bucket/ or Bucket/path/ or Bucket/filename)"
             )
 
-    def set_s3_path(self) -> None:
+    def set_s3_path(self, download: bool = False) -> None:
         """set 'path' of s3 to upload or download
 
         s3 folders are not actually folder, found this path listing on
@@ -82,10 +78,12 @@ class S3(BaseSession):
         without handling different upload sceanario. Please use the
         get_s3_destination_key after set_s3_path to obtain the correct destination key
 
+        :param download: if not download, add append option
+        :type download: bool, optional
         :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
 
-        selected_option = self._get_path_option()
+        selected_option = self._get_path_option(download=download)
         if selected_option == "input":
             self.path_list[0] = input("Input the path(newname or newpath/): ")
         elif selected_option == "root":
@@ -437,9 +435,11 @@ class S3(BaseSession):
         else:
             return (None, None)
 
-    def _get_path_option(self) -> str:
+    def _get_path_option(self, download: bool = False) -> str:
         """pop up fzf for user to select what to do with the path
 
+        :param download: if not download, insert append option
+        :type download: bool, optional
         :return: selected option
         :rtype: str
         """
@@ -447,9 +447,10 @@ class S3(BaseSession):
         fzf.append_fzf("root: operate on the root level of the bucket\n")
         fzf.append_fzf("interactively: interactively select a path through s3\n")
         fzf.append_fzf("input: manully input the path/name\n")
-        fzf.append_fzf(
-            "append: interactively select a path and then input new path/name to append"
-        )
+        if not download:
+            fzf.append_fzf(
+                "append: interactively select a path and then input new path/name to append"
+            )
         selected_option = str(
             fzf.execute_fzf(
                 print_col=1,
