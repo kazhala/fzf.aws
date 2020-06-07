@@ -1,6 +1,7 @@
 import os
 import json
 import unittest
+import tempfile
 from unittest.mock import patch
 from fzfaws.utils import FileLoader
 
@@ -9,13 +10,12 @@ class TestFileLoader(unittest.TestCase):
     def setUp(self):
         self.fileloader = FileLoader()
         curr_path = os.path.dirname(os.path.abspath(__file__))
-        self.test_json = os.path.join(curr_path, "test.json")
-        with open(self.test_json, "w") as file:
+        self.test_json = tempfile.NamedTemporaryFile()
+        with open(self.test_json.name, "w") as file:
             file.write(json.dumps({"hello": "world", "foo": "boo"}))
         self.test_yaml = os.path.join(curr_path, "../../fzfaws.yml")
 
     def tearDown(self):
-        os.remove(self.test_json)
         # reset cloudformation profile/region to align with test config file
         os.environ["FZFAWS_CLOUDFORMATION_PROFILE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_REGION"] = ""
@@ -26,8 +26,8 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(self.fileloader.path, "")
         self.assertEqual(self.fileloader.body, "")
 
-        fileloader = FileLoader(path=self.test_json)
-        self.assertEqual(fileloader.path, self.test_json)
+        fileloader = FileLoader(path=self.test_json.name)
+        self.assertEqual(fileloader.path, self.test_json.name)
         self.assertEqual(fileloader.body, "")
 
     def test_process_yaml_file(self):
@@ -38,7 +38,7 @@ class TestFileLoader(unittest.TestCase):
             self.fail("Yaml file is not read properly")
 
     def test_process_json_body(self):
-        self.fileloader.path = self.test_json
+        self.fileloader.path = self.test_json.name
         result = self.fileloader.process_json_file()
         self.assertRegex(result["body"], r".*hello.*foo")
         if "foo" not in result["dictBody"]:
