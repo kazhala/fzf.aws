@@ -2,6 +2,7 @@ import sys
 import json
 import io
 import os
+from types import GeneratorType
 import unittest
 from unittest.mock import patch
 from fzfaws.ec2 import EC2
@@ -478,4 +479,42 @@ class TestEC2(unittest.TestCase):
         self.ec2.get_vpc_id(multi_select=True, header="hello")
         mocked_fzf_execute.assert_called_with(
             empty_allow=True, multi_select=True, header="hello"
+        )
+
+    def test_instance_generator(self):
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_instance.json"
+        )
+        with open(data_path, "r") as json_file:
+            response = json.load(json_file)
+
+        generator = self.ec2._instance_generator(response[0]["Reservations"])
+        self.assertIsInstance(generator, GeneratorType)
+        for instance in generator:
+            self.assertIsInstance(instance, dict)
+            self.assertRegex(instance["InstanceId"], r"[0-9]*")
+
+    def test_format_instance_to_dict(self):
+        test_value = "InstanceId: 11111111 | InstanceType: t2.micro | Status: running | Name: meal-Bean-10PYXE0G1F4HS | KeyName: ap-southeast-2_playground | PublicDnsName: ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com | PublicIpAddress: 13.238.143.201 | PrivateIpAddress: 172.31.2.33"
+        test_value = test_value.split(" | ")
+        result = self.ec2._format_instance_to_dict(test_value)
+        self.assertEqual(
+            result,
+            {
+                "InstanceId": "11111111",
+                "InstanceType": "t2.micro",
+                "Status": "running",
+                "Name": "meal-Bean-10PYXE0G1F4HS",
+                "KeyName": "ap-southeast-2_playground",
+                "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                "PublicIpAddress": "13.238.143.201",
+                "PrivateIpAddress": "172.31.2.33",
+            },
+        )
+
+        test_value = "InstanceId: 11111111 | Name: hello world"
+        test_value = test_value.split(" | ")
+        result = self.ec2._format_instance_to_dict(test_value)
+        self.assertEqual(
+            result, {"InstanceId": "11111111", "Name": "hello world"},
         )
