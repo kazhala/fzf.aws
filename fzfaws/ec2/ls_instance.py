@@ -107,7 +107,6 @@ def ls_instance(
                 print(item)
     else:
         ec2.set_ec2_instance()
-        response = ec2.client.describe_instances(InstanceIds=ec2.instance_ids)
         if (
             not ipv4
             and not privateip
@@ -116,11 +115,10 @@ def ls_instance(
             and not keyname
             and not instanceid
         ):
+            response = ec2.client.describe_instances(InstanceIds=ec2.instance_ids)
             dump_response(response)
         else:
-            if not response["Reservations"]:
-                raise SystemExit
-            for instance in response["Reservations"][0]["Instances"]:
+            for instance in ec2.instance_list:
                 if ipv4:
                     print(instance.get("PublicIpAddress"))
                 if privateip:
