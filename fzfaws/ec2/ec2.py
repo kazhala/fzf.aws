@@ -73,18 +73,6 @@ class EC2(BaseSession):
             self.instance_ids.append(instance_details[0].split(": ")[1])
             self.instance_list.append(self._format_instance_to_dict(instance_details))
 
-    def _format_instance_to_dict(
-        self, instance_details: list
-    ) -> Dict[str, Optional[str]]:
-        formatted_instance_details = {}
-        for key_value in instance_details:
-            key, value = key_value.split(": ")
-            if value != "None":
-                formatted_instance_details.update({key: value})
-            else:
-                formatted_instance_details.update({key: None})
-        return formatted_instance_details
-
     def print_instance_details(self) -> None:
         """display information of selected instances
 
@@ -278,3 +266,22 @@ class EC2(BaseSession):
                 "PrivateIpAddress": instance["Instances"][0].get("PrivateIpAddress"),
             }
             yield instance_information
+
+    def _format_instance_to_dict(
+        self, instance_details: List[str]
+    ) -> Dict[str, Optional[str]]:
+        """format the selected instance details into dict
+
+        :param instance_details: the seperated instance details (e.g.["PublicIpAddress: 11111111", "KeyName: 11"])
+        :type instance_details: List[str]
+        :return: formatted instance details in dict form
+        :rtype: Dict[str, Optional[str]]
+        """
+        formatted_instance_details = {}
+        for key_value in instance_details:
+            key, value = key_value.split(": ")
+            if value != "None":
+                formatted_instance_details.update({key: value})
+            else:
+                formatted_instance_details.update({key: None})
+        return formatted_instance_details
