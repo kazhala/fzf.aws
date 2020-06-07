@@ -4,7 +4,7 @@ A simple wrapper class of ec2 to interact with boto3.client('ec2')
 """
 import os
 import json
-from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, search_dict_in_list, Spinner
+from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, Spinner
 from typing import Dict, Generator, Union, Optional, List
 
 
@@ -27,33 +27,6 @@ class EC2(BaseSession):
         super().__init__(profile=profile, region=region, service_name="ec2")
         self.instance_list: list = [{}]
         self.instance_ids: list = [""]
-
-    def _instance_generator(
-        self, instances: List[dict]
-    ) -> Generator[Dict[str, str], None, None]:
-        """get ec2 instance helper, format ec2 response and return generator
-
-        :param instances: list of instance response from boto3
-        :type instances: List[dict]
-        :return: formatted dict of instance information in generator form
-        :rtype: Generator[Dict[str,str], None, None]
-        """
-        for instance in instances:
-            instance_information = {
-                "InstanceId": instance["Instances"][0].get("InstanceId"),
-                "InstanceType": instance["Instances"][0].get("InstanceType"),
-                "Status": instance["Instances"][0]["State"].get("Name"),
-                "Name": get_name_tag(instance["Instances"][0]),
-                "KeyName": instance["Instances"][0].get("KeyName", "N/A"),
-                "PublicDnsName": instance["Instances"][0].get("PublicDnsName", "N/A"),
-                "PublicIpAddress": instance["Instances"][0].get(
-                    "PublicIpAddress", "N/A"
-                ),
-                "PrivateIpAddress": instance["Instances"][0].get(
-                    "PrivateIpAddress", "N/A"
-                ),
-            }
-            yield instance_information
 
     def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
         """set ec2 instance for current operation
@@ -276,3 +249,28 @@ class EC2(BaseSession):
         return fzf.execute_fzf(
             empty_allow=True, multi_select=multi_select, header=header
         )
+
+    def _instance_generator(
+        self, instances: List[dict]
+    ) -> Generator[Dict[str, str], None, None]:
+        """get ec2 instance helper, format ec2 response and return generator
+
+        :param instances: list of instance response from boto3
+        :type instances: List[dict]
+        :return: formatted dict of instance information in generator form
+        :rtype: Generator[Dict[str,str], None, None]
+        """
+        for instance in instances:
+            instance_information = {
+                "InstanceId": instance["Instances"][0].get("InstanceId"),
+                "InstanceType": instance["Instances"][0].get("InstanceType"),
+                "Status": instance["Instances"][0]["State"].get("Name"),
+                "Name": get_name_tag(instance["Instances"][0]),
+                "KeyName": instance["Instances"][0].get("KeyName"),
+                "PublicDnsName": instance["Instances"][0].get("PublicDnsName")
+                if instance["Instances"][0].get("PublicDnsName")
+                else None,
+                "PublicIpAddress": instance["Instances"][0].get("PublicIpAddress"),
+                "PrivateIpAddress": instance["Instances"][0].get("PrivateIpAddress"),
+            }
+            yield instance_information

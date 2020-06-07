@@ -40,29 +40,17 @@ def get_instance_ip(instance: dict, ip_type: str = "dns") -> str:
     :rtype: str
     """
     if ip_type == "dns":
-        if (
-            instance.get("PublicDnsName")
-            and instance["PublicDnsName"] != " "
-            and instance["PublicDnsName"] != "N/A"
-        ):
+        if instance.get("PublicDnsName"):
             return instance["PublicDnsName"]
         else:
             ip_type = "public"
     if ip_type == "public":
-        if (
-            instance.get("PublicIpAddress")
-            and instance["PublicIpAddress"] != " "
-            and instance["PublicIpAddress"] != "N/A"
-        ):
+        if instance.get("PublicIpAddress"):
             return instance["PublicIpAddress"]
         else:
             ip_type = "private"
     if ip_type == "private":
-        if (
-            instance.get("PrivateIpAddress")
-            and instance["PrivateIpAddress"] != " "
-            and instance["PrivateIpAddress"] != "N/A"
-        ):
+        if instance.get("PrivateIpAddress"):
             return instance["PrivateIpAddress"]
         raise EC2Error(
             "%s doesn't have an available ip associated, instance is likely not running"

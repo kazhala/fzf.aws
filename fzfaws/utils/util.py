@@ -1,6 +1,6 @@
 """contains some common helper functions
 """
-from typing import Any
+from typing import Any, Optional
 import os
 
 
@@ -71,7 +71,7 @@ def get_confirmation(message: str) -> bool:
     return True if confirm == "y" else False
 
 
-def get_name_tag(response_item: dict) -> str:
+def get_name_tag(response_item: dict) -> Optional[str]:
     """get the name tag of the item
 
     This only specific use for boto3 response that contains name tag
@@ -79,14 +79,14 @@ def get_name_tag(response_item: dict) -> str:
     :param list_item: boto3 respoonse dict
     :type list_item: dict
     :return: name tag
-    :rtype: str
+    :rtype: Optional[str]
     """
     if check_dict_value_in_list("Name", response_item.get("Tags", []), "Key"):
         return search_dict_in_list("Name", response_item.get("Tags", []), "Key").get(
-            "Value", "N/A"
+            "Value"
         )
     else:
-        return "N/A"
+        return None
 
 
 def get_default_args(action_command: str, curr_args: list) -> list:
