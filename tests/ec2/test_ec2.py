@@ -52,7 +52,7 @@ class TestEC2(unittest.TestCase):
 
         mocked_fzf_execute.return_value = [
             "InstanceId: 11111111 | InstanceType: t2.micro | Status: running | Name: meal-Bean-10PYXE0G1F4HS | KeyName: ap-southeast-2_playground | PublicDnsName: ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com | PublicIpAddress: 13.238.143.201 | PrivateIpAddress: 172.31.2.33",
-            "InstanceId: 22222222 | InstanceType: t2.micro | Status: stopped | Name: default-ubuntu | KeyName: ap-southeast-2_playground | PublicDnsName:  | PublicIpAddress: N/A | PrivateIpAddress: 172.31.11.122",
+            "InstanceId: 22222222 | InstanceType: t2.micro | Status: stopped | Name: default-ubuntu | KeyName: ap-southeast-2_playground | PublicDnsName: None | PublicIpAddress: None | PrivateIpAddress: 172.31.11.122",
         ]
         mocked_generator.return_value = [
             {
@@ -71,8 +71,8 @@ class TestEC2(unittest.TestCase):
                 "Status": "stopped",
                 "Name": "default-ubuntu",
                 "KeyName": "ap-southeast-2_playground",
-                "PublicDnsName": "",
-                "PublicIpAddress": "N/A",
+                "PublicDnsName": None,
+                "PublicIpAddress": None,
                 "PrivateIpAddress": "172.31.11.122",
             },
         ]
@@ -95,8 +95,8 @@ class TestEC2(unittest.TestCase):
                     "Status": "stopped",
                     "Name": "default-ubuntu",
                     "KeyName": "ap-southeast-2_playground",
-                    "PublicDnsName": "",
-                    "PublicIpAddress": "N/A",
+                    "PublicDnsName": None,
+                    "PublicIpAddress": None,
                     "PrivateIpAddress": "172.31.11.122",
                 },
             ],
@@ -132,8 +132,8 @@ class TestEC2(unittest.TestCase):
                     "Status": "stopped",
                     "Name": "default-ubuntu",
                     "KeyName": "ap-southeast-2_playground",
-                    "PublicDnsName": "",
-                    "PublicIpAddress": "N/A",
+                    "PublicDnsName": None,
+                    "PublicIpAddress": None,
                     "PrivateIpAddress": "172.31.11.122",
                 },
             ],
@@ -244,7 +244,7 @@ class TestEC2(unittest.TestCase):
                     {"Key": "aws:cloudformation:stack-name", "Value": "hellotesting",},
                 ],
                 "VpcId": "vpc-5c03313b",
-                "Name": "N/A",
+                "Name": None,
             },
             {
                 "GroupName": "default-ssh",
@@ -334,7 +334,7 @@ class TestEC2(unittest.TestCase):
                     "SubnetId": "subnet-d31f089a",
                     "VpcId": "vpc-5c03313b",
                     "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-d31f089a",
-                    "Name": "N/A",
+                    "Name": None,
                 },
                 {
                     "AvailabilityZone": "ap-southeast-2c",
@@ -395,13 +395,13 @@ class TestEC2(unittest.TestCase):
                     "VolumeId": "vol-03d755609d4783573",
                     "Iops": 100,
                     "VolumeType": "gp2",
-                    "Name": "N/A",
+                    "Name": None,
                 },
                 {
                     "VolumeId": "vol-04bf0dd95936347fc",
                     "Iops": 100,
                     "VolumeType": "gp2",
-                    "Name": "N/A",
+                    "Name": None,
                 },
             ],
             "VolumeId",
@@ -461,7 +461,7 @@ class TestEC2(unittest.TestCase):
                     "OwnerId": "111111",
                     "InstanceTenancy": "default",
                     "IsDefault": True,
-                    "Name": "N/A",
+                    "Name": None,
                 },
             ],
             "VpcId",

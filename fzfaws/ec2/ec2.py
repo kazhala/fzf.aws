@@ -64,22 +64,26 @@ class EC2(BaseSession):
                 instance_details = instance.split(" | ")
                 self.instance_ids.append(instance_details[0].split(": ")[1])
                 self.instance_list.append(
-                    {
-                        key_value.split(": ")[0]: key_value.split(": ")[1]
-                        for key_value in instance_details
-                    }
+                    self._format_instance_to_dict(instance_details)
                 )
         else:
             instance_details = str(selected_instance).split(" | ")
             self.instance_ids[:] = []
             self.instance_list[:] = []
             self.instance_ids.append(instance_details[0].split(": ")[1])
-            self.instance_list.append(
-                {
-                    key_value.split(": ")[0]: key_value.split(": ")[1]
-                    for key_value in instance_details
-                }
-            )
+            self.instance_list.append(self._format_instance_to_dict(instance_details))
+
+    def _format_instance_to_dict(
+        self, instance_details: list
+    ) -> Dict[str, Optional[str]]:
+        formatted_instance_details = {}
+        for key_value in instance_details:
+            key, value = key_value.split(": ")
+            if value != "None":
+                formatted_instance_details.update({key: value})
+            else:
+                formatted_instance_details.update({key: None})
+        return formatted_instance_details
 
     def print_instance_details(self) -> None:
         """display information of selected instances

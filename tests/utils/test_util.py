@@ -61,7 +61,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(name, "meal-Bean-10PYXE0G1F4HS")
         test_data = {}
         name = get_name_tag(test_data)
-        self.assertEqual(name, "N/A")
+        self.assertEqual(name, None)
 
     def test_get_default_args(self):
         fileloader = FileLoader()

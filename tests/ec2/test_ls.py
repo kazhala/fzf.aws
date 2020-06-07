@@ -51,7 +51,7 @@ class TestEC2ls(unittest.TestCase):
             ipv4=True, privateip=True, dns=True, az=True, keyname=True, instanceid=True
         )
         self.assertEqual(
-            self.capturedOutput.getvalue(), "\n\n\n\n\n\n",
+            self.capturedOutput.getvalue(), "None\nNone\nNone\nNone\nNone\nNone\n",
         )
 
         self.capturedOutput.truncate(0)
