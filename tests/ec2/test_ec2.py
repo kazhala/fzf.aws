@@ -37,17 +37,45 @@ class TestEC2(unittest.TestCase):
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [{}])
 
+    @patch.object(EC2, "_instance_generator")
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "process_list")
     @patch.object(Pyfzf, "execute_fzf")
-    def test_set_ec2_instance(self, mocked_fzf_execute, mocked_fzf_list, mocked_result):
+    def test_set_ec2_instance(
+        self, mocked_fzf_execute, mocked_fzf_list, mocked_result, mocked_generator
+    ):
         # normal multi select test
         file_path = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(file_path, "../data/ec2_instance.json")
         with open(json_path, "r") as json_file:
             mocked_result.return_value = json.load(json_file)
 
-        mocked_fzf_execute.return_value = ["11111111", "22222222"]
+        mocked_fzf_execute.return_value = [
+            "InstanceId: 11111111 | InstanceType: t2.micro | Status: running | Name: meal-Bean-10PYXE0G1F4HS | KeyName: ap-southeast-2_playground | PublicDnsName: ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com | PublicIpAddress: 13.238.143.201 | PrivateIpAddress: 172.31.2.33",
+            "InstanceId: 22222222 | InstanceType: t2.micro | Status: stopped | Name: default-ubuntu | KeyName: ap-southeast-2_playground | PublicDnsName:  | PublicIpAddress: N/A | PrivateIpAddress: 172.31.11.122",
+        ]
+        mocked_generator.return_value = [
+            {
+                "InstanceId": "11111111",
+                "InstanceType": "t2.micro",
+                "Status": "running",
+                "Name": "meal-Bean-10PYXE0G1F4HS",
+                "KeyName": "ap-southeast-2_playground",
+                "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
+                "PublicIpAddress": "13.238.143.201",
+                "PrivateIpAddress": "172.31.2.33",
+            },
+            {
+                "InstanceId": "22222222",
+                "InstanceType": "t2.micro",
+                "Status": "stopped",
+                "Name": "default-ubuntu",
+                "KeyName": "ap-southeast-2_playground",
+                "PublicDnsName": "",
+                "PublicIpAddress": "N/A",
+                "PrivateIpAddress": "172.31.11.122",
+            },
+        ]
         self.ec2.set_ec2_instance()
         mocked_fzf_list.assert_called_with(
             [
@@ -81,7 +109,9 @@ class TestEC2(unittest.TestCase):
             "PublicIpAddress",
             "PrivateIpAddress",
         )
-        mocked_fzf_execute.assert_called_with(multi_select=True, header=None)
+        mocked_fzf_execute.assert_called_with(
+            multi_select=True, header=None, print_col=0
+        )
         self.assertEqual(self.ec2.instance_ids, ["11111111", "22222222"])
         self.assertEqual(
             self.ec2.instance_list,
@@ -110,10 +140,7 @@ class TestEC2(unittest.TestCase):
         )
 
         # normal single select test
-        # self.ec2.instance_list.clear()
-        self.ec2.instance_list[:] = [{}]
-        self.ec2.instance_ids = [""]
-        mocked_fzf_execute.return_value = "11111111"
+        mocked_fzf_execute.return_value = "InstanceId: 11111111 | InstanceType: t2.micro | Status: running | Name: meal-Bean-10PYXE0G1F4HS | KeyName: ap-southeast-2_playground | PublicDnsName: ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com | PublicIpAddress: 13.238.143.201 | PrivateIpAddress: 172.31.2.33"
         self.ec2.set_ec2_instance(multi_select=False, header="hello")
         self.assertEqual(self.ec2.instance_ids, ["11111111"])
         self.assertEqual(
@@ -131,10 +158,11 @@ class TestEC2(unittest.TestCase):
                 }
             ],
         )
-        mocked_fzf_execute.assert_called_with(multi_select=False, header="hello")
+        mocked_fzf_execute.assert_called_with(
+            multi_select=False, header="hello", print_col=0
+        )
 
         # empty test
-        # self.ec2.instance_list.clear()
         self.ec2.instance_list[:] = [{}]
         self.ec2.instance_ids = [""]
         mocked_fzf_execute.return_value = ""

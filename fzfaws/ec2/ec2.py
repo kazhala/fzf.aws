@@ -5,7 +5,7 @@ A simple wrapper class of ec2 to interact with boto3.client('ec2')
 import os
 import json
 from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, search_dict_in_list, Spinner
-from typing import Union, Optional
+from typing import Dict, Generator, Union, Optional, List
 
 
 class EC2(BaseSession):
@@ -28,6 +28,33 @@ class EC2(BaseSession):
         self.instance_list: list = [{}]
         self.instance_ids: list = [""]
 
+    def _instance_generator(
+        self, instances: List[dict]
+    ) -> Generator[Dict[str, str], None, None]:
+        """get ec2 instance helper, format ec2 response and return generator
+
+        :param instances: list of instance response from boto3
+        :type instances: List[dict]
+        :return: formatted dict of instance information in generator form
+        :rtype: Generator[Dict[str,str], None, None]
+        """
+        for instance in instances:
+            instance_information = {
+                "InstanceId": instance["Instances"][0].get("InstanceId"),
+                "InstanceType": instance["Instances"][0].get("InstanceType"),
+                "Status": instance["Instances"][0]["State"].get("Name"),
+                "Name": get_name_tag(instance["Instances"][0]),
+                "KeyName": instance["Instances"][0].get("KeyName", "N/A"),
+                "PublicDnsName": instance["Instances"][0].get("PublicDnsName", "N/A"),
+                "PublicIpAddress": instance["Instances"][0].get(
+                    "PublicIpAddress", "N/A"
+                ),
+                "PrivateIpAddress": instance["Instances"][0].get(
+                    "PrivateIpAddress", "N/A"
+                ),
+            }
+            yield instance_information
+
     def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
         """set ec2 instance for current operation
 
@@ -37,36 +64,13 @@ class EC2(BaseSession):
         :type header: str, optional
         """
 
-        response_list: list = []
         fzf = Pyfzf()
         with Spinner.spin(message="Fetching EC2 instances ..."):
             paginator = self.client.get_paginator("describe_instances")
             for result in paginator.paginate():
-                # clear response_list and prepare new list for fzf
-                response_list = []
-                for instance in result["Reservations"]:
-                    response_list.append(
-                        {
-                            "InstanceId": instance["Instances"][0].get("InstanceId"),
-                            "InstanceType": instance["Instances"][0].get(
-                                "InstanceType"
-                            ),
-                            "Status": instance["Instances"][0]["State"].get("Name"),
-                            "Name": get_name_tag(instance["Instances"][0]),
-                            "KeyName": instance["Instances"][0].get("KeyName", "N/A"),
-                            "PublicDnsName": instance["Instances"][0].get(
-                                "PublicDnsName", "N/A"
-                            ),
-                            "PublicIpAddress": instance["Instances"][0].get(
-                                "PublicIpAddress", "N/A"
-                            ),
-                            "PrivateIpAddress": instance["Instances"][0].get(
-                                "PrivateIpAddress", "N/A"
-                            ),
-                        }
-                    )
+                response_generator = self._instance_generator(result["Reservations"])
                 fzf.process_list(
-                    response_list,
+                    response_generator,
                     "InstanceId",
                     "Status",
                     "InstanceType",
@@ -76,22 +80,32 @@ class EC2(BaseSession):
                     "PublicIpAddress",
                     "PrivateIpAddress",
                 )
-        selected_instance_ids = fzf.execute_fzf(
-            multi_select=multi_select, header=header
+        selected_instance = fzf.execute_fzf(
+            multi_select=multi_select, header=header, print_col=0
         )
 
         if multi_select:
-            self.instance_ids = list(selected_instance_ids)
+            self.instance_ids[:] = []
             self.instance_list[:] = []
-            for instance in self.instance_ids:
+            for instance in selected_instance:
+                instance_details = instance.split(" | ")
+                self.instance_ids.append(instance_details[0].split(": ")[1])
                 self.instance_list.append(
-                    search_dict_in_list(instance, response_list, "InstanceId")
+                    {
+                        key_value.split(": ")[0]: key_value.split(": ")[1]
+                        for key_value in instance_details
+                    }
                 )
         else:
-            self.instance_ids[0] = str(selected_instance_ids)
+            instance_details = str(selected_instance).split(" | ")
+            self.instance_ids[:] = []
             self.instance_list[:] = []
+            self.instance_ids.append(instance_details[0].split(": ")[1])
             self.instance_list.append(
-                search_dict_in_list(selected_instance_ids, response_list, "InstanceId")
+                {
+                    key_value.split(": ")[0]: key_value.split(": ")[1]
+                    for key_value in instance_details
+                }
             )
 
     def print_instance_details(self) -> None:
