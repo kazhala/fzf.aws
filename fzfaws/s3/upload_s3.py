@@ -4,6 +4,7 @@ upload local files/directories to s3
 """
 import os
 import sys
+from typing import List, Optional, Union
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
@@ -14,42 +15,49 @@ from fzfaws.s3.helper.s3args import S3Args
 
 
 def upload_s3(
-    profile=False,
-    bucket=None,
-    local_paths=[],
-    recursive=False,
-    hidden=False,
-    root=False,
-    sync=False,
-    exclude=[],
-    include=[],
-    extra_config=False,
-):
+    profile: bool = False,
+    bucket: str = None,
+    local_paths: Optional[Union[str, list]] = None,
+    recursive: bool = False,
+    hidden: bool = False,
+    search_root: bool = False,
+    sync: bool = False,
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
+    extra_config: bool = False,
+) -> None:
     """upload local files/directories to s3
 
     upload through boto3 s3 client
-    glob pattern are handled first exclude list then will run the include list
+    glob pattern exclude list are handled first then handle the include list
 
-    Args:
-        profile: bool or string, use a different profile for operation
-        bucket: string, the bucket or bucket path for upload destination
-            format: s3://bucketname or s3://bucketname/path/ or s3://bucketname/filename
-        local_paths: list, list of local file to upload
-            Note: only the first in the list is taken for recursive operation
-        recursive: bool, upload directory
-        hidden: bool, include hidden file during local file search
-        root: bool, search local file from root
-        sync: bool, use s3 cli sync operation
-        exclude: list, list of glob pattern to exclude
-        include: list, list of glob pattern to include after exclude
-        extra_config: bool, configure extra configuration during upload (e.g. storage class,tagging,ACL)
-    Returns:
-        None
-    Raises:
-        InvalidS3PathPattern: when the specified s3 path is invalid pattern
-        NoSelectionMade: when the required fzf selection is empty
-        SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
+    :param profile: profile to use for this operation
+    :type profile: bool, optional
+    :param bucket: specify bucket to upload
+    :type bucket: str, optional
+    :param local_paths: local file paths to upload
+    :type local_paths: list, optional
+    :param recursive: upload directory
+    :type recursive: bool, optional
+    :param hidden: include hidden files during search
+    :type hidden: bool, optional
+    :param search_root: search from root
+    :type search_root: bool, optional
+    :param sync: use aws cli s3 sync
+    :type sync: bool, optional
+    :param exclude: glob patterns to exclude
+    :type exclude: List[str], optional
+    :param include: glob patterns to include
+    :type include: List[str], optional
+    :param extra_config: configure extra settings during upload
+    :type extra_config: bool, optional
     """
+    if not local_paths:
+        local_paths = []
+    if not exclude:
+        exclude = []
+    if not include:
+        include = []
 
     s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
@@ -64,7 +72,7 @@ def upload_s3(
         # don't allow multi_select for recursive operation
         multi_select = True if not recursive else False
         local_paths = fzf.get_local_file(
-            search_from_root=root,
+            search_from_root=search_root,
             directory=recursive,
             hidden=hidden,
             empty_allow=recursive,
