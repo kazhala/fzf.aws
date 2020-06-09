@@ -1,0 +1,36 @@
+{
+  "ResponseMetadata": {
+    "RequestId": "19B56F50E0AF4398",
+    "HostId": "9DnMkwlv2bo595/ESdiDMOGAcSqiMDFirF4H6myElHDzZTyfTt4v87mmz45RDWMR4drEG3bdK4g=",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amz-id-2": "9DnMkwlv2bo595/ESdiDMOGAcSqiMDFirF4H6myElHDzZTyfTt4v87mmz45RDWMR4drEG3bdK4g=",
+      "x-amz-request-id": "19B56F50E0AF4398",
+      "date": "Tue, 09 Jun 2020 02:18:41 GMT",
+      "last-modified": "Fri, 22 May 2020 02:53:24 GMT",
+      "etag": "\"5375ea9846fb56ba492c8bb3e89e67f6\"",
+      "x-amz-tagging-count": "1",
+      "x-amz-storage-class": "REDUCED_REDUNDANCY",
+      "x-amz-server-side-encryption": "aws:kms",
+      "x-amz-server-side-encryption-aws-kms-key-id": "arn:aws:kms:ap-southeast-2:11111111:key/11111111-f48d-48b8-90d4-d5bd03a603d4",
+      "x-amz-meta-hello": "world",
+      "x-amz-version-id": "A6ZIvQKfECFY7.Yr0Lpyy0yVCp5pN_4E",
+      "accept-ranges": "bytes",
+      "content-type": "binary/octet-stream",
+      "content-length": "136",
+      "server": "AmazonS3"
+    },
+    "RetryAttempts": 0
+  },
+  "AcceptRanges": "bytes",
+  "ContentLength": 136,
+  "ETag": "\"5375ea9846fb56ba492c8bb3e89e67f6\"",
+  "VersionId": "A6ZIvQKfECFY7.Yr0Lpyy0yVCp5pN_4E",
+  "ContentType": "binary/octet-stream",
+  "ServerSideEncryption": "aws:kms",
+  "Metadata": { "hello": "world" },
+  "SSEKMSKeyId": "arn:aws:kms:ap-southeast-2:11111111:key/11111111-f48d-48b8-90d4-d5bd03a603d4",
+  "StorageClass": "REDUCED_REDUNDANCY",
+  "TagCount": 1,
+  "Body": "hello"
+}

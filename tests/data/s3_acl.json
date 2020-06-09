@@ -1,0 +1,30 @@
+{
+  "ResponseMetadata": {
+    "RequestId": "0EE0DC56687C4B5C",
+    "HostId": "ehPnmv1apdMH9TUCkZiipaUvG88PJj5TiJj5VtE+lEOOHXV612UArP3ogZOlsXa0GaKQuhcB1qs=",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amz-id-2": "ehPnmv1apdMH9TUCkZiipaUvG88PJj5TiJj5VtE+lEOOHXV612UArP3ogZOlsXa0GaKQuhcB1qs=",
+      "x-amz-request-id": "0EE0DC56687C4B5C",
+      "date": "Tue, 09 Jun 2020 02:27:40 GMT",
+      "x-amz-version-id": "A6ZIvQKfECFY7.Yr0Lpyy0yVCp5pN_4E",
+      "content-type": "application/xml",
+      "transfer-encoding": "chunked",
+      "server": "AmazonS3"
+    },
+    "RetryAttempts": 0
+  },
+  "Owner": {
+    "DisplayName": "kevin7441",
+    "ID": "11111111"
+  },
+  "Grants": [
+    {
+      "Grantee": {
+        "Type": "Group",
+        "URI": "http://acs.amazonaws.com/groups/global/AllUsers"
+      },
+      "Permission": "READ"
+    }
+  ]
+}
