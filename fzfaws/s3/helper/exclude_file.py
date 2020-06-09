@@ -3,9 +3,14 @@
 using a list of pattern to filter files
 """
 import fnmatch
+from typing import Optional, List
 
 
-def exclude_file(exclude=[], include=[], filename=None):
+def exclude_file(
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
+    filename=None,
+) -> bool:
     """check filename is valid
 
     process exclude list first than use include to double check
@@ -13,14 +18,17 @@ def exclude_file(exclude=[], include=[], filename=None):
 
     list should be glob pattern, trying to be in sync with aws cli
 
-    Args:
-        exclude: list, list of exclude pattern
-        include: list, list of include pattern
-        filename: string, name of the file
-    Returns:
-        should_exclude: bool, indicating whether the file
-        should be excluded
+    :param exclude: exclude glob pattern
+    :type exclude: List[str], optional
+    :param include: include glob pattern
+    :type include: List[str], optional
+    :return: bool value indicating whether the file should be excluded
+    :rtype: bool
     """
+    if not exclude:
+        exclude = []
+    if not include:
+        include = []
 
     should_exclude = False
     # validate the relative_path against exclude list
