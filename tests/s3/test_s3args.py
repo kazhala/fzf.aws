@@ -52,12 +52,12 @@ class TestS3Args(unittest.TestCase):
         )
         with open(data_path, "r") as file:
             response = json.load(file)
+
+        # normal no version test
         s3 = boto3.resource("s3")
         stubber = Stubber(s3.meta.client)
         stubber.add_response("get_object", response)
         stubber.activate()
-
-        # normal no version test
         mocked_execute.return_value = [
             "StorageClass",
             "ACL",
@@ -72,3 +72,67 @@ class TestS3Args(unittest.TestCase):
         mocked_encryption.assert_called()
         mocked_metadata.assert_called()
         mocked_tags.assert_called_with(original=True, version=[])
+        mocked_execute.assert_called_with(
+            print_col=1,
+            multi_select=True,
+            empty_allow=False,
+            header="Select attributes to configure",
+        )
+
+        # normal no call no version test
+        mocked_encryption.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_tags.reset_mock()
+        mocked_append.reset_mock()
+        mocked_tags.reset_mock()
+        mocked_metadata.reset_mock()
+        mocked_storage.reset_mock()
+        mocked_acl.reset_mock()
+        s3 = boto3.resource("s3")
+        stubber = Stubber(s3.meta.client)
+        stubber.add_response("get_object", response)
+        stubber.activate()
+        self.s3_args.set_extra_args(storage=True, upload=True)
+        mocked_storage.assert_called()
+        mocked_append.assert_not_called()
+        mocked_execute.assert_not_called()
+        mocked_tags.assert_not_called()
+        mocked_append.assert_not_called()
+        mocked_tags.assert_not_called()
+        mocked_metadata.assert_not_called()
+        mocked_acl.assert_not_called()
+        mocked_encryption.assert_not_called()
+
+        # version test
+        mocked_encryption.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_tags.reset_mock()
+        mocked_append.reset_mock()
+        mocked_tags.reset_mock()
+        mocked_metadata.reset_mock()
+        mocked_storage.reset_mock()
+        mocked_acl.reset_mock()
+        s3 = boto3.resource("s3")
+        stubber = Stubber(s3.meta.client)
+        stubber.add_response("get_object", response)
+        stubber.activate()
+        mocked_execute.return_value = ["ACL", "Tagging"]
+        self.s3_args.set_extra_args(
+            version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
+        mocked_append.assert_called_with("Tagging")
+        mocked_execute.assert_called_with(
+            print_col=1,
+            multi_select=True,
+            empty_allow=False,
+            header="Select attributes to configure",
+        )
+        mocked_storage.assert_not_called()
+        mocked_acl.assert_called_with(
+            original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
+        mocked_encryption.assert_not_called()
+        mocked_metadata.assert_not_called()
+        mocked_tags.assert_called_with(
+            original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
