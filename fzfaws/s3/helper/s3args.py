@@ -3,60 +3,74 @@
 using fzf to construct some of the extra argument for s3 operation
 """
 import json
-from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.kms.kms import KMS
-from fzfaws.utils.util import get_confirmation
+from fzfaws.utils import get_confirmation, Pyfzf
+from fzfaws.s3 import S3
+from typing import Dict, Optional, List
 
 
 class S3Args:
     """helper class to construct extra argument
 
-    Attributes:
-        s3: s3 instance from the S3 class
-        _extra_args: dict, extra argument to use for s3 operation
+    :param s3: a instance from the S3 class
+    :type s3: S3
     """
 
-    def __init__(self, s3):
-        self.s3 = s3
+    def __init__(self, s3: S3):
+        """constructor
+        """
+        self.s3: S3 = s3
         self._extra_args = {}
 
     def set_extra_args(
         self,
-        storage=False,
-        acl=False,
-        metadata=False,
-        encryption=False,
-        tags=False,
-        version=[],
-        upload=False,
-    ):
+        storage: bool = False,
+        acl: bool = False,
+        metadata: bool = False,
+        encryption: bool = False,
+        tags: bool = False,
+        version: Optional[List[Dict[str, str]]] = None,
+        upload: bool = False,
+    ) -> None:
         """determine what attributes to set
 
         Use fzf menu to let user select attributes to configure
 
-        Args:
-            storage: bool, set storage
-            acl: bool, set acl
-            metadata: bool, set metadata
-            encryption: bool, set server_side_encryption
-            tags: bool, set tags
-            version: list, list of selected object version obj {'Key': value, 'VersionId': versionid}.
-                It's used to determine the menu item and display previous values
-            upload: bool, determine if the menu could have empty selection
-        Exceptions:
-            NoSelectionMade: When uplaod is false and no selection is made
+        :param storage: set storage class
+        :type storage: bool, optional
+        :param bool: set acl of object
+        :type bool: bool, optional
+        :param metadata: set metadata
+        :type metadata: bool, optional
+        :param encryption: set encryption
+        :type encryption: bool, optional
+        :param tags: set tags
+        :type tags: bool, optional
+        :param version: specify version of object to modify
+        :type version: List[Dict[str, str]], optional
+        :param upload: determine if the fzf menu could have empty selection
+            allow empty selection during upload operation but not for other operations
+        :type upload: bool, optional
+
         """
-        attributes = []
+
+        if not version:
+            version = []
+        attributes: List[str] = []
         if version:
+            # only allow modification of the two attributes for versioned object
+            # because other modification would introduce a new version
             if not metadata and not acl and not tags:
                 fzf = Pyfzf()
                 fzf.append_fzf("ACL\n")
                 fzf.append_fzf("Tagging")
-                attributes = fzf.execute_fzf(
-                    print_col=1,
-                    multi_select=True,
-                    empty_allow=False,
-                    header="Select attributes to configure",
+                attributes = list(
+                    fzf.execute_fzf(
+                        print_col=1,
+                        multi_select=True,
+                        empty_allow=False,
+                        header="Select attributes to configure",
+                    )
                 )
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
@@ -66,11 +80,13 @@ class S3Args:
                 fzf.append_fzf("Encryption\n")
                 fzf.append_fzf("Metadata\n")
                 fzf.append_fzf("Tagging\n")
-                attributes = fzf.execute_fzf(
-                    print_col=1,
-                    multi_select=True,
-                    empty_allow=upload,
-                    header="Select attributes to configure",
+                attributes = list(
+                    fzf.execute_fzf(
+                        print_col=1,
+                        multi_select=True,
+                        empty_allow=upload,
+                        header="Select attributes to configure",
+                    )
                 )
 
         for attribute in attributes:
@@ -85,9 +101,9 @@ class S3Args:
             elif attribute == "Tagging":
                 tags = True
 
-        old_storage_class = ""
-        old_encryption = ""
-        old_metadata = ""
+        old_storage_class: str = ""
+        old_encryption: str = ""
+        old_metadata: str = ""
 
         # only show previous values if one object is selected
         if not upload and not version and len(self.s3.path_list) == 1:
@@ -101,10 +117,10 @@ class S3Args:
                 else "None"
             )
             if s3_obj.metadata:
-                old_metadata = []
+                old_metadata_list: list = []
                 for key, value in s3_obj.metadata.items():
-                    old_metadata.append("%s=%s" % (key, value))
-                old_metadata = "&".join(old_metadata)
+                    old_metadata_list.append("%s=%s" % (key, value))
+                old_metadata = "&".join(old_metadata_list)
 
         if storage:
             self.set_storageclass(original=old_storage_class)
