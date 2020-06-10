@@ -187,13 +187,19 @@ class S3Args:
         if result:
             self._extra_args["StorageClass"] = result
 
-    def set_ACL(self, original=False, version=[]):
+    def set_ACL(
+        self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
+    ) -> None:
         """set the ACL option for the current operation
-        Args:
-            original: bool, whether to display original values
-            version: list, list of version obj {'Key': key, 'VersionId': versionid}
-                Used to fetch previous values in _set_explicit_ACL()
+
+        :param original: display original value
+        :type original: bool, optional
+        :param version: version object to set acl for version
+        :type version: List[Dict[str, str]], optional
         """
+
+        if not version:
+            version = []
         fzf = Pyfzf()
         fzf.append_fzf("None (use bucket default ACL setting)\n")
         fzf.append_fzf("Canned ACL (predefined set of grantees and permissions)\n")

@@ -178,3 +178,42 @@ class TestS3Args(unittest.TestCase):
         self.assertEqual(
             self.s3_args._extra_args, {"StorageClass": "REDUCED_REDUNDANCY"}
         )
+
+    @patch.object(S3Args, "_set_explicit_ACL")
+    @patch.object(S3Args, "_set_canned_ACL")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_set_ACL(
+        self, mocked_append, mocked_execute, mocked_canned, mocked_explicit
+    ):
+
+        mocked_execute.return_value = "None"
+        self.s3_args.set_ACL()
+        mocked_append.assert_called_with(
+            "Explicit ACL (explicit set grantees and permissions)\n"
+        )
+        mocked_canned.assert_not_called()
+        mocked_explicit.assert_not_called()
+
+        mocked_execute.return_value = "Canned"
+        self.s3_args.set_ACL(
+            original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
+        mocked_append.assert_called_with(
+            "Explicit ACL (explicit set grantees and permissions)\n"
+        )
+        mocked_canned.assert_called()
+        mocked_explicit.assert_not_called()
+
+        mocked_canned.reset_mock()
+        mocked_execute.return_value = "Explicit"
+        self.s3_args.set_ACL(
+            original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
+        mocked_append.assert_called_with(
+            "Explicit ACL (explicit set grantees and permissions)\n"
+        )
+        mocked_canned.assert_not_called()
+        mocked_explicit.assert_called_with(
+            original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
+        )
