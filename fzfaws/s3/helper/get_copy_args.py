@@ -87,20 +87,20 @@ def get_copy_args(
 
     if s3_args.storage_class:
         copy_object_args["StorageClass"] = s3_args.storage_class
-    else:
+    elif s3_obj.get("StorageClass"):
         copy_object_args["StorageClass"] = s3_obj.get("StorageClass")
 
     if s3_args.encryption:
         if s3_args.encryption != "None":
             copy_object_args["ServerSideEncryption"] = s3_args.encryption
-    else:
+    elif s3_obj.get("ServerSideEncryption"):
         copy_object_args["ServerSideEncryption"] = s3_obj.get("ServerSideEncryption")
 
     if s3_args.encryption and s3_args.encryption == "aws:kms":
         copy_object_args["SSEKMSKeyId"] = s3_args.kms_id
     elif s3_args.encryption and s3_args.encryption != "aws:kms":
         pass
-    else:
+    elif s3_obj.get("SSEKMSKeyId"):
         copy_object_args["SSEKMSKeyId"] = s3_obj.get("SSEKMSKeyId")
 
     if s3_args.tags:
