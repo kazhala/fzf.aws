@@ -152,3 +152,29 @@ class TestS3Args(unittest.TestCase):
         self.assertEqual(
             self.s3_args._extra_args, {"Metadata": {"foo": "boo", "hello": "world"}}
         )
+
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_set_storageclass(self, mocked_append, mocked_execute):
+        self.s3_args._extra_args = {}
+        mocked_execute.return_value = "STANDARD"
+        self.s3_args.set_storageclass(original="GLACIER")
+        mocked_append.assert_called_with("DEEP_ARCHIVE\n")
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=1,
+            header="Select a storage class, esc to use the default storage class of the bucket setting\nOriginal: GLACIER",
+        )
+        self.assertEqual(self.s3_args._extra_args, {"StorageClass": "STANDARD"})
+
+        mocked_execute.return_value = "REDUCED_REDUNDANCY"
+        self.s3_args.set_storageclass()
+        mocked_append.assert_called_with("DEEP_ARCHIVE\n")
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=1,
+            header="Select a storage class, esc to use the default storage class of the bucket setting",
+        )
+        self.assertEqual(
+            self.s3_args._extra_args, {"StorageClass": "REDUCED_REDUNDANCY"}
+        )

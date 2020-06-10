@@ -165,11 +165,11 @@ class S3Args:
                 key, value = item.split("=")
                 self._extra_args["Metadata"][key] = value
 
-    def set_storageclass(self, original=None):
+    def set_storageclass(self, original: str = None) -> None:
         """set valid storage class
 
-        Args:
-            original: string, previous value of the storage_class
+        :param original: original value of the storage_class
+        :type original: str, optional
         """
 
         header = "Select a storage class, esc to use the default storage class of the bucket setting"
