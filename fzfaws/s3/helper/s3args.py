@@ -216,20 +216,25 @@ class S3Args:
         else:
             return
 
-    def _set_explicit_ACL(self, original=False, version=[]):
+    def _set_explicit_ACL(
+        self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
+    ) -> None:
         """set explicit ACL for grantees and permissions
 
         Get user id/email first than display fzf allow multi_select
         to select permissions
 
-        Args:
-            original: bool, whether to display original values
-            version: list, list of version obj {'Key': key, 'VersionId': versionid}
-                Used to fetch previous values in _set_explicit_ACL()
+        example version: [{"Key", key, "VersionId": versionid}]
+
+        :param original: display original value
+        :type original: bool, optional
+        :param version: version of the object
+        :type version: List[Dict[str, str]], optional
         """
+
         # get original values
         if original:
-            acls = ""
+            acls = None
             if not version:
                 acls = self.s3.client.get_object_acl(
                     Bucket=self.s3.bucket_name, Key=self.s3.path_list[0]
@@ -240,7 +245,7 @@ class S3Args:
                     Key=self.s3.path_list[0],
                     VersionId=version[0].get("VersionId"),
                 )
-            original_acl = {
+            original_acl: Dict[str, List[str]] = {
                 "FULL_CONTROL": [],
                 "WRITE_ACP": [],
                 "READ": [],
