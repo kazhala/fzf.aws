@@ -139,15 +139,15 @@ class S3Args:
             )
             self.set_tags(original=display_original, version=version)
 
-    def set_metadata(self, original=None):
+    def set_metadata(self, original: str = None) -> None:
         """set the meta data for the object
 
-        Args:
-            original: string, previous value of the object
+        :param original: original value of metadata
+        :type original: str, optional
         """
 
         print(
-            "Enter meta data for the upload objects, enter without value will skip tagging"
+            "Configure metadata for the objects, enter without value will skip metadata"
         )
         print(
             "Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)"
@@ -159,6 +159,9 @@ class S3Args:
         if metadata:
             self._extra_args["Metadata"] = {}
             for item in metadata.split("&"):
+                if "=" not in item:
+                    # handle case for hello=world&foo=boo&
+                    continue
                 key, value = item.split("=")
                 self._extra_args["Metadata"][key] = value
 

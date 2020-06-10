@@ -136,3 +136,19 @@ class TestS3Args(unittest.TestCase):
         mocked_tags.assert_called_with(
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
         )
+
+    @patch("builtins.input")
+    def test_set_metadata(self, mocked_input):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        self.s3_args._extra_args = {}
+        mocked_input.return_value = "foo=boo"
+        self.s3_args.set_metadata(original="hello")
+        self.assertEqual(self.s3_args._extra_args, {"Metadata": {"foo": "boo"}})
+        self.assertRegex(self.capturedOutput.getvalue(), "Orignal: hello")
+
+        mocked_input.return_value = "foo=boo&hello=world&"
+        self.s3_args.set_metadata()
+        self.assertEqual(
+            self.s3_args._extra_args, {"Metadata": {"foo": "boo", "hello": "world"}}
+        )
