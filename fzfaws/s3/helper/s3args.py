@@ -6,7 +6,7 @@ import json
 from fzfaws.kms.kms import KMS
 from fzfaws.utils import get_confirmation, Pyfzf
 from fzfaws.s3 import S3
-from typing import Any, Dict, Optional, List, Union
+from typing import Any, Dict, Optional, List
 
 
 class S3Args:
@@ -106,7 +106,12 @@ class S3Args:
         old_metadata: str = ""
 
         # only show previous values if one object is selected
-        if not upload and not version and len(self.s3.path_list) == 1:
+        if (
+            not upload
+            and not version
+            and len(self.s3.path_list) == 1
+            and self.s3.path_list[0] != ""
+        ):
             s3_obj = self.s3.resource.Object(self.s3.bucket_name, self.s3.path_list[0])
             old_storage_class = (
                 s3_obj.storage_class if s3_obj.storage_class else "STANDARD"
