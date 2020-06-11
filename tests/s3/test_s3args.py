@@ -293,3 +293,16 @@ class TestS3Args(unittest.TestCase):
             self.capturedOutput.getvalue(),
             r"Orignal: uri=http://acs.amazonaws.com/groups/global/AllUsers",
         )
+
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_set_canned_ACL(self, mocked_append, mocked_execute):
+        mocked_execute.return_value = "private"
+        self.s3_args._set_canned_ACL()
+        self.assertEqual(self.s3_args._extra_args["ACL"], "private")
+        mocked_append.assert_called_with("bucket-owner-full-control\n")
+
+        self.s3_args._extra_args["ACL"] = None
+        mocked_execute.return_value = ""
+        self.s3_args._set_canned_ACL()
+        self.assertEqual(self.s3_args._extra_args["ACL"], None)

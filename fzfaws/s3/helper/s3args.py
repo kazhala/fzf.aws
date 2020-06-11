@@ -323,8 +323,10 @@ class S3Args:
                 print(80 * "-")
                 self._extra_args[result] = str(accounts)
 
-    def _set_canned_ACL(self):
-        """set the canned ACL for the current operation"""
+    def _set_canned_ACL(self) -> None:
+        """set the canned ACL for the current operation
+        """
+
         fzf = Pyfzf()
         fzf.append_fzf("private\n")
         fzf.append_fzf("public-read\n")
@@ -333,10 +335,12 @@ class S3Args:
         fzf.append_fzf("aws-exec-read\n")
         fzf.append_fzf("bucket-owner-read\n")
         fzf.append_fzf("bucket-owner-full-control\n")
-        result = fzf.execute_fzf(
-            empty_allow=True,
-            print_col=1,
-            header="Select a Canned ACL option, esc to use the default ACL setting for the bucket",
+        result: str = str(
+            fzf.execute_fzf(
+                empty_allow=True,
+                print_col=1,
+                header="Select a Canned ACL option, esc to use the default ACL setting for the bucket",
+            )
         )
         if result:
             self._extra_args["ACL"] = result
