@@ -371,13 +371,17 @@ class S3Args:
             kms.set_keyids(header="Select encryption key to use")
             self._extra_args["SSEKMSKeyId"] = kms.keyids[0]
 
-    def set_tags(self, original=False, version=[]):
+    def set_tags(
+        self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
+    ) -> None:
         """set tags for the object
 
-        Args:
-            original: bool, whether to fetch original values
-            version: list, include version
+        :param original: whether to fetch orignal tag value
+        :type original: bool, optional
+        :param version: version information
+        :type version: List[Dict[str, str]], optional
         """
+
         print(
             "Enter tags for the upload objects, enter without value will skip tagging"
         )
@@ -386,26 +390,26 @@ class S3Args:
         )
         if original:
             print(80 * "-")
+            original_tags: list = []
+            original_values: str = ""
             if not version:
                 tags = self.s3.client.get_object_tagging(
                     Bucket=self.s3.bucket_name, Key=self.s3.path_list[0],
                 )
-                original_tags = []
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
-                original_tags = "&".join(original_tags)
-                print("Orignal: %s" % original_tags)
+                original_values = "&".join(original_tags)
+                print("Orignal: %s" % original_values)
             elif len(version) == 1:
                 tags = self.s3.client.get_object_tagging(
                     Bucket=self.s3.bucket_name,
                     Key=self.s3.path_list[0],
                     VersionId=version[0].get("VersionId"),
                 )
-                original_tags = []
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
-                original_tags = "&".join(original_tags)
-                print("Orignal: %s" % original_tags)
+                original_values = "&".join(original_tags)
+                print("Orignal: %s" % original_values)
 
         tags = input("Tags: ")
         if tags:

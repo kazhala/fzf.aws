@@ -333,3 +333,42 @@ class TestS3Args(unittest.TestCase):
         self.s3_args.set_encryption(original="AES256")
         self.assertEqual(self.s3_args._extra_args["ServerSideEncryption"], "aws:kms")
         self.assertEqual(self.s3_args._extra_args["SSEKMSKeyId"], "")
+
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch("builtins.input")
+    def test_set_tags(self, mocked_input, mocked_client):
+        mocked_input.return_value = "hello=world"
+        self.s3_args.set_tags()
+        self.assertEqual(self.s3_args._extra_args["Tagging"], "hello=world")
+
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_tags.json"
+        )
+        with open(data_path, "r") as file:
+            response = json.load(file)
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("get_object_tagging", response)
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_input.return_value = "foo=boo"
+        self.s3_args.set_tags(original=True)
+        self.assertEqual(self.s3_args._extra_args["Tagging"], "foo=boo")
+        self.assertRegex(self.capturedOutput.getvalue(), r"Orignal: name=yes")
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("get_object_tagging", response)
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_input.return_value = "foo=boo"
+        self.s3_args.set_tags(
+            original=True, version=[{"Key": "hello", "VersionId": "11111111"}]
+        )
+        self.assertEqual(self.s3_args._extra_args["Tagging"], "foo=boo")
+        self.assertRegex(self.capturedOutput.getvalue(), r"Orignal: name=yes")

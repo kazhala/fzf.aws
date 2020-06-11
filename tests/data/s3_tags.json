@@ -1,0 +1,18 @@
+{
+  "ResponseMetadata": {
+    "RequestId": "552A38E5918957BD",
+    "HostId": "1YgAg//02UZsTUVmryBO4g6jt1EzzdrF7+/O9zjo9ZdQ1jJvhBZiCp2SY19OjgyyN3+EI7GLKUs=",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amz-id-2": "1YgAg//02UZsTUVmryBO4g6jt1EzzdrF7+/O9zjo9ZdQ1jJvhBZiCp2SY19OjgyyN3+EI7GLKUs=",
+      "x-amz-request-id": "552A38E5918957BD",
+      "date": "Thu, 11 Jun 2020 02:12:37 GMT",
+      "x-amz-version-id": "5QKtyL6RnhQyVRddEcaZC6S5fHyoUO46",
+      "transfer-encoding": "chunked",
+      "server": "AmazonS3"
+    },
+    "RetryAttempts": 0
+  },
+  "VersionId": "5QKtyL6RnhQyVRddEcaZC6S5fHyoUO46",
+  "TagSet": [{ "Key": "name", "Value": "yes" }]
+}
