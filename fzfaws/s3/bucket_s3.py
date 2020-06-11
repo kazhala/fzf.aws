@@ -139,8 +139,6 @@ def bucket_s3(
                         dest_pathname,
                         Callback=S3Progress(s3_key, target_bucket, s3.client),
                     )
-                    # remove the progress bar
-                    sys.stdout.write("\033[2K\033[1G")
                 else:
                     s3.bucket_name = target_bucket
                     copy_and_preserve(
@@ -193,8 +191,6 @@ def bucket_s3(
                             version_id=obj_version.get("VersionId"),
                         ),
                     )
-                    # remove the progress bar
-                    sys.stdout.write("\033[2K\033[1G")
                 else:
                     s3.bucket_name = target_bucket
                     copy_and_preserve(
@@ -232,8 +228,6 @@ def bucket_s3(
                         s3_key,
                         Callback=S3Progress(target_path, target_bucket, s3.client),
                     )
-                    # remove the progress bar
-                    sys.stdout.write("\033[2K\033[1G")
                 else:
                     s3.bucket_name = target_bucket
                     copy_and_preserve(
@@ -275,8 +269,6 @@ def copy_and_preserve(
                 Callback=S3Progress(target_path, s3.bucket_name, s3.client),
                 ExtraArgs=copy_object_args,
             )
-            # remove the progress bar
-            sys.stdout.write("\033[2K\033[1G")
             break
         except ClientError as e:
             error_pattern = r"^.*\((.*)\).*$"

@@ -104,8 +104,6 @@ def object_s3(
                     Callback=S3Progress(s3.path_list[0], s3.bucket_name, s3.client),
                     ExtraArgs=copy_object_args,
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
                 s3.client.delete_object(
                     Bucket=s3.bucket_name, Key=s3.path_list[0],
                 )
@@ -160,8 +158,6 @@ def object_s3(
                     ),
                     ExtraArgs=copy_object_args,
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
 
     elif recursive:
         s3_args = S3Args(s3)
@@ -212,8 +208,6 @@ def object_s3(
                         Callback=S3Progress(original_key, s3.bucket_name, s3.client),
                         ExtraArgs=copy_object_args,
                     )
-                    # remove the progress bar
-                    sys.stdout.write("\033[2K\033[1G")
 
     elif version:
         obj_versions = s3.get_object_version(select_all=allversion)
@@ -296,5 +290,3 @@ def object_s3(
                         Callback=S3Progress(s3_key, s3.bucket_name, s3.client),
                         ExtraArgs=copy_object_args,
                     )
-                    # remove the progress bar
-                    sys.stdout.write("\033[2K\033[1G")

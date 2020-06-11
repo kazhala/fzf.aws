@@ -3,7 +3,6 @@
 upload local files/directories to s3
 """
 import os
-import sys
 from typing import List, Optional, Union
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.pyfzf import Pyfzf
@@ -135,8 +134,7 @@ def upload_s3(
                     Callback=S3Progress(item["local_path"]),
                     ExtraArgs=extra_args.extra_args,
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
+
     else:
         for filepath in local_paths:
             # get the formated s3 destination
@@ -161,5 +159,3 @@ def upload_s3(
                     Callback=S3Progress(filepath),
                     ExtraArgs=extra_args.extra_args,
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")

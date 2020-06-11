@@ -3,7 +3,6 @@
 Contains the main function to handle the download operation from s3
 """
 import os
-import sys
 from s3transfer import S3Transfer
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.pyfzf import Pyfzf
@@ -105,8 +104,6 @@ def download_s3(
                     dest_pathname,
                     callback=S3Progress(s3_key, s3.bucket_name, s3.client),
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
 
     elif version:
         for obj_version in obj_versions:
@@ -149,8 +146,6 @@ def download_s3(
                         obj_version.get("VersionId"),
                     ),
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
 
     else:
         for s3_path in s3.path_list:
@@ -175,5 +170,3 @@ def download_s3(
                     destination_path,
                     callback=S3Progress(s3_path, s3.bucket_name, s3.client),
                 )
-                # remove the progress bar
-                sys.stdout.write("\033[2K\033[1G")
