@@ -232,6 +232,13 @@ class S3Args:
         :type version: List[Dict[str, str]], optional
         """
 
+        original_acl: Dict[str, List[str]] = {
+            "FULL_CONTROL": [],
+            "WRITE_ACP": [],
+            "READ": [],
+            "READ_ACP": [],
+        }
+
         # get original values
         if original:
             acls = None
@@ -245,12 +252,6 @@ class S3Args:
                     Key=self.s3.path_list[0],
                     VersionId=version[0].get("VersionId"),
                 )
-            original_acl: Dict[str, List[str]] = {
-                "FULL_CONTROL": [],
-                "WRITE_ACP": [],
-                "READ": [],
-                "READ_ACP": [],
-            }
             if acls:
                 owner = acls["Owner"]["ID"]
                 for grantee in acls.get("Grants", []):
@@ -283,7 +284,9 @@ class S3Args:
         fzf.append_fzf("GrantRead\n")
         fzf.append_fzf("GrantReadACP\n")
         fzf.append_fzf("GrantWriteACP\n")
-        results = fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True)
+        results: List[str] = list(
+            fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True)
+        )
         if not results:
             print(
                 "No permission is set, default ACL settings of the bucket would be used"
@@ -303,14 +306,19 @@ class S3Args:
                         "FULL_CONTROL"
                     ):
                         print(
-                            "Orignal: %s" % ",".join(original_acl.get("FULL_CONTROL"))
+                            "Orignal: %s"
+                            % ",".join(original_acl.get("FULL_CONTROL", []))
                         )
                     elif result == "GrantRead" and original_acl.get("READ"):
-                        print("Orignal: %s" % ",".join(original_acl.get("READ")))
+                        print("Orignal: %s" % ",".join(original_acl.get("READ", [])))
                     elif result == "GrantReadACP" and original_acl.get("READ_ACP"):
-                        print("Orignal: %s" % ",".join(original_acl.get("READ_ACP")))
+                        print(
+                            "Orignal: %s" % ",".join(original_acl.get("READ_ACP", []))
+                        )
                     elif result == "GrantWriteACP" and original_acl.get("WRITE_ACP"):
-                        print("Orignal: %s" % ",".join(original_acl.get("WRITE_ACP")))
+                        print(
+                            "Orignal: %s" % ",".join(original_acl.get("WRITE_ACP", []))
+                        )
                 accounts = input("Accounts: ")
                 print(80 * "-")
                 self._extra_args[result] = str(accounts)
