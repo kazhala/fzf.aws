@@ -6,7 +6,7 @@ import json
 from fzfaws.kms.kms import KMS
 from fzfaws.utils import get_confirmation, Pyfzf
 from fzfaws.s3 import S3
-from typing import Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 
 
 class S3Args:
@@ -415,16 +415,22 @@ class S3Args:
         if tags:
             self._extra_args["Tagging"] = tags
 
-    def check_tag_acl(self):
+    def check_tag_acl(self) -> Dict[str, Any]:
         """check if the only attributes to configure is ACL or Tags
 
-        Args:
-            None
-        Returns:
-            result: dict, containing two keys, Tags and Grants
-            Structure: {
-                'Tags': list, list of tags = {'Key': value, 'Value': value}
-                'Grants': dict, = {
+        This check is to avoid creating unnescessary version of the object
+        because only updating tag and acl doesn't require a new version
+        to be created
+
+        :return: returns Tags and Grants
+        :rtype: Dict[str, Any]
+
+        Example return:
+            {
+                "Tags": [
+                    {"Key": value, "Value": value}
+                ],
+                "Grants": {
                     'ACL': string,
                     'GrantFullControl': string,
                     'GrantRead': string,
@@ -433,7 +439,8 @@ class S3Args:
                 }
             }
         """
-        result = {}
+
+        result: Dict[str, Any] = {}
         if (
             not self._extra_args.get("StorageClass")
             and not self._extra_args.get("ServerSideEncryption")

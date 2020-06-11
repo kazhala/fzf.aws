@@ -372,3 +372,37 @@ class TestS3Args(unittest.TestCase):
         )
         self.assertEqual(self.s3_args._extra_args["Tagging"], "foo=boo")
         self.assertRegex(self.capturedOutput.getvalue(), r"Orignal: name=yes")
+
+    def test_check_tag_acl(self):
+        self.s3_args._extra_args["StorageClass"] = "None"
+        self.s3_args._extra_args["ServerSideEncryption"] = "None"
+        self.s3_args._extra_args["Metadata"] = "hello=world"
+        result = self.s3_args.check_tag_acl()
+        self.assertEqual(result, {})
+
+        self.s3_args._extra_args["StorageClass"] = ""
+        self.s3_args._extra_args["ServerSideEncryption"] = ""
+        self.s3_args._extra_args["Metadata"] = ""
+        self.s3_args._extra_args["Tagging"] = "hello=world&foo=boo"
+        self.s3_args._extra_args["ACL"] = "public-read"
+        self.s3_args._extra_args["GrantFullControl"] = "id=11111111"
+        self.s3_args._extra_args["GrantRead"] = "id=11111111"
+        self.s3_args._extra_args["GrantReadACP"] = "id=11111111"
+        self.s3_args._extra_args["GrantWriteACP"] = "id=11111111"
+        result = self.s3_args.check_tag_acl()
+        self.assertEqual(
+            result,
+            {
+                "Grants": {
+                    "ACL": "public-read",
+                    "GrantFullControl": "id=11111111",
+                    "GrantRead": "id=11111111",
+                    "GrantReadACP": "id=11111111",
+                    "GrantWriteACP": "id=11111111",
+                },
+                "Tags": [
+                    {"Key": "hello", "Value": "world"},
+                    {"Key": "foo", "Value": "boo"},
+                ],
+            },
+        )
