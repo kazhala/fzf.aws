@@ -10,6 +10,7 @@ from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.s3 import S3
 import boto3
 from botocore.stub import Stubber
+from fzfaws.kms import KMS
 
 
 class TestS3Args(unittest.TestCase):
@@ -306,3 +307,29 @@ class TestS3Args(unittest.TestCase):
         mocked_execute.return_value = ""
         self.s3_args._set_canned_ACL()
         self.assertEqual(self.s3_args._extra_args["ACL"], None)
+
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch.object(KMS, "set_keyids")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_encryption(self, mocked_append, mocked_execute, mocked_kms, mocked_client):
+        mocked_execute.return_value = "None"
+        self.s3_args.set_encryption(original="AES256")
+        self.assertEqual(self.s3_args._extra_args["ServerSideEncryption"], "None")
+        mocked_execute.assert_called_with(
+            empty_allow=True,
+            print_col=1,
+            header="Select a ecryption setting, esc to use the default encryption setting for the bucket\nOriginal: AES256",
+        )
+
+        # test kms
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("get_bucket_location", {"LocationConstraint": "EU"})
+        stubber.activate()
+        mocked_client.return_value = s3
+
+        mocked_execute.return_value = "aws:kms"
+        self.s3_args.set_encryption(original="AES256")
+        self.assertEqual(self.s3_args._extra_args["ServerSideEncryption"], "aws:kms")
+        self.assertEqual(self.s3_args._extra_args["SSEKMSKeyId"], "")

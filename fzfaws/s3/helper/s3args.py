@@ -345,12 +345,13 @@ class S3Args:
         if result:
             self._extra_args["ACL"] = result
 
-    def set_encryption(self, original=None):
+    def set_encryption(self, original: str = None) -> None:
         """set the encryption setting
 
-        Args:
-            original_type: string, previous value of the encryption
+        :param original: previous value of the encryption
+        :type original: str, optional
         """
+
         header = "Select a ecryption setting, esc to use the default encryption setting for the bucket"
         if original:
             header += "\nOriginal: %s" % original
@@ -358,7 +359,7 @@ class S3Args:
         fzf.append_fzf("None (Use bucket default setting)\n")
         fzf.append_fzf("AES256\n")
         fzf.append_fzf("aws:kms\n")
-        result = fzf.execute_fzf(empty_allow=True, print_col=1, header=header)
+        result: str = str(fzf.execute_fzf(empty_allow=True, print_col=1, header=header))
         if result:
             self._extra_args["ServerSideEncryption"] = result
         if result == "aws:kms":
