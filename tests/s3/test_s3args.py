@@ -218,10 +218,14 @@ class TestS3Args(unittest.TestCase):
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
         )
 
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
     @patch.object(BaseSession, "client", new_callable=PropertyMock)
     @patch("fzfaws.s3.helper.s3args.get_confirmation")
     @patch("builtins.input")
-    def test_set_explicit_ACL(self, mocked_input, mocked_confirm, mocked_client):
+    def test_set_explicit_ACL(
+        self, mocked_input, mocked_confirm, mocked_client, mocked_append, mocked_execute
+    ):
         data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../data/s3_acl.json"
         )
@@ -237,11 +241,55 @@ class TestS3Args(unittest.TestCase):
         stubber.activate()
         mocked_confirm.return_value = False
         mocked_client.return_value = s3
-        self.s3_args._set_explicit_ACL(original=True)
+        self.s3_args._set_explicit_ACL(
+            original=True, version=[{"Key": "hello", "VersionId": "11111111"}]
+        )
         self.assertRegex(
             self.capturedOutput.getvalue(),
             r".*uri=http://acs.amazonaws.com/groups/global/AllUsers",
         )
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*\"FULL_CONTROL\": \[\]",
+        )
+
+        # test no original value, set permissions
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("get_object_acl", response)
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_execute.return_value = ["GrantFullControl", "GrantRead"]
+        mocked_input.return_value = "id=11111111,emailAddress=hello@gmail.com"
+        self.s3_args._set_explicit_ACL()
+        self.assertEqual(
+            self.s3_args._extra_args["GrantFullControl"],
+            "id=11111111,emailAddress=hello@gmail.com",
+        )
+        self.assertEqual(
+            self.s3_args._extra_args["GrantRead"],
+            "id=11111111,emailAddress=hello@gmail.com",
+        )
+        self.assertNotRegex(self.capturedOutput.getvalue(), r"Orignal")
+
+        # test original value, set permissions
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response("get_object_acl", response)
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_execute.return_value = ["GrantRead"]
+        mocked_input.return_value = "id=2222222,emailAddress=hello@gmail.com"
+        mocked_confirm.return_value = True
+        self.s3_args._set_explicit_ACL(original=True)
+        self.assertEqual(
+            self.s3_args._extra_args["GrantRead"],
+            "id=2222222,emailAddress=hello@gmail.com",
+        )
+        self.assertRegex(
+            self.capturedOutput.getvalue(),
+            r"Orignal: uri=http://acs.amazonaws.com/groups/global/AllUsers",
         )
