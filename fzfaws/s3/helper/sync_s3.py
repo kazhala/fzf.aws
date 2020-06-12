@@ -32,6 +32,7 @@ def sync_s3(
     :type from_path: str
     :param to_path: destination file location
     :type to_path: str
+    :raises InvalidS3PathPattern: when the from_path and to_path is empty
     """
 
     if not from_path or not to_path:
