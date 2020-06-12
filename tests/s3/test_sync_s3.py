@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 from fzfaws.s3.helper.sync_s3 import sync_s3
 import subprocess
+from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 
 class TestS3Sync(unittest.TestCase):
@@ -24,6 +25,8 @@ class TestS3Sync(unittest.TestCase):
         mocked_popen.assert_called_with(
             ["aws", "s3", "sync", "hello/world", "s3://hello",]
         )
+
+        self.assertRaises(InvalidS3PathPattern, sync_s3)
 
     @patch("fzfaws.s3.helper.sync_s3.get_confirmation")
     @patch.object(subprocess, "Popen")
