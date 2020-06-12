@@ -61,9 +61,9 @@ class S3Progress(object):
         else:
             self._size = float(os.path.getsize(filename))
 
-    def __call__(self, bytes_amount: float):
-        # To simplify we'll assume this is hooked up
-        # to a single filename.
+    def __call__(self, bytes_amount: float) -> None:
+        # To simplify we'll assume this is hooked up to a single filename.
+        # lock the thread to a single file
         with self._lock:
             self._seen_so_far += bytes_amount
             if self._size == 0:
