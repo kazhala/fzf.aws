@@ -98,7 +98,7 @@ class S3(BaseSession):
                     if len(parents) > 0:
                         fzf.append_fzf("..\n")
                     with Spinner.spin(message="Fetching s3 objects ..."):
-                        preview = ""  # type: str
+                        preview: str = ""
                         for result in paginator.paginate(
                             Bucket=self.bucket_name,
                             Prefix=self.path_list[0],

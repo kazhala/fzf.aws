@@ -1,0 +1,38 @@
+[
+  {
+    "ResponseMetadata": {
+      "RequestId": "BE53348612ED0E03",
+      "HostId": "1BFyYx8bsOV8uDcaLphflP2CcNZ2d6Yj1qV0gCH/4dVOVJDewST/Ns6X751FYEitWZjw9bpeBEI=",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amz-id-2": "1BFyYx8bsOV8uDcaLphflP2CcNZ2d6Yj1qV0gCH/4dVOVJDewST/Ns6X751FYEitWZjw9bpeBEI=",
+        "x-amz-request-id": "BE53348612ED0E03",
+        "date": "Fri, 12 Jun 2020 02:32:17 GMT",
+        "x-amz-bucket-region": "ap-southeast-2",
+        "content-type": "application/xml",
+        "transfer-encoding": "chunked",
+        "server": "AmazonS3"
+      },
+      "RetryAttempts": 0
+    },
+    "IsTruncated": false,
+    "Marker": "",
+    "Contents": [
+      {
+        "Key": "wtf/hello/hello.txt",
+        "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+        "Size": 0,
+        "StorageClass": "STANDARD",
+        "Owner": {
+          "DisplayName": "kevin7441",
+          "ID": "c1f419c6ddb66e8a49e211049b93c00fca77e1640db3c99c2e1d91cb0f9fdfa6"
+        }
+      }
+    ],
+    "Name": "kazhala-version-testing",
+    "Prefix": "wtf/hello/",
+    "Delimiter": "/",
+    "MaxKeys": 1000,
+    "EncodingType": "url"
+  }
+]
