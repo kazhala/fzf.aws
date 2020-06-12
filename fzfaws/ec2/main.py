@@ -13,23 +13,15 @@ from fzfaws.ec2.terminate_instance import terminate_instance
 from fzfaws.ec2.ls_instance import ls_instance
 
 
-def ec2(raw_args):
+def ec2(raw_args: list) -> None:
     """the main function for ec2 operations
 
-    Args:
-        raw_args: raw args from the command line starting from the second position
-    Returns:
-        None
-    Raises:
-        subprocess.CalledProcessError: When user exit the fzf subshell by ctrl-c
-        ClientError: aws boto3 exceptions
-        KeyboardInterrupt: ctrl-c during python operations
-        NoNameEntered: when the required name entry is empty
-        NoSelectionMade: when required fzf selection is not made
+    :param raw_args: raw args from the command line starting from the second position
+    :type raw_args: list
     """
     parser = argparse.ArgumentParser(
         description="Perform actions on the selected instance",
-        usage="faws ec2 [-h] {ssh,stop,terminate,ls,reboot} ...",
+        usage="fzfaws ec2 [-h] {ssh,stop,terminate,ls,reboot} ...",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 

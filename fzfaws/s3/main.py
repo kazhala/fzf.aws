@@ -14,8 +14,7 @@ from fzfaws.s3.object_s3 import object_s3
 from fzfaws.s3.ls_s3 import ls_s3
 
 
-def s3(raw_args):
-    # type: (list) -> None
+def s3(raw_args: list) -> None:
     """parse arguments and direct traffic to handler, internal use only
 
     :param raw_args: list of args to be parsed
@@ -24,7 +23,7 @@ def s3(raw_args):
 
     parser = argparse.ArgumentParser(
         description="perform CRUD operations with aws s3 bucket",
-        usage="faws s3 [-h] {upload,download,delete,bucket,presign,object,ls} ...",
+        usage="fzfaws s3 [-h] {upload,download,delete,bucket,presign,object,ls} ...",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
     upload_cmd = subparsers.add_parser(
