@@ -2,52 +2,60 @@
 
 Contains the main function to handle the download operation from s3
 """
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 import os
-from s3transfer import S3Transfer
+from typing import Dict, List, Optional, Union
+from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.sync_s3 import sync_s3
+from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.s3.s3 import S3
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.utils.util import get_confirmation
-from fzfaws.s3.helper.sync_s3 import sync_s3
-from fzfaws.s3.helper.s3progress import S3Progress
-from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 
 
 def download_s3(
-    profile=False,
-    bucket=None,
-    local_path=None,
-    recursive=False,
-    root=False,
-    sync=False,
-    exclude=[],
-    include=[],
-    hidden=False,
-    version=False,
-):
+    profile: Union[str, bool] = False,
+    bucket: str = None,
+    local_path: str = None,
+    recursive: bool = False,
+    search_from_root: bool = False,
+    sync: bool = False,
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
+    hidden: bool = False,
+    version: bool = False,
+) -> None:
     """download files/'directory' from s3
 
-    handles sync, download file and download recursive
-    from a s3 bucket
+    handles sync, download file and download recursive from a s3 bucket
     glob pattern are first handled through exclude list and then include list
 
-    Args:
-        profile: bool or string, use different profile for operation
-        bucket: string, path of the s3 bucket if specified
-        local_path: string, local path if specified
-        recursive: bool, opeate recursivly
-        root: bool, search file from root directory
-        sync: bool, use sync operation
-        exclude: list, list of pattern to exclude file
-        include: list, list of pattern to include file after exclude
-        hidden: bool, include hidden directory during search
-        version: bool, download specific version of file
-    Returns:
-        None
-    Raises:
-        InvalidS3PathPattern: when the specified s3 path is invalid pattern
-        NoSelectionMade: when the required fzf selection is not made
-        SubprocessError: when the local file search got zero result from fzf(no selection in fzf)
+    :param profile: profile to use for this operation
+    :type profile: bool, optional
+    :param bucket: specify bucket to download
+    :type bucket: str, optional
+    :param local_paths: local file path for download
+    :type local_paths: str, optional
+    :param recursive: download s3 directory
+    :type recursive: bool, optional
+    :param search_root: search from root
+    :type search_root: bool, optional
+    :param sync: use aws cli s3 sync
+    :type sync: bool, optional
+    :param exclude: glob patterns to exclude
+    :type exclude: List[str], optional
+    :param include: glob patterns to include
+    :type include: List[str], optional
+    :param hidden: include hidden files during search
+    :type hidden: bool, optional
+    :param version: download version object
+    :type version: bool, optional
     """
+
+    if not exclude:
+        exclude = []
+    if not include:
+        include = []
 
     s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
@@ -60,14 +68,16 @@ def download_s3(
         if not s3.path_list[0]:
             s3.set_s3_object(multi_select=True, version=version)
 
-    obj_versions = []  # type: list
+    obj_versions: List[Dict[str, str]] = []
     if version:
         obj_versions = s3.get_object_version()
 
-    fzf = Pyfzf()
     if not local_path:
+        fzf = Pyfzf()
         local_path = str(
-            fzf.get_local_file(root, directory=True, hidden=hidden, empty_allow=True)
+            fzf.get_local_file(
+                search_from_root, directory=True, hidden=hidden, empty_allow=True
+            )
         )
 
     if sync:
@@ -78,78 +88,14 @@ def download_s3(
             to_path=local_path,
         )
     elif recursive:
-        download_list = walk_s3_folder(
-            s3.client,
-            s3.bucket_name,
-            s3.path_list[0],
-            s3.path_list[0],
-            [],
-            exclude,
-            include,
-            "download",
-            local_path,
-        )
-        if get_confirmation("Confirm?"):
-            for s3_key, dest_pathname in download_list:
-                if not os.path.exists(os.path.dirname(dest_pathname)):
-                    os.makedirs(os.path.dirname(dest_pathname))
-                print(
-                    "download: s3://%s/%s to %s"
-                    % (s3.bucket_name, s3_key, dest_pathname)
-                )
-                transfer = S3Transfer(s3.client)
-                transfer.download_file(
-                    s3.bucket_name,
-                    s3_key,
-                    dest_pathname,
-                    callback=S3Progress(s3_key, s3.bucket_name, s3.client),
-                )
+        download_recusive(s3, exclude, include, local_path)
 
     elif version:
-        for obj_version in obj_versions:
-            destination_path = os.path.join(
-                local_path, obj_version.get("Key").split("/")[-1]
-            )
-            print(
-                "(dryrun) download: s3://%s/%s to %s with version %s"
-                % (
-                    s3.bucket_name,
-                    obj_version.get("Key"),
-                    destination_path,
-                    obj_version.get("VersionId"),
-                )
-            )
-        if get_confirmation("Confirm"):
-            for obj_version in obj_versions:
-                destination_path = os.path.join(
-                    local_path, obj_version.get("Key").split("/")[-1]
-                )
-                print(
-                    "download: s3://%s/%s to %s with version %s"
-                    % (
-                        s3.bucket_name,
-                        obj_version.get("Key"),
-                        destination_path,
-                        obj_version.get("VersionId"),
-                    )
-                )
-                transfer = S3Transfer(s3.client)
-                transfer.download_file(
-                    s3.bucket_name,
-                    obj_version.get("Key"),
-                    destination_path,
-                    extra_args={"VersionId": obj_version.get("VersionId")},
-                    callback=S3Progress(
-                        obj_version.get("Key"),
-                        s3.bucket_name,
-                        s3.client,
-                        obj_version.get("VersionId"),
-                    ),
-                )
+        download_version(s3, obj_versions, local_path)
 
     else:
         for s3_path in s3.path_list:
-            destination_path = os.path.join(local_path, s3_path.split("/")[-1])
+            destination_path = os.path.join(local_path, os.path.basename(s3_path))
             # due the fact without recursive flag s3.path_list[0] is set by s3.set_s3_object
             # the bucket_path is the valid s3 key so we don't need to call s3.get_s3_destination_key
             print(
@@ -158,15 +104,111 @@ def download_s3(
             )
         if get_confirmation("Confirm?"):
             for s3_path in s3.path_list:
-                destination_path = os.path.join(local_path, s3_path.split("/")[-1])
+                destination_path = os.path.join(local_path, os.path.basename(s3_path))
                 print(
                     "download: s3://%s/%s to %s"
                     % (s3.bucket_name, s3_path, destination_path)
                 )
-                transfer = S3Transfer(s3.client)
-                transfer.download_file(
+                transfer = S3TransferWrapper(s3.client)
+                transfer.s3transfer.download_file(
                     s3.bucket_name,
                     s3_path,
                     destination_path,
                     callback=S3Progress(s3_path, s3.bucket_name, s3.client),
                 )
+
+
+def download_recusive(
+    s3: S3, exclude: List[str], include: List[str], local_path: str
+) -> None:
+    """download s3 recursive
+
+    :param s3: S3 instance
+    :type s3: S3
+    :param exclude: glob pattern to exclude
+    :type exclude: List[str]
+    :param include: glob pattern to include
+    :type include: List[str]
+    :param local_path: local directory to download
+    :type local_path: str
+    """
+
+    download_list = walk_s3_folder(
+        s3.client,
+        s3.bucket_name,
+        s3.path_list[0],
+        s3.path_list[0],
+        [],
+        exclude,
+        include,
+        "download",
+        local_path,
+    )
+    if get_confirmation("Confirm?"):
+        for s3_key, dest_pathname in download_list:
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+            print(
+                "download: s3://%s/%s to %s" % (s3.bucket_name, s3_key, dest_pathname)
+            )
+            transfer = S3TransferWrapper(s3.client)
+            transfer.s3transfer.download_file(
+                s3.bucket_name,
+                s3_key,
+                dest_pathname,
+                callback=S3Progress(s3_key, s3.bucket_name, s3.client),
+            )
+
+
+def download_version(
+    s3: S3, obj_versions: List[Dict[str, str]], local_path: str
+) -> None:
+    """download versions of a object
+
+    :param s3: instance of S3
+    :type s3: S3
+    :param obj_versions: list of object and their versions to download
+    :type obj_versions: List[Dict[str, str]]
+    :param local_path: local directory to download
+    :type local_path: str
+    """
+    for obj_version in obj_versions:
+        destination_path = os.path.join(
+            local_path, os.path.basename(obj_version.get("Key", ""))
+        )
+        print(
+            "(dryrun) download: s3://%s/%s to %s with version %s"
+            % (
+                s3.bucket_name,
+                obj_version.get("Key"),
+                destination_path,
+                obj_version.get("VersionId"),
+            )
+        )
+    if get_confirmation("Confirm"):
+        for obj_version in obj_versions:
+            destination_path = os.path.join(
+                local_path, os.path.basename(obj_version.get("Key", ""))
+            )
+            print(
+                "download: s3://%s/%s to %s with version %s"
+                % (
+                    s3.bucket_name,
+                    obj_version.get("Key"),
+                    destination_path,
+                    obj_version.get("VersionId"),
+                )
+            )
+            transfer = S3TransferWrapper(s3.client)
+            transfer.s3transfer.download_file(
+                s3.bucket_name,
+                obj_version.get("Key"),
+                destination_path,
+                extra_args={"VersionId": obj_version.get("VersionId")},
+                callback=S3Progress(
+                    obj_version.get("Key", ""),
+                    s3.bucket_name,
+                    s3.client,
+                    obj_version.get("VersionId", ""),
+                ),
+            )
