@@ -64,8 +64,8 @@ def upload_s3(
     if not s3.path_list[0]:
         s3.set_s3_path()
 
-    fzf = Pyfzf()
     if not local_paths:
+        fzf = Pyfzf()
         recursive = True if recursive or sync else False
         # don't allow multi_select for recursive operation
         multi_select = True if not recursive else False

@@ -2,10 +2,11 @@ import io
 import sys
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 from fzfaws.s3.upload_s3 import upload_s3
 from fzfaws.s3 import S3
 from fzfaws.utils import Pyfzf
+from fzfaws.s3.helper.s3args import S3Args
 
 
 class TestS3Upload(unittest.TestCase):
@@ -50,3 +51,45 @@ class TestS3Upload(unittest.TestCase):
         )
         mocked_bucket.assert_called_once()
         mocked_path.assert_called_once()
+
+    @patch.object(S3Args, "set_extra_args")
+    @patch("fzfaws.s3.upload_s3.get_confirmation")
+    @patch("fzfaws.s3.upload_s3.os.walk")
+    @patch.object(Pyfzf, "get_local_file")
+    def test_recusive_upload(
+        self, mocked_local_file, mocked_walk, mocked_confirm, mocked_args
+    ):
+        curr_dirname = os.path.dirname(os.path.abspath(__file__))
+        mocked_local_file.return_value = curr_dirname
+        mocked_walk.return_value = [(curr_dirname, "/tmp", [__file__])]
+        mocked_confirm.return_value = False
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        upload_s3(recursive=True, bucket="kazhala-file-lol/hello/")
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) upload: test_upload.py to s3://kazhala-file-lol/hello/test_upload.py\n",
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        upload_s3(recursive=True, bucket="kazhala-file-lol/hello/", exclude=["*"])
+        self.assertEqual(
+            self.capturedOutput.getvalue(), "",
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        upload_s3(
+            recursive=True,
+            bucket="kazhala-file-lol/hello/",
+            exclude=["*"],
+            include=["test_upload.py"],
+            extra_config=True,
+        )
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) upload: test_upload.py to s3://kazhala-file-lol/hello/test_upload.py\n",
+        )
+        mocked_args.assert_called_once()
