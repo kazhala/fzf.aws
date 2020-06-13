@@ -93,3 +93,37 @@ class TestS3Upload(unittest.TestCase):
             "(dryrun) upload: test_upload.py to s3://kazhala-file-lol/hello/test_upload.py\n",
         )
         mocked_args.assert_called_once()
+
+    @patch("fzfaws.s3.upload_s3.recursive_upload")
+    @patch("fzfaws.s3.upload_s3.get_confirmation")
+    @patch.object(Pyfzf, "get_local_file")
+    def test_single_upload(self, mocked_local_file, mocked_confirm, mocked_recursive):
+        mocked_local_file.return_value = [os.path.basename(__file__)]
+        mocked_confirm.return_value = False
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        upload_s3(bucket="kazhala-file-lol/hello/")
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) upload: test_upload.py to s3://kazhala-file-lol/hello/test_upload.py\n",
+        )
+        mocked_recursive.assert_not_called()
+        mocked_local_file.assert_called_with(
+            search_from_root=False,
+            directory=False,
+            hidden=False,
+            empty_allow=False,
+            multi_select=True,
+        )
+
+        mocked_local_file.reset_mock()
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        upload_s3(bucket="kazhala-file-lol/hello/", local_paths=["hello.txt"])
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) upload: hello.txt to s3://kazhala-file-lol/hello/hello.txt\n",
+        )
+        mocked_recursive.assert_not_called()
+        mocked_local_file.assert_not_called()
