@@ -73,7 +73,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(result, ["start", "-w", "-e", "-m"])
 
         result = get_default_args("s3", ["upload", "-b", "-x"])
-        self.assertEqual(result, ["upload", "-H", "-E", "-b", "-x"])
+        self.assertEqual(result, ["upload", "-H", "-b", "-x"])
 
         result = get_default_args("s3", ["presign"])
         self.assertEqual(result, ["presign", "-e", "3600"])

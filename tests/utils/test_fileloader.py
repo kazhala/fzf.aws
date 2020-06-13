@@ -105,10 +105,8 @@ class TestFileLoader(unittest.TestCase):
                     "multipart_threshold": 8,
                     "multipart_chunksize": 8,
                     "max_concurrency": 10,
-                    "io_chunksize": 256,
                     "max_io_queue": 100,
-                    "num_download_attempts": 5,
-                    "use_threads": True,
+                    "num_download_attempts": 6,
                 }
             ),
         )
