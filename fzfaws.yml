@@ -59,22 +59,19 @@ services:
     # This is the s3 transfer config that determines
     # how files would be uploaded to s3
     # more information https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html#TransferConfig
+    # below is the currently only supported config
+    # the threshhold for multi part upload, in MB
     transfer_config:
-      # the threshhold for multi part upload, in MB
       multipart_threshold: 8
       multipart_chunksize: 8
       max_concurrency: 10
-
-      # You'd probably don't want to mess with anything beyond here.
-      io_chunksize: 256
       max_io_queue: 100
-      num_download_attempts: 5
-      use_threads: true
+      num_download_attempts: 6
 
     profile: default
 
     default_args:
-      upload: -H -E
+      upload: -H
       download: -H
       presign: -e 3600
 

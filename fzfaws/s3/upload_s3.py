@@ -2,6 +2,7 @@
 
 upload local files/directories to s3
 """
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 import os
 from fzfaws.s3 import S3
 from fzfaws.utils import get_confirmation, Pyfzf
@@ -10,7 +11,6 @@ from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 from typing import List, Optional, Union, Dict
-from s3transfer import S3Transfer
 
 
 def upload_s3(
@@ -118,8 +118,8 @@ def upload_s3(
                     "upload: %s to s3://%s/%s"
                     % (filepath, s3.bucket_name, destination_key)
                 )
-                transfer = S3Transfer(s3.client)
-                transfer.upload_file(
+                transfer = S3TransferWrapper(s3.client)
+                transfer.s3transfer.upload_file(
                     filepath,
                     s3.bucket_name,
                     destination_key,
@@ -175,8 +175,8 @@ def recursive_upload(
                 "upload: %s to s3://%s/%s"
                 % (item["relative"], item["bucket"], item["key"])
             )
-            transfer = S3Transfer(s3.client)
-            transfer.upload_file(
+            transfer = S3TransferWrapper(s3.client)
+            transfer.s3transfer.upload_file(
                 item["local_path"],
                 item["bucket"],
                 item["key"],
