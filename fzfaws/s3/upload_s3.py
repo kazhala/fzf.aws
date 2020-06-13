@@ -10,6 +10,7 @@ from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 from typing import List, Optional, Union, Dict
+from s3transfer import S3Transfer
 
 
 def upload_s3(
@@ -117,13 +118,13 @@ def upload_s3(
                     "upload: %s to s3://%s/%s"
                     % (filepath, s3.bucket_name, destination_key)
                 )
-
-                s3.client.upload_file(
+                transfer = S3Transfer(s3.client)
+                transfer.upload_file(
                     filepath,
                     s3.bucket_name,
                     destination_key,
-                    Callback=S3Progress(filepath),
-                    ExtraArgs=extra_args.extra_args,
+                    callback=S3Progress(filepath),
+                    extra_args=extra_args.extra_args,
                 )
 
 
@@ -174,10 +175,11 @@ def recursive_upload(
                 "upload: %s to s3://%s/%s"
                 % (item["relative"], item["bucket"], item["key"])
             )
-            s3.client.upload_file(
+            transfer = S3Transfer(s3.client)
+            transfer.upload_file(
                 item["local_path"],
                 item["bucket"],
                 item["key"],
-                Callback=S3Progress(item["local_path"]),
-                ExtraArgs=extra_args.extra_args,
+                callback=S3Progress(item["local_path"]),
+                extra_args=extra_args.extra_args,
             )

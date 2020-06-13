@@ -2,7 +2,7 @@ import io
 import sys
 import os
 import unittest
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 from fzfaws.s3.upload_s3 import upload_s3
 from fzfaws.s3 import S3
 from fzfaws.utils import Pyfzf
