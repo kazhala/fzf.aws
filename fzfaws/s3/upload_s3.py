@@ -3,14 +3,13 @@
 upload local files/directories to s3
 """
 import os
-from typing import List, Optional, Union
-from fzfaws.s3.s3 import S3
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.util import get_confirmation
+from fzfaws.s3 import S3
+from fzfaws.utils import get_confirmation, Pyfzf
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
+from typing import List, Optional, Union, Dict
 
 
 def upload_s3(
@@ -79,6 +78,8 @@ def upload_s3(
         )
 
     # get the first item from the array since recursive operation doesn't support multi_select
+    # local_path is used for sync and recursive operation
+    # local_paths is used for single file operation
     if isinstance(local_paths, list):
         local_path = str(local_paths[0])
     else:
@@ -98,42 +99,7 @@ def upload_s3(
         )
 
     elif recursive:
-        upload_list = []
-        for root, dirs, files in os.walk(local_path):
-            for filename in files:
-                full_path = os.path.join(root, filename)
-                relative_path = os.path.relpath(full_path, local_path)
-
-                if not exclude_file(exclude, include, relative_path):
-                    destination_key = s3.get_s3_destination_key(
-                        relative_path, recursive=True
-                    )
-                    print(
-                        "(dryrun) upload: %s to s3://%s/%s"
-                        % (relative_path, s3.bucket_name, destination_key)
-                    )
-                    upload_list.append(
-                        {
-                            "local_path": full_path,
-                            "bucket": s3.bucket_name,
-                            "key": destination_key,
-                            "relative": relative_path,
-                        }
-                    )
-
-        if get_confirmation("Confirm?"):
-            for item in upload_list:
-                print(
-                    "upload: %s to s3://%s/%s"
-                    % (item["relative"], item["bucket"], item["key"])
-                )
-                s3.client.upload_file(
-                    item["local_path"],
-                    item["bucket"],
-                    item["key"],
-                    Callback=S3Progress(item["local_path"]),
-                    ExtraArgs=extra_args.extra_args,
-                )
+        recursive_upload(s3, local_path, exclude, include, extra_args)
 
     else:
         for filepath in local_paths:
@@ -159,3 +125,59 @@ def upload_s3(
                     Callback=S3Progress(filepath),
                     ExtraArgs=extra_args.extra_args,
                 )
+
+
+def recursive_upload(
+    s3: S3, local_path: str, exclude: List[str], include: List[str], extra_args: S3Args
+) -> None:
+    """recursive upload local directory to s3
+
+    perform a os.walk to upload everyfile under a directory
+
+    :param s3: S3 instance
+    :type s3: S3
+    :param local_path: local directory
+    :type local_path: str
+    :param exclude: glob pattern to exclude
+    :type exclude: List[str]
+    :param include: glob pattern to include
+    :type include: List[str]
+    :param extra_args: S3Args instance to set extra argument
+    :type extra_args: S3Args
+    """
+    upload_list: List[Dict[str, str]] = []
+    for root, _, files in os.walk(local_path):
+        for filename in files:
+            full_path = os.path.join(root, filename)
+            relative_path = os.path.relpath(full_path, local_path)
+
+            if not exclude_file(exclude, include, relative_path):
+                destination_key = s3.get_s3_destination_key(
+                    relative_path, recursive=True
+                )
+                print(
+                    "(dryrun) upload: %s to s3://%s/%s"
+                    % (relative_path, s3.bucket_name, destination_key)
+                )
+                upload_list.append(
+                    {
+                        "local_path": full_path,
+                        "bucket": s3.bucket_name,
+                        "key": destination_key,
+                        "relative": relative_path,
+                    }
+                )
+
+    if get_confirmation("Confirm?"):
+        for item in upload_list:
+            print(
+                "upload: %s to s3://%s/%s"
+                % (item["relative"], item["bucket"], item["key"])
+            )
+            s3.client.upload_file(
+                item["local_path"],
+                item["bucket"],
+                item["key"],
+                Callback=S3Progress(item["local_path"]),
+                ExtraArgs=extra_args.extra_args,
+            )
