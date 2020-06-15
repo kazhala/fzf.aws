@@ -111,7 +111,7 @@ class TestFileLoader(unittest.TestCase):
             ),
         )
         self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "default")
-        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-H -E")
+        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-H")
         self.assertEqual(os.environ["FZFAWS_S3_DOWNLOAD"], "-H")
         self.assertEqual(os.environ["FZFAWS_S3_PRESIGN"], "-e 3600")
         self.assertEqual(os.getenv("FZFAWS_S3_LS", ""), "")
