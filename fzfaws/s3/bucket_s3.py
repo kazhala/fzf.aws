@@ -2,62 +2,70 @@
 
 contains the main function for moving object between buckets
 """
-import sys
 import re
 from botocore.exceptions import ClientError
 from fzfaws.s3.s3 import S3
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
-from fzfaws.utils.util import get_confirmation
+from fzfaws.utils import get_confirmation
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.s3.helper.get_copy_args import get_copy_args
+from typing import Dict, Optional, List, Tuple
 
 
 def bucket_s3(
-    profile=False,
-    from_bucket=None,
-    to_bucket=None,
-    recursive=False,
-    sync=False,
-    exclude=[],
-    include=[],
-    version=False,
-    preserve=False,
-):
+    profile: bool = False,
+    from_bucket: str = None,
+    to_bucket: str = None,
+    recursive: bool = False,
+    sync: bool = False,
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
+    version: bool = False,
+    preserve: bool = False,
+) -> None:
     """transfer file between buckts
 
     handle transfer file between buckets or even within the same bucket
     Handle glob pattern through exclude list first than it will process the include to explicit include files
 
-    Args:
-        profile: string or bool, use a different profile for operation
-        from_bucket: string, target bucket path
-        to_bucket: string, destination bucket path
-        recursive: bool, whether to copy entire folder or just file
-        sync: bool, use sync operation through subprocess
-        exclude: list, list of glob pattern to exclude
-        include: list, list of glob pattern to include afer exclude
-        version: bool, transfer file with specific version
-        preserve: bool, preserve previous object details like storage class encryption etc
-    Return:
-        None
-    Raises:
-        InvalidS3PathPattern: when the specified s3 path is invalid pattern
-        NoSelectionMade: when the required fzf selection did not receive any result
+    :param profile: use a different profile for this operation
+    :type profile: str, optional
+    :param from_bucket: source bucket
+    :type from_bucket: str, optional
+    :param to_bucket: destination bucket
+    :type to_bucket: str, optional
+    :param recursive: recursive copy a folder
+    :type recursive: bool, optional
+    :param sync: sync s3 buckets
+    :type sync: bool, optional
+    :param exclude: glob patterns to exclude
+    :type exclude: List[str], optional
+    :param include: glob patterns to include
+    :type include: List[str], optional
+    :param version: move object verions
+    :type version: bool, optional
+    :param perserve: save all object's config instead of using the new bucket's settings
+    :type perserve: bool, optional
     """
+
+    if exclude is None:
+        exclude = []
+    if include is None:
+        include = []
 
     s3 = S3(profile)
 
     # initialise variables to avoid directly using s3 instance since processing 2 buckets
-    target_bucket = None
-    target_path = ""
-    target_path_list = []
-    dest_bucket = None
+    target_bucket: str = ""
+    target_path: str = ""
+    target_path_list: List[str] = []
+    dest_bucket: str = ""
     dest_path = ""
-    obj_versions = []  # type: list
+    obj_versions: List[Dict[str, str]] = []
 
-    search_folder = True if recursive or sync else False
+    search_folder: bool = True if recursive or sync else False
 
     if from_bucket:
         target_bucket, target_path, target_path_list = process_path_param(
@@ -65,24 +73,9 @@ def bucket_s3(
         )
         if version:
             obj_versions = s3.get_object_version()
-        # clean up the s3 attributes for next operation
-        s3.bucket_name = ""
-        s3.path_list[0] = ""
-        if to_bucket:
-            dest_bucket, dest_path, dest_path_list = process_path_param(
-                to_bucket, s3, True
-            )
-        else:
-            s3.set_s3_bucket(
-                header="Set the destination bucket where the file should be transfered"
-            )
-            s3.set_s3_path()
-            dest_bucket = s3.bucket_name
-            dest_path = s3.path_list[0]
-
     else:
         s3.set_s3_bucket(
-            header="Set the target bucket which contains the file to transfer"
+            header="Set the source bucket which contains the file to transfer"
         )
         target_bucket = s3.bucket_name
         if search_folder:
@@ -91,13 +84,13 @@ def bucket_s3(
         else:
             s3.set_s3_object(multi_select=True, version=version)
             target_path_list = s3.path_list[:]
+    # clean up the s3 attributes for next operation
+    s3.bucket_name = ""
+    s3.path_list[0] = ""
 
-        if version:
-            obj_versions = s3.get_object_version()
-
-        # clean up the s3 attributes for next operation
-        s3.bucket_name = ""
-        s3.path_list[0] = ""
+    if to_bucket:
+        dest_bucket, dest_path, _ = process_path_param(to_bucket, s3, True)
+    else:
         s3.set_s3_bucket(
             header="Set the destination bucket where the file should be transfered"
         )
@@ -113,94 +106,27 @@ def bucket_s3(
             "s3://%s/%s" % (dest_bucket, dest_path),
         )
     elif recursive:
-        file_list = walk_s3_folder(
-            s3.client,
+        recursive_copy(
+            s3,
             target_bucket,
             target_path,
-            target_path,
-            [],
+            dest_bucket,
+            dest_path,
             exclude,
             include,
-            "bucket",
-            dest_path,
-            dest_bucket,
+            preserve,
         )
-        if get_confirmation("Confirm?"):
-            for s3_key, dest_pathname in file_list:
-                print(
-                    "copy: s3://%s/%s to s3://%s/%s"
-                    % (target_bucket, s3_key, dest_bucket, dest_pathname)
-                )
-                copy_source = {"Bucket": target_bucket, "Key": s3_key}
-                if not preserve:
-                    s3.client.copy(
-                        copy_source,
-                        dest_bucket,
-                        dest_pathname,
-                        Callback=S3Progress(s3_key, target_bucket, s3.client),
-                    )
-                else:
-                    s3.bucket_name = target_bucket
-                    copy_and_preserve(
-                        s3, target_bucket, s3_key, dest_bucket, dest_pathname
-                    )
 
     elif version:
-        # set s3 attributes for getting destination key
-        s3.bucket_name = dest_bucket
-        s3.path_list[0] = dest_path
-        for obj_version in obj_versions:
-            s3_key = s3.get_s3_destination_key(obj_version.get("Key"))
-            print(
-                "(dryrun) copy: s3://%s/%s to s3://%s/%s with version %s"
-                % (
-                    target_bucket,
-                    obj_version.get("Key"),
-                    dest_bucket,
-                    s3_key,
-                    obj_version.get("VersionId"),
-                )
-            )
-        if get_confirmation("Confirm?"):
-            for obj_version in obj_versions:
-                s3_key = s3.get_s3_destination_key(obj_version.get("Key"))
-                print(
-                    "copy: s3://%s/%s to s3://%s/%s with version %s"
-                    % (
-                        target_bucket,
-                        obj_version.get("Key"),
-                        dest_bucket,
-                        s3_key,
-                        obj_version.get("VersionId"),
-                    )
-                )
-                copy_source = {
-                    "Bucket": target_bucket,
-                    "Key": obj_version.get("Key"),
-                    "VersionId": obj_version.get("VersionId"),
-                }
-                if not preserve:
-                    s3.client.copy(
-                        copy_source,
-                        dest_bucket,
-                        s3_key,
-                        Callback=S3Progress(
-                            obj_version.get("Key"),
-                            target_bucket,
-                            s3.client,
-                            version_id=obj_version.get("VersionId"),
-                        ),
-                    )
-                else:
-                    s3.bucket_name = target_bucket
-                    copy_and_preserve(
-                        s3,
-                        target_bucket,
-                        obj_version.get("Key"),
-                        dest_bucket,
-                        s3_key,
-                        version=obj_version.get("VersionId"),
-                    )
+        copy_version(
+            s3,
+            dest_bucket,
+            dest_path,
+            obj_versions,
+            target_bucket,
+            target_path,
+            preserve,
+        )
 
     else:
         # set the s3 instance name and path the destination bucket
@@ -235,24 +161,157 @@ def bucket_s3(
                     )
 
 
+def copy_version(
+    s3: S3,
+    dest_bucket: str,
+    dest_path,
+    obj_versions: List[Dict[str, str]],
+    target_bucket: str,
+    target_path: str,
+    preserve: bool,
+) -> None:
+    # set s3 attributes for getting destination key
+    s3.bucket_name = dest_bucket
+    s3.path_list[0] = dest_path
+    for obj_version in obj_versions:
+        s3_key = s3.get_s3_destination_key(obj_version.get("Key", ""))
+        print(
+            "(dryrun) copy: s3://%s/%s to s3://%s/%s with version %s"
+            % (
+                target_bucket,
+                obj_version.get("Key"),
+                dest_bucket,
+                s3_key,
+                obj_version.get("VersionId"),
+            )
+        )
+    if get_confirmation("Confirm?"):
+        for obj_version in obj_versions:
+            s3_key = s3.get_s3_destination_key(obj_version.get("Key", ""))
+            print(
+                "copy: s3://%s/%s to s3://%s/%s with version %s"
+                % (
+                    target_bucket,
+                    obj_version.get("Key"),
+                    dest_bucket,
+                    s3_key,
+                    obj_version.get("VersionId"),
+                )
+            )
+            copy_source = {
+                "Bucket": target_bucket,
+                "Key": obj_version.get("Key"),
+                "VersionId": obj_version.get("VersionId"),
+            }
+            if not preserve:
+                s3.client.copy(
+                    copy_source,
+                    dest_bucket,
+                    s3_key,
+                    Callback=S3Progress(
+                        obj_version.get("Key", ""),
+                        target_bucket,
+                        s3.client,
+                        version_id=obj_version.get("VersionId"),
+                    ),
+                )
+            else:
+                s3.bucket_name = target_bucket
+                copy_and_preserve(
+                    s3,
+                    target_bucket,
+                    obj_version.get("Key", ""),
+                    dest_bucket,
+                    s3_key,
+                    version=obj_version.get("VersionId"),
+                )
+
+
+def recursive_copy(
+    s3: S3,
+    target_bucket: str,
+    target_path: str,
+    dest_bucket: str,
+    dest_path: str,
+    exclude: List[str],
+    include: List[str],
+    preserve: bool,
+) -> None:
+    """recursive_copy object to other bucket
+
+    :param s3: S3 instance
+    :type s3: S3
+    :param target_bucket: source bucket
+    :type target_bucket: str
+    :param target_path: source folder path
+    :type target_path: str
+    :param dest_bucket: destination bucket
+    :type dest_bucket: str
+    :param dest_path: dest folder path
+    :type dest_path: str
+    :param exclude: glob pattern to exclude
+    :type exclude: List[str]
+    :param include: glob pattern to include
+    :type include: List[str]
+    :param preserve: preserve previous object config
+    :type preserve: bool
+    """
+
+    file_list = walk_s3_folder(
+        s3.client,
+        target_bucket,
+        target_path,
+        target_path,
+        [],
+        exclude,
+        include,
+        "bucket",
+        dest_path,
+        dest_bucket,
+    )
+    if get_confirmation("Confirm?"):
+        for s3_key, dest_pathname in file_list:
+            print(
+                "copy: s3://%s/%s to s3://%s/%s"
+                % (target_bucket, s3_key, dest_bucket, dest_pathname)
+            )
+            copy_source = {"Bucket": target_bucket, "Key": s3_key}
+            if not preserve:
+                s3.client.copy(
+                    copy_source,
+                    dest_bucket,
+                    dest_pathname,
+                    Callback=S3Progress(s3_key, target_bucket, s3.client),
+                )
+            else:
+                s3.bucket_name = target_bucket
+                copy_and_preserve(s3, target_bucket, s3_key, dest_bucket, dest_pathname)
+
+
 def copy_and_preserve(
-    s3, target_bucket, target_path, dest_bucket, dest_path, version=None
-):
+    s3: S3,
+    target_bucket: str,
+    target_path: str,
+    dest_bucket: str,
+    dest_path: str,
+    version: str = None,
+) -> None:
     """copy object to other buckets but preserve details
 
-    Args:
-        s3: object, S3 instance, make sure to set s3.bucket_name
-        target_bucket: string, bucket which contains the file to move
-        target_path: string, the file to move
-        dest_bucket: string, destination bucket
-        dest_path: string, destination file path
-        version: string, versionId of the object
-    Returns:
-        None
-    Exceptions:
-        ClientError: when moving encrypted object with kms over regions
+    :param s3: S3 instance, make sure contains bucket name
+    :type s3: S3
+    :param target_bucket: source bucket for upload
+    :type target_bucket: str
+    :param dest_bucket: destination bucket
+    :type dest_bucket: str
+    :param dest_path: destination key name
+    :type dest_path: str
+    :param version: versionID of the object
+    :type version: str
+    :raises ClientError: clienterror will raise when coping KMS encrypted file, handled internally
     """
-    copy_source = {"Bucket": target_bucket, "Key": target_path}
+
+    copy_source: Dict[str, str] = {"Bucket": target_bucket, "Key": target_path}
     if version:
         copy_source["VersionId"] = version
     s3_args = S3Args(s3)
@@ -260,8 +319,11 @@ def copy_and_preserve(
         s3, target_path, s3_args, extra_args=True, version=version
     )
 
-    while True:
+    # limit to one retry
+    attempt_count: int = 0
+    while attempt_count < 2:
         try:
+            attempt_count += 1
             s3.client.copy(
                 copy_source,
                 dest_bucket,
@@ -296,15 +358,22 @@ def copy_and_preserve(
                 raise
 
 
-def process_path_param(bucket, s3, search_folder, version=False):
+def process_path_param(
+    bucket: str, s3: S3, search_folder: bool, version: bool = False
+) -> Tuple[str, str, List[str]]:
     """process bucket parameter and return bucket name and path
 
-    Args:
-        bucket: string, raw bucket parameter from the argument
-        s3: object, s3 instance from the S3 class
-        search_folder: bool, search folder or file
-    Returns:
-        A tuple consisting of the bucketname and bucket path
+    :param bucket: raw bucket parameter from the command line
+    :type bucket: str
+    :param search_folder: recursive operation
+    :type search_folder: bool
+    :param version: include version object
+    :type version: bool, optional
+    :return: user selected bucket informaiton
+    :rtype: Tuple[str, str, List[str]]
+
+    example:
+        (kazhala-lol, hello/, [])
     """
     s3.set_bucket_and_path(bucket)
     if not s3.path_list[0]:

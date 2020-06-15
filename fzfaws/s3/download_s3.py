@@ -209,6 +209,6 @@ def download_version(
                     obj_version.get("Key", ""),
                     s3.bucket_name,
                     s3.client,
-                    obj_version.get("VersionId", ""),
+                    obj_version.get("VersionId"),
                 ),
             )

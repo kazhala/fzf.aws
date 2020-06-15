@@ -41,7 +41,7 @@ class S3Progress(object):
         filename: str,
         bucket: str = None,
         client: boto3.client = None,
-        version_id: str = "null",
+        version_id: str = None,
     ) -> None:
         """constructor
         """
@@ -50,7 +50,7 @@ class S3Progress(object):
         self._lock = threading.Lock()
         self._size: float = 0
         if bucket and client:
-            if version_id == "null":
+            if not version_id:
                 self._size = client.head_object(Bucket=bucket, Key=filename).get(
                     "ContentLength"
                 )
