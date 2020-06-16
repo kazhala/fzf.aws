@@ -2,7 +2,7 @@ import io
 import sys
 import unittest
 from unittest.mock import call, patch
-from fzfaws.s3.bucket_s3 import bucket_s3
+from fzfaws.s3.bucket_s3 import bucket_s3, process_path_param
 from fzfaws.s3 import S3
 
 
@@ -179,3 +179,26 @@ class TestS3BucketCopy(unittest.TestCase):
         mocked_object.assert_not_called()
         mocked_path.assert_not_called()
         mocked_bucket.assert_not_called()
+
+    @patch.object(S3, "set_s3_object")
+    @patch.object(S3, "set_s3_path")
+    def test_process_path_param(self, mocked_path, mocked_object):
+        s3 = S3()
+        result = process_path_param(
+            bucket="kazhala-lol/", s3=s3, search_folder=True, version=False
+        )
+        self.assertEqual(result, ("kazhala-lol", "", [""]))
+        mocked_path.assert_called_with()
+
+        s3 = S3()
+        result = process_path_param(
+            bucket="kazhala-lol/hello.txt", s3=s3, search_folder=False, version=False
+        )
+        self.assertEqual(result, ("kazhala-lol", "hello.txt", ["hello.txt"]))
+        mocked_object.assert_not_called()
+
+        s3 = S3()
+        s3.bucket_name = "lol"
+        result = process_path_param(bucket="", s3=s3, search_folder=False, version=True)
+        self.assertEqual(result, ("lol", "", [""]))
+        mocked_object.assert_called_with(multi_select=True, version=True)
