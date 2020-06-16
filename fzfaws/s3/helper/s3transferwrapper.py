@@ -4,7 +4,7 @@ used to process env transfer config
 """
 import os
 import json
-from s3transfer import S3Transfer, TransferConfig
+from boto3.s3.transfer import S3Transfer, TransferConfig
 
 
 class S3TransferWrapper:
