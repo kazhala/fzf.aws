@@ -14,3 +14,4 @@ class TestS3TransferWrapper(unittest.TestCase):
         fileloader.load_config_file(config_path=config_path)
         transfer = S3TransferWrapper(boto3.client("s3"))
         self.assertEqual(transfer.s3transfer._config.num_download_attempts, 6)
+        self.assertEqual(transfer.transfer_config.num_download_attempts, 6)

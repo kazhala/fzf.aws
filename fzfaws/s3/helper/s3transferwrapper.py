@@ -17,7 +17,8 @@ class S3TransferWrapper:
     :type client: boto3.client
     """
 
-    def __init__(self, client):
+    def __init__(self, client=None):
         raw_transfer_config = json.loads(os.getenv("FZFAWS_S3_TRANSFER", "{}"))
-        transfer_config = TransferConfig(**raw_transfer_config)
-        self.s3transfer = S3Transfer(client, config=transfer_config)
+        self.transfer_config = TransferConfig(**raw_transfer_config)
+        if client:
+            self.s3transfer = S3Transfer(client, config=self.transfer_config)
