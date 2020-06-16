@@ -72,8 +72,6 @@ def bucket_s3(
         target_bucket, target_path, target_path_list = process_path_param(
             from_bucket, s3, search_folder, version=version
         )
-        if version and not search_folder:
-            obj_versions = s3.get_object_version()
     else:
         s3.set_s3_bucket(
             header="Set the source bucket which contains the file to transfer"
@@ -85,6 +83,8 @@ def bucket_s3(
         else:
             s3.set_s3_object(multi_select=True, version=version)
             target_path_list = s3.path_list[:]
+    if version and not search_folder:
+        obj_versions = s3.get_object_version()
     # clean up the s3 attributes for next operation
     s3.bucket_name = ""
     s3.path_list[0] = ""

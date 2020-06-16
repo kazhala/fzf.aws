@@ -97,5 +97,46 @@ class TestS3BucketCopy(unittest.TestCase):
         )
         mocked_path.assert_has_calls([call(), call()])
 
-    def test_version(self):
-        pass
+    @patch.object(S3, "set_s3_path")
+    @patch.object(S3, "set_s3_object")
+    @patch.object(S3, "set_s3_bucket")
+    @patch.object(S3, "get_object_version")
+    @patch("fzfaws.s3.bucket_s3.get_confirmation")
+    def test_version(
+        self, mocked_confirm, mocked_version, mocked_bucket, mocked_obj, mocked_path
+    ):
+        mocked_confirm.return_value = False
+        mocked_version.return_value = [{"Key": "hello.txt", "VersionId": "11111111"}]
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        bucket_s3(
+            from_bucket="kazhala-lol/hello.txt",
+            to_bucket="kazhala-yes/foo/",
+            version=True,
+        )
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) copy: s3://kazhala-lol/hello.txt to s3://kazhala-yes/foo/hello.txt with version 11111111\n",
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_version.return_value = [{"Key": "hello.txt", "VersionId": "11111111"}]
+        bucket_s3(version=True)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) copy: s3:///hello.txt to s3:///hello.txt with version 11111111\n",
+        )
+        mocked_bucket.assert_has_calls(
+            [
+                call(
+                    header="Set the source bucket which contains the file to transfer"
+                ),
+                call(
+                    header="Set the destination bucket where the file should be transfered"
+                ),
+            ]
+        )
+        mocked_obj.assert_has_calls([call(multi_select=True, version=True)])
+        mocked_path.assert_called_once()
