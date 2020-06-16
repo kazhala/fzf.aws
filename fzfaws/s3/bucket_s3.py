@@ -12,6 +12,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.s3.helper.get_copy_args import get_copy_args
 from typing import Dict, Optional, List, Tuple
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 
 
 def bucket_s3(
@@ -71,7 +72,7 @@ def bucket_s3(
         target_bucket, target_path, target_path_list = process_path_param(
             from_bucket, s3, search_folder, version=version
         )
-        if version:
+        if version and not search_folder:
             obj_versions = s3.get_object_version()
     else:
         s3.set_s3_bucket(
@@ -148,11 +149,13 @@ def bucket_s3(
                 )
                 copy_source = {"Bucket": target_bucket, "Key": target_path}
                 if not preserve:
+                    s3transferwrapper = S3TransferWrapper()
                     s3.client.copy(
                         copy_source,
                         dest_bucket,
                         s3_key,
                         Callback=S3Progress(target_path, target_bucket, s3.client),
+                        Config=s3transferwrapper.transfer_config,
                     )
                 else:
                     s3.bucket_name = target_bucket
@@ -204,6 +207,7 @@ def copy_version(
                 "VersionId": obj_version.get("VersionId"),
             }
             if not preserve:
+                s3transferwrapper = S3TransferWrapper()
                 s3.client.copy(
                     copy_source,
                     dest_bucket,
@@ -214,6 +218,7 @@ def copy_version(
                         s3.client,
                         version_id=obj_version.get("VersionId"),
                     ),
+                    Config=s3transferwrapper.transfer_config,
                 )
             else:
                 s3.bucket_name = target_bucket
@@ -277,11 +282,13 @@ def recursive_copy(
             )
             copy_source = {"Bucket": target_bucket, "Key": s3_key}
             if not preserve:
+                s3transferwrapper = S3TransferWrapper()
                 s3.client.copy(
                     copy_source,
                     dest_bucket,
                     dest_pathname,
                     Callback=S3Progress(s3_key, target_bucket, s3.client),
+                    Config=s3transferwrapper.transfer_config,
                 )
             else:
                 s3.bucket_name = target_bucket
@@ -324,12 +331,14 @@ def copy_and_preserve(
     while attempt_count < 2:
         try:
             attempt_count += 1
+            s3transferwrapper = S3TransferWrapper()
             s3.client.copy(
                 copy_source,
                 dest_bucket,
                 dest_path,
                 Callback=S3Progress(target_path, s3.bucket_name, s3.client),
                 ExtraArgs=copy_object_args,
+                Config=s3transferwrapper.transfer_config,
             )
             break
         except ClientError as e:
