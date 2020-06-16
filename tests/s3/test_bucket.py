@@ -140,3 +140,42 @@ class TestS3BucketCopy(unittest.TestCase):
         )
         mocked_obj.assert_has_calls([call(multi_select=True, version=True)])
         mocked_path.assert_called_once()
+
+    @patch.object(S3, "set_s3_path")
+    @patch.object(S3, "set_s3_object")
+    @patch.object(S3, "set_s3_bucket")
+    @patch("fzfaws.s3.bucket_s3.get_confirmation")
+    def test_single(self, mocked_confirm, mocked_bucket, mocked_object, mocked_path):
+        mocked_confirm.return_value = False
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        bucket_s3()
+        mocked_bucket.assert_has_calls(
+            [
+                call(
+                    header="Set the source bucket which contains the file to transfer"
+                ),
+                call(
+                    header="Set the destination bucket where the file should be transfered"
+                ),
+            ]
+        )
+        mocked_object.assert_has_calls([call(multi_select=True, version=False)])
+        mocked_path.assert_called_once()
+        self.assertEqual(
+            self.capturedOutput.getvalue(), "(dryrun) copy: s3:/// to s3:///\n"
+        )
+
+        mocked_object.reset_mock()
+        mocked_bucket.reset_mock()
+        mocked_path.reset_mock()
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        bucket_s3(from_bucket="kazhala-lol/hello.txt", to_bucket="kazhala-yes/foo/")
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) copy: s3://kazhala-lol/hello.txt to s3://kazhala-yes/foo/hello.txt\n",
+        )
+        mocked_object.assert_not_called()
+        mocked_path.assert_not_called()
+        mocked_bucket.assert_not_called()
