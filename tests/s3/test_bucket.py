@@ -202,3 +202,55 @@ class TestS3BucketCopy(unittest.TestCase):
         result = process_path_param(bucket="", s3=s3, search_folder=False, version=True)
         self.assertEqual(result, ("lol", "", [""]))
         mocked_object.assert_called_with(multi_select=True, version=True)
+
+    @patch("fzfaws.s3.bucket_s3.walk_s3_folder")
+    @patch.object(S3, "set_s3_path")
+    @patch.object(S3, "get_object_version")
+    @patch("fzfaws.s3.bucket_s3.get_confirmation")
+    @patch("fzfaws.s3.bucket_s3.copy_and_preserve")
+    def test_copy_and_preserve(
+        self, mocked_copy, mocked_confirm, mocked_version, mocked_path, mocked_walk
+    ):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_copy.side_effect = lambda a, b, c, d, e: print(b, c, d, e)
+        mocked_confirm.return_value = True
+        bucket_s3(from_bucket="foo/boo.txt", to_bucket="lol/hello/", preserve=True)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) copy: s3://foo/boo.txt to s3://lol/hello/boo.txt\ncopy: s3://foo/boo.txt to s3://lol/hello/boo.txt\nfoo boo.txt lol hello/boo.txt\n",
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_copy.side_effect = lambda a, b, c, d, e, version=None: print(
+            b, c, d, e, version
+        )
+        mocked_confirm.return_value = True
+        mocked_version.return_value = [{"Key": "boo.txt", "VersionId": "11111111"}]
+        bucket_s3(
+            from_bucket="foo/boo.txt",
+            to_bucket="lol/hello/",
+            preserve=True,
+            version=True,
+        )
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) copy: s3://foo/boo.txt to s3://lol/hello/boo.txt with version 11111111\ncopy: s3://foo/boo.txt to s3://lol/hello/boo.txt with version 11111111\nfoo boo.txt lol hello/boo.txt 11111111\n",
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_copy.side_effect = lambda a, b, c, d, e: print(b, c, d, e)
+        mocked_confirm.return_value = True
+        mocked_walk.return_value = [("boo/hello.txt", "hello/hello.txt")]
+        bucket_s3(
+            from_bucket="foo/boo/",
+            to_bucket="lol/hello/",
+            recursive=True,
+            preserve=True,
+        )
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "copy: s3://foo/boo/hello.txt to s3://lol/hello/hello.txt\nfoo boo/hello.txt lol hello/hello.txt\n",
+        )
