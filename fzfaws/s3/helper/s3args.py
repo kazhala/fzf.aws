@@ -110,6 +110,7 @@ class S3Args:
             not upload
             and not version
             and len(self.s3.path_list) == 1
+            and not self.s3.path_list[0].endswith("/")
             and self.s3.path_list[0] != ""
         ):
             s3_obj = self.s3.resource.Object(self.s3.bucket_name, self.s3.path_list[0])
