@@ -250,6 +250,7 @@ class S3(BaseSession):
         delete: bool = False,
         select_all: bool = False,
         non_current: bool = False,
+        multi_select: bool = True,
     ) -> List[Dict[str, str]]:
         """list object versions through fzf
         
@@ -263,6 +264,8 @@ class S3(BaseSession):
         :type select_all: bool, optional
         :param non_current: only put non_current versions into list
         :type non_current: bool, optional
+        :param multi_select: allow multi selection
+        :type multi_select: bool, optional
         :return: list of selected versions
         :rtype: List[dict]
 
@@ -298,7 +301,7 @@ class S3(BaseSession):
                     "LastModified",
                 )
                 if delete:
-                    for result in fzf.execute_fzf(multi_select=True):
+                    for result in fzf.execute_fzf(multi_select=multi_select):
                         selected_versions.append({"Key": key, "VersionId": result})
                 else:
                     selected_versions.append(
