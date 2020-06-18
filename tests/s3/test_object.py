@@ -156,3 +156,31 @@ class TestS3Object(unittest.TestCase):
             self.capturedOutput.getvalue(),
             "(dryrun) update: s3://kazhala-lol/hello.txt with version 111111\n",
         )
+
+    @patch("fzfaws.s3.object_s3.get_confirmation")
+    @patch.object(S3Args, "set_extra_args")
+    @patch.object(S3, "set_s3_object")
+    @patch.object(S3, "set_s3_bucket")
+    def test_singel(self, mocked_bucket, mocked_object, mocked_args, mocked_confirm):
+        mocked_confirm.return_value = False
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        object_s3()
+        mocked_bucket.assert_called_once()
+        mocked_object.assert_called_once()
+        mocked_args.assert_called_once_with(False, False, False, False, False)
+        self.assertEqual(self.capturedOutput.getvalue(), "(dryrun) update: s3:///\n")
+
+        mocked_bucket.reset_mock()
+        mocked_args.reset_mock()
+        mocked_object.reset_mock()
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        object_s3(bucket="kazhala-lol/hello.txt")
+        mocked_bucket.assert_not_called()
+        mocked_object.assert_not_called()
+        mocked_args.assert_called_once_with(False, False, False, False, False)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) update: s3://kazhala-lol/hello.txt\n",
+        )
