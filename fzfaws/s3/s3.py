@@ -12,7 +12,7 @@ from fzfaws.utils.exceptions import (
     NoSelectionMade,
 )
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
@@ -278,35 +278,19 @@ class S3(BaseSession):
             key_list.extend(self.path_list)
         selected_versions: list = []
         for key in key_list:
-            version_list: list = []
+            response_generator: Union[list, Generator[Dict[str, str], None, None]] = []
             paginator = self.client.get_paginator("list_object_versions")
             for result in paginator.paginate(Bucket=bucket, Prefix=key):
-                for version in result.get("Versions", []):
-                    if (non_current and not version.get("IsLatest")) or not non_current:
-                        version_list.append(
-                            {
-                                "VersionId": version.get("VersionId"),
-                                "Key": version.get("Key"),
-                                "IsLatest": version.get("IsLatest"),
-                                "DeleteMarker": False,
-                                "LastModified": version.get("LastModified"),
-                            }
-                        )
-                if delete:
-                    for marker in result.get("DeleteMarkers", []):
-                        version_list.append(
-                            {
-                                "VersionId": marker.get("VersionId"),
-                                "Key": marker.get("Key"),
-                                "IsLatest": marker.get("IsLatest"),
-                                "DeleteMarker": True,
-                                "LastModified": marker.get("LastModified"),
-                            }
-                        )
+                response_generator = self._version_generator(
+                    result.get("Versions", []),
+                    result.get("DeleteMarkers", []),
+                    non_current,
+                    delete,
+                )
             if not select_all:
                 fzf = Pyfzf()
                 fzf.process_list(
-                    version_list,
+                    response_generator,
                     "VersionId",
                     "Key",
                     "IsLatest",
@@ -324,7 +308,7 @@ class S3(BaseSession):
                 selected_versions.extend(
                     [
                         {"Key": key, "VersionId": version.get("VersionId")}
-                        for version in version_list
+                        for version in response_generator
                     ]
                 )
         return selected_versions
@@ -458,3 +442,39 @@ class S3(BaseSession):
             )
         )
         return selected_option.split(":")[0]
+
+    def _version_generator(
+        self, versions: List[dict], markers: List[dict], non_current: bool, delete: bool
+    ) -> Generator[Dict[str, str], None, None]:
+        """version generator to reduce memory usage
+
+        :param versions: list of versions from list_object_versions paginator
+        :type versions: List[dict]
+        :param markers: list of delete markers from list_object_versions paginator
+        :type markers: List[dict]
+        :param non_current: just include non_current object?
+        :type non_current: bool
+        :param delete: include delete marker
+        :type delete: bool
+        :return: formatted dict of version information in generator form
+        :rtype: Generator[Dict[str,str], None, None]
+        """
+
+        for version in versions:
+            if (non_current and not version.get("IsLatest")) or not non_current:
+                yield {
+                    "VersionId": version.get("VersionId"),
+                    "Key": version.get("Key"),
+                    "IsLatest": version.get("IsLatest"),
+                    "DeleteMarker": False,
+                    "LastModified": version.get("LastModified"),
+                }
+        if delete:
+            for marker in markers:
+                yield {
+                    "VersionId": marker.get("VersionId"),
+                    "Key": marker.get("Key"),
+                    "IsLatest": marker.get("IsLatest"),
+                    "DeleteMarker": True,
+                    "LastModified": marker.get("LastModified"),
+                }
