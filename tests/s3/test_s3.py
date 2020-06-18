@@ -564,3 +564,26 @@ class TestS3(unittest.TestCase):
         result = self.s3._get_path_option(download=True)
         self.assertEqual(result, "root")
         mocked_append.assert_called_with("input: manully input the path/name\n")
+
+    def test_version_gernator(self):
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/s3_object_ver.json"
+        )
+        with open(data_path, "r") as file:
+            response = json.load(file)
+
+        generator = self.s3._version_generator(
+            response[0]["Versions"], response[0]["DeleteMarkers"], False, True
+        )
+        self.assertEqual(
+            {
+                "DeleteMarker": False,
+                "IsLatest": False,
+                "Key": " elb.pem",
+                "LastModified": None,
+                "VersionId": "L2e4FjTfzOFyWZ1wsZwLYZSPWdxys9hZ",
+            },
+            next(generator),
+        )
+        for version in generator:
+            self.assertIsInstance(version, dict)
