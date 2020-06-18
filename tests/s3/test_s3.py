@@ -223,7 +223,7 @@ class TestS3(unittest.TestCase):
             empty_allow=True,
             print_col=0,
             header="PWD: s3://kazhala-version-testing/ (press ESC to use current path)",
-            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+            preview="echo .DS_Store^Fortnite refund.docx^README.md^VideoPageSpec.docx^boob.docx^boto3-s3-filter.png^cloudformation_parameters.png^elb.pem^lab.pem^ooooo.doc^version1.com^version2.com^version3.com^ | tr '^' '\n'",
         )
         mocked_append.assert_called_with("versiontesting/\n")
         mocked_confirmation.assert_called()
@@ -242,7 +242,7 @@ class TestS3(unittest.TestCase):
             empty_allow=True,
             print_col=0,
             header="PWD: s3://kazhala-version-testing/hello/ (press ESC to use current path)",
-            preview="echo  | tr ' ' '\n'",
+            preview="echo  | tr '^' '\n'",
         )
         mocked_append.assert_called_with("versiontesting/\n")
         mocked_confirmation.assert_called()
@@ -265,7 +265,7 @@ class TestS3(unittest.TestCase):
             empty_allow=True,
             print_col=0,
             header="PWD: s3://kazhala-version-testing/ (press ESC to use current path)",
-            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+            preview="echo .DS_Store^Fortnite refund.docx^README.md^VideoPageSpec.docx^boob.docx^boto3-s3-filter.png^cloudformation_parameters.png^elb.pem^lab.pem^ooooo.doc^version1.com^version2.com^version3.com^ | tr '^' '\n'",
         )
         mocked_append.assert_called_with("versiontesting/\n")
         self.assertRegex(
@@ -292,7 +292,7 @@ class TestS3(unittest.TestCase):
             empty_allow=True,
             print_col=0,
             header="PWD: s3://kazhala-version-testing/newpath/ (press ESC to use current path)",
-            preview="echo .DS_Store Fortnite refund.docx README.md VideoPageSpec.docx boob.docx boto3-s3-filter.png cloudformation_parameters.png elb.pem lab.pem ooooo.doc version1.com version2.com version3.com | tr ' ' '\n'",
+            preview="echo .DS_Store^Fortnite refund.docx^README.md^VideoPageSpec.docx^boob.docx^boto3-s3-filter.png^cloudformation_parameters.png^elb.pem^lab.pem^ooooo.doc^version1.com^version2.com^version3.com^ | tr '^' '\n'",
         )
         mocked_append.assert_called_with("versiontesting/\n")
         self.assertRegex(
