@@ -108,7 +108,7 @@ class S3(BaseSession):
                                 fzf.append_fzf("%s\n" % prefix.get("Prefix"))
                             for content in result.get("Contents", []):
                                 preview += content.get("Key")
-                                preview += " "
+                                preview += "^"
 
                     # has to use tr to transform the string to new line during preview by fzf
                     # not sure why, but if directly use \n, fzf preview interpret as a new command
@@ -119,7 +119,7 @@ class S3(BaseSession):
                             print_col=0,
                             header="PWD: s3://%s/%s (press ESC to use current path)"
                             % (self.bucket_name, self.path_list[0]),
-                            preview="echo %s | tr ' ' '\n'" % preview.rstrip(),
+                            preview="echo %s | tr '^' '\n'" % preview.rstrip(),
                         )
                     )
                     if not selected_path:
