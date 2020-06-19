@@ -499,7 +499,7 @@ def s3(raw_args: list) -> None:
             object_cmd.print_help()
         elif selected_command == "ls":
             ls_cmd.print_help()
-        exit()
+    # the print_help automatically perform a sys exit
 
     if args.profile == None:
         # when user set --profile flag but without argument
