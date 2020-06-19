@@ -114,10 +114,44 @@ class TestS3Delete(unittest.TestCase):
         mocked_client.return_value = s3
         mocked_find.return_value = ["wtf.pem"]
         mocked_version.return_value = [{"Key": "wtf.pem", "VersionId": "111111"}]
+        delete_s3(bucket="kazhala-lol/", recursive=True, allversion=True)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) delete: s3://kazhala-lol/wtf.pem with all versions\ndelete: s3://kazhala-lol/wtf.pem with version 111111\n",
+        )
+        mocked_version.assert_called_once_with(
+            key="wtf.pem", delete=True, select_all=True, non_current=False
+        )
+        mocked_find.assert_called_with(ANY, "kazhala-lol", "", [], [], [], False)
+
+        # test clean
+        mocked_version.reset_mock()
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        mocked_confirm.return_value = True
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response(
+            "delete_object",
+            {
+                "DeleteMarker": False,
+                "VersionId": "string",
+                "RequestCharged": "requester",
+            },
+            expected_params={
+                "Bucket": "kazhala-lol",
+                "Key": "wtf.pem",
+                "VersionId": "111111",
+            },
+        )
+        stubber.activate()
+        mocked_client.return_value = s3
+        mocked_find.return_value = ["wtf.pem"]
+        mocked_version.return_value = [{"Key": "wtf.pem", "VersionId": "111111"}]
         delete_s3(bucket="kazhala-lol/", recursive=True, allversion=True, clean=True)
         self.assertEqual(
             self.capturedOutput.getvalue(),
-            "(dryrun) delete: s3://kazhala-lol/wtf.pem and all non-current versions\ndelete: s3://kazhala-lol/wtf.pem with version 111111\n",
+            "(dryrun) delete: s3://kazhala-lol/wtf.pem all non-current versions\ndelete: s3://kazhala-lol/wtf.pem with version 111111\n",
         )
         mocked_version.assert_called_once_with(
             key="wtf.pem", delete=True, select_all=True, non_current=True
@@ -125,6 +159,7 @@ class TestS3Delete(unittest.TestCase):
         mocked_find.assert_called_with(ANY, "kazhala-lol", "", [], [], [], False)
 
         # test recursive non version delete
+        mocked_version.reset_mock()
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
         mocked_confirm.return_value = True
@@ -142,12 +177,12 @@ class TestS3Delete(unittest.TestCase):
         stubber.activate()
         mocked_client.return_value = s3
         mocked_walk.return_value = [("wtf.pem", "wtf.pem")]
-        mocked_version.return_value = [{"Key": "wtf.pem", "VersionId": "111111"}]
         delete_s3(bucket="kazhala-lol/", recursive=True)
         self.assertEqual(
             self.capturedOutput.getvalue(), "delete: s3://kazhala-lol/wtf.pem\n",
         )
         mocked_walk.assert_called_with(ANY, "kazhala-lol", "", "", [], [], [], "delete")
+        mocked_version.assert_not_called()
 
     @patch.object(BaseSession, "client", new_callable=PropertyMock)
     @patch("fzfaws.s3.delete_s3.get_confirmation")
