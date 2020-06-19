@@ -2,14 +2,15 @@
 
 update settings on s3 object
 """
-from fzfaws.s3.s3 import S3
-from fzfaws.s3.helper.s3args import S3Args
-from fzfaws.utils.util import get_confirmation
-from fzfaws.s3.helper.s3progress import S3Progress
+from typing import List, Optional, Union
+
 from fzfaws.s3.helper.get_copy_args import get_copy_args
-from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
-from typing import Optional, List, Union
+from fzfaws.s3.helper.s3args import S3Args
+from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
+from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
+from fzfaws.s3.s3 import S3
+from fzfaws.utils import get_confirmation
 
 
 def object_s3(

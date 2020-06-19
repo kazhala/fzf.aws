@@ -4,7 +4,7 @@ from fzfaws.utils.session import BaseSession
 import io
 import sys
 import unittest
-from unittest.mock import PropertyMock, patch
+from unittest.mock import PropertyMock, patch, ANY
 from fzfaws.s3.object_s3 import object_s3
 from fzfaws.s3 import S3
 import boto3
@@ -53,9 +53,6 @@ class TestS3Object(unittest.TestCase):
 
         mocked_confirm.return_value = True
         mocked_copy.return_value = True
-        mocked_copy.side_effect = lambda a, b, c, Callback, ExtraArgs: print(
-            a, b, c, ExtraArgs
-        )
         mocked_args.return_value = {}
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
@@ -73,7 +70,15 @@ class TestS3Object(unittest.TestCase):
         mocked_version.assert_called_with(key="hello.txt")
         self.assertEqual(
             self.capturedOutput.getvalue(),
-            "Enter the new name below (format: newname or path/newname for a new path)\n(dryrun) rename: s3://kazhala-lol/hello.txt to s3://kazhala-lol/yes.txt with version 111111\nrename: s3://kazhala-lol/hello.txt to s3://kazhala-lol/yes.txt with version 111111\n{'Bucket': 'kazhala-lol', 'Key': 'hello.txt', 'VersionId': '111111'} kazhala-lol yes.txt {}\n",
+            "Enter the new name below (format: newname or path/newname for a new path)\n(dryrun) rename: s3://kazhala-lol/hello.txt to s3://kazhala-lol/yes.txt with version 111111\nrename: s3://kazhala-lol/hello.txt to s3://kazhala-lol/yes.txt with version 111111\n",
+        )
+        mocked_copy.assert_called_with(
+            {"Bucket": "kazhala-lol", "Key": "hello.txt", "VersionId": "111111"},
+            "kazhala-lol",
+            "yes.txt",
+            Callback=ANY,
+            Config=ANY,
+            ExtraArgs={},
         )
 
     @patch("fzfaws.s3.object_s3.get_confirmation")
@@ -86,32 +91,31 @@ class TestS3Object(unittest.TestCase):
     ):
         mocked_confirm.return_value = False
         mocked_walk.return_value = [("hello.txt", "hello.txt")]
-        mocked_walk.side_effect = lambda a, b, c, d, e, g, h, i, j, k: print(
-            b, c, d, e, g, h, i, j, k
-        )
 
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
         object_s3(recursive=True)
         mocked_bucket.assert_called_once()
         mocked_path.assert_called_once()
         mocked_args.assert_called_once_with(False, False, False, False, False)
-        self.assertEqual(
-            self.capturedOutput.getvalue(), "   [] [] [] object  \n",
-        )
+        mocked_walk.assert_called_with(ANY, "", "", "", [], [], [], "object", "", "")
 
         mocked_bucket.reset_mock()
         mocked_path.reset_mock()
         mocked_args.reset_mock()
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
         object_s3(recursive=True, bucket="kazhala-lol/hello/")
         mocked_bucket.assert_not_called()
         mocked_path.assert_not_called()
         mocked_args.assert_called_once_with(False, False, False, False, False)
-        self.assertEqual(
-            self.capturedOutput.getvalue(),
-            "kazhala-lol hello/ hello/ [] [] [] object hello/ kazhala-lol\n",
+        mocked_walk.assert_called_with(
+            ANY,
+            "kazhala-lol",
+            "hello/",
+            "hello/",
+            [],
+            [],
+            [],
+            "object",
+            "hello/",
+            "kazhala-lol",
         )
 
     @patch("fzfaws.s3.object_s3.get_confirmation")
