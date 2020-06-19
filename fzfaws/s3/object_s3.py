@@ -9,6 +9,7 @@ from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.get_copy_args import get_copy_args
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from typing import Optional, List, Union
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 
 
 def object_s3(
@@ -119,12 +120,14 @@ def object_s3(
                         s3, s3_key, s3_args, extra_args=True
                     )
                     copy_source = {"Bucket": s3.bucket_name, "Key": s3_key}
+                    s3transferwrapper = S3TransferWrapper()
                     s3.client.copy(
                         copy_source,
                         s3.bucket_name,
                         s3_key,
                         Callback=S3Progress(s3_key, s3.bucket_name, s3.client),
                         ExtraArgs=copy_object_args,
+                        Config=s3transferwrapper.transfer_config,
                     )
 
 
@@ -264,12 +267,14 @@ def update_object_recursive(
                     s3, original_key, s3_args, extra_args=True
                 )
                 copy_source = {"Bucket": s3.bucket_name, "Key": original_key}
+                s3transferwrapper = S3TransferWrapper()
                 s3.client.copy(
                     copy_source,
                     s3.bucket_name,
                     original_key,
                     Callback=S3Progress(original_key, s3.bucket_name, s3.client),
                     ExtraArgs=copy_object_args,
+                    Config=s3transferwrapper.transfer_config,
                 )
 
 
@@ -303,12 +308,14 @@ def update_object_name(s3: S3, version: bool = False) -> None:
                 "Bucket": s3.bucket_name,
                 "Key": s3.path_list[0],
             }
+            s3transferwrapper = S3TransferWrapper()
             s3.client.copy(
                 copy_source,
                 s3.bucket_name,
                 new_name,
                 Callback=S3Progress(s3.path_list[0], s3.bucket_name, s3.client),
                 ExtraArgs=copy_object_args,
+                Config=s3transferwrapper.transfer_config,
             )
             s3.client.delete_object(
                 Bucket=s3.bucket_name, Key=s3.path_list[0],
@@ -352,6 +359,7 @@ def update_object_name(s3: S3, version: bool = False) -> None:
                 "Key": obj_version.get("Key"),
                 "VersionId": obj_version.get("VersionId"),
             }
+            s3transferwrapper = S3TransferWrapper()
             s3.client.copy(
                 copy_source,
                 s3.bucket_name,
@@ -363,4 +371,5 @@ def update_object_name(s3: S3, version: bool = False) -> None:
                     version_id=obj_version.get("VersionId"),
                 ),
                 ExtraArgs=copy_object_args,
+                Config=s3transferwrapper.transfer_config,
             )
