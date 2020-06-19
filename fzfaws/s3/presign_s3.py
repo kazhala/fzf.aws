@@ -3,6 +3,7 @@
 Generate presigning url for getting an s3 object
 """
 from typing import Union
+
 from fzfaws.s3.s3 import S3
 
 
