@@ -345,7 +345,7 @@ def s3(raw_args: list) -> None:
 
     presign_cmd = subparsers.add_parser(
         "presign",
-        description="generate presign url on the selected object based on your current profile permission",
+        description="generate presign url for GET on the selected object based on your current profile permission",
     )
     presign_cmd.add_argument(
         "-b",
