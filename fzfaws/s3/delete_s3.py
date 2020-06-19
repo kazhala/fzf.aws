@@ -67,6 +67,8 @@ def delete_s3(
         # mfa operation can only operate on one object
         # because each time, it will require a new mfa code
         recursive = False
+        allversion = False
+        clean = False
 
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:
@@ -113,7 +115,7 @@ def delete_object_version(s3: S3, allversion: bool = False, mfa: str = "") -> No
     """
 
     obj_versions = s3.get_object_version(
-        delete=True, select_all=allversion, multi_select=True if mfa else False
+        delete=True, select_all=allversion, multi_select=True if not mfa else False
     )
     for obj_version in obj_versions:
         print(
