@@ -246,3 +246,42 @@ class TestS3Delete(unittest.TestCase):
         mocked_object.assert_called_with(
             version=True, multi_select=False, deletemark=False
         )
+
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch("fzfaws.s3.delete_s3.get_confirmation")
+    @patch.object(S3, "set_s3_object")
+    @patch.object(S3, "set_s3_bucket")
+    def test_delete_object_single(
+        self, mocked_bucket, mocked_object, mocked_confirm, mocked_client
+    ):
+        # param test
+        delete_s3()
+        mocked_bucket.assert_called_once()
+        mocked_object.assert_called_once_with(
+            version=False, multi_select=True, deletemark=False
+        )
+
+        # single deletion test
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        s3 = boto3.client("s3")
+        stubber = Stubber(s3)
+        stubber.add_response(
+            "delete_object",
+            {
+                "DeleteMarker": False,
+                "VersionId": "string",
+                "RequestCharged": "requester",
+            },
+            expected_params={"Bucket": "kazhala-lol", "Key": "wtf.pem",},
+        )
+        stubber.activate()
+        mocked_client.return_value = s3
+        delete_s3(bucket="kazhala-lol/wtf.pem")
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "(dryrun) delete: s3://kazhala-lol/wtf.pem\ndelete: s3://kazhala-lol/wtf.pem\n",
+        )
+        mocked_object.assert_called_with(
+            version=False, multi_select=True, deletemark=False
+        )
