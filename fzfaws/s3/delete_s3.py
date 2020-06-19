@@ -186,11 +186,11 @@ def delete_object_recursive(
                 )
             )
             print(
-                "(dryrun) delete: s3://%s/%s and all %s"
+                "(dryrun) delete: s3://%s/%s %s"
                 % (
                     s3.bucket_name,
                     file,
-                    "versions" if not clean else "non-current versions",
+                    "with all versions" if not clean else "all non-current versions",
                 )
             )
         if get_confirmation(
