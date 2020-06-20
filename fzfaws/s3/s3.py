@@ -300,8 +300,8 @@ class S3(BaseSession):
                     "DeleteMarker",
                     "LastModified",
                 )
-                if delete:
-                    for result in fzf.execute_fzf(multi_select=multi_select):
+                if delete and multi_select:
+                    for result in fzf.execute_fzf(multi_select=True):
                         selected_versions.append({"Key": key, "VersionId": result})
                 else:
                     selected_versions.append(

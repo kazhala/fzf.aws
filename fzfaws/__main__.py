@@ -49,12 +49,10 @@ def main():
         print("  -h, --help            show this help message and exit")
     except InvalidFileType:
         print("Selected file is not a valid template file type")
-        print("Exiting..")
     except (KeyboardInterrupt, SystemExit, SystemError):
-        print("Exit")
+        pass
     except NoSelectionMade:
         print("No selection was made or the result was empty")
-        print("Exit")
     except (ClientError, Exception) as e:
         print(e)
 
