@@ -54,16 +54,16 @@ def ls_s3(
         response = s3.client.get_bucket_location(Bucket=s3.bucket_name)
         bucket_location = response["LocationConstraint"]
         print("https://s3-%s.amazonaws.com/%s/" % (bucket_location, s3.bucket_name,))
-        raise SystemExit
+        return
     if bucket and uri:
         print("s3://%s/" % s3.bucket_name)
-        raise SystemExit
+        return
     if bucket and name:
         print(s3.bucket_name)
-        raise SystemExit
+        return
     if bucket and arn:
         print("arn:aws:s3:::%s/" % s3.bucket_name)
-        raise SystemExit
+        return
 
     if deletemark:
         version = True
