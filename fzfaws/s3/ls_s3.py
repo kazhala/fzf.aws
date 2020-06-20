@@ -94,6 +94,12 @@ def ls_s3(
         if versionid:
             for obj_version in obj_versions:
                 print(obj_version.get("VersionId"))
+        if arn:
+            for obj_version in obj_versions:
+                print(
+                    "arn:aws:s3:::%s/%s" % (s3.bucket_name, obj_version.get("Key", ""))
+                )
+
     else:
         if url:
             for s3_obj in s3.path_list:
