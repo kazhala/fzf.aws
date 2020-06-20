@@ -342,27 +342,32 @@ class S3(BaseSession):
                 raise InvalidFileType
         return body_dict
 
-    def get_object_url(self, version: str = "") -> str:
+    def get_object_url(self, version: str = "", object_key: str = "") -> str:
         """return the object url of the current selected object
 
         :param version: get url for versioned object
         :type version: str, optional
+        :param object_key: s3 object_key
+        :type object_key: str, optional
         :return: s3 url for the object
         :rtype: str
         """
+
+        if not object_key:
+            object_key = self.path_list[0]
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response["LocationConstraint"]
         if not version:
             return "https://s3-%s.amazonaws.com/%s/%s" % (
                 bucket_location,
                 self.bucket_name,
-                self.path_list[0],
+                object_key,
             )
         else:
             return "https://s3-%s.amazonaws.com/%s/%s?versionId=%s" % (
                 bucket_location,
                 self.bucket_name,
-                self.path_list[0],
+                object_key,
                 version,
             )
 

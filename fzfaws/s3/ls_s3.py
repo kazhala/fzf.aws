@@ -13,6 +13,9 @@ def ls_s3(
     bucket: bool = False,
     version: bool = False,
     deletemark: bool = False,
+    url: bool = False,
+    uri: bool = False,
+    name: bool = False,
 ) -> None:
     """list files and display information on the selected file
 
@@ -24,10 +27,29 @@ def ls_s3(
     :type version: bool, optional
     :param deletemark: only list file with deletemark associated
     :type deletemark: bool, optional
+    :param url: display url for the selected object/bucket
+    :type url: bool, optional
+    :param uri: display uri for the selected object/bucket
+    :type uri: bool, optional
+    :param name: display selected bucket/object name
+    :type name: bool, optional
     """
 
     s3 = S3(profile)
     s3.set_s3_bucket()
+
+    if bucket and url:
+        response = s3.client.get_bucket_location(Bucket=s3.bucket_name)
+        bucket_location = response["LocationConstraint"]
+        print("https://s3-%s.amazonaws.com/%s/" % (bucket_location, s3.bucket_name,))
+        raise SystemExit
+    if bucket and uri:
+        print("s3://%s/" % s3.bucket_name)
+        raise SystemExit
+    if bucket and name:
+        print(s3.bucket_name)
+        raise SystemExit
+
     if deletemark:
         version = True
     if not bucket:
@@ -37,7 +59,33 @@ def ls_s3(
     if version:
         obj_versions = s3.get_object_version()
 
-    get_detailed_info(s3, bucket, version, obj_versions)
+    if not url and not uri and not name:
+        get_detailed_info(s3, bucket, version, obj_versions)
+    elif version:
+        if url:
+            for obj_version in obj_versions:
+                print(
+                    s3.get_object_url(
+                        version=obj_version.get("VersionId", ""),
+                        object_key=obj_version.get("Key", ""),
+                    )
+                )
+        if uri:
+            for obj_version in obj_versions:
+                print("s3://%s/%s" % (s3.bucket_name, obj_version.get("Key", "")))
+        if name:
+            for obj_version in obj_versions:
+                print("%s/%s" % (s3.bucket_name, obj_version.get("Key", "")))
+    else:
+        if url:
+            for s3_obj in s3.path_list:
+                print(s3.get_object_url(object_key=s3_obj))
+        if uri:
+            for s3_obj in s3.path_list:
+                print("s3://%s/%s" % (s3.bucket_name, s3_obj))
+        if name:
+            for s3_obj in s3.path_list:
+                print("%s/%s" % (s3.bucket_name, s3_obj))
 
 
 def get_detailed_info(

@@ -452,21 +452,39 @@ def s3(raw_args: list) -> None:
         "--bucket",
         action="store_true",
         default=False,
-        help="list bucket and display bucket setting",
+        help="display detailed bucket information on the selected bucket",
     )
     ls_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="list file versions of the selected files",
+        help="display detailed version information on the selected version",
     )
     ls_cmd.add_argument(
         "-d",
         "--deletemark",
         action="store_true",
         default=False,
-        help="only list file with delete marker associated",
+        help="only list deletemark associated object, and display detailed information on the selected version",
+    )
+    ls_cmd.add_argument(
+        "--url",
+        action="store_true",
+        default=False,
+        help="display the s3 url for the selected object/bucket",
+    )
+    ls_cmd.add_argument(
+        "--uri",
+        action="store_true",
+        default=False,
+        help="display the s3 uri for the selected object/bucket",
+    )
+    ls_cmd.add_argument(
+        "--name",
+        action="store_true",
+        default=False,
+        help="display the selected s3 bucket/object name",
     )
     ls_cmd.add_argument(
         "-P",
@@ -580,4 +598,12 @@ def s3(raw_args: list) -> None:
             args.name,
         )
     elif args.subparser_name == "ls":
-        ls_s3(args.profile, args.bucket, args.version, args.deletemark)
+        ls_s3(
+            args.profile,
+            True if args.bucket else False,
+            args.version,
+            args.deletemark,
+            args.url,
+            args.uri,
+            args.name,
+        )
