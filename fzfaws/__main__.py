@@ -41,10 +41,10 @@ def main():
     # display help message
     # did'n use argparse at the entry level thus creating similar help message
     except NoCommandFound as e:
-        print("usage: faws [-h] {cloudformation, ec2, keypair, s3} ...\n")
-        print("A better aws cli experience with the help of fzf\n")
+        print("usage: fzfaws [-h] {cloudformation,ec2,s3} ...\n")
+        print("A interactive aws cli experience with the help of fzf\n")
         print("positional arguments:")
-        print("  {cloudformation,ec2,keypair,s3}\n")
+        print("  {cloudformation,ec2,s3}\n")
         print("optional arguments:")
         print("  -h, --help            show this help message and exit")
     except InvalidFileType:
@@ -53,8 +53,8 @@ def main():
     except (KeyboardInterrupt, SystemExit, SystemError):
         print("Exit")
     except NoSelectionMade:
-        print("No selection was made")
-        print("Exit..")
+        print("No selection was made or the result was empty")
+        print("Exit")
     except (ClientError, Exception) as e:
         print(e)
 
