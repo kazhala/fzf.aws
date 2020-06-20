@@ -134,10 +134,14 @@ class TestS3Main(unittest.TestCase):
     @patch("fzfaws.s3.main.ls_s3")
     def test_ls(self, mocked_ls):
         s3(["ls"])
-        mocked_ls.assert_called_with(False, False, False, False)
+        mocked_ls.assert_called_with(
+            False, False, False, False, False, False, False, False, False, None
+        )
 
         s3(["ls", "-P", "-v", "-d", "-b"])
-        mocked_ls.assert_called_with(True, True, True, True)
+        mocked_ls.assert_called_with(
+            True, True, True, True, False, False, False, False, False, None
+        )
 
     @patch("fzfaws.s3.main.object_s3")
     def test_object(self, mocked_object):

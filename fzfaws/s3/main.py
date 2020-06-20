@@ -494,6 +494,12 @@ def s3(raw_args: list) -> None:
         help="display the selected s3 bucket/object name",
     )
     ls_cmd.add_argument(
+        "--arn",
+        action="store_true",
+        default=False,
+        help="display the selected object/bucket arn",
+    )
+    ls_cmd.add_argument(
         "--versionid",
         action="store_true",
         default=False,
@@ -615,6 +621,7 @@ def s3(raw_args: list) -> None:
             args.url,
             args.uri,
             args.name,
+            args.arn,
             args.versionid,
             args.bucketpath,
         )

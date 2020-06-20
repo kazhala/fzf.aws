@@ -4,6 +4,7 @@ list files purpose
 """
 import json
 from typing import Dict, List, Union
+
 from fzfaws.s3.s3 import S3
 from fzfaws.utils import Spinner
 
@@ -16,6 +17,7 @@ def ls_s3(
     url: bool = False,
     uri: bool = False,
     name: bool = False,
+    arn: bool = False,
     versionid: bool = False,
     bucketpath: str = None,
 ) -> None:
@@ -35,6 +37,8 @@ def ls_s3(
     :type uri: bool, optional
     :param name: display selected bucket/object name
     :type name: bool, optional
+    :param arn: display selected bucket/object arn
+    :type arn: bool, optional
     :param versionid: display selected version's versionid
     :type versionid: bool, optional
     :param bucketpath: specify a bucket to operate
@@ -57,6 +61,9 @@ def ls_s3(
     if bucket and name:
         print(s3.bucket_name)
         raise SystemExit
+    if bucket and arn:
+        print("arn:aws:s3:::%s/" % s3.bucket_name)
+        raise SystemExit
 
     if deletemark:
         version = True
@@ -67,7 +74,7 @@ def ls_s3(
     if version:
         obj_versions = s3.get_object_version()
 
-    if not url and not uri and not name and not versionid:
+    if not url and not uri and not name and not versionid and not arn:
         get_detailed_info(s3, bucket, version, obj_versions)
     elif version:
         if url:
@@ -97,11 +104,26 @@ def ls_s3(
         if name:
             for s3_obj in s3.path_list:
                 print("%s/%s" % (s3.bucket_name, s3_obj))
+        if arn:
+            for s3_obj in s3.path_list:
+                print("arn:aws:s3:::%s/%s" % (s3.bucket_name, s3_obj))
 
 
 def get_detailed_info(
     s3: S3, bucket: bool, version: bool, obj_versions: List[Dict[str, str]]
 ) -> None:
+    """print detailed information about bucket, object or version
+
+    :param s3: S3 instance
+    :type s3: S3
+    :param bucket: print detailed information about the bucket
+    :type bucket: bool
+    :param version: print detailed information about object version
+    :type version: bool
+    :param obj_version: list of object versions to print details
+    :type obj_version: List[Dict[str, str]]
+    """
+
     if bucket:
         response = {}
         with Spinner.spin(message="Fetching bucket information ..."):
