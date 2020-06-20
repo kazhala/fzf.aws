@@ -38,7 +38,7 @@ def s3(raw_args: list) -> None:
     )
     upload_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -120,7 +120,7 @@ def s3(raw_args: list) -> None:
     )
     download_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -194,7 +194,7 @@ def s3(raw_args: list) -> None:
     )
     bucket_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -266,7 +266,7 @@ def s3(raw_args: list) -> None:
     )
     delete_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -349,7 +349,7 @@ def s3(raw_args: list) -> None:
     )
     presign_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -384,7 +384,7 @@ def s3(raw_args: list) -> None:
     )
     object_cmd.add_argument(
         "-b",
-        "--bucket",
+        "--bucketpath",
         nargs=1,
         action="store",
         default=[],
@@ -448,6 +448,13 @@ def s3(raw_args: list) -> None:
         "ls", description="display details about selected object"
     )
     ls_cmd.add_argument(
+        "--bucketpath",
+        nargs=1,
+        action="store",
+        default=[],
+        help="spcify a s3 path (buckeName/path), use this flag to skip s3 bucket/path selection",
+    )
+    ls_cmd.add_argument(
         "-b",
         "--bucket",
         action="store_true",
@@ -487,6 +494,12 @@ def s3(raw_args: list) -> None:
         help="display the selected s3 bucket/object name",
     )
     ls_cmd.add_argument(
+        "--versionid",
+        action="store_true",
+        default=False,
+        help="display the selected object version's versionid",
+    )
+    ls_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -522,17 +535,13 @@ def s3(raw_args: list) -> None:
     if args.profile == None:
         # when user set --profile flag but without argument
         args.profile = True
-    if (
-        hasattr(args, "bucket")
-        and args.subparser_name != "bucket"
-        and args.subparser_name != "ls"
-    ):
-        args.bucket = args.bucket[0] if args.bucket else None
+    if hasattr(args, "bucketpath") and args.subparser_name != "bucket":
+        args.bucketpath = args.bucketpath[0] if args.bucketpath else None
 
     if args.subparser_name == "upload":
         upload_s3(
             args.profile,
-            args.bucket,
+            args.bucketpath,
             args.path,
             args.recursive,
             args.hidden,
@@ -546,7 +555,7 @@ def s3(raw_args: list) -> None:
         local_path = args.path[0] if args.path else None
         download_s3(
             args.profile,
-            args.bucket,
+            args.bucketpath,
             local_path,
             args.recursive,
             args.root,
@@ -557,7 +566,7 @@ def s3(raw_args: list) -> None:
             args.version,
         )
     elif args.subparser_name == "bucket":
-        from_bucket = args.bucket[0] if args.bucket else None
+        from_bucket = args.bucketpath[0] if args.bucketpath else None
         to_bucket = args.to[0] if args.to else None
         bucket_s3(
             args.profile,
@@ -574,7 +583,7 @@ def s3(raw_args: list) -> None:
         mfa = " ".join(args.mfa)
         delete_s3(
             args.profile,
-            args.bucket,
+            args.bucketpath,
             args.recursive,
             args.exclude,
             args.include,
@@ -585,11 +594,11 @@ def s3(raw_args: list) -> None:
             args.clean,
         )
     elif args.subparser_name == "presign":
-        presign_s3(args.profile, args.bucket, args.version, int(args.expires[0]))
+        presign_s3(args.profile, args.bucketpath, args.version, int(args.expires[0]))
     elif args.subparser_name == "object":
         object_s3(
             args.profile,
-            args.bucket,
+            args.bucketpath,
             args.recursive,
             args.version,
             args.allversion,
@@ -600,10 +609,12 @@ def s3(raw_args: list) -> None:
     elif args.subparser_name == "ls":
         ls_s3(
             args.profile,
-            True if args.bucket else False,
+            args.bucket,
             args.version,
             args.deletemark,
             args.url,
             args.uri,
             args.name,
+            args.versionid,
+            args.bucketpath,
         )

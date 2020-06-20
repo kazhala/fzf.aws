@@ -16,6 +16,8 @@ def ls_s3(
     url: bool = False,
     uri: bool = False,
     name: bool = False,
+    versionid: bool = False,
+    bucketpath: str = None,
 ) -> None:
     """list files and display information on the selected file
 
@@ -33,10 +35,16 @@ def ls_s3(
     :type uri: bool, optional
     :param name: display selected bucket/object name
     :type name: bool, optional
+    :param versionid: display selected version's versionid
+    :type versionid: bool, optional
+    :param bucketpath: specify a bucket to operate
+    :type bucketpath: str, optional
     """
 
     s3 = S3(profile)
-    s3.set_s3_bucket()
+    s3.set_bucket_and_path(bucketpath)
+    if not s3.bucket_name:
+        s3.set_s3_bucket()
 
     if bucket and url:
         response = s3.client.get_bucket_location(Bucket=s3.bucket_name)
@@ -52,14 +60,14 @@ def ls_s3(
 
     if deletemark:
         version = True
-    if not bucket:
+    if not bucket and not s3.path_list[0]:
         s3.set_s3_object(multi_select=True, version=version, deletemark=deletemark)
 
     obj_versions: List[Dict[str, str]] = []
     if version:
         obj_versions = s3.get_object_version()
 
-    if not url and not uri and not name:
+    if not url and not uri and not name and not versionid:
         get_detailed_info(s3, bucket, version, obj_versions)
     elif version:
         if url:
@@ -76,6 +84,9 @@ def ls_s3(
         if name:
             for obj_version in obj_versions:
                 print("%s/%s" % (s3.bucket_name, obj_version.get("Key", "")))
+        if versionid:
+            for obj_version in obj_versions:
+                print(obj_version.get("VersionId"))
     else:
         if url:
             for s3_obj in s3.path_list:
