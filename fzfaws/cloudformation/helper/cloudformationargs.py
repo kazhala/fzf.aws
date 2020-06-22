@@ -81,7 +81,7 @@ class CloudformationArgs:
             if not dryrun and not update:
                 fzf.append_fzf("CreationOption\n")
             elif not dryrun and update:
-                fzf.append_fzf("UpdateOption")
+                fzf.append_fzf("UpdateOption\n")
             attributes = list(
                 fzf.execute_fzf(
                     empty_allow=True,
