@@ -2,7 +2,7 @@
 
 contains the class to configure extra settings of a cloudformation stack
 """
-from typing import List
+from typing import Dict, List
 from fzfaws.utils import Pyfzf
 from fzfaws.iam import IAM
 from fzfaws.sns import SNS
@@ -195,9 +195,7 @@ class CloudformationArgs:
         """
 
         print(80 * "-")
-        cloudwatch: Cloudwatch = Cloudwatch(
-            self.cloudformation.profile, self.cloudformation.region
-        )
+        cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
         header: str = "select a cloudwatch alarm to monitor the stack"
         message: str = "MonitoringTimeInMinutes(Default: 0): "
         if update and self.cloudformation.stack_details.get("RollbackConfiguration"):
@@ -272,15 +270,15 @@ class CloudformationArgs:
                 body = body.read()
                 self._extra_args["StackPolicyDuringUpdateBody"] = body
 
-    def set_permissions(self, update=False):
+    def set_permissions(self, update: bool = False) -> None:
         """set the iam user for the current stack
 
         All operation permissions will be based on this
         iam role. Select None to stop using iam role
         and use current profile permissions
 
-        Args:
-            update: bool, show previous values
+        :param update: show previous values if true
+        :type update: bool, optional
         """
 
         print(80 * "-")
@@ -300,7 +298,7 @@ class CloudformationArgs:
         if iam.arns:
             self._extra_args["RoleARN"] = iam.arns[0]
 
-    def set_tags(self, update=False):
+    def set_tags(self, update: bool = False) -> None:
         """set tags for the current stack
 
         Tags are in the format of [
@@ -310,37 +308,34 @@ class CloudformationArgs:
             }
         ]
 
-        Args:
-            update: bool, determine if is updating the stack
+        :param update: determine if is updating the stack, it will show different prompt
+        :type update: bool, optional
         """
 
         print(80 * "-")
-        tag_list = []
+        tag_list: List[Dict[str, str]] = []
         if update:
             if self.cloudformation.stack_details.get("Tags"):
+                print("Update original tags")
                 print("Skip the value to use previous value")
                 print('Enter "deletetag" in any field to remove a tag')
                 for tag in self.cloudformation.stack_details["Tags"]:
-                    tag_key = input(f"Key({tag['Key']}): ")
+                    tag_key = input("Key(%s): " % tag["Key"])
                     if not tag_key:
                         tag_key = tag["Key"]
-                    tag_value = input(f"Value({tag['Value']}): ")
+                    tag_value = input("Value(%s): " % tag["Value"])
                     if not tag_value:
                         tag_value = tag["Value"]
                     if tag_key == "deletetag" or tag_value == "deletetag":
                         continue
                     tag_list.append({"Key": tag_key, "Value": tag_value})
-            print("Enter new tags below")
-            print("Skip enter value to stop entering for new tags")
-        elif not update:
-            print("Tags help you identify your sub resources")
-            print('A "Name" tag is suggested to enter at the very least')
-            print("Skip enter value to stop entering for tags")
+        print("Enter new tags below")
+        print("Enter an empty value to stop entering for new tags")
         while True:
-            tag_name = input("TagName: ")
+            tag_name: str = input("TagName: ")
             if not tag_name:
                 break
-            tag_value = input("TagValue: ")
+            tag_value: str = input("TagValue: ")
             if not tag_value:
                 break
             tag_list.append({"Key": tag_name, "Value": tag_value})

@@ -1,3 +1,4 @@
+from fzfaws.iam.iam import IAM
 import io
 import json
 import os
@@ -325,4 +326,42 @@ class TestCloudformationArgs(unittest.TestCase):
             cloudformation=True,
             empty_allow=True,
             header="select the policy document you would like to use",
+        )
+
+    @patch.object(IAM, "set_arns")
+    def test_set_permissions(self, mocked_arn):
+        self.cloudformationargs.set_permissions()
+        mocked_arn.assert_called_once_with(
+            header="Choose an IAM role to explicitly define CloudFormation's permissions\nNote: only IAM role can be assumed by CloudFormation is listed",
+            service="cloudformation.amazonaws.com",
+        )
+
+        mocked_arn.reset_mock()
+        self.cloudformationargs.cloudformation.stack_details = {"RoleARN": "111111"}
+        self.cloudformationargs.set_permissions(update=True)
+        mocked_arn.assert_called_once_with(
+            header="Select a role Choose an IAM role to explicitly define CloudFormation's permissions\nOriginal value: 111111",
+            service="cloudformation.amazonaws.com",
+        )
+
+    @patch("builtins.input")
+    def test_set_tags(self, mocked_input):
+        self.cloudformationargs._extra_args = {}
+        mocked_input.return_value = ""
+        self.cloudformationargs.set_tags()
+        mocked_input.assert_has_calls(
+            [call("TagName: "),]
+        )
+        self.assertEqual(self.cloudformationargs._extra_args, {})
+
+        mocked_input.reset_mock()
+        mocked_input.return_value = ""
+        self.cloudformationargs.cloudformation.stack_details = {
+            "Tags": [{"Key": "foo", "Value": "boo"}]
+        }
+        self.cloudformationargs.set_tags(update=True)
+        mocked_input.assert_has_calls([call("Key(foo): "), call("Value(boo): ")])
+        self.assertEqual(
+            self.cloudformationargs._extra_args,
+            {"Tags": [{"Key": "foo", "Value": "boo"}]},
         )
