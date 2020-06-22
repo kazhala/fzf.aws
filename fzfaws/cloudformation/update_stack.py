@@ -221,9 +221,7 @@ def update_stack(
     # update termination protection if applicable
     if extra_args.update_termination:
         cloudformation.client.update_termination_protection(
-            EnableTerminationProtection=True
-            if extra_args.update_termination == "True"
-            else False,
+            EnableTerminationProtection=extra_args.update_termination,
             StackName=cloudformation.stack_name,
         )
 

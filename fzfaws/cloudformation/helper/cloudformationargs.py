@@ -2,10 +2,12 @@
 
 contains the class to configure extra settings of a cloudformation stack
 """
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.iam.iam import IAM
-from fzfaws.sns.sns import SNS
-from fzfaws.cloudwatch.cloudwatch import Cloudwatch
+from typing import List
+from fzfaws.utils import Pyfzf
+from fzfaws.iam import IAM
+from fzfaws.sns import SNS
+from fzfaws.cloudwatch import Cloudwatch
+from fzfaws.cloudformation import Cloudformation
 
 
 class CloudformationArgs:
@@ -13,50 +15,54 @@ class CloudformationArgs:
 
     Handles tags, roll back, stack policy, notification, termination protection etc
 
-    Attributes:
-        cloudformation: Cloudformation class instance
-        _extra_args: extra argument
+    :param cloudformation: A instance of Cloudformation
+    :type cloudformation: Cloudformation
     """
 
-    def __init__(self, cloudformation):
+    def __init__(self, cloudformation: Cloudformation):
         """constructior
-
-        Args:
-            cloudformation: Cloudformation class instance
         """
-        self.cloudformation = cloudformation
-        self._extra_args = {}
-        self.update_termination = None
+        self.cloudformation: Cloudformation = cloudformation
+        self._extra_args: dict = {}
+        self.update_termination: bool = False
 
     def set_extra_args(
         self,
-        tags=False,
-        rollback=False,
-        permissions=False,
-        stack_policy=False,
-        creation_option=False,
-        notification=False,
-        update=False,
-        search_from_root=False,
-        dryrun=False,
-    ):
+        tags: bool = False,
+        rollback: bool = False,
+        permissions: bool = False,
+        stack_policy: bool = False,
+        creation_option: bool = False,
+        notification: bool = False,
+        update: bool = False,
+        search_from_root: bool = False,
+        dryrun: bool = False,
+    ) -> None:
         """set extra arguments
 
         Used to determine what args to set and acts like a router
 
-        Args:
-            tags: bool, set tags for the stack
-            rollback: bool, set rollback configuration for the stack
-            iam: bool, use a specific iam role for this creation
-            stack_policy: bool, add stack_policy to the stack
-            creation_option: bool, configure creation_policy (termination protection, rollback on failure)
-            notification: bool, set sns topic to publish
-            update: bool, determine if is creating stack or updating stack
-            search_from_root: bool, search from root for stack_policy
-            dryrun: bool, if true, changeset operation and don't add CreationOption or UpdateOption entry
+        :param tags: configure tags for the stack
+        :type tags: bool, optional
+        :param rollback: set rollback configuration for the stack
+        :type rollback: bool, optional
+        :param iam: use a specific iam role for this operation
+        :type iam: bool, optional
+        :param stack_policy: add stack_policy to the stack
+        :type stack_policy: bool, optional
+        :param creation_policy: configure creation_policy (termination protection, rollback on failure)
+        :type creation_policy: bool, optional
+        :param notification: set sns topic to publish
+        :type notification: bool, optional
+        :param update: determine if is creating stack or updating stack
+        :type update: bool, optional
+        :param search_from_root: search from root for stack_policy
+        :type search_from_root: bool, optional
+        :param dryrun: if true, changeset operation and don't add CreationOption or UpdateOption entry
+        :type dryrun: bool, optional
         """
 
-        attributes = []
+        attributes: List[str] = []
         if (
             not tags
             and not rollback
@@ -76,11 +82,13 @@ class CloudformationArgs:
                 fzf.append_fzf("CreationOption\n")
             elif not dryrun and update:
                 fzf.append_fzf("UpdateOption")
-            attributes = fzf.execute_fzf(
-                empty_allow=True,
-                print_col=1,
-                multi_select=True,
-                header="Select options to configure",
+            attributes = list(
+                fzf.execute_fzf(
+                    empty_allow=True,
+                    print_col=1,
+                    multi_select=True,
+                    header="Select options to configure",
+                )
             )
 
         for attribute in attributes:
@@ -168,7 +176,7 @@ class CloudformationArgs:
                         True if result == "True" else False
                     )
                 elif result and update:
-                    self.update_termination = result
+                    self.update_termination = True if result == "True" else False
 
     def set_rollback(self, update=False):
         """set rollback configuration for cloudformation
