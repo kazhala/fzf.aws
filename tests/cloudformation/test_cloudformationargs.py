@@ -117,3 +117,90 @@ class TestCloudformationArgs(unittest.TestCase):
                 call("RollbackConfiguration\n"),
             ]
         )
+
+    @patch("builtins.input")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_set_creation(self, mocked_append, mocked_execute, mocked_input):
+        self.cloudformationargs._extra_args = {}
+
+        # normal test
+        mocked_execute.return_value = [
+            "RollbackOnFailure",
+            "TimeoutInMinutes",
+            "EnableTerminationProtection",
+        ]
+        mocked_input.return_value = 1
+        self.cloudformationargs.set_creation()
+        mocked_append.assert_has_calls(
+            [
+                call("RollbackOnFailure\n"),
+                call("TimeoutInMinutes\n"),
+                call("EnableTerminationProtection\n"),
+                call("True\n"),
+                call("False\n"),
+                call("True\n"),
+                call("False\n"),
+            ]
+        )
+        mocked_execute.assert_has_calls(
+            [
+                call(
+                    empty_allow=True,
+                    print_col=1,
+                    multi_select=True,
+                    header="select options to configure",
+                ),
+                call(
+                    empty_allow=True,
+                    print_col=1,
+                    header="Roll back on failue? (Default: True)",
+                ),
+                call(
+                    empty_allow=True,
+                    print_col=1,
+                    header="%sEnable termination protection? (Default: False)",
+                ),
+            ]
+        )
+        self.assertEqual(
+            self.cloudformationargs.extra_args,
+            {
+                "OnFailure": "DO_NOTHING",
+                "TimeoutInMinutes": 1,
+                "EnableTerminationProtection": False,
+            },
+        )
+
+        # update test
+        self.cloudformationargs._extra_args = {}
+        mocked_append.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_input.reset_mock()
+        mocked_execute.return_value = [
+            "EnableTerminationProtection",
+        ]
+        mocked_input.return_value = 1
+        self.cloudformationargs.set_creation(update=True)
+        mocked_append.assert_has_calls(
+            [call("EnableTerminationProtection\n"), call("True\n"), call("False\n"),]
+        )
+        mocked_execute.assert_has_calls(
+            [
+                call(
+                    empty_allow=True,
+                    print_col=1,
+                    multi_select=True,
+                    header="select options to configure",
+                ),
+                call(
+                    empty_allow=True,
+                    print_col=1,
+                    header="Enable termination protection?",
+                ),
+            ]
+        )
+        self.assertEqual(
+            self.cloudformationargs.extra_args, {},
+        )
+        self.assertEqual(self.cloudformationargs.update_termination, False)

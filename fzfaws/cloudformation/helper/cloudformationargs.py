@@ -118,33 +118,40 @@ class CloudformationArgs:
         if creation_option:
             self.set_creation(update)
 
-    def set_creation(self, update=False):
+    def set_creation(self, update: bool = False) -> None:
         """set creation option for stack
 
-        Args:
-            update: bool, show previous values
+        :param update: show previous values if update is true
+        :type update: bool, optional
         """
+
         print(80 * "-")
         fzf = Pyfzf()
         if not update:
-            fzf.append_fzf("Rollback on failure\n")
+            fzf.append_fzf("RollbackOnFailure\n")
             fzf.append_fzf("TimeoutInMinutes\n")
         fzf.append_fzf("EnableTerminationProtection\n")
-        selected_options = fzf.execute_fzf(
-            empty_allow=True,
-            print_col=1,
-            multi_select=True,
-            header="select options to configure",
+        selected_options: List[str] = list(
+            fzf.execute_fzf(
+                empty_allow=True,
+                print_col=1,
+                multi_select=True,
+                header="select options to configure",
+            )
         )
+
         for option in selected_options:
-            if option == "Rollback":
+            result: str = ""
+            if option == "RollbackOnFailure":
                 fzf.fzf_string = ""
                 fzf.append_fzf("True\n")
                 fzf.append_fzf("False\n")
-                result = fzf.execute_fzf(
-                    empty_allow=True,
-                    print_col=1,
-                    header="Roll back on failue? (Default: True)",
+                result = str(
+                    fzf.execute_fzf(
+                        empty_allow=True,
+                        print_col=1,
+                        header="Roll back on failue? (Default: True)",
+                    )
                 )
                 if result:
                     self._extra_args["OnFailure"] = (
@@ -164,12 +171,14 @@ class CloudformationArgs:
                 fzf.fzf_string = ""
                 fzf.append_fzf("True\n")
                 fzf.append_fzf("False\n")
-                result = fzf.execute_fzf(
-                    empty_allow=True,
-                    print_col=1,
-                    header="%s" "Enable termination protection? (Default: False)"
-                    if not update
-                    else "Enable termination protection?",
+                result = str(
+                    fzf.execute_fzf(
+                        empty_allow=True,
+                        print_col=1,
+                        header="%s" "Enable termination protection? (Default: False)"
+                        if not update
+                        else "Enable termination protection?",
+                    )
                 )
                 if result and not update:
                     self._extra_args["EnableTerminationProtection"] = (
