@@ -221,12 +221,13 @@ class CloudformationArgs:
                 "MonitoringTimeInMinutes": int(monitor_time) if monitor_time else 0,
             }
 
-    def set_notification(self, update=False):
+    def set_notification(self, update: bool = False) -> None:
         """set sns arn for notification
 
-        Args:
-            update: bool, show previous values
+        :param update: show previous values if true
+        :type update: bool, optional
         """
+
         print(80 * "-")
         sns = SNS(
             profile=self.cloudformation.profile, region=self.cloudformation.region
@@ -240,22 +241,27 @@ class CloudformationArgs:
         if sns.arns:
             self._extra_args["NotificationARNs"] = sns.arns
 
-    def set_policy(self, update=False, search_from_root=False):
+    def set_policy(self, update: bool = False, search_from_root: bool = False) -> None:
         """set the stack_policy for the stack
 
         Used to prevent update on certain resources
 
-        Args:
-            update: bool, if during stack update
-            search_from_root: bool, search files from root
+        :param update: determine if stack is updating, if true, set different args
+            aws cloudformation takes StackPolicyBody for creation and StackPolicyDuringUpdateBody for update overwrite
+        :type update: bool, optional
+        :param search_from_root: search files from root
+        :type search_from_root: bool, optional
         """
+
         print(80 * "-")
         fzf = Pyfzf()
-        file_path = fzf.get_local_file(
-            search_from_root=search_from_root,
-            cloudformation=True,
-            empty_allow=True,
-            header="select the policy document you would like to use",
+        file_path: str = str(
+            fzf.get_local_file(
+                search_from_root=search_from_root,
+                cloudformation=True,
+                empty_allow=True,
+                header="select the policy document you would like to use",
+            )
         )
         if not update and file_path:
             with open(str(file_path), "r") as body:

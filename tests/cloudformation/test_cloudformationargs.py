@@ -1,11 +1,15 @@
 import io
+import json
+import os
 import sys
 import unittest
 from unittest.mock import call, patch
-from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
+
 from fzfaws.cloudformation import Cloudformation
-from fzfaws.utils import Pyfzf
+from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.cloudwatch import Cloudwatch
+from fzfaws.sns.sns import SNS
+from fzfaws.utils import Pyfzf
 
 
 class TestCloudformationArgs(unittest.TestCase):
@@ -247,3 +251,78 @@ class TestCloudformationArgs(unittest.TestCase):
             multi_select=True,
         )
         mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Original: 1): ")
+
+    @patch.object(SNS, "set_arns")
+    def test_set_notification(self, mocked_arn):
+        self.cloudformationargs.set_notification()
+        mocked_arn.assert_called_once_with(
+            empty_allow=True, header="select sns topic to notify", multi_select=True
+        )
+
+        mocked_arn.reset_mock()
+        self.cloudformationargs.cloudformation.stack_details = {
+            "NotificationARNs": "111111"
+        }
+        self.cloudformationargs.set_notification(update=True)
+        mocked_arn.assert_called_once_with(
+            empty_allow=True,
+            header="select sns topic to notify\nOriginal value: 111111",
+            multi_select=True,
+        )
+
+    @patch.object(Pyfzf, "get_local_file")
+    def test_set_policy(self, mocked_file):
+        mocked_file.return_value = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/policy.json"
+        )
+        self.cloudformationargs.set_policy()
+        self.assertEqual(
+            self.cloudformationargs._extra_args["StackPolicyBody"],
+            json.dumps(
+                {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": "Update:*",
+                            "Principal": "*",
+                            "Resource": "*",
+                        }
+                    ]
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        mocked_file.assert_called_once_with(
+            search_from_root=False,
+            cloudformation=True,
+            empty_allow=True,
+            header="select the policy document you would like to use",
+        )
+
+        mocked_file.reset_mock()
+        self.cloudformationargs._extra_args = {}
+        self.cloudformationargs.set_policy(search_from_root=True, update=True)
+        self.assertEqual(
+            self.cloudformationargs._extra_args["StackPolicyDuringUpdateBody"],
+            json.dumps(
+                {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": "Update:*",
+                            "Principal": "*",
+                            "Resource": "*",
+                        }
+                    ]
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        mocked_file.assert_called_once_with(
+            search_from_root=True,
+            cloudformation=True,
+            empty_allow=True,
+            header="select the policy document you would like to use",
+        )
