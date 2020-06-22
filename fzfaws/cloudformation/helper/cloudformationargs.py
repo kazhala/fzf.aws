@@ -187,16 +187,19 @@ class CloudformationArgs:
                 elif result and update:
                     self.update_termination = True if result == "True" else False
 
-    def set_rollback(self, update=False):
+    def set_rollback(self, update: bool = False) -> None:
         """set rollback configuration for cloudformation
-
-        Args:
-            update: bool, show previous values
+        
+        :param update: show previous values if true
+        :type update: bool, optional
         """
+
         print(80 * "-")
-        cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
-        header = "select a cloudwatch alarm to monitor the stack"
-        message = "MonitoringTimeInMinutes(Default: 0): "
+        cloudwatch: Cloudwatch = Cloudwatch(
+            self.cloudformation.profile, self.cloudformation.region
+        )
+        header: str = "select a cloudwatch alarm to monitor the stack"
+        message: str = "MonitoringTimeInMinutes(Default: 0): "
         if update and self.cloudformation.stack_details.get("RollbackConfiguration"):
             header += "\nOriginal value: %s" % self.cloudformation.stack_details[
                 "RollbackConfiguration"

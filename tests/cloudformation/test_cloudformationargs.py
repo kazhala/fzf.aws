@@ -5,6 +5,7 @@ from unittest.mock import call, patch
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.utils import Pyfzf
+from fzfaws.cloudwatch import Cloudwatch
 
 
 class TestCloudformationArgs(unittest.TestCase):
@@ -204,3 +205,45 @@ class TestCloudformationArgs(unittest.TestCase):
             self.cloudformationargs.extra_args, {},
         )
         self.assertEqual(self.cloudformationargs.update_termination, False)
+
+    @patch("builtins.input")
+    @patch.object(Cloudwatch, "set_arns")
+    def test_set_rollback(self, mocked_arn, mocked_input):
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        # normal test
+        self.cloudformationargs.set_rollback(update=False)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
+        )
+        mocked_arn.assert_called_once_with(
+            empty_allow=True,
+            header="select a cloudwatch alarm to monitor the stack",
+            multi_select=True,
+        )
+        mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Default: 0): ")
+
+        mocked_arn.reset_mock()
+        mocked_input.reset_mock()
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        # update test
+        self.cloudformationargs.cloudformation.stack_details = {
+            "RollbackConfiguration": {
+                "RollbackTriggers": "111111",
+                "MonitoringTimeInMinutes": 1,
+            }
+        }
+        self.cloudformationargs.set_rollback(update=True)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
+        )
+        mocked_arn.assert_called_once_with(
+            empty_allow=True,
+            header="select a cloudwatch alarm to monitor the stack\nOriginal value: 111111",
+            multi_select=True,
+        )
+        mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Original: 1): ")
