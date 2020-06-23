@@ -1,12 +1,12 @@
-"""contains funtions related to processing a new template"""
-from fzfaws.utils.spinner import Spinner
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.util import (
-    search_dict_in_list,
-    check_dict_value_in_list,
-)
-from fzfaws.ec2.ec2 import EC2
-from fzfaws.route53.route53 import Route53
+"""contains ParamProcessor class
+
+Used for cloudformation update/changeset/create stack
+"""
+from typing import List, Optional, Union
+
+from fzfaws.ec2 import EC2
+from fzfaws.route53 import Route53
+from fzfaws.utils import Pyfzf, Spinner, check_dict_value_in_list, search_dict_in_list
 
 
 class ParamProcessor:
@@ -15,29 +15,36 @@ class ParamProcessor:
     utilizing fzf and boto3 to give better experience of entering params
     for cloudformation
 
-    :param ec2: boto3 client to interact with EC2
-    :type ec2: EC2
-    :param route53: boto3 client to interact with route53
-    :type route53: Route53
-    :param params: dictionary of parameter to process
-    :type params: dict
-    :param original_params: original values of params during update
-    :type original_params: dict
+    :param profile: use a different profile for this operation
+    :type profile: Union[str, bool], optional
+    :param region: use a different region for this operation
+    :type region: Union[str, bool], optional
+    :param params: cloudformation parameter to process
+    :type params: dict, optional
+    :param original_params: original params to display during update stack or changeset stack
+    :type original_params: List[dict], optional
     """
 
-    def __init__(self, profile=None, region=None, params=None, original_params=None):
+    def __init__(
+        self,
+        profile: Optional[Union[str, bool]] = None,
+        region: Optional[Union[str, bool]] = None,
+        params: dict = None,
+        original_params: List[dict] = None,
+    ) -> None:
         """constructor of ParamProcessor
         """
+
         if params == None:
             params = {}
         if original_params == None:
-            original_params = {}
-        self.ec2 = EC2(profile, region)  # type: EC2
-        self.route53 = Route53(profile, region)  # type: Route53
-        self.params = params  # type: dict
-        self.original_params = original_params  # type: dict
-        self.processed_params = []  # type: list
-        self._aws_specific_param = [
+            original_params = []
+        self.ec2 = EC2(profile, region)
+        self.route53 = Route53(profile, region)
+        self.params: dict = params
+        self.original_params: List[dict] = original_params
+        self.processed_params: List[dict] = []
+        self._aws_specific_param: List[str] = [
             "AWS::EC2::AvailabilityZone::Name",
             "AWS::EC2::Instance::Id",
             "AWS::EC2::KeyPair::KeyName",
@@ -47,8 +54,8 @@ class ParamProcessor:
             "AWS::EC2::Volume::Id",
             "AWS::EC2::VPC::Id",
             "AWS::Route53::HostedZone::Id",
-        ]  # type: list
-        self._aws_specific_list_param = [
+        ]
+        self._aws_specific_list_param: List[str] = [
             "List<AWS::EC2::AvailabilityZone::Name>",
             "List<AWS::EC2::Instance::Id>",
             "List<AWS::EC2::SecurityGroup::GroupName>",
@@ -57,19 +64,21 @@ class ParamProcessor:
             "List<AWS::EC2::Volume::Id>",
             "List<AWS::EC2::VPC::Id>",
             "List<AWS::Route53::HostedZone::Id>",
-        ]  # type: list
+        ]
 
-    def process_stack_params(self):
+    def process_stack_params(self) -> None:
         """process the template file parameters
+
+        Loop through the keys in the loaded dict object of params and leverage
+        self._get_user_input to get user input through fzf or cmd input
         """
 
         print("Enter parameters specified in your template below")
         for parameter_key in self.params:
             print(80 * "-")
-            default_value = ""  # type: str
-            param_header = ""  # type: str
+            default_value: str = ""
+            param_header: str = ""
 
-            # print some information
             if "Description" in self.params[parameter_key]:
                 param_header += (
                     "Description: %s\n" % self.params[parameter_key]["Description"]
@@ -84,7 +93,7 @@ class ParamProcessor:
                     "AllowedPattern: %s\n"
                     % self.params[parameter_key]["AllowedPattern"]
                 )
-            parameter_type = self.params[parameter_key]["Type"]
+            parameter_type: str = self.params[parameter_key]["Type"]
             param_header += "Type: %s\n" % parameter_type
             if (
                 parameter_type == "List<Number>"
@@ -95,10 +104,10 @@ class ParamProcessor:
             if check_dict_value_in_list(
                 parameter_key, self.original_params, "ParameterKey"
             ):
-                # update with replace current stack flag
-                original_value = search_dict_in_list(
+                # check if there is original value i.e. udpating the stack
+                original_value: str = search_dict_in_list(
                     parameter_key, self.original_params, "ParameterKey"
-                )["ParameterValue"]
+                ).get("ParameterValue", "")
                 parameter_value = self._get_user_input(
                     parameter_key,
                     parameter_type,
@@ -123,6 +132,7 @@ class ParamProcessor:
                 )
 
             if type(parameter_value) is list:
+                # cloudformation only accept comma delimited list for list items
                 parameter_value = ",".join(parameter_value)
                 self.processed_params.append(
                     {"ParameterKey": parameter_key, "ParameterValue": parameter_value}
@@ -139,6 +149,9 @@ class ParamProcessor:
                 or parameter_type in self._aws_specific_param
                 or parameter_type in self._aws_specific_list_param
             ):
+                # because list items and fzf input information are displayed in fzf header
+                # it's hard for user to track what they have gone through
+                # hence printing the header information to terminal as well
                 print(param_header.rstrip())
             print("ParameterValue: %s" % parameter_value)
 

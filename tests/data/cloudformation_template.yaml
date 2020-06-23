@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  cloudformation template to deploy a basic flexible EC2 instance
+Parameters:
+  InstanceRole:
+    Description: "Name of the instance role, skip the value if don't have one"
+    Type: String
+  LatestAmiId:
+    Description: 'Latest ami id, automatically look up using ssm'
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  SubnetId:
+    Description: The subnet this instance should be deployed to
+    Type: 'AWS::EC2::Subnet::Id'
+  SecurityGroups:
+    Description: A list of secruity group ids
+    Type: 'List<AWS::EC2::SecurityGroup::Id>'
+  KeyName:
+    Description: Name of an existing EC2 key pairs for accessing new EC2 instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair
+  WebServer:
+    Description: Is the ec2 instance used as a webserver?
+    Type: String
+    Default: 'No'
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.micro
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    ConstraintDescription: must be a valid EC2 instance type
+Conditions:
+  IsWebServer: !Equals [!Ref WebServer, 'Yes']
+  AssociateRole: !Not [!Equals [!Ref InstanceRole, '']]
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          InstallAndCustomize:
+            - Install
+            - Customize
+        Install:
+          packages:
+            yum:
+              python3: []
+              git: []
+        Customize:
+          commands:
+            downloadBashrc:
+              command: 'curl -o .bashrc https://raw.githubusercontent.com/kazhala/DotConfig/master/.bashrc'
+              cwd: '/home/ec2-user'
+    Properties:
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: !Ref SecurityGroups
+      KeyName: !Ref KeyName
+      ImageId: !Ref LatestAmiId
+      IamInstanceProfile:
+        !If
+          - AssociateRole
+          - !Ref InstanceRole
+          - !Ref 'AWS::NoValue'
+      Tags:
+        !If
+          - IsWebServer
+          - - Key: 'WebServer'
+              Value: 'Yes'
+          - - !Ref 'AWS::NoValue'
+      UserData:
+        'Fn::Base64': !Sub |
+            #!/bin/bash -ex
+             yum update -y
+            /opt/aws/bin/cfn-init -v -s ${AWS::StackName} -c InstallAndCustomize -r EC2Instance --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+Outputs:
+  InstanceId:
+    Description: InstanceId of the stack EC2 instance
+    Value: !Ref EC2Instance

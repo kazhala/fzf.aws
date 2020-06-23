@@ -3,11 +3,12 @@
 contains the class to configure extra settings of a cloudformation stack
 """
 from typing import Dict, List
-from fzfaws.utils import Pyfzf
+
+from fzfaws.cloudformation import Cloudformation
+from fzfaws.cloudwatch import Cloudwatch
 from fzfaws.iam import IAM
 from fzfaws.sns import SNS
-from fzfaws.cloudwatch import Cloudwatch
-from fzfaws.cloudformation import Cloudformation
+from fzfaws.utils import Pyfzf
 
 
 class CloudformationArgs:
