@@ -236,7 +236,7 @@ class ParamProcessor:
         else:
             return "Choose a value for %s" % parameter_key
 
-    def _get_selected_param_value(self, type_name, param_header):
+    def _get_selected_param_value(self, type_name: str, param_header: str) -> str:
         """use fzf to display aws specific parameters
 
         :param type_name: name of the parameter type
@@ -249,33 +249,33 @@ class ParamProcessor:
 
         fzf = Pyfzf()
         if type_name == "AWS::EC2::KeyPair::KeyName":
-            spinner = Spinner(message="Fetching KeyPairs..")
-            response = spinner.execute_with_spinner(self.ec2.client.describe_key_pairs)
-            response_list = response["KeyPairs"]
-            fzf.process_list(response_list, "KeyName")
+            with Spinner.spin(message="Fetching KeyPair ..."):
+                response = self.ec2.client.describe_key_pairs()
+                response_list = response["KeyPairs"]
+            fzf.process_list(response_list, "KeyName", empty_allow=True)
         elif type_name == "AWS::EC2::SecurityGroup::Id":
-            return self.ec2.get_security_groups(header=param_header)
+            return str(self.ec2.get_security_groups(header=param_header))
         elif type_name == "AWS::EC2::AvailabilityZone::Name":
-            spinner = Spinner(message="Fetching AvailabilityZones..")
-            response = spinner.execute_with_spinner(
-                self.ec2.client.describe_availability_zones
-            )
-            response_list = response["AvailabilityZones"]
-            fzf.process_list(response_list, "ZoneName")
+            with Spinner.spin(message="Fetching AvailabilityZones ..."):
+                response = self.ec2.client.describe_availability_zones
+                response_list = response.get("AvailabilityZones", [])
+            fzf.process_list(response_list, "ZoneName", empty_allow=True)
         elif type_name == "AWS::EC2::Instance::Id":
-            return self.ec2.get_instance_id(header=param_header)
+            return str(self.ec2.get_instance_id(header=param_header))
         elif type_name == "AWS::EC2::SecurityGroup::GroupName":
-            return self.ec2.get_security_groups(return_attr="name", header=param_header)
+            return str(
+                self.ec2.get_security_groups(return_attr="name", header=param_header)
+            )
         elif type_name == "AWS::EC2::Subnet::Id":
-            return self.ec2.get_subnet_id(header=param_header)
+            return str(self.ec2.get_subnet_id(header=param_header))
         elif type_name == "AWS::EC2::Volume::Id":
-            return self.ec2.get_volume_id(header=param_header)
+            return str(self.ec2.get_volume_id(header=param_header))
         elif type_name == "AWS::EC2::VPC::Id":
-            return self.ec2.get_vpc_id(header=param_header)
+            return str(self.ec2.get_vpc_id(header=param_header))
         elif type_name == "AWS::Route53::HostedZone::Id":
             self.route53.set_zone_id()
             return self.route53.zone_ids[0]
-        return fzf.execute_fzf(empty_allow=True, header=param_header)
+        return str(fzf.execute_fzf(empty_allow=True, header=param_header))
 
     def _get_list_param_value(self, type_name, param_header):
         """handler if parameter type is a list type

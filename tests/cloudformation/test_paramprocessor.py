@@ -1,11 +1,17 @@
+from fzfaws.route53.route53 import Route53
+from fzfaws.ec2.ec2 import EC2
+from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
 import os
 import io
 import sys
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import PropertyMock, call, patch
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.utils import FileLoader
+import boto3
+from botocore.stub import Stubber
+import json
 
 
 class TestCloudformationParams(unittest.TestCase):
@@ -242,3 +248,64 @@ class TestCloudformationParams(unittest.TestCase):
 
         result = self.paramprocessor._print_parameter_key("SecurityGroups")
         self.assertEqual(result, "Choose a value for SecurityGroups")
+
+    @patch.object(Route53, "set_zone_id")
+    @patch.object(EC2, "get_security_groups")
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "process_list")
+    def test_get_selected_param_value(
+        self, mocked_process, mocked_execute, mocked_client, mocked_sg, mocked_zone,
+    ):
+        mocked_execute.return_value = "111111"
+
+        # keypair test for normal client test
+        keypair_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_keypair.json"
+        )
+        with open(keypair_path, "r") as file:
+            keypair_response = json.load(file)
+        ec2 = boto3.client("ec2")
+        stubber = Stubber(ec2)
+        stubber.add_response("describe_key_pairs", keypair_response)
+        stubber.activate()
+        mocked_client.return_value = ec2
+        result = self.paramprocessor._get_selected_param_value(
+            "AWS::EC2::KeyPair::KeyName", "foo boo"
+        )
+        mocked_process.assert_called_once_with(
+            [
+                {
+                    "KeyPairId": "key-111111",
+                    "KeyFingerprint": "asdfasfsadfasdfafasf",
+                    "KeyName": "ap-southeast-foo-boo",
+                    "Tags": [],
+                }
+            ],
+            "KeyName",
+            empty_allow=True,
+        )
+        mocked_execute.assert_called_once_with(empty_allow=True, header="foo boo")
+        mocked_sg.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        # security group test for ec2 method
+        mocked_execute.reset_mock()
+        mocked_process.reset_mock()
+        mocked_sg.return_value = "111111"
+        result = self.paramprocessor._get_selected_param_value(
+            "AWS::EC2::SecurityGroup::Id", "foo boo"
+        )
+        mocked_sg.assert_called_once_with(header="foo boo")
+        mocked_execute.assert_not_called()
+        mocked_process.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        # route53 zone test
+        result = self.paramprocessor._get_selected_param_value(
+            "AWS::Route53::HostedZone::Id", "foo boo"
+        )
+        mocked_execute.assert_not_called()
+        mocked_process.assert_not_called()
+        mocked_zone.assert_called_once()
+        self.assertEqual(result, "")

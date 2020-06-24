@@ -1,0 +1,22 @@
+{
+  "KeyPairs": [
+    {
+      "KeyPairId": "key-111111",
+      "KeyFingerprint": "asdfasfsadfasdfafasf",
+      "KeyName": "ap-southeast-foo-boo",
+      "Tags": []
+    }
+  ],
+  "ResponseMetadata": {
+    "RequestId": "cf56fd7b-bf59-4d59-908d-dfa5560574ea",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "cf56fd7b-bf59-4d59-908d-dfa5560574ea",
+      "content-type": "text/xml;charset=UTF-8",
+      "content-length": "506",
+      "date": "Wed, 24 Jun 2020 00:59:19 GMT",
+      "server": "AmazonEC2"
+    },
+    "RetryAttempts": 0
+  }
+}
