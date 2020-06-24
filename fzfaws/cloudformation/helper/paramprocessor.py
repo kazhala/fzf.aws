@@ -2,7 +2,7 @@
 
 Used for cloudformation update/changeset/create stack
 """
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 
 from fzfaws.ec2 import EC2
 from fzfaws.route53 import Route53
@@ -29,8 +29,8 @@ class ParamProcessor:
         self,
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
-        params: dict = None,
-        original_params: List[dict] = None,
+        params: Dict[str, Any] = None,
+        original_params: List[Dict[str, Any]] = None,
     ) -> None:
         """constructor of ParamProcessor
         """
@@ -41,9 +41,9 @@ class ParamProcessor:
             original_params = []
         self.ec2 = EC2(profile, region)
         self.route53 = Route53(profile, region)
-        self.params: dict = params
-        self.original_params: List[dict] = original_params
-        self.processed_params: List[dict] = []
+        self.params: Dict[str, Any] = params
+        self.original_params: List[Dict[str, Any]] = original_params
+        self.processed_params: List[Dict[str, Any]] = []
         self._aws_specific_param: List[str] = [
             "AWS::EC2::AvailabilityZone::Name",
             "AWS::EC2::Instance::Id",
@@ -157,12 +157,12 @@ class ParamProcessor:
 
     def _get_user_input(
         self,
-        parameter_key,
-        parameter_type,
-        param_header,
-        value_type=None,
-        default=None,
-    ):
+        parameter_key: str,
+        parameter_type: str,
+        param_header: str,
+        value_type: str = None,
+        default: str = None,
+    ) -> Union[str, List[str]]:
         """get user input
 
         :param parameter_key: the current parameter key to obtain user input 
@@ -176,10 +176,10 @@ class ParamProcessor:
         :param default: default value of params or orignal value
         :type default: str, optional
         :return: return the user selection through fzf or python input
-        :rtype: str
+        :rtype: Union[str, List[str]]
         """
 
-        user_input = None
+        user_input: Union[str, List[str]] = ""
         # execute fzf if allowed_value array exists
         if "AllowedValues" in self.params[parameter_key]:
             param_header += self._print_parameter_key(
@@ -187,8 +187,7 @@ class ParamProcessor:
             )
             fzf = Pyfzf()
             for allowed_value in self.params[parameter_key]["AllowedValues"]:
-                fzf.append_fzf(allowed_value)
-                fzf.append_fzf("\n")
+                fzf.append_fzf("%s\n" % allowed_value)
             user_input = fzf.execute_fzf(
                 empty_allow=True, print_col=1, header=param_header
             )

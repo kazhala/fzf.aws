@@ -1,3 +1,4 @@
+from fzfaws.utils.pyfzf import Pyfzf
 import os
 import io
 import sys
@@ -135,3 +136,95 @@ class TestCloudformationParams(unittest.TestCase):
             "Original",
             "t2.micro",
         )
+
+    @patch("builtins.input")
+    @patch.object(ParamProcessor, "_get_list_param_value")
+    @patch.object(ParamProcessor, "_get_selected_param_value")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    @patch.object(ParamProcessor, "_print_parameter_key")
+    def test_get_user_input(
+        self,
+        mocked_print,
+        mocked_append,
+        mocked_execute,
+        mocked_select,
+        mocked_list,
+        mocked_input,
+    ):
+
+        # normal var with no default value test
+        mocked_input.return_value = "111111"
+        result = self.paramprocessor._get_user_input(
+            "InstanceRole", "String", "foo boo"
+        )
+        mocked_input.assert_called_once_with("InstanceRole: ")
+        mocked_print.assert_not_called()
+        mocked_append.assert_not_called()
+        mocked_execute.assert_not_called()
+        mocked_select.assert_not_called()
+        mocked_list.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        mocked_input.reset_mock()
+        mocked_print.reset_mock()
+        mocked_append.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_select.reset_mock()
+        mocked_list.reset_mock()
+        # test allowed_value
+        mocked_print.return_value = ""
+        mocked_execute.return_value = "111111"
+        result = self.paramprocessor._get_user_input(
+            "WebServer", "String", "foo boo", "Default", "No"
+        )
+        mocked_print.assert_called_with("WebServer", "Default", "No")
+        mocked_append.assert_has_calls([call("Yes\n"), call("No\n")])
+        mocked_execute.assert_called_once_with(
+            empty_allow=True, print_col=1, header="foo boo"
+        )
+        mocked_select.assert_not_called()
+        mocked_list.assert_not_called()
+        mocked_input.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        mocked_input.reset_mock()
+        mocked_print.reset_mock()
+        mocked_append.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_select.reset_mock()
+        mocked_list.reset_mock()
+        # test select aws value
+        mocked_print.return_value = ""
+        mocked_select.return_value = "111111"
+        result = self.paramprocessor._get_user_input(
+            "KeyName", "AWS::EC2::KeyPair::KeyName", "foo boo", "Original", "lol"
+        )
+        mocked_print.assert_called_with("KeyName", "Original", "lol")
+        mocked_select.assert_called_once_with("AWS::EC2::KeyPair::KeyName", "foo boo")
+        mocked_append.assert_not_called()
+        mocked_execute.assert_not_called()
+        mocked_list.assert_not_called()
+        mocked_input.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        mocked_input.reset_mock()
+        mocked_print.reset_mock()
+        mocked_append.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_select.reset_mock()
+        mocked_list.reset_mock()
+        # test list aws value
+        mocked_list.return_value = "111111"
+        result = self.paramprocessor._get_user_input(
+            "SecurityGroups", "List<AWS::EC2::SecurityGroup::Id>", "foo boo"
+        )
+        mocked_print.assert_called_with("SecurityGroups", None, None)
+        mocked_list.assert_called_once_with(
+            "List<AWS::EC2::SecurityGroup::Id>", "foo boo"
+        )
+        mocked_append.assert_not_called()
+        mocked_execute.assert_not_called()
+        mocked_select.assert_not_called()
+        mocked_input.assert_not_called()
+        self.assertEqual(result, "111111")
