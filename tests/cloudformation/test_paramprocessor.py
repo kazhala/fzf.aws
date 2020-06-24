@@ -326,3 +326,55 @@ class TestCloudformationParams(unittest.TestCase):
         mocked_process.assert_not_called()
         mocked_zone.assert_called_once()
         self.assertEqual(result, "")
+
+    @patch.object(Route53, "set_zone_id")
+    @patch.object(EC2, "get_security_groups")
+    @patch.object(BaseSession, "client", new_callable=PropertyMock)
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_get_list_param_value(
+        self, mocked_execute, mocked_process, mocked_client, mocked_sg, mocked_zone
+    ):
+
+        mocked_execute.return_value = ["111111", "222222"]
+        # az list test for normal client test
+        az_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../data/ec2_az.json"
+        )
+        with open(az_path, "r") as file:
+            az_response = json.load(file)
+        ec2 = boto3.client("ec2")
+        stubber = Stubber(ec2)
+        stubber.add_response("describe_availability_zones", az_response)
+        stubber.activate()
+        mocked_client.return_value = ec2
+        result = self.paramprocessor._get_list_param_value(
+            "List<AWS::EC2::AvailabilityZone::Name>", "foo boo"
+        )
+        mocked_process.assert_called_once_with(
+            az_response["AvailabilityZones"], "ZoneName", empty_allow=True,
+        )
+        mocked_execute.assert_called_once_with(
+            multi_select=True, empty_allow=True, header="foo boo"
+        )
+        mocked_sg.assert_not_called()
+        self.assertEqual(result, ["111111", "222222"])
+
+        # sg test for ec2 method
+        mocked_process.reset_mock()
+        mocked_execute.reset_mock()
+        mocked_sg.return_value = ["111111", "222222"]
+        result = self.paramprocessor._get_list_param_value(
+            "List<AWS::EC2::SecurityGroup::GroupName>", "foo boo"
+        )
+        mocked_sg.assert_called_once_with(
+            multi_select=True, return_attr="name", header="foo boo"
+        )
+        self.assertEqual(result, ["111111", "222222"])
+
+        # zone test for route53 method
+        result = self.paramprocessor._get_list_param_value(
+            "List<AWS::Route53::HostedZone::Id>", "foo boo"
+        )
+        mocked_zone.assert_called_once()
+        self.assertEqual(result, [""])

@@ -277,7 +277,7 @@ class ParamProcessor:
             return self.route53.zone_ids[0]
         return str(fzf.execute_fzf(empty_allow=True, header=param_header))
 
-    def _get_list_param_value(self, type_name, param_header):
+    def _get_list_param_value(self, type_name: str, param_header: str) -> List[str]:
         """handler if parameter type is a list type
 
         :param type_name: name of the type of the parameter
@@ -285,32 +285,38 @@ class ParamProcessor:
         :param param_header: information about the current parameter
         :type param_header: str
         :return: processed list of selection from the user
-        :rtype: list
+        :rtype: List[str]
         """
 
         fzf = Pyfzf()
         if type_name == "List<AWS::EC2::AvailabilityZone::Name>":
-            spinner = Spinner(message="Fetching AvailabilityZones..")
-            response = spinner.execute_with_spinner(
-                self.ec2.client.describe_availability_zones
-            )
-            response_list = response["AvailabilityZones"]
-            fzf.process_list(response_list, "ZoneName")
+            with Spinner.spin(message="Fetching AvailabilityZones ..."):
+                response = self.ec2.client.describe_availability_zones()
+                response_list = response["AvailabilityZones"]
+            fzf.process_list(response_list, "ZoneName", empty_allow=True)
         elif type_name == "List<AWS::EC2::Instance::Id>":
-            return self.ec2.get_instance_id(multi_select=True, header=param_header)
+            return list(
+                self.ec2.get_instance_id(multi_select=True, header=param_header)
+            )
         elif type_name == "List<AWS::EC2::SecurityGroup::GroupName>":
-            return self.ec2.get_security_groups(
-                multi_select=True, return_attr="name", header=param_header
+            return list(
+                self.ec2.get_security_groups(
+                    multi_select=True, return_attr="name", header=param_header
+                )
             )
         elif type_name == "List<AWS::EC2::SecurityGroup::Id>":
-            return self.ec2.get_security_groups(multi_select=True, header=param_header)
+            return list(
+                self.ec2.get_security_groups(multi_select=True, header=param_header)
+            )
         elif type_name == "List<AWS::EC2::Subnet::Id>":
-            return self.ec2.get_subnet_id(multi_select=True, header=param_header)
+            return list(self.ec2.get_subnet_id(multi_select=True, header=param_header))
         elif type_name == "List<AWS::EC2::Volume::Id>":
-            return self.ec2.get_volume_id(multi_select=True, header=param_header)
+            return list(self.ec2.get_volume_id(multi_select=True, header=param_header))
         elif type_name == "List<AWS::EC2::VPC::Id>":
-            return self.ec2.get_vpc_id(multi_select=True, header=param_header)
+            return list(self.ec2.get_vpc_id(multi_select=True, header=param_header))
         elif type_name == "List<AWS::Route53::HostedZone::Id>":
             self.route53.set_zone_id(multi_select=True)
             return self.route53.zone_ids
-        return fzf.execute_fzf(multi_select=True, empty_allow=True, header=param_header)
+        return list(
+            fzf.execute_fzf(multi_select=True, empty_allow=True, header=param_header)
+        )

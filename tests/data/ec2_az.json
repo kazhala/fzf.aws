@@ -1,0 +1,46 @@
+{
+  "AvailabilityZones": [
+    {
+      "State": "available",
+      "OptInStatus": "opt-in-not-required",
+      "Messages": [],
+      "RegionName": "ap-southeast-2",
+      "ZoneName": "ap-southeast-2a",
+      "ZoneId": "apse2-az3",
+      "GroupName": "ap-southeast-2",
+      "NetworkBorderGroup": "ap-southeast-2"
+    },
+    {
+      "State": "available",
+      "OptInStatus": "opt-in-not-required",
+      "Messages": [],
+      "RegionName": "ap-southeast-2",
+      "ZoneName": "ap-southeast-2b",
+      "ZoneId": "apse2-az1",
+      "GroupName": "ap-southeast-2",
+      "NetworkBorderGroup": "ap-southeast-2"
+    },
+    {
+      "State": "available",
+      "OptInStatus": "opt-in-not-required",
+      "Messages": [],
+      "RegionName": "ap-southeast-2",
+      "ZoneName": "ap-southeast-2c",
+      "ZoneId": "apse2-az2",
+      "GroupName": "ap-southeast-2",
+      "NetworkBorderGroup": "ap-southeast-2"
+    }
+  ],
+  "ResponseMetadata": {
+    "RequestId": "c2c01aba-ff0d-4c0f-9f28-95f0f58c76bf",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "c2c01aba-ff0d-4c0f-9f28-95f0f58c76bf",
+      "content-type": "text/xml;charset=UTF-8",
+      "content-length": "1536",
+      "date": "Wed, 24 Jun 2020 01:32:05 GMT",
+      "server": "AmazonEC2"
+    },
+    "RetryAttempts": 0
+  }
+}
