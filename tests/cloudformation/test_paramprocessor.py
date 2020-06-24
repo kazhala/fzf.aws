@@ -143,6 +143,23 @@ class TestCloudformationParams(unittest.TestCase):
             "t2.micro",
         )
 
+        mocked_input.return_value = ["111111", "222222"]
+        self.paramprocessor.processed_params = []
+        self.paramprocessor.original_params = []
+        self.paramprocessor.process_stack_params()
+        self.assertEqual(
+            self.paramprocessor.processed_params,
+            [
+                {"ParameterKey": "InstanceRole", "ParameterValue": "111111,222222",},
+                {"ParameterKey": "LatestAmiId", "ParameterValue": "111111,222222"},
+                {"ParameterKey": "SubnetId", "ParameterValue": "111111,222222"},
+                {"ParameterKey": "SecurityGroups", "ParameterValue": "111111,222222"},
+                {"ParameterKey": "KeyName", "ParameterValue": "111111,222222"},
+                {"ParameterKey": "WebServer", "ParameterValue": "111111,222222"},
+                {"ParameterKey": "InstanceType", "ParameterValue": "111111,222222"},
+            ],
+        )
+
     @patch("builtins.input")
     @patch.object(ParamProcessor, "_get_list_param_value")
     @patch.object(ParamProcessor, "_get_selected_param_value")
