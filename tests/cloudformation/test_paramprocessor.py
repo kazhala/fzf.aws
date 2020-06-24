@@ -228,3 +228,17 @@ class TestCloudformationParams(unittest.TestCase):
         mocked_select.assert_not_called()
         mocked_input.assert_not_called()
         self.assertEqual(result, "111111")
+
+    def test_print_parameter_key(self):
+        result = self.paramprocessor._print_parameter_key(
+            "SecurityGroups", "Default", "111111"
+        )
+        self.assertEqual(result, "Choose a value for SecurityGroups(Default: 111111)")
+
+        result = self.paramprocessor._print_parameter_key(
+            "SecurityGroups", "Original", "111111"
+        )
+        self.assertEqual(result, "Choose a value for SecurityGroups(Original: 111111)")
+
+        result = self.paramprocessor._print_parameter_key("SecurityGroups")
+        self.assertEqual(result, "Choose a value for SecurityGroups")

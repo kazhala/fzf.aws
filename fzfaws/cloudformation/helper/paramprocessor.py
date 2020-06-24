@@ -221,8 +221,12 @@ class ParamProcessor:
         else:
             return user_input
 
-    def _print_parameter_key(self, parameter_key, value_type=None, default=None):
-        """helper print function"""
+    def _print_parameter_key(
+        self, parameter_key: str, value_type: str = None, default: str = None
+    ) -> str:
+        """helper print function
+        """
+
         if value_type:
             return "Choose a value for %s(%s: %s)" % (
                 parameter_key,
