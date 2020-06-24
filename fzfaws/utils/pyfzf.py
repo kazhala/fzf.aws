@@ -291,7 +291,11 @@ class Pyfzf:
             return False
 
     def process_list(
-        self, response_list: Union[list, Generator], key_name: str, *arg_keys
+        self,
+        response_list: Union[list, Generator],
+        key_name: str,
+        *arg_keys,
+        empty_allow: bool = False
     ) -> None:
         """process list passed in and formatted for fzf
 
@@ -318,5 +322,5 @@ class Pyfzf:
                 self.append_fzf(" | ")
                 self.append_fzf("%s: %s" % (arg, item.get(arg, "N/A")))
             self.append_fzf("\n")
-        if not self.fzf_string:
+        if not self.fzf_string and not empty_allow:
             raise EmptyList("Result list was empty, exiting..")

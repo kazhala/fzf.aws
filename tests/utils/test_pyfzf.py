@@ -115,6 +115,9 @@ class TestPyfzf(unittest.TestCase):
         self.fzf.fzf_string = ""
         self.assertRaises(EmptyList, self.fzf.process_list, [], "123")
 
+        self.fzf.fzf_string = ""
+        self.fzf.process_list([], "123", "asfasd", "bbbb", empty_allow=True)
+
         test_list = [{"foo": 1, "boo": 2}, {"foo": "b"}]
         self.fzf.process_list(test_list, "foo")
         self.assertEqual(self.fzf.fzf_string, "foo: 1\nfoo: b\n")
