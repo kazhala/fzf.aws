@@ -1,0 +1,119 @@
+[
+  {
+    "Stacks": [
+      {
+        "StackId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/dotbare-cicd/0ae5ef60-9651-11ea-b6d0-0223bf2782f0",
+        "StackName": "dotbare-cicd",
+        "Description": "CodeBuild template for dotbare, webhook trigger from Github only on Master push",
+        "RollbackConfiguration": { "RollbackTriggers": [] },
+        "StackStatus": "UPDATE_COMPLETE",
+        "DisableRollback": false,
+        "NotificationARNs": [],
+        "Capabilities": ["CAPABILITY_NAMED_IAM"],
+        "Tags": [],
+        "DriftInformation": {
+          "StackDriftStatus": "IN_SYNC"
+        }
+      },
+      {
+        "StackId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/hellotesting/05feb330-88f3-11ea-ae79-0aa5d4eec80a",
+        "StackName": "hellotesting",
+        "Description": "testing purposes only",
+        "Parameters": [
+          { "ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0" },
+          { "ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c" },
+          { "ParameterKey": "WebServer", "ParameterValue": "No" }
+        ],
+        "RollbackConfiguration": {},
+        "StackStatus": "UPDATE_COMPLETE",
+        "DisableRollback": false,
+        "NotificationARNs": [],
+        "Outputs": [
+          {
+            "OutputKey": "SecurityGroupId",
+            "OutputValue": "sg-006ae18653dc5acd7",
+            "Description": "The security group id for EC2 import reference",
+            "ExportName": "hellotesting-SecurityGroupId"
+          }
+        ],
+        "RoleARN": "arn:aws:iam::1111111:role/admincloudformaitontest",
+        "Tags": [{ "Key": "hasdf", "Value": "asdfa" }],
+        "DriftInformation": {
+          "StackDriftStatus": "IN_SYNC"
+        }
+      },
+      {
+        "StackId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/Auto-check-drift-LambdaStack-27L1HVBQ16PR/2e1fc170-8537-11ea-a6e0-0679bcf6ec2c",
+        "StackName": "Auto-check-drift-LambdaStack-27L1HVBQ16PR",
+        "Description": "A general lambda template that could be re-used within other stacks. Doesn't contain env variables, if env needed, edit the env variants. A basic execution role is also created along with the lambda function.",
+        "Parameters": [
+          { "ParameterKey": "MemorySize", "ParameterValue": "128" },
+          { "ParameterKey": "S3ObjectVersion", "ParameterValue": "" },
+          { "ParameterKey": "Runtime", "ParameterValue": "python3.8" },
+          {
+            "ParameterKey": "S3Bucket",
+            "ParameterValue": "kazhala-lambda-storage"
+          },
+          {
+            "ParameterKey": "FunctionDescription",
+            "ParameterValue": "Search through specified regions and init drift detection on cloudformation stacks and also print current drift status"
+          },
+          {
+            "ParameterKey": "S3Key",
+            "ParameterValue": "DetectCloudformationDrift.zip"
+          },
+          { "ParameterKey": "Timeout", "ParameterValue": "60" },
+          {
+            "ParameterKey": "LambdaRoleName",
+            "ParameterValue": "Auto-check-drift-lambda-role"
+          },
+          {
+            "ParameterKey": "LambdaHandler",
+            "ParameterValue": "DetectCloudformationDrift.lambda_handler"
+          }
+        ],
+        "RollbackConfiguration": {},
+        "StackStatus": "CREATE_COMPLETE",
+        "DisableRollback": true,
+        "NotificationARNs": [],
+        "TimeoutInMinutes": 5,
+        "Capabilities": ["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"],
+        "Outputs": [
+          {
+            "OutputKey": "LambdaArn",
+            "OutputValue": "arn:aws:lambda:ap-southeast-2:1111111:function:Auto-check-drift-LambdaStack-27L1HV-LambdaFunction-11LA8NZ2OZWIM",
+            "Description": "The arn of the lambda fucntion"
+          },
+          {
+            "OutputKey": "IAMRoleArn",
+            "OutputValue": "Auto-check-drift-lambda-role",
+            "Description": "The role arn of the lambda role"
+          },
+          {
+            "OutputKey": "LambdaName",
+            "OutputValue": "Auto-check-drift-LambdaStack-27L1HV-LambdaFunction-11LA8NZ2OZWIM",
+            "Description": "The logical name of the lambda function"
+          }
+        ],
+        "Tags": [{ "Key": "Name", "Value": "Auto-check-drift" }],
+        "ParentId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/Auto-check-drift/2a3ce1f0-8537-11ea-8948-0aa7af0536b6",
+        "RootId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/Auto-check-drift/2a3ce1f0-8537-11ea-8948-0aa7af0536b6",
+        "DriftInformation": {
+          "StackDriftStatus": "IN_SYNC"
+        }
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "406b8d21-e2be-49fa-9ca4-ab5729e3f877",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "406b8d21-e2be-49fa-9ca4-ab5729e3f877",
+        "content-type": "text/xml",
+        "content-length": "42107",
+        "vary": "accept-encoding",
+        "date": "Thu, 25 Jun 2020 23:11:51 GMT"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]

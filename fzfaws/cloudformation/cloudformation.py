@@ -35,31 +35,19 @@ class Cloudformation(BaseSession):
         self.stack_details: dict = {}
 
     def set_stack(self) -> None:
-        """stores the selected stack into the instance
+        """stores the selected stack into the instance attribute
         """
 
         fzf = Pyfzf()
         with Spinner.spin(message="Fetching cloudformation stacks ..."):
             paginator = self.client.get_paginator("describe_stacks")
             for result in paginator.paginate():
-                stack_generator = self._stack_generator(result["Stacks"])
                 fzf.process_list(
-                    stack_generator, "StackName", "StackStatus", "Description"
+                    result["Stacks"], "StackName", "StackStatus", "Description"
                 )
         selected_stack = str(fzf.execute_fzf(empty_allow=False, print_col=0))
         self.stack_details = fzf.format_selected_to_dict(selected_stack)
         self.stack_name = self.stack_details["StackName"]
-
-    def _stack_generator(
-        self, stacks: List[dict]
-    ) -> Generator[Dict[str, str], None, None]:
-        """format cloudformation response and return generator
-
-        :param stacks: stacks returned from boto3
-        :type stacks: List[dict]
-        """
-        for stack in stacks:
-            yield stack
 
     def get_stack_resources(self, empty_allow=False):
         """list all stack logical resources
