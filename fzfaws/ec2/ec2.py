@@ -61,17 +61,20 @@ class EC2(BaseSession):
             self.instance_ids[:] = []
             self.instance_list[:] = []
             for instance in selected_instance:
-                instance_details = instance.split(" | ")
-                self.instance_ids.append(instance_details[0].split(": ")[1])
-                self.instance_list.append(
-                    self._format_instance_to_dict(instance_details)
-                )
+                curr = fzf.format_selected_to_dict(str(instance))
+                self.instance_list.append(curr)
+                self.instance_ids.append(curr["InstanceId"])
         else:
-            instance_details = str(selected_instance).split(" | ")
             self.instance_ids[:] = []
             self.instance_list[:] = []
-            self.instance_ids.append(instance_details[0].split(": ")[1])
-            self.instance_list.append(self._format_instance_to_dict(instance_details))
+            self.instance_list.append(
+                fzf.format_selected_to_dict(str(selected_instance))
+            )
+            self.instance_ids.append(self.instance_list[0]["InstanceId"])
+        if len(self.instance_ids) == 0:
+            self.instance_ids = [""]
+        if len(self.instance_list) == 0:
+            self.instance_list = [{}]
 
     def print_instance_details(self) -> None:
         """display information of selected instances
@@ -266,22 +269,3 @@ class EC2(BaseSession):
                 "PrivateIpAddress": instance["Instances"][0].get("PrivateIpAddress"),
             }
             yield instance_information
-
-    def _format_instance_to_dict(
-        self, instance_details: List[str]
-    ) -> Dict[str, Optional[str]]:
-        """format the selected instance details into dict
-
-        :param instance_details: the seperated instance details (e.g.["PublicIpAddress: 11111111", "KeyName: 11"])
-        :type instance_details: List[str]
-        :return: formatted instance details in dict form
-        :rtype: Dict[str, Optional[str]]
-        """
-        formatted_instance_details = {}
-        for key_value in instance_details:
-            key, value = key_value.split(": ")
-            if value != "None":
-                formatted_instance_details.update({key: value})
-            else:
-                formatted_instance_details.update({key: None})
-        return formatted_instance_details

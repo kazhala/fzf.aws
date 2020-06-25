@@ -493,28 +493,3 @@ class TestEC2(unittest.TestCase):
         for instance in generator:
             self.assertIsInstance(instance, dict)
             self.assertRegex(instance["InstanceId"], r"[0-9]*")
-
-    def test_format_instance_to_dict(self):
-        test_value = "InstanceId: 11111111 | InstanceType: t2.micro | Status: running | Name: meal-Bean-10PYXE0G1F4HS | KeyName: ap-southeast-2_playground | PublicDnsName: ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com | PublicIpAddress: 13.238.143.201 | PrivateIpAddress: 172.31.2.33"
-        test_value = test_value.split(" | ")
-        result = self.ec2._format_instance_to_dict(test_value)
-        self.assertEqual(
-            result,
-            {
-                "InstanceId": "11111111",
-                "InstanceType": "t2.micro",
-                "Status": "running",
-                "Name": "meal-Bean-10PYXE0G1F4HS",
-                "KeyName": "ap-southeast-2_playground",
-                "PublicDnsName": "ec2-13-238-143-201.ap-southeast-2.compute.amazonaws.com",
-                "PublicIpAddress": "13.238.143.201",
-                "PrivateIpAddress": "172.31.2.33",
-            },
-        )
-
-        test_value = "InstanceId: 11111111 | Name: hello world"
-        test_value = test_value.split(" | ")
-        result = self.ec2._format_instance_to_dict(test_value)
-        self.assertEqual(
-            result, {"InstanceId": "11111111", "Name": "hello world"},
-        )

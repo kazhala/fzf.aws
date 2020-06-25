@@ -13,7 +13,6 @@ from fzfaws.utils import (
     BaseSession,
     Spinner,
     get_confirmation,
-    search_dict_in_list,
 )
 
 
