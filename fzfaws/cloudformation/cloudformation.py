@@ -4,51 +4,63 @@ Main reason to create a class is to handle different account profile usage
 and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
-import re
 import json
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.util import search_dict_in_list, get_confirmation
-from fzfaws.utils.spinner import Spinner
+import re
+from typing import List, Generator, Dict
+
+from fzfaws.utils import (
+    Pyfzf,
+    BaseSession,
+    Spinner,
+    get_confirmation,
+    search_dict_in_list,
+)
 
 
 class Cloudformation(BaseSession):
     """Cloudformation class to interact with boto3.client('cloudformation')
 
-    handles operations directly related to boto3.client
+    handles operations directly related to boto3.client, but nothing else.
+    Stuff like process template args or handling cloudformation settings,
+    use the cloudformationargs class in helper.
 
-    Attributes:
-        region: region for the operation
-        profile: profile to use for the operation
-        client: initialized boto3 client with region and profile in use
-        resource: initialized boto3 resource with region and profile in use
-        stack_name: then name of the selected stack
-        stack_details: a dict containing response from boto3
+    :param profile: use a different profile for this operation
+    :type profile: Union[str, bool], optional
+    :param region: use a different region for this operation
+    :type region: Union[str, bool], optional
     """
 
     def __init__(self, profile=None, region=None):
         super().__init__(profile=profile, region=region, service_name="cloudformation")
-        self.stack_name = None
-        self.stack_details = None
+        self.stack_name: str = ""
+        self.stack_details: dict = {}
 
-    def set_stack(self):
+    def set_stack(self) -> None:
         """stores the selected stack into the instance
-
-        Exceptions:
-            EmptyList: when there is no stack
         """
+
         fzf = Pyfzf()
-        stack_list = []
-        paginator = self.client.get_paginator("describe_stacks")
-        for result in paginator.paginate():
-            stack_list.extend(result["Stacks"])
-            fzf.process_list(
-                result["Stacks"], "StackName", "StackStatus", "Description"
-            )
-        self.stack_name = fzf.execute_fzf(empty_allow=False)
-        self.stack_details = search_dict_in_list(
-            self.stack_name, stack_list, "StackName"
-        )
+        with Spinner.spin(message="Fetching cloudformation stacks ..."):
+            paginator = self.client.get_paginator("describe_stacks")
+            for result in paginator.paginate():
+                stack_generator = self._stack_generator(result["Stacks"])
+                fzf.process_list(
+                    stack_generator, "StackName", "StackStatus", "Description"
+                )
+        selected_stack = str(fzf.execute_fzf(empty_allow=False, print_col=0))
+        self.stack_details = fzf.format_selected_to_dict(selected_stack)
+        self.stack_name = self.stack_details["StackName"]
+
+    def _stack_generator(
+        self, stacks: List[dict]
+    ) -> Generator[Dict[str, str], None, None]:
+        """format cloudformation response and return generator
+
+        :param stacks: stacks returned from boto3
+        :type stacks: List[dict]
+        """
+        for stack in stacks:
+            yield stack
 
     def get_stack_resources(self, empty_allow=False):
         """list all stack logical resources
@@ -124,7 +136,7 @@ class Cloudformation(BaseSession):
             if get_confirmation("Confirm?"):
                 response = cloudformation_action(**kwargs)
             else:
-                exit()
+                raise SystemExit
         except self.client.exceptions.InsufficientCapabilitiesException as e:
             pattern = r"^.*(Requires capabilities.*)$"
             error_msg = re.match(pattern, str(e)).group(1)

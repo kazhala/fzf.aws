@@ -5,19 +5,19 @@ read sub command {update,create,delete,drift,changeset} and route
 actions to appropriate functions
 """
 import argparse
-from fzfaws.cloudformation.ls_stack import ls_stack
-from fzfaws.cloudformation.delete_stack import delete_stack
-from fzfaws.cloudformation.update_stack import update_stack
-from fzfaws.cloudformation.create_stack import create_stack
-from fzfaws.cloudformation.drift_stack import drift_stack
+
 from fzfaws.cloudformation.changeset_stack import changeset_stack
+from fzfaws.cloudformation.create_stack import create_stack
+from fzfaws.cloudformation.delete_stack import delete_stack
+from fzfaws.cloudformation.drift_stack import drift_stack
+from fzfaws.cloudformation.ls_stack import ls_stack
+from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.cloudformation.validate_stack import validate_stack
 from fzfaws.utils.pyfzf import Pyfzf
 
 
-def cloudformation(raw_args):
-    # type (list) -> None
-    """parse the argument and route traffic to appropriate handler, internal use only
+def cloudformation(raw_args: list) -> None:
+    """parse the argument and route traffic to appropriate handler, internal use only for now
 
     :param raw_args: list of args to be parsed
     :type raw_args: list
@@ -409,7 +409,7 @@ def cloudformation(raw_args):
             drift_cmd.print_help()
         elif selected_command == "changeset":
             changeset_cmd.print_help()
-        exit()
+    # the print_help automatically perform a sys exit
 
     # when user set --profile/region flag but without argument
     # argparse will have a None value instead of default value False

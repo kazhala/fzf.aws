@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
-from typing import Any, Generator, List, Optional, Union
+from typing import Any, Dict, Generator, List, Optional, Union
 
 
 class Pyfzf:
@@ -29,7 +29,7 @@ class Pyfzf:
             print(
                 "fzfaws currently is only compatible with python3.5+ on MacOS or Linux"
             )
-            exit(1)
+            raise SystemExit
         self.fzf_path: str = (
             "fzf"
             if os.getenv("FZFAWS_FZF_EXECUTABLE", "binary") == "system"
@@ -324,3 +324,40 @@ class Pyfzf:
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
             raise EmptyList("Result list was empty, exiting..")
+
+    def format_selected_to_dict(self, selected_str: str) -> Dict[str, Any]:
+        """format the selected option into a proper dictionary
+
+        This is useful to use in conjuction with process_list, process_list
+        might contain a lot of information but printing all of them into
+        a str may not be useful enough.
+
+        Example:
+            fzf.process_list(
+                response_generator,
+                "InstanceId",
+                "Status",
+                "InstanceType",
+                "Name",
+                "KeyName",
+                "PublicDnsName",
+                "PublicIpAddress",
+                "PrivateIpAddress",
+            )
+            result = fzf.execute_fzf(multi_select=multi_select, header=header, print_col=0)
+            result_dict = fzf.format_selected_to_dict(result)
+
+        :param selected_str: the selected str from fzf.execute_fzf
+        :type selected_str: str
+        :return: formatted instance details in dict form
+        :rtype: Dict[str, Any]
+        """
+        formatted_dict: Dict[str, Any] = {}
+        selected_list = selected_str.split(" | ")
+        for key_value in selected_list:
+            key, value = key_value.split(": ")
+            if value == "None":
+                formatted_dict.update({key: None})
+            else:
+                formatted_dict.update({key: value})
+        return formatted_dict
