@@ -1,0 +1,38 @@
+[
+  {
+    "StackResourceSummaries": [
+      {
+        "LogicalResourceId": "CodeBuild",
+        "PhysicalResourceId": "dotbare",
+        "ResourceType": "AWS::CodeBuild::Project",
+        "ResourceStatus": "UPDATE_COMPLETE",
+        "DriftInformation": { "StackResourceDriftStatus": "NOT_CHECKED" }
+      },
+      {
+        "LogicalResourceId": "ParameterStorePolicy",
+        "PhysicalResourceId": "dotba-Para-1G3Z5VTARYKOM",
+        "ResourceType": "AWS::IAM::Policy",
+        "ResourceStatus": "UPDATE_COMPLETE",
+        "DriftInformation": { "StackResourceDriftStatus": "NOT_CHECKED" }
+      },
+      {
+        "LogicalResourceId": "ServiceRole",
+        "PhysicalResourceId": "dotbare-cicd-codebuild",
+        "ResourceType": "AWS::IAM::Role",
+        "ResourceStatus": "CREATE_COMPLETE",
+        "DriftInformation": { "StackResourceDriftStatus": "IN_SYNC" }
+      }
+    ],
+    "ResponseMetadata": {
+      "RequestId": "3b8ab57e-5025-4f29-971a-3da090691acd",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "x-amzn-requestid": "3b8ab57e-5025-4f29-971a-3da090691acd",
+        "content-type": "text/xml",
+        "content-length": "1782",
+        "date": "Thu, 25 Jun 2020 23:35:45 GMT"
+      },
+      "RetryAttempts": 0
+    }
+  }
+]

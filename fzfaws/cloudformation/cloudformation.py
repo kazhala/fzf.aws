@@ -49,14 +49,15 @@ class Cloudformation(BaseSession):
         self.stack_details = fzf.format_selected_to_dict(selected_stack)
         self.stack_name = self.stack_details["StackName"]
 
-    def get_stack_resources(self, empty_allow=False):
+    def get_stack_resources(self, empty_allow: bool = False) -> List[str]:
         """list all stack logical resources
 
-        return the selected list of logical resources
-
-        Args:
-            empty_allow: bool, allow empty selection
+        :param empty_allow: allow empty selection
+        :type empty_allow: bool, optional
+        :return: selected list of logical resources LogicalResourceId
+        :rtype: List[str]
         """
+
         fzf = Pyfzf()
         paginator = self.client.get_paginator("list_stack_resources")
         for result in paginator.paginate(StackName=self.stack_name):
@@ -70,7 +71,7 @@ class Cloudformation(BaseSession):
                 "ResourceType",
                 "Drift",
             )
-        return fzf.execute_fzf(multi_select=True, empty_allow=empty_allow)
+        return list(fzf.execute_fzf(multi_select=True, empty_allow=empty_allow))
 
     def wait(self, waiter_name, message=None, delay=15, attempts=240, **kwargs):
         """wait for the operation to be completed
