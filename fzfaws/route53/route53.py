@@ -56,5 +56,5 @@ class Route53(BaseSession):
         id_pattern = r"/hostedzone/(?P<id>.*)$"
         for hosted_zone in hostedzone_list:
             raw_zone_id = re.search(id_pattern, hosted_zone["Id"]).group("id")
-            id_list.append({"Id": raw_zone_id, "Name": hosted_zone.get("Name", "N/A")})
+            id_list.append({"Id": raw_zone_id, "Name": hosted_zone.get("Name")})
         return id_list

@@ -136,5 +136,5 @@ class TestRoute53(unittest.TestCase):
         ]
         result = self.route53._process_hosted_zone(test_list)
         self.assertEqual(
-            [{"Id": "111111", "Name": "N/A"}, {"Id": "222222", "Name": "N/A"},], result
+            [{"Id": "111111", "Name": None}, {"Id": "222222", "Name": None}], result,
         )

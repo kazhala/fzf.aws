@@ -317,10 +317,10 @@ class Pyfzf:
         :raises EmptyList: when the list is empty and did not get any result
         """
         for item in response_list:
-            self.append_fzf("%s: %s" % (key_name, item.get(key_name, "N/A")))
+            self.append_fzf("%s: %s" % (key_name, item.get(key_name)))
             for arg in arg_keys:
                 self.append_fzf(" | ")
-                self.append_fzf("%s: %s" % (arg, item.get(arg, "N/A")))
+                self.append_fzf("%s: %s" % (arg, item.get(arg)))
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
             raise EmptyList("Result list was empty, exiting..")

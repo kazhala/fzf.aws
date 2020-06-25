@@ -124,12 +124,12 @@ class TestPyfzf(unittest.TestCase):
 
         self.fzf.fzf_string = ""
         self.fzf.process_list(test_list, "boo")
-        self.assertEqual(self.fzf.fzf_string, "boo: 2\nboo: N/A\n")
+        self.assertEqual(self.fzf.fzf_string, "boo: 2\nboo: None\n")
 
         self.fzf.fzf_string = ""
         self.fzf.process_list(test_list, "www")
-        self.assertEqual(self.fzf.fzf_string, "www: N/A\nwww: N/A\n")
+        self.assertEqual(self.fzf.fzf_string, "www: None\nwww: None\n")
 
         self.fzf.fzf_string = ""
         self.fzf.process_list(test_list, "foo", "boo")
-        self.assertEqual(self.fzf.fzf_string, "foo: 1 | boo: 2\nfoo: b | boo: N/A\n")
+        self.assertEqual(self.fzf.fzf_string, "foo: 1 | boo: 2\nfoo: b | boo: None\n")
