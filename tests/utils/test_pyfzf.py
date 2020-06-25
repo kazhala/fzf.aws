@@ -133,3 +133,10 @@ class TestPyfzf(unittest.TestCase):
         self.fzf.fzf_string = ""
         self.fzf.process_list(test_list, "foo", "boo")
         self.assertEqual(self.fzf.fzf_string, "foo: 1 | boo: 2\nfoo: b | boo: None\n")
+
+    @patch.object(Pyfzf, "execute_fzf")
+    def test_format_selected_to_dict(self, mocked_execute):
+        mocked_execute.return_value = "foo: 1 | boo: 2 | wtf: None"
+        result = str(self.fzf.execute_fzf(print_col=0))
+        result = self.fzf.format_selected_to_dict(result)
+        self.assertEqual(result, {"boo": "2", "foo": "1", "wtf": None})
