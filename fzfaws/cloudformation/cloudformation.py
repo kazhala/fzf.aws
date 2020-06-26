@@ -4,18 +4,13 @@ Main reason to create a class is to handle different account profile usage
 and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
-from fzfaws.utils.util import search_dict_in_list
 import json
 import os
 import re
-from typing import Any, Generator, List, Dict
+from typing import Any, Dict, Generator, List
 
-from fzfaws.utils import (
-    Pyfzf,
-    BaseSession,
-    Spinner,
-    get_confirmation,
-)
+from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
+from fzfaws.utils.util import search_dict_in_list
 
 
 class Cloudformation(BaseSession):
@@ -78,22 +73,13 @@ class Cloudformation(BaseSession):
             )
         return list(fzf.execute_fzf(multi_select=True, empty_allow=empty_allow))
 
-    def wait(self, waiter_name, message=None, **kwargs):
+    def wait(self, waiter_name: str, message: str = None, **kwargs) -> None:
         """wait for the operation to be completed
 
-        Args:
-            waiter_name: string, name from boto3 waiter
-            message: string, loading message
-            delay: number, how long between each attempt
-            attempts: number, max attempts, usually 60mins, so 30 * 120
-            **kwargs: rest of args for specific waiters like changeset waiter require ChangeSetName
-        Returns:
-            None
-            will pause the program until finish or error raised
-        Exceptions:
-            KeyboardInterrupt: when user ctrl-c stop the program
-            SystemExit: on system attempting to quit
-                The above exceptions are handled and correctly stop all threads
+        :param waiter_name: name for the boto3 waiter
+        :type waiter_name: str
+        :param message: message to display for spinner
+        :type message: str, optional
         """
 
         with Spinner.spin(message=message):

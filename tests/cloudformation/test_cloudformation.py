@@ -4,9 +4,11 @@ import os
 import io
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from fzfaws.cloudformation import Cloudformation
 from botocore.paginate import Paginator
+from botocore.waiter import Waiter
+from fzfaws.utils import FileLoader
 
 
 class TestCloudformation(unittest.TestCase):
@@ -14,6 +16,11 @@ class TestCloudformation(unittest.TestCase):
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         self.cloudformation = Cloudformation()
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
 
     def tearDown(self):
         sys.stdout = sys.__stdout__
@@ -159,3 +166,39 @@ class TestCloudformation(unittest.TestCase):
         self.assertEqual(result, ["hello"])
         mocked_process.assert_called_once()
         mocked_execute.assert_called_once_with(multi_select=True, empty_allow=True)
+
+    @patch.object(Waiter, "wait")
+    def test_wait(self, mocked_wait):
+        self.cloudformation.stack_name = "dotbare-cicd"
+        self.cloudformation.wait(waiter_name="stack_create_complete", message="hello")
+        mocked_wait.assert_called_once_with(
+            ANY,
+            StackName="dotbare-cicd",
+            WaiterConfig={"Delay": 30, "MaxAttempts": 120},
+        )
+
+        # test no config for watier
+        mocked_wait.reset_mock()
+        del os.environ["FZFAWS_CLOUDFORMATION_WAITER"]
+        self.cloudformation.stack_name = "fooboo"
+        self.cloudformation.wait(waiter_name="stack_create_complete", message="hello")
+        mocked_wait.assert_called_once_with(
+            ANY, StackName="fooboo", WaiterConfig={"Delay": 15, "MaxAttempts": 40},
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        # test no global waiter
+        mocked_wait.reset_mock()
+        del os.environ["FZFAWS_GLOBAL_WAITER"]
+        self.cloudformation.stack_name = "yes"
+        self.cloudformation.wait(
+            waiter_name="stack_create_complete", message="hello", foo="boo"
+        )
+        mocked_wait.assert_called_once_with(
+            ANY,
+            StackName="yes",
+            WaiterConfig={"Delay": 30, "MaxAttempts": 120},
+            foo="boo",
+        )
+        self.assertRegex(self.capturedOutput.getvalue(), r"hello")
