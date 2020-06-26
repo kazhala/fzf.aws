@@ -73,11 +73,16 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-w -E")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "-w")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "-w -E")
+        self.assertEqual(
+            os.environ["FZFAWS_CLOUDFORMATION_WAITER"],
+            json.dumps({"delay": 30, "max_attempts": 120}),
+        )
 
         # reset
         os.environ["FZFAWS_CLOUDFORMATION_CREATE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_DELETE"] = ""
         os.environ["FZFAWS_CLOUDFORMATION_UPDATE"] = ""
+        os.environ["FZFAWS_CLOUDFORMATION_WAITER"] = ""
 
         # empty test
         self.fileloader._set_cloudformation_env({})
@@ -86,6 +91,7 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_WAITER"], "")
 
         # custom settings
         self.fileloader._set_cloudformation_env(
