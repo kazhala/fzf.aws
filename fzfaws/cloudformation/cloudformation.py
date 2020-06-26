@@ -7,7 +7,7 @@ in a centralized place
 import json
 import os
 import re
-from typing import Any, Dict, Generator, List
+from typing import Any, Callable, Dict, Generator, List
 
 from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
 from fzfaws.utils.util import search_dict_in_list
@@ -99,20 +99,23 @@ class Cloudformation(BaseSession):
                 **kwargs
             )
 
-    def execute_with_capabilities(self, cloudformation_action=None, **kwargs):
+    def execute_with_capabilities(
+        self, cloudformation_action: Callable[..., Dict[str, Any]] = None, **kwargs
+    ) -> Dict[str, Any]:
         """execute the cloudformation_action with capabilities handled
 
-        Args:
-            capabilities: bool, execute with capabilities
-            cloudformation_action: function, the cloudformation method to execute
-            **kwargs: key ward args to use in the cloudformation_action
-            example:
-                instance.execute_with_capabilities(args, instance.client.update_stack, StackName=stack_name)
-        Returns:
-            the raw response from boto3
-        Raises:
-           InsufficientCapabilitiesException: when the stack action require extra acknowledgement
+        When creating stacks with IAM role or nested stacks related, cloudformation
+        require extra capabilities to be acknowledged before creating or updating the stack.
+        This method will attempt to submit the request and handle the capabilities
+        exceptions, then calling the _get_capabilities to get user acknowledge the capabilities.
+
+        :param cloudformation_action: the function to execute for boto3
+        :type cloudformation_action: Callable[..., Dict[str, Any]]
+        :raises InsufficientCapabilitiesException: when the stack action require extra acknowledgement
+        :return: boto3 response of the cloudformation action
+        :rtype: Dict[str, Any]
         """
+
         try:
             print(json.dumps({**kwargs}, indent=4, default=str))
             if get_confirmation("Confirm?"):

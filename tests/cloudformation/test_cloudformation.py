@@ -202,3 +202,24 @@ class TestCloudformation(unittest.TestCase):
             foo="boo",
         )
         self.assertRegex(self.capturedOutput.getvalue(), r"hello")
+
+    @patch("fzfaws.cloudformation.cloudformation.get_confirmation")
+    def test_execute_with_capabilities(self, mocked_confirm):
+        def hello(**kwargs):
+            return {**kwargs}
+
+        mocked_confirm.return_value = True
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        result = self.cloudformation.execute_with_capabilities(
+            hello, foo="boo", lol="yes"
+        )
+        self.assertEqual(result, {"foo": "boo", "lol": "yes"})
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            json.dumps({"foo": "boo", "lol": "yes"}, indent=4) + "\n",
+        )
+
+        mocked_confirm.return_value = False
+        self.assertRaises(SystemExit, self.cloudformation.execute_with_capabilities)
