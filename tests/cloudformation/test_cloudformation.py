@@ -4,7 +4,7 @@ import os
 import io
 import sys
 import unittest
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 from fzfaws.cloudformation import Cloudformation
 from botocore.paginate import Paginator
 
@@ -42,41 +42,67 @@ class TestCloudformation(unittest.TestCase):
             response = json.load(file)
 
         mocked_page.return_value = response
-        mocked_execute.return_value = "StackName: dotbare-cicd | StackStatus: UPDATE_COMPLETE | Description: 111111"
+        mocked_execute.return_value = "dotbare-cicd"
         self.cloudformation.set_stack()
         mocked_list.assert_called_once_with(
             response[0]["Stacks"], "StackName", "StackStatus", "Description"
         )
-        mocked_execute.assert_called_once_with(empty_allow=False, print_col=0)
+        mocked_execute.assert_called_once_with(empty_allow=False)
         self.assertEqual(
             self.cloudformation.stack_details,
             {
+                "Capabilities": ["CAPABILITY_NAMED_IAM"],
+                "Description": "CodeBuild template for dotbare, webhook trigger from Github "
+                "only on Master push",
+                "DisableRollback": False,
+                "DriftInformation": {"StackDriftStatus": "IN_SYNC"},
+                "NotificationARNs": [],
+                "RollbackConfiguration": {"RollbackTriggers": []},
+                "StackId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/dotbare-cicd/0ae5ef60-9651-11ea-b6d0-0223bf2782f0",
                 "StackName": "dotbare-cicd",
                 "StackStatus": "UPDATE_COMPLETE",
-                "Description": "111111",
+                "Tags": [],
             },
         )
         self.assertEqual(self.cloudformation.stack_name, "dotbare-cicd")
 
         mocked_list.reset_mock()
         mocked_execute.reset_mock()
-        mocked_execute.return_value = (
-            "StackName: hello | StackStatus: UPDATE_COMPLETE | Description: None"
-        )
+        mocked_execute.return_value = "hellotesting"
         self.cloudformation.set_stack()
         mocked_list.assert_called_once_with(
             response[0]["Stacks"], "StackName", "StackStatus", "Description"
         )
-        mocked_execute.assert_called_once_with(empty_allow=False, print_col=0)
+        mocked_execute.assert_called_once_with(empty_allow=False)
         self.assertEqual(
             self.cloudformation.stack_details,
             {
-                "StackName": "hello",
+                "Description": "testing purposes only",
+                "DisableRollback": False,
+                "DriftInformation": {"StackDriftStatus": "IN_SYNC"},
+                "NotificationARNs": [],
+                "Outputs": [
+                    {
+                        "Description": "The security group id for EC2 import reference",
+                        "ExportName": "hellotesting-SecurityGroupId",
+                        "OutputKey": "SecurityGroupId",
+                        "OutputValue": "sg-006ae18653dc5acd7",
+                    }
+                ],
+                "Parameters": [
+                    {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+                    {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+                    {"ParameterKey": "WebServer", "ParameterValue": "No"},
+                ],
+                "RoleARN": "arn:aws:iam::1111111:role/admincloudformaitontest",
+                "RollbackConfiguration": {},
+                "StackId": "arn:aws:cloudformation:ap-southeast-2:1111111:stack/hellotesting/05feb330-88f3-11ea-ae79-0aa5d4eec80a",
+                "StackName": "hellotesting",
                 "StackStatus": "UPDATE_COMPLETE",
-                "Description": None,
+                "Tags": [{"Key": "hasdf", "Value": "asdfa"}],
             },
         )
-        self.assertEqual(self.cloudformation.stack_name, "hello")
+        self.assertEqual(self.cloudformation.stack_name, "hellotesting")
 
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "execute_fzf")

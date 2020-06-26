@@ -4,9 +4,11 @@ Main reason to create a class is to handle different account profile usage
 and different region, so that all initialization of boto3.client could happen
 in a centralized place
 """
+from fzfaws.utils.util import search_dict_in_list
 import json
+import os
 import re
-from typing import List, Generator, Dict
+from typing import Any, List, Dict
 
 from fzfaws.utils import (
     Pyfzf,
@@ -39,15 +41,18 @@ class Cloudformation(BaseSession):
         """
 
         fzf = Pyfzf()
+        stack_list: List[Dict[str, Any]] = []
         with Spinner.spin(message="Fetching cloudformation stacks ..."):
             paginator = self.client.get_paginator("describe_stacks")
             for result in paginator.paginate():
+                stack_list.extend(result["Stacks"])
                 fzf.process_list(
                     result["Stacks"], "StackName", "StackStatus", "Description"
                 )
-        selected_stack = str(fzf.execute_fzf(empty_allow=False, print_col=0))
-        self.stack_details = fzf.format_selected_to_dict(selected_stack)
-        self.stack_name = self.stack_details["StackName"]
+        self.stack_name = str(fzf.execute_fzf(empty_allow=False))
+        self.stack_details = search_dict_in_list(
+            self.stack_name, stack_list, "StackName"
+        )
 
     def get_stack_resources(self, empty_allow: bool = False) -> List[str]:
         """list all stack logical resources
