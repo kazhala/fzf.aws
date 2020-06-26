@@ -1,6 +1,6 @@
 """contains some common helper functions
 """
-from typing import Any, Optional
+from typing import Any, Generator, List, Optional, Dict, Union
 import os
 
 
@@ -23,18 +23,23 @@ def remove_dict_from_list(value: Any, target_list: list, key_name: str) -> list:
     return return_list
 
 
-def search_dict_in_list(value: Any, target_list: list, key_name: str) -> dict:
+def search_dict_in_list(
+    value: Any,
+    target_list: Union[List[Dict[str, Any]], Generator[Dict[str, Any], None, None]],
+    key_name: str,
+) -> dict:
     """helper function to find dict in list based on key values
 
     :param value: value to search
     :type value: Any
-    :param target_list: list to search
-    :type target_list: list
+    :param target_list: list of dict to search
+    :type target_list: Union[List[Dict[str, Any]], Generator[Dict[str, Any], None, None]]
     :param name: key name to match
     :type key_name: str
     :return: dict that matched the value
     :rtype: dict
     """
+
     result = [item for item in target_list if item.get(key_name) == value]
     return result[0] if result else {}
 
