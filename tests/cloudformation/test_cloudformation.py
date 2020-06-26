@@ -4,7 +4,7 @@ import os
 import io
 import sys
 import unittest
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, patch, call
 from fzfaws.cloudformation import Cloudformation
 from botocore.paginate import Paginator
 from botocore.waiter import Waiter
@@ -223,3 +223,42 @@ class TestCloudformation(unittest.TestCase):
 
         mocked_confirm.return_value = False
         self.assertRaises(SystemExit, self.cloudformation.execute_with_capabilities)
+
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch.object(Pyfzf, "append_fzf")
+    def test_get_capabilities(self, mocked_append, mocked_execute):
+        mocked_execute.return_value = ["CAPABILITY_IAM"]
+        result = self.cloudformation._get_capabilities(message="lol")
+        mocked_append.assert_has_calls(
+            [
+                call("CAPABILITY_IAM\n"),
+                call("CAPABILITY_NAMED_IAM\n"),
+                call("CAPABILITY_AUTO_EXPAND"),
+            ]
+        )
+        mocked_execute.assert_called_once_with(
+            empty_allow=True,
+            print_col=1,
+            multi_select=True,
+            header="lol\nPlease select the capabilities to acknowledge and proceed\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html",
+        )
+        self.assertEqual(result, ["CAPABILITY_IAM"])
+
+        mocked_execute.reset_mock()
+        mocked_append.reset_mock()
+        mocked_execute.return_value = ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"]
+        result = self.cloudformation._get_capabilities()
+        mocked_append.assert_has_calls(
+            [
+                call("CAPABILITY_IAM\n"),
+                call("CAPABILITY_NAMED_IAM\n"),
+                call("CAPABILITY_AUTO_EXPAND"),
+            ]
+        )
+        mocked_execute.assert_called_once_with(
+            empty_allow=True,
+            print_col=1,
+            multi_select=True,
+            header="\nPlease select the capabilities to acknowledge and proceed\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html",
+        )
+        self.assertEqual(result, ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"])

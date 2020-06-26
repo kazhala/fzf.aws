@@ -130,20 +130,25 @@ class Cloudformation(BaseSession):
             )
         return response
 
-    def _get_capabilities(self, message=""):
+    def _get_capabilities(self, message: str = "") -> List[str]:
         """display help message and let user select capabilities
 
-        Args:
-            message: string, capability error message to display
+        :param message: message to display in fzf header
+        :type message: str, optional
+        :return: selected capabilities to acknowledge
+        :rtype: List[str]
         """
+
         fzf = Pyfzf()
         fzf.append_fzf("CAPABILITY_IAM\n")
         fzf.append_fzf("CAPABILITY_NAMED_IAM\n")
         fzf.append_fzf("CAPABILITY_AUTO_EXPAND")
         message += "\nPlease select the capabilities to acknowledge and proceed"
         message += "\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html"
-        return fzf.execute_fzf(
-            empty_allow=True, print_col=1, multi_select=True, header=message
+        return list(
+            fzf.execute_fzf(
+                empty_allow=True, print_col=1, multi_select=True, header=message
+            )
         )
 
     def _get_stack_generator(
