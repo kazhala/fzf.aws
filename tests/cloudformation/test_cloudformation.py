@@ -262,3 +262,14 @@ class TestCloudformation(unittest.TestCase):
             header="\nPlease select the capabilities to acknowledge and proceed\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html",
         )
         self.assertEqual(result, ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"])
+
+    def test_get_stack_generator(self):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        data = [{"Stacks": [{"foo": "boo"}]}, {"Stacks": [{"hello": "world"}]}]
+        generator = self.cloudformation._get_stack_generator(data)
+        for item in generator:
+            print(item)
+        self.assertEqual(
+            self.capturedOutput.getvalue(), "{'foo': 'boo'}\n{'hello': 'world'}\n"
+        )
