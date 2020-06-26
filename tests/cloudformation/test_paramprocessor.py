@@ -22,6 +22,10 @@ class TestCloudformationParams(unittest.TestCase):
         )
         fileloader = FileLoader(path=data_path)
         params = fileloader.process_yaml_file()["dictBody"].get("Parameters", {})
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
         self.paramprocessor = ParamProcessor(params=params)
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
@@ -30,10 +34,10 @@ class TestCloudformationParams(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     def test_constructor(self):
-        self.assertEqual(self.paramprocessor.ec2.profile, None)
-        self.assertEqual(self.paramprocessor.ec2.region, None)
-        self.assertEqual(self.paramprocessor.route53.profile, None)
-        self.assertEqual(self.paramprocessor.route53.region, None)
+        self.assertEqual(self.paramprocessor.ec2.profile, "default")
+        self.assertEqual(self.paramprocessor.ec2.region, "ap-southeast-2")
+        self.assertEqual(self.paramprocessor.route53.profile, "default")
+        self.assertEqual(self.paramprocessor.route53.region, "ap-southeast-2")
         self.assertIsInstance(self.paramprocessor.params, dict)
         self.assertEqual(self.paramprocessor.original_params, [])
         self.assertEqual(self.paramprocessor.processed_params, [])

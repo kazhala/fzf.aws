@@ -35,7 +35,7 @@ class BaseSession:
             for profile in session.available_profiles:
                 fzf.append_fzf("%s\n" % profile)
             selected_profile = str(fzf.execute_fzf(print_col=1))
-        elif profile and type(profile) == str:
+        elif profile and type(profile) is str:
             selected_profile = str(profile)
 
         if region and type(region) == bool:
@@ -44,7 +44,7 @@ class BaseSession:
             for region in regions:
                 fzf.append_fzf("%s\n" % region)
             selected_region = str(fzf.execute_fzf(print_col=1))
-        elif region and type(region) == str:
+        elif region and type(region) is str:
             selected_region = str(region)
 
         if not selected_profile:
