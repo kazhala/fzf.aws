@@ -122,6 +122,10 @@ class FileLoader:
         if cloudformation_settings.get("default_args"):
             for key, value in cloudformation_settings["default_args"].items():
                 os.environ["FZFAWS_CLOUDFORMATION_%s" % key.upper()] = value
+        if cloudformation_settings.get("waiter"):
+            os.environ["FZFAWS_CLOUDFORMATION_WAITER"] = json.dumps(
+                cloudformation_settings.get("waiter", {})
+            )
 
     def _set_s3_env(self, s3_settings: dict) -> None:
         """s3 service settings

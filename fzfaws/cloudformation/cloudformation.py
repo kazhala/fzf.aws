@@ -78,7 +78,7 @@ class Cloudformation(BaseSession):
             )
         return list(fzf.execute_fzf(multi_select=True, empty_allow=empty_allow))
 
-    def wait(self, waiter_name, message=None, delay=15, attempts=240, **kwargs):
+    def wait(self, waiter_name, message=None, **kwargs):
         """wait for the operation to be completed
 
         Args:
@@ -95,20 +95,23 @@ class Cloudformation(BaseSession):
             SystemExit: on system attempting to quit
                 The above exceptions are handled and correctly stop all threads
         """
-        try:
-            spinner = Spinner(message=message)
-            # spinner is a child thread
-            spinner.start()
+
+        with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
+            waiter_config = os.getenv(
+                "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
+            )
+            delay: int = 30
+            max_attempts: int = 120
+            if waiter_config:
+                waiter_config = json.loads(waiter_config)
+                delay = int(waiter_config.get("delay", 30))
+                max_attempts = int(waiter_config.get("max_attempts", 120))
             waiter.wait(
                 StackName=self.stack_name,
-                WaiterConfig={"Delay": delay, "MaxAttempts": attempts},
+                WaiterConfig={"Delay": delay, "MaxAttempts": max_attempts},
                 **kwargs
             )
-            spinner.stop()
-        except:
-            Spinner.clear_spinner()
-            raise
 
     def execute_with_capabilities(self, cloudformation_action=None, **kwargs):
         """execute the cloudformation_action with capabilities handled
@@ -153,3 +156,17 @@ class Cloudformation(BaseSession):
         return fzf.execute_fzf(
             empty_allow=True, print_col=1, multi_select=True, header=message
         )
+
+    def _get_stack_generator(
+        self, response: List[Dict[str, Any]]
+    ) -> Generator[Dict[str, Any], None, None]:
+        """generator for boto3 paginator
+
+        reduce unnecessary memory usage
+
+        :param response: response from paginator.paginate()
+        :type response: List[Dict[str, Any]]
+        """
+        for result in response:
+            for stack in result.get("Stacks", []):
+                yield stack

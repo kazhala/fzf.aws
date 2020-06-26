@@ -82,6 +82,7 @@ class EC2(BaseSession):
         call this method before calling boto3 to do any ec2 opeartion
         and get confirmation
         """
+
         for instance in self.instance_list:
             print(
                 "InstanceId: %s  Name: %s" % (instance["InstanceId"], instance["Name"])
@@ -95,6 +96,7 @@ class EC2(BaseSession):
         :param message: message to display during loading
         :type message: str, optional
         """
+
         with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
             waiter_config = os.getenv(

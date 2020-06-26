@@ -76,6 +76,10 @@ services:
       presign: -e 3600
 
   cloudformation:
+    waiter:
+      delay: 30
+      max_attempts: 120
+
     default_args:
       create: -w -E
       update: -w -E
