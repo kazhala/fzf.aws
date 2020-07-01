@@ -392,8 +392,7 @@ def cloudformation(raw_args: list) -> None:
         available_commands = ["update", "create", "delete", "ls", "drift", "changeset"]
         fzf = Pyfzf()
         for command in available_commands:
-            fzf.append_fzf(command)
-            fzf.append_fzf("\n")
+            fzf.append_fzf("%s\n" % command)
         selected_command = fzf.execute_fzf(
             empty_allow=True, print_col=1, preview="faws cloudformation {} -h"
         )
