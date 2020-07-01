@@ -7,7 +7,7 @@ in a centralized place
 import json
 import os
 import re
-from typing import Any, Callable, Dict, Generator, List
+from typing import Any, Callable, Dict, Generator, List, Union
 
 from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
 from fzfaws.utils.util import search_dict_in_list
@@ -26,7 +26,9 @@ class Cloudformation(BaseSession):
     :type region: Union[str, bool], optional
     """
 
-    def __init__(self, profile=None, region=None):
+    def __init__(
+        self, profile: Union[str, bool] = None, region: Union[str, bool] = None
+    ) -> None:
         super().__init__(profile=profile, region=region, service_name="cloudformation")
         self.stack_name: str = ""
         self.stack_details: dict = {}

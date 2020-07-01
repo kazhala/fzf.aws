@@ -1,14 +1,16 @@
-import json
-from fzfaws.utils.pyfzf import Pyfzf
-import os
 import io
+import json
+import os
 import sys
 import unittest
-from unittest.mock import ANY, patch, call
-from fzfaws.cloudformation import Cloudformation
+from unittest.mock import ANY, call, patch
+
 from botocore.paginate import Paginator
 from botocore.waiter import Waiter
+
+from fzfaws.cloudformation import Cloudformation
 from fzfaws.utils import FileLoader
+from fzfaws.utils.pyfzf import Pyfzf
 
 
 class TestCloudformation(unittest.TestCase):
