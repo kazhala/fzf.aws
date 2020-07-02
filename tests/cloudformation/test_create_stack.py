@@ -1,3 +1,4 @@
+from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.s3.s3 import S3
 import io
 import os
@@ -146,3 +147,16 @@ class TestCloudformationCreateStack(unittest.TestCase):
         mocked_wait.assert_called_with(
             "stack_create_complete", "Waiting for stack to be ready ..."
         )
+
+    @patch.object(Cloudformation, "wait")
+    @patch.object(Cloudformation, "execute_with_capabilities")
+    @patch.object(CloudformationArgs, "set_extra_args")
+    @patch("fzfaws.cloudformation.create_stack.construct_s3_creation_args")
+    def test_create_stack_with_extra(
+        self, mocked_args, mocked_set_args, mocked_execute, mocked_wait
+    ):
+        mocked_args.return_value = {"StackName": "testing_stack"}
+        create_stack(wait=True, extra=True)
+        mocked_execute.assert_called_with(StackName="testing_stack")
+        mocked_set_args.assert_called_with(search_from_root=False)
+        mocked_wait.assert_called_once()
