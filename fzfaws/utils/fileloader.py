@@ -5,7 +5,7 @@ Used for processing yaml/json files
 import yaml
 import json
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from yaml.error import YAMLError
 
@@ -23,7 +23,7 @@ class FileLoader:
     :type body: str, optional
     """
 
-    def __init__(self, path: Optional[str] = None, body: Optional[str] = None) -> None:
+    def __init__(self, path: str = None, body: str = None) -> None:
         if path == None:
             path = ""
         if body == None:
@@ -31,7 +31,7 @@ class FileLoader:
         self.path: str = path
         self.body: str = body
 
-    def process_yaml_file(self) -> dict:
+    def process_yaml_file(self) -> Dict[str, Any]:
         """read yaml file and return the file body
 
         :return: a dict containing both raw file str and dictionary

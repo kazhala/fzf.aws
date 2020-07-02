@@ -3,35 +3,32 @@
 create cloudformation stack through both s3 bucket url or local file upload
 """
 import json
-from fzfaws.cloudformation.helper.file_validation import (
-    is_yaml,
-    is_json,
-    check_is_valid,
-)
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.helper.process_file import (
-    process_json_file,
-    process_yaml_file,
-)
-from fzfaws.utils.exceptions import NoNameEntered
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
-from fzfaws.s3.s3 import S3
+from typing import Any, Dict, Optional, Union
+
+from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
+from fzfaws.cloudformation.helper.file_validation import (
+    check_is_valid,
+    is_json,
+    is_yaml,
+)
+from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.cloudformation.validate_stack import validate_stack
+from fzfaws.s3 import S3
+from fzfaws.utils import Pyfzf, FileLoader
+from fzfaws.utils.exceptions import NoNameEntered
 
 
 def create_stack(
-    profile=False,
-    region=False,
-    local_path=False,
-    root=False,
-    wait=False,
-    extra=False,
-    bucket=None,
-    version=False,
-):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], bool, bool, bool, str, Union[bool, str]) -> None
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    local_path: Union[str, bool] = False,
+    root: bool = False,
+    wait: bool = False,
+    extra: bool = False,
+    bucket: str = None,
+    version: Union[str, bool] = False,
+) -> None:
     """handle the creation of the cloudformation stack
 
     :param profile: use a different profile for this operation
@@ -55,102 +52,19 @@ def create_stack(
 
     cloudformation = Cloudformation(profile, region)
 
-    # local flag specified
     if local_path:
         if type(local_path) != str:
             fzf = Pyfzf()
-            local_path = fzf.get_local_file(search_from_root=root, cloudformation=True)
-
-        # validate file type
-        check_is_valid(local_path)
-
-        validate_stack(
-            cloudformation.profile,
-            cloudformation.region,
-            local_path=local_path,
-            no_print=True,
-        )
-
-        stack_name = input("StackName: ")
-        if not stack_name:
-            raise NoNameEntered("No stack name entered")
-
-        file_data = {}  # type: dict
-        if is_yaml(local_path):
-            file_data = process_yaml_file(local_path)
-        elif is_json(local_path):
-            file_data = process_json_file(local_path)
-
-        # get params
-        if "Parameters" in file_data["dictBody"]:
-            paramprocessor = ParamProcessor(
-                cloudformation.profile,
-                cloudformation.region,
-                file_data["dictBody"]["Parameters"],
+            local_path = str(
+                fzf.get_local_file(search_from_root=root, cloudformation=True)
             )
-            paramprocessor.process_stack_params()
-            create_parameters = paramprocessor.processed_params
-        else:
-            create_parameters = []
-
-        cloudformation_args = {
-            "cloudformation_action": cloudformation.client.create_stack,
-            "StackName": stack_name,
-            "TemplateBody": file_data["body"],
-            "Parameters": create_parameters,
-        }
-
-    # if no local file flag, get from s3
+        cloudformation_args = construct_local_creation_args(
+            cloudformation, str(local_path)
+        )
     else:
-        s3 = S3(cloudformation.profile, cloudformation.region)
-        s3.set_bucket_and_path(bucket)
-        if not s3.bucket_name:
-            s3.set_s3_bucket(header="select a bucket which contains the template")
-        if not s3.path_list[0]:
-            s3.set_s3_object()
-
-        check_is_valid(s3.path_list[0])
-
-        if version == True:
-            version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
-                "VersionId", False
-            )
-
-        validate_stack(
-            cloudformation.profile,
-            cloudformation.region,
-            bucket="%s/%s" % (s3.bucket_name, s3.path_list[0]),
-            version=version if version else False,
-            no_print=True,
+        cloudformation_args = construct_s3_creation_args(
+            cloudformation, bucket, version
         )
-
-        file_type = ""  # type: str
-        if is_yaml(s3.path_list[0]):
-            file_type = "yaml"
-        elif is_json(s3.path_list[0]):
-            file_type = "json"
-
-        stack_name = input("StackName: ")
-        if not stack_name:
-            raise NoNameEntered("No stack name entered")
-
-        file_data = s3.get_object_data(file_type)  # type: dict
-        if "Parameters" in file_data:
-            paramprocessor = ParamProcessor(
-                cloudformation.profile, cloudformation.region, file_data["Parameters"]
-            )
-            paramprocessor.process_stack_params()
-            create_parameters = paramprocessor.processed_params
-        else:
-            create_parameters = []
-
-        template_body_loacation = s3.get_object_url(version)
-        cloudformation_args = {
-            "cloudformation_action": cloudformation.client.create_stack,
-            "StackName": stack_name,
-            "TemplateURL": template_body_loacation,
-            "Parameters": create_parameters,
-        }
 
     if extra:
         extra_args = CloudformationArgs(cloudformation)
@@ -164,6 +78,141 @@ def create_stack(
     print("Stack creation initiated")
 
     if wait:
-        cloudformation.stack_name = stack_name
-        cloudformation.wait("stack_create_complete", "Waiting for stack to be ready..")
+        cloudformation.stack_name = cloudformation_args["StackName"]
+        cloudformation.wait(
+            "stack_create_complete", "Waiting for stack to be ready ..."
+        )
         print("Stack created")
+
+
+def construct_local_creation_args(
+    cloudformation: Cloudformation, local_path: str
+) -> Dict[str, Any]:
+    """construct cloudformation create argument for local file
+
+    Perform fzf search on local files json/yaml and then use validate_stack to
+    validate stack through boto3 API before constructing the argument
+
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :param local_path: local file path
+    :type local_path: str
+    :return: return the constructed args thats ready for use with boto3
+    :rtype: Dict[str, Any]
+    """
+
+    # validate file type, has to be either yaml or json
+    check_is_valid(local_path)
+
+    validate_stack(
+        cloudformation.profile,
+        cloudformation.region,
+        local_path=local_path,
+        no_print=True,
+    )
+
+    stack_name: str = input("StackName: ")
+    if not stack_name:
+        raise NoNameEntered("No stack name entered")
+
+    fileloader = FileLoader(path=local_path)
+    file_data: Dict[str, Any] = {}
+    if is_yaml(local_path):
+        file_data = fileloader.process_yaml_file()
+    elif is_json(local_path):
+        file_data = fileloader.process_json_file()
+
+    # get params
+    if "Parameters" in file_data["dictBody"]:
+        paramprocessor = ParamProcessor(
+            cloudformation.profile,
+            cloudformation.region,
+            file_data["dictBody"]["Parameters"],
+        )
+        paramprocessor.process_stack_params()
+        create_parameters = paramprocessor.processed_params
+    else:
+        create_parameters = []
+
+    cloudformation_args = {
+        "cloudformation_action": cloudformation.client.create_stack,
+        "StackName": stack_name,
+        "TemplateBody": file_data["body"],
+        "Parameters": create_parameters,
+    }
+
+    return cloudformation_args
+
+
+def construct_s3_creation_args(
+    cloudformation: Cloudformation, bucket: Optional[str], version: Union[str, bool]
+) -> Dict[str, Any]:
+    """construct cloudformation argument for template in s3
+
+    retrieve the template from s3 bucket and validate and process the content in it
+    then return the ready to use cloudformation argument for boto3
+
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :param bucket: bucket name
+    :type bucket: 
+    :return: return the formated cloudformation argument thats ready to use by boto3
+    :rtype: Dict[str, Any]
+    """
+
+    s3 = S3(cloudformation.profile, cloudformation.region)
+    s3.set_bucket_and_path(bucket)
+    if not s3.bucket_name:
+        s3.set_s3_bucket(header="select a bucket which contains the template")
+    if not s3.path_list[0]:
+        s3.set_s3_object()
+
+    # check file type is yaml or json
+    check_is_valid(s3.path_list[0])
+
+    # if version is requested but not set through cmd line, get user to select a version
+    if version == True:
+        version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
+            "VersionId", False
+        )
+
+    # validate the template through boto3
+    validate_stack(
+        cloudformation.profile,
+        cloudformation.region,
+        bucket="%s/%s" % (s3.bucket_name, s3.path_list[0]),
+        version=version if version else False,
+        no_print=True,
+    )
+
+    file_type: str = ""
+    if is_yaml(s3.path_list[0]):
+        file_type = "yaml"
+    elif is_json(s3.path_list[0]):
+        file_type = "json"
+
+    stack_name: str = input("StackName: ")
+    if not stack_name:
+        raise NoNameEntered("No stack name entered")
+
+    file_data: dict = s3.get_object_data(file_type)
+    if "Parameters" in file_data:
+        paramprocessor = ParamProcessor(
+            cloudformation.profile, cloudformation.region, file_data["Parameters"]
+        )
+        paramprocessor.process_stack_params()
+        create_parameters = paramprocessor.processed_params
+    else:
+        create_parameters = []
+
+    template_body_loacation: str = s3.get_object_url(
+        version="" if not version else str(version)
+    )
+    cloudformation_args = {
+        "cloudformation_action": cloudformation.client.create_stack,
+        "StackName": stack_name,
+        "TemplateURL": template_body_loacation,
+        "Parameters": create_parameters,
+    }
+
+    return cloudformation_args
