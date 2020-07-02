@@ -20,6 +20,11 @@ class TestCloudformationCreateStack(unittest.TestCase):
             "../data/cloudformation_template.yaml",
         )
         sys.stdout = self.capturedOutput
+        fileloader = FileLoader()
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+        )
+        fileloader.load_config_file(config_path=config_path)
 
     def tearDown(self):
         sys.stdout = sys.__stdout__
@@ -50,7 +55,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
 
         mocked_local.assert_called_with(search_from_root=True, cloudformation=True)
         mocked_validate.assert_called_with(
-            None, None, local_path=self.data_path, no_print=True
+            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
         )
         mocked_execute.assert_called_with(
             Parameters=[],
@@ -108,7 +113,11 @@ class TestCloudformationCreateStack(unittest.TestCase):
         create_stack(bucket="kazhala-lol/hello.yaml", version=True)
         mocked_version.assert_called_with("kazhala-lol", "hello.yaml")
         mocked_validate.assert_called_with(
-            None, None, bucket="kazhala-lol/hello.yaml", version="111111", no_print=True
+            "default",
+            "ap-southeast-2",
+            bucket="kazhala-lol/hello.yaml",
+            version="111111",
+            no_print=True,
         )
         mocked_data.assert_called_with("yaml")
         mocked_url.assert_called_with(version="111111")
