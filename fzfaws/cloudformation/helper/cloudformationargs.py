@@ -2,7 +2,7 @@
 
 contains the class to configure extra settings of a cloudformation stack
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudwatch import Cloudwatch
@@ -25,7 +25,7 @@ class CloudformationArgs:
         """
         self.cloudformation: Cloudformation = cloudformation
         self._extra_args: dict = {}
-        self.update_termination: bool = False
+        self.update_termination: Optional[bool] = None
 
     def set_extra_args(
         self,
