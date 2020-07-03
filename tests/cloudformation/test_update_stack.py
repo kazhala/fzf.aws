@@ -1,3 +1,4 @@
+from fzfaws.s3.s3 import S3
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 import os
 import io
@@ -144,6 +145,9 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             cloudformation_action=ANY,
             UsePreviousTemplate=False,
         )
+        mocked_validate.assert_called_with(
+            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
+        )
 
         mocked_local.reset_mock()
         mocked_param.reset_mock()
@@ -156,4 +160,63 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             TemplateBody=ANY,
             cloudformation_action=ANY,
             UsePreviousTemplate=False,
+        )
+        mocked_validate.assert_called_with(
+            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
+        )
+
+    @patch.object(Cloudformation, "execute_with_capabilities")
+    @patch.object(S3, "get_object_url")
+    @patch.object(ParamProcessor, "process_stack_params")
+    @patch.object(S3, "get_object_data")
+    @patch("fzfaws.cloudformation.update_stack.validate_stack")
+    @patch.object(S3, "get_object_version")
+    @patch.object(Cloudformation, "set_stack")
+    def test_s3_replacing_update(
+        self,
+        mocked_stack,
+        mocked_version,
+        mocked_validate,
+        mocked_data,
+        mocked_process,
+        mocked_url,
+        mocked_execute,
+    ):
+        fileloader = FileLoader(self.data_path)
+        mocked_data.return_value = fileloader.process_yaml_file()
+        mocked_version.return_value = [{"VersionId": "111111"}]
+        mocked_url.return_value = "https://s3-ap-southeast-2.amazonaws.com/kazhala-lol/hello.yaml?versionId=111111"
+        update_stack(replace=True, bucket="kazhala-lol/hello.yaml", version=True)
+        mocked_version.assert_called_with("kazhala-lol", "hello.yaml")
+        mocked_validate.assert_called_with(
+            "default",
+            "ap-southeast-2",
+            bucket="kazhala-lol/hello.yaml",
+            version="111111",
+            no_print=True,
+        )
+        mocked_execute.assert_called_with(
+            Parameters=[],
+            StackName="",
+            TemplateURL="https://s3-ap-southeast-2.amazonaws.com/kazhala-lol/hello.yaml?versionId=111111",
+            UsePreviousTemplate=False,
+            cloudformation_action=ANY,
+        )
+
+        mocked_version.reset_mock()
+        update_stack(replace=True, bucket="kazhala-lol/hello.yaml", version="111111")
+        mocked_version.assert_not_called()
+        mocked_validate.assert_called_with(
+            "default",
+            "ap-southeast-2",
+            bucket="kazhala-lol/hello.yaml",
+            version="111111",
+            no_print=True,
+        )
+        mocked_execute.assert_called_with(
+            Parameters=[],
+            StackName="",
+            TemplateURL="https://s3-ap-southeast-2.amazonaws.com/kazhala-lol/hello.yaml?versionId=111111",
+            UsePreviousTemplate=False,
+            cloudformation_action=ANY,
         )
