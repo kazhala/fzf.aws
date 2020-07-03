@@ -25,7 +25,7 @@ class TestCloudformationArgs(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.cloudformationargs._extra_args, {})
-        self.assertEqual(self.cloudformationargs.update_termination, False)
+        self.assertEqual(self.cloudformationargs.update_termination, None)
         self.assertIsInstance(self.cloudformationargs.cloudformation, Cloudformation)
 
     @patch.object(Pyfzf, "execute_fzf")
