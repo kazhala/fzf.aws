@@ -1,3 +1,4 @@
+from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 import os
 import io
 import sys
@@ -122,4 +123,37 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         update_stack(extra=True)
         cloudformation.client.update_termination_protection.assert_called_with(
             EnableTerminationProtection=True, StackName="testing2"
+        )
+
+    @patch("fzfaws.cloudformation.update_stack.validate_stack")
+    @patch.object(Cloudformation, "execute_with_capabilities")
+    @patch.object(ParamProcessor, "process_stack_params")
+    @patch.object(Pyfzf, "get_local_file")
+    @patch.object(Cloudformation, "set_stack")
+    def test_local_replacing_update(
+        self, mocked_stack, mocked_local, mocked_param, mocked_execute, mocked_validate
+    ):
+        mocked_local.return_value = self.data_path
+        update_stack(local_path=True, root=True, replace=True)
+        mocked_local.assert_called_with(search_from_root=True, cloudformation=True)
+        mocked_param.assert_called_once()
+        mocked_execute.assert_called_with(
+            Parameters=[],
+            StackName="",
+            TemplateBody=ANY,
+            cloudformation_action=ANY,
+            UsePreviousTemplate=False,
+        )
+
+        mocked_local.reset_mock()
+        mocked_param.reset_mock()
+        update_stack(local_path=self.data_path, replace=True)
+        mocked_local.assert_not_called()
+        mocked_param.assert_called_once()
+        mocked_execute.assert_called_with(
+            Parameters=[],
+            StackName="",
+            TemplateBody=ANY,
+            cloudformation_action=ANY,
+            UsePreviousTemplate=False,
         )
