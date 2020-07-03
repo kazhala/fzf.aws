@@ -26,7 +26,7 @@ def is_json(file_name) -> bool:
     return True if re.match(r"^.*\.json$", file_name) else False
 
 
-def check_is_valid(file_name):
+def check_is_valid(file_name) -> None:
     """check if the file is json or yaml
 
     :param file_name: file path to validate
