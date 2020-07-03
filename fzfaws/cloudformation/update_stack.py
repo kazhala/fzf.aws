@@ -3,37 +3,34 @@
 perform updates to cloudformation
 """
 import json
-from fzfaws.cloudformation.helper.file_validation import (
-    is_yaml,
-    is_json,
-    check_is_valid,
-)
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.helper.process_file import (
-    process_yaml_file,
-    process_json_file,
-)
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
-from fzfaws.s3.s3 import S3
+from typing import Any, Dict, List, Optional, Union
+
+from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
+from fzfaws.cloudformation.helper.file_validation import (
+    check_is_valid,
+    is_json,
+    is_yaml,
+)
+from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.cloudformation.validate_stack import validate_stack
+from fzfaws.s3 import S3
+from fzfaws.utils import Pyfzf, FileLoader
 
 
 def update_stack(
-    profile=False,
-    region=False,
-    replace=False,
-    local_path=False,
-    root=False,
-    wait=False,
-    extra=False,
-    bucket=None,
-    version=False,
-    dryrun=False,
-    cloudformation=None,
-):
-    # type: (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, Union[bool, str], bool, Cloudformation) -> Union[None, dict]
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    replace: bool = False,
+    local_path: Union[str, bool] = False,
+    root: bool = False,
+    wait: bool = False,
+    extra: bool = False,
+    bucket: str = None,
+    version: Union[str, bool] = False,
+    dryrun: bool = False,
+    cloudformation: Optional[Cloudformation] = None,
+) -> Union[None, dict]:
     """handle the update of cloudformation stacks
 
     :param profile: use a different profile for this operation
@@ -68,146 +65,26 @@ def update_stack(
 
     extra_args = CloudformationArgs(cloudformation)
 
-    # check to use current template or replace current template
     if not replace:
-        print("Enter new parameter values, skip to use original value")
-        updated_parameters = []
-        if "Parameters" in cloudformation.stack_details:
-            parameters = cloudformation.stack_details["Parameters"]
-
-            # take new values
-            for parameter in parameters:
-                parameter_value = input(
-                    f'{parameter["ParameterKey"]}({parameter["ParameterValue"]}): '
-                )
-                if parameter_value == '""' or parameter_value == "''":
-                    updated_parameters.append(
-                        {
-                            "ParameterKey": parameter["ParameterKey"],
-                            "ParameterValue": "",
-                        }
-                    )
-                elif not parameter_value:
-                    updated_parameters.append(
-                        {
-                            "ParameterKey": parameter["ParameterKey"],
-                            "UsePreviousValue": True,
-                        }
-                    )
-                else:
-                    updated_parameters.append(
-                        {
-                            "ParameterKey": parameter["ParameterKey"],
-                            "ParameterValue": parameter_value,
-                        }
-                    )
-
-        cloudformation_args = {
-            "cloudformation_action": cloudformation.client.update_stack,
-            "StackName": cloudformation.stack_name,
-            "UsePreviousTemplate": True,
-            "Parameters": updated_parameters,
-        }
+        # non replacing update, just update the parameter
+        cloudformation_args = non_replacing_update(cloudformation)
 
     else:
         # replace existing template
-        # check if the new template should be from local
         if local_path:
+            # template provided in local machine
             if type(local_path) != str:
                 fzf = Pyfzf()
-                local_path = fzf.get_local_file(
-                    search_from_root=root, cloudformation=True
+                local_path = str(
+                    fzf.get_local_file(search_from_root=root, cloudformation=True)
                 )
-
-            # double check file type, ensure yaml or json
-            check_is_valid(local_path)
-
-            validate_stack(
-                cloudformation.profile,
-                cloudformation.region,
-                local_path=local_path,
-                no_print=True,
+            cloudformation_args = local_replacing_update(
+                cloudformation, str(local_path)
             )
 
-            file_data = {}  # type: dict
-            if is_yaml(local_path):
-                file_data = process_yaml_file(local_path)
-            elif is_json(local_path):
-                file_data = process_json_file(local_path)
-
-            # process params
-            if "Parameters" in file_data["dictBody"]:
-                paramprocessor = ParamProcessor(
-                    cloudformation.profile,
-                    cloudformation.region,
-                    file_data["dictBody"]["Parameters"],
-                    cloudformation.stack_details.get("Parameters"),
-                )
-                paramprocessor.process_stack_params()
-                updated_parameters = paramprocessor.processed_params
-            else:
-                updated_parameters = []
-
-            cloudformation_args = {
-                "cloudformation_action": cloudformation.client.update_stack,
-                "StackName": cloudformation.stack_name,
-                "TemplateBody": file_data["body"],
-                "UsePreviousTemplate": False,
-                "Parameters": updated_parameters,
-            }
-
-        # if no local file flag, get from s3
         else:
-            s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
-            s3.set_bucket_and_path(bucket)
-            if not s3.bucket_name:
-                s3.set_s3_bucket()
-            if not s3.path_list[0]:
-                s3.set_s3_object()
-
-            check_is_valid(s3.path_list[0])
-
-            if version == True:
-                version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
-                    "VersionId", False
-                )
-
-            validate_stack(
-                cloudformation.profile,
-                cloudformation.region,
-                bucket="%s/%s" % (s3.bucket_name, s3.path_list[0]),
-                version=version if version else False,
-                no_print=True,
-            )
-
-            file_type = ""  # type: str
-            if is_yaml(s3.path_list[0]):
-                file_type = "yaml"
-            elif is_json(s3.path_list[0]):
-                file_type = "json"
-
-            file_data = s3.get_object_data(file_type)
-            if "Parameters" in file_data:
-                paramprocessor = ParamProcessor(
-                    cloudformation.profile,
-                    cloudformation.region,
-                    file_data["Parameters"],
-                    cloudformation.stack_details.get("Parameters"),
-                )
-                paramprocessor.process_stack_params()
-                updated_parameters = paramprocessor.processed_params
-            else:
-                updated_parameters = []
-
-            template_body_loacation = s3.get_object_url(version)
-
-            cloudformation_args = {
-                "cloudformation_action": cloudformation.client.update_stack,
-                "StackName": cloudformation.stack_name,
-                "TemplateURL": template_body_loacation,
-                "UsePreviousTemplate": False,
-                "Parameters": updated_parameters,
-            }
+            # template provided in s3
+            cloudformation_args = s3_replacing_update(cloudformation, bucket, version)
 
     if extra:
         extra_args.set_extra_args(update=True, search_from_root=root, dryrun=dryrun)
@@ -231,5 +108,178 @@ def update_stack(
     print("Stack update initiated")
 
     if wait:
-        cloudformation.wait("stack_update_complete", "Wating for stack to be updated..")
+        cloudformation.wait(
+            "stack_update_complete", "Wating for stack to be updated ..."
+        )
         print("Stack updated")
+
+
+def non_replacing_update(cloudformation: Cloudformation) -> Dict[str, Any]:
+    """format the required argument for a non-replacing update for boto3
+
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :return: formatted argument that's ready to be used by boto3
+    :rtype: Dict[str, Any]
+    """
+
+    print("Enter new parameter values, skip to use original value")
+    updated_parameters: List[Dict[str, Any]] = []
+    parameters = cloudformation.stack_details.get("Parameters", [])
+
+    for parameter in parameters:
+        parameter_value = input(
+            "%s(%s): " % (parameter["ParameterKey"], parameter["ParameterValue"])
+        )
+        if parameter_value == '""' or parameter_value == "''":
+            updated_parameters.append(
+                {"ParameterKey": parameter["ParameterKey"], "ParameterValue": "",}
+            )
+        elif not parameter_value:
+            updated_parameters.append(
+                {"ParameterKey": parameter["ParameterKey"], "UsePreviousValue": True,}
+            )
+        else:
+            updated_parameters.append(
+                {
+                    "ParameterKey": parameter["ParameterKey"],
+                    "ParameterValue": parameter_value,
+                }
+            )
+
+    cloudformation_args = {
+        "cloudformation_action": cloudformation.client.update_stack,
+        "StackName": cloudformation.stack_name,
+        "UsePreviousTemplate": True,
+        "Parameters": updated_parameters,
+    }
+
+    return cloudformation_args
+
+
+def local_replacing_update(
+    cloudformation: Cloudformation, local_path: str
+) -> Dict[str, Any]:
+    """format cloudformation argument for a replacing update
+
+    process the new template and also comparing with previous parameter
+    value to provide an old value preview
+
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :param local_path: local file path to the template
+    :type local_path: str
+    :return: formatted argument thats ready to be used by boto3
+    :rtype: Dict[str, Any]
+    """
+
+    check_is_valid(local_path)
+
+    validate_stack(
+        cloudformation.profile,
+        cloudformation.region,
+        local_path=local_path,
+        no_print=True,
+    )
+
+    fileloader = FileLoader(path=local_path)
+    file_data: Dict[str, Any] = {}
+    if is_yaml(local_path):
+        file_data = fileloader.process_yaml_file()
+    elif is_json(local_path):
+        file_data = fileloader.process_json_file()
+
+    # process params
+    if "Parameters" in file_data["dictBody"]:
+        paramprocessor = ParamProcessor(
+            cloudformation.profile,
+            cloudformation.region,
+            file_data["dictBody"]["Parameters"],
+            cloudformation.stack_details.get("Parameters"),
+        )
+        paramprocessor.process_stack_params()
+        updated_parameters = paramprocessor.processed_params
+    else:
+        updated_parameters = []
+
+    cloudformation_args = {
+        "cloudformation_action": cloudformation.client.update_stack,
+        "StackName": cloudformation.stack_name,
+        "TemplateBody": file_data["body"],
+        "UsePreviousTemplate": False,
+        "Parameters": updated_parameters,
+    }
+
+    return cloudformation_args
+
+
+def s3_replacing_update(
+    cloudformation: Cloudformation, bucket: Optional[str], version: Union[str, bool]
+) -> Dict[str, Any]:
+    """format argument for a replacing updating through providing template on s3
+
+    read the template from s3, comparing parameter names with the original stack
+    to provide a preview of value if possible
+
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :param bucket: bucket path, if set, skip fzf selection
+    :type bucket: str, optional
+    :param version: whether to use a versioned template in s3
+    :type version: Union[str, bool]
+    :return: formatted argument thats ready to be used by boto3
+    :rtype: Dict[str, Any]
+    """
+
+    s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
+    s3.set_bucket_and_path(bucket)
+    if not s3.bucket_name:
+        s3.set_s3_bucket()
+    if not s3.path_list[0]:
+        s3.set_s3_object()
+
+    check_is_valid(s3.path_list[0])
+
+    if version == True:
+        version = s3.get_object_version(s3.bucket_name, s3.path_list[0])[0].get(
+            "VersionId", False
+        )
+
+    validate_stack(
+        cloudformation.profile,
+        cloudformation.region,
+        bucket="%s/%s" % (s3.bucket_name, s3.path_list[0]),
+        version=version if version else False,
+        no_print=True,
+    )
+
+    file_type: str = ""
+    if is_yaml(s3.path_list[0]):
+        file_type = "yaml"
+    elif is_json(s3.path_list[0]):
+        file_type = "json"
+
+    file_data: Dict[str, Any] = s3.get_object_data(file_type)
+    if "Parameters" in file_data:
+        paramprocessor = ParamProcessor(
+            cloudformation.profile,
+            cloudformation.region,
+            file_data["Parameters"],
+            cloudformation.stack_details.get("Parameters"),
+        )
+        paramprocessor.process_stack_params()
+        updated_parameters = paramprocessor.processed_params
+    else:
+        updated_parameters = []
+
+    template_body_loacation = s3.get_object_url("" if not version else str(version))
+
+    cloudformation_args = {
+        "cloudformation_action": cloudformation.client.update_stack,
+        "StackName": cloudformation.stack_name,
+        "TemplateURL": template_body_loacation,
+        "UsePreviousTemplate": False,
+        "Parameters": updated_parameters,
+    }
+
+    return cloudformation_args

@@ -12,7 +12,7 @@ from fzfaws.utils.exceptions import (
     NoSelectionMade,
 )
 from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Dict, Generator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
@@ -316,7 +316,7 @@ class S3(BaseSession):
                 )
         return selected_versions
 
-    def get_object_data(self, file_type: str = "") -> dict:
+    def get_object_data(self, file_type: str = "") -> Dict[str, Any]:
         """read the s3 object
 
         read the s3 object file and if is yaml/json file_type, load the file into dict
@@ -332,7 +332,7 @@ class S3(BaseSession):
         with Spinner.spin(message="Reading file from s3 ..."):
             s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
             body = s3_object.get()["Body"].read()
-            body_dict: dict = {}
+            body_dict: Dict[str, Any] = {}
             fileloader = FileLoader(body=body)
             if file_type == "yaml":
                 body_dict = fileloader.process_yaml_body()
