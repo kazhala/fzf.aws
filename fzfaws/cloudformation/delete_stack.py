@@ -2,14 +2,19 @@
 
 delete operations on the selected cloudformation stack
 """
-import json
-from fzfaws.utils.util import get_confirmation, remove_dict_from_list
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.iam.iam import IAM
+from typing import Any, Dict, List, Union
+
+from fzfaws.cloudformation import Cloudformation
+from fzfaws.iam import IAM
+from fzfaws.utils import get_confirmation
 
 
-def delete_stack(profile=False, region=False, wait=False, iam=False):
+def delete_stack(
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    wait: bool = False,
+    iam: Union[str, bool] = False,
+) -> None:
     """handle deltion of the stack
 
     Two situation, normal deletion and retained deletion.
@@ -17,49 +22,52 @@ def delete_stack(profile=False, region=False, wait=False, iam=False):
     fzf operation would be triggered for user to select logical id to retain
     in order for deletion to be success.
 
-    Args:
-        profile: string or bool, use a different profile for this operation
-        region: string or bool, use a different region for this operation
-        wait: bool, pause the function and wait for stack delete complete
-        iam: string or bool, specify a iam arn to delete this stack
-    Raises:
-        NoSelectionMade: whent he required fzf selection received zero selection
+    :param profile: use a different profile for this operation
+    :type profile: Union[str, bool], optional
+    :param region: use a different region for this operation
+    :type region: Union[str, bool], optional
+    :param wait: pause the function and wait for stack delete complete
+    :type wait: bool, optional
+    :param iam: specify a iam arn to delete this stack
+    :type iam: Union[str, bool]
+    :raises SystemExit: when user denied confirmation to delete stack, exit system
     """
 
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
-    logical_id_list = []
+    logical_id_list: List[str] = []
     if cloudformation.stack_details["StackStatus"] == "DELETE_FAILED":
         print(
             "The stack is in the failed state, specify any resource to skip during deletion"
         )
         logical_id_list = cloudformation.get_stack_resources(empty_allow=True)
 
-    cloudformation_args = {"StackName": cloudformation.stack_name}
+    cloudformation_args: Dict[str, Any] = {"StackName": cloudformation.stack_name}
     if logical_id_list:
         cloudformation_args["RetainResources"] = logical_id_list
 
     if iam and type(iam) == str:
         cloudformation_args["RoleARN"] = iam
     elif iam and type(iam) == bool:
-        iam = IAM(profile=cloudformation.profile)
-        iam.set_arns(
+        iam_instance = IAM(profile=cloudformation.profile)
+        iam_instance.set_arns(
             header="Select a iam role with permissions to delete the current stack",
             service="cloudformation.amazonaws.com",
         )
-        if iam.arns[0]:
-            cloudformation_args["RoleARN"] = iam.arns[0]
+        if iam_instance.arns[0]:
+            cloudformation_args["RoleARN"] = iam_instance.arns[0]
 
     if not get_confirmation(
         f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"
     ):
-        exit()
+        raise SystemExit
 
-    response = cloudformation.client.delete_stack(**cloudformation_args)
+    cloudformation.client.delete_stack(**cloudformation_args)
     print("Stack deletion initiated")
 
-    # wait for completion
     if wait:
-        cloudformation.wait("stack_delete_complete", "Wating for stack to be deleted..")
+        cloudformation.wait(
+            "stack_delete_complete", "Wating for stack to be deleted ..."
+        )
         print("Stack deleted")
