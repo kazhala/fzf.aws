@@ -19,8 +19,8 @@ from fzfaws.utils import Pyfzf, FileLoader
 
 
 def update_stack(
-    profile: Union[str, bool] = False,
-    region: Union[str, bool] = False,
+    profile: Optional[Union[str, bool]] = False,
+    region: Optional[Union[str, bool]] = False,
     replace: bool = False,
     local_path: Union[str, bool] = False,
     root: bool = False,

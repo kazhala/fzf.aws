@@ -3,6 +3,7 @@
 create/view changeset of the cloudformation stacks
 """
 import json
+from typing import Any, Dict, Union
 from fzfaws.utils.pyfzf import Pyfzf
 from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.utils.exceptions import NoNameEntered
@@ -10,9 +11,10 @@ from fzfaws.cloudformation.cloudformation import Cloudformation
 from fzfaws.utils.util import get_confirmation
 
 
-def describe_changes(cloudformation, changeset_name):
-    # (Cloudformation, str) -> None
+def describe_changes(cloudformation: Cloudformation, changeset_name: str) -> None:
     """get the result of the changeset
+
+    Only for printing information purpose
 
     :param cloudformation: an instance of the Cloudformation class
     :type cloudformation: Cloudformation
@@ -30,20 +32,19 @@ def describe_changes(cloudformation, changeset_name):
 
 
 def changeset_stack(
-    profile=False,
-    region=False,
-    replace=False,
-    local_path=False,
-    root=False,
-    wait=False,
-    info=False,
-    execute=False,
-    delete=False,
-    extra=False,
-    bucket=None,
-    version=False,
-):
-    # (Union[bool, str], Union[bool, str], bool, Union[bool, str], bool, bool, bool, bool, bool, bool, str, Union[bool, str]) -> None
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    replace: bool = False,
+    local_path: Union[str, bool] = False,
+    root: bool = False,
+    wait: bool = False,
+    info: bool = False,
+    execute: bool = False,
+    delete: bool = False,
+    extra: bool = False,
+    bucket: str = None,
+    version: Union[str, bool] = False,
+) -> None:
     """handle changeset actions
 
     :param profile: use a different profile for this operation
@@ -79,37 +80,38 @@ def changeset_stack(
     # if not creating new changeset
     if info or execute or delete:
         fzf = Pyfzf()
-        response = cloudformation.client.list_change_sets(
+        response: Dict[str, Any] = cloudformation.client.list_change_sets(
             StackName=cloudformation.stack_name
         )
-        response_list = response["Summaries"]
         # get the changeset name
         fzf.process_list(
-            response_list,
+            response.get("Summaries", []),
             "ChangeSetName",
             "StackName",
             "ExecutionStatus",
             "Status",
             "Description",
         )
-        selected_changeset = fzf.execute_fzf(multi_select=delete)
 
         if info:
+            selected_changeset = str(fzf.execute_fzf())
             describe_changes(cloudformation, selected_changeset)
 
         # execute the change set
         elif execute:
+            selected_changeset = fzf.execute_fzf()
             if get_confirmation("Execute changeset %s?" % selected_changeset):
                 response = cloudformation.client.execute_change_set(
                     ChangeSetName=selected_changeset,
                     StackName=cloudformation.stack_name,
                 )
                 cloudformation.wait(
-                    "stack_update_complete", "Wating for stack to be updated.."
+                    "stack_update_complete", "Wating for stack to be updated ..."
                 )
                 print("Stack updated")
 
         elif delete:
+            selected_changeset = fzf.execute_fzf(multi_select=True)
             for changeset in selected_changeset:
                 print("(dryrun) Delete changeset %s" % changeset)
             if get_confirmation("Confirm?"):
@@ -155,7 +157,7 @@ def changeset_stack(
         if wait:
             cloudformation.wait(
                 "change_set_create_complete",
-                "Wating for changset to be created..",
+                "Wating for changset to be created ...",
                 ChangeSetName=changeset_name,
             )
             print("Changeset created")
