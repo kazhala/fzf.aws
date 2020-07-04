@@ -51,11 +51,15 @@ class Cloudformation(BaseSession):
             self.stack_name, stack_generator, "StackName"
         )
 
-    def get_stack_resources(self, empty_allow: bool = False) -> List[str]:
+    def get_stack_resources(
+        self, empty_allow: bool = False, header: str = None
+    ) -> List[str]:
         """list all stack logical resources
 
         :param empty_allow: allow empty selection
         :type empty_allow: bool, optional
+        :param header: information to be displayed in fzf header
+        :type header: str, optional
         :return: selected list of logical resources LogicalResourceId
         :rtype: List[str]
         """
@@ -73,7 +77,9 @@ class Cloudformation(BaseSession):
                 "ResourceType",
                 "Drift",
             )
-        return list(fzf.execute_fzf(multi_select=True, empty_allow=empty_allow))
+        return list(
+            fzf.execute_fzf(multi_select=True, header=header, empty_allow=empty_allow)
+        )
 
     def wait(self, waiter_name: str, message: str = None, **kwargs) -> None:
         """wait for the operation to be completed

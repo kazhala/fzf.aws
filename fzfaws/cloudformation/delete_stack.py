@@ -38,10 +38,10 @@ def delete_stack(
 
     logical_id_list: List[str] = []
     if cloudformation.stack_details["StackStatus"] == "DELETE_FAILED":
-        print(
-            "The stack is in the failed state, specify any resource to skip during deletion"
+        header: str = "The stack is in the failed state, specify any resource to skip during deletion"
+        logical_id_list = cloudformation.get_stack_resources(
+            empty_allow=True, header=header
         )
-        logical_id_list = cloudformation.get_stack_resources(empty_allow=True)
 
     cloudformation_args: Dict[str, Any] = {"StackName": cloudformation.stack_name}
     if logical_id_list:
@@ -59,7 +59,7 @@ def delete_stack(
             cloudformation_args["RoleARN"] = iam_instance.arns[0]
 
     if not get_confirmation(
-        f"Are you sure you want to delete the stack '{cloudformation.stack_name}'?"
+        "Are you sure you want to delete the stack '%s'?" % cloudformation.stack_name
     ):
         raise SystemExit
 
