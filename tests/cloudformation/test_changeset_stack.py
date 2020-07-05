@@ -2,7 +2,7 @@ from fzfaws.utils.pyfzf import Pyfzf
 import io
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import call, patch
 from fzfaws.cloudformation.changeset_stack import changeset_stack
 
 
@@ -92,4 +92,27 @@ class TestCloudformationChangesetStack(unittest.TestCase):
         )
         cloudformation.wait.assert_called_once_with(
             "stack_update_complete", "Wating for stack to be updated ..."
+        )
+
+    @patch("fzfaws.cloudformation.changeset_stack.get_confirmation")
+    @patch.object(Pyfzf, "process_list")
+    @patch.object(Pyfzf, "execute_fzf")
+    @patch("fzfaws.cloudformation.changeset_stack.Cloudformation")
+    def test_delete_changeset(
+        self, MockedCloudformation, mocked_execute, mocked_process, mocked_confirm,
+    ):
+        mocked_confirm.return_value = True
+        cloudformation = MockedCloudformation()
+        cloudformation.stack_name = "testing1"
+        cloudformation.client.list_change_sets.return_value = (
+            self.list_change_sets_value
+        )
+        mocked_execute.return_value = ["fooboo", "helloworld"]
+        changeset_stack(delete=True)
+        mocked_execute.assert_called_once_with(multi_select=True)
+        cloudformation.client.delete_change_set.assert_has_calls(
+            [
+                call(ChangeSetName="fooboo", StackName="testing1"),
+                call(ChangeSetName="helloworld", StackName="testing1"),
+            ]
         )
