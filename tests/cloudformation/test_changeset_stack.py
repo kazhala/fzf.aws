@@ -116,3 +116,67 @@ class TestCloudformationChangesetStack(unittest.TestCase):
                 call(ChangeSetName="helloworld", StackName="testing1"),
             ]
         )
+
+    @patch("fzfaws.cloudformation.changeset_stack.update_stack")
+    @patch("builtins.input")
+    @patch("fzfaws.cloudformation.changeset_stack.Cloudformation")
+    def test_create_changeset(self, MockedCloudformation, mocked_input, mocked_udpate):
+        cloudformation = MockedCloudformation()
+        cloudformation.stack_name = "testing1"
+        mocked_input.return_value = "fooboo"
+        mocked_udpate.return_value = {
+            "Parameters": [
+                {"ParameterKey": "SSHLocation", "UsePreviousValue": True},
+                {"ParameterKey": "Hello", "UsePreviousValue": True},
+                {"ParameterKey": "WebServer", "UsePreviousValue": True},
+            ],
+            "StackName": "testing1",
+            "UsePreviousTemplate": True,
+            "cloudformation_action": cloudformation.client.create_change_set,
+        }
+        cloudformation.execute_with_capabilities.return_value = {}
+        changeset_stack(profile="root", region="us-east-1")
+        cloudformation.execute_with_capabilities.assert_called_once_with(
+            ChangeSetName="fooboo",
+            Description="fooboo",
+            Parameters=[
+                {"ParameterKey": "SSHLocation", "UsePreviousValue": True},
+                {"ParameterKey": "Hello", "UsePreviousValue": True},
+                {"ParameterKey": "WebServer", "UsePreviousValue": True},
+            ],
+            StackName="testing1",
+            UsePreviousTemplate=True,
+            cloudformation_action=cloudformation.client.create_change_set,
+        )
+        mocked_udpate.assert_called_once_with(
+            cloudformation.profile,
+            cloudformation.region,
+            False,
+            False,
+            False,
+            False,
+            False,
+            None,
+            False,
+            cloudformation=cloudformation,
+            dryrun=True,
+        )
+        MockedCloudformation.assert_called_with("root", "us-east-1")
+
+        changeset_stack(
+            replace=True, wait=True, extra=True, bucket="kazhala-lol/hello.yaml"
+        )
+        MockedCloudformation.assert_called_with(False, False)
+        mocked_udpate.assert_called_with(
+            cloudformation.profile,
+            cloudformation.region,
+            True,
+            False,
+            False,
+            True,
+            True,
+            "kazhala-lol/hello.yaml",
+            False,
+            cloudformation=cloudformation,
+            dryrun=True,
+        )
