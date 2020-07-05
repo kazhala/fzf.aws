@@ -159,15 +159,21 @@ class TestCloudformation(unittest.TestCase):
             "ResourceType",
             "Drift",
         )
-        mocked_execute.assert_called_once_with(multi_select=True, empty_allow=False)
+        mocked_execute.assert_called_once_with(
+            multi_select=True, header=None, empty_allow=False
+        )
 
         mocked_process.reset_mock()
         mocked_execute.reset_mock()
         mocked_execute.return_value = ["hello"]
-        result = self.cloudformation.get_stack_resources(empty_allow=True)
+        result = self.cloudformation.get_stack_resources(
+            empty_allow=True, header="hello"
+        )
         self.assertEqual(result, ["hello"])
         mocked_process.assert_called_once()
-        mocked_execute.assert_called_once_with(multi_select=True, empty_allow=True)
+        mocked_execute.assert_called_once_with(
+            multi_select=True, header="hello", empty_allow=True
+        )
 
     @patch.object(Waiter, "wait")
     def test_wait(self, mocked_wait):
