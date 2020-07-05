@@ -4,11 +4,11 @@ create/view changeset of the cloudformation stacks
 """
 import json
 from typing import Any, Dict, Union
-from fzfaws.utils.pyfzf import Pyfzf
+
+from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.update_stack import update_stack
+from fzfaws.utils import Pyfzf, get_confirmation
 from fzfaws.utils.exceptions import NoNameEntered
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.utils.util import get_confirmation
 
 
 def describe_changes(cloudformation: Cloudformation, changeset_name: str) -> None:
