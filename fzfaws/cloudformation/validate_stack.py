@@ -4,23 +4,27 @@ search local files or s3 files and then use boto3 api to
 validate the template syntax
 """
 import json
+from typing import Union
+
+from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.file_validation import check_is_valid
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.s3.s3 import S3
+from fzfaws.s3 import S3
+from fzfaws.utils import Pyfzf
 
 
 def validate_stack(
-    profile=False,
-    region=False,
-    local_path=False,
-    root=False,
-    bucket=None,
-    version=False,
-    no_print=False,
-):
-    # type: (Union[bool, str], Union[bool, str], Union[bool, str], str, Union[bool, str], bool) -> None
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    local_path: Union[str, bool] = False,
+    root: bool = False,
+    bucket: str = None,
+    version: Union[str, bool] = False,
+    no_print: bool = False,
+) -> None:
     """validate the selected cloudformation template using boto3 api
+
+    This is also used internally by create_stack and update_stack
+    operations.
 
     :param profile: Use a different profile for this operation
     :type profile: Union[bool, str], optional
@@ -42,13 +46,15 @@ def validate_stack(
     if local_path:
         if type(local_path) != str:
             fzf = Pyfzf()
-            local_path = fzf.get_local_file(
-                search_from_root=root,
-                cloudformation=True,
-                header="select a cloudformation template to validate",
+            local_path = str(
+                fzf.get_local_file(
+                    search_from_root=root,
+                    cloudformation=True,
+                    header="select a cloudformation template to validate",
+                )
             )
         check_is_valid(local_path)
-        with open(str(local_path), "r") as file_body:
+        with open(local_path, "r") as file_body:
             response = cloudformation.client.validate_template(
                 TemplateBody=file_body.read()
             )
@@ -67,7 +73,7 @@ def validate_stack(
                 "VersionId", False
             )
 
-        template_body_loacation = s3.get_object_url(version)  # type: str
+        template_body_loacation = s3.get_object_url(str(version))
         response = cloudformation.client.validate_template(
             TemplateURL=template_body_loacation
         )
