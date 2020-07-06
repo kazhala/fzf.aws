@@ -4,23 +4,31 @@ detect drift status of the selected cloudformations stack
 """
 import json
 import time
-from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.utils.spinner import Spinner
+from typing import List, Union
+
+from fzfaws.cloudformation import Cloudformation
+from fzfaws.utils import Spinner
 
 
-def drift_stack(profile=False, region=False, info=False, select=False):
+def drift_stack(
+    profile: Union[str, bool] = False,
+    region: Union[str, bool] = False,
+    info: bool = False,
+    select: bool = False,
+    wait: bool = False,
+) -> None:
     """perform actions on stack drift
 
-    Args:
-        profile: string or bool, use a different profile for this operation
-        region: string or bool, use a different region for this operation
-        info: bool, display drift status instead of initiate a drift detection
-        select: bool, select individual resource and detect, othewise, it will perform stack level check
-    Returns:
-        None
-    Raises:
-        NoSelectionMade: when the required selection received empty result
-        ClientError: boto3 client error
+    :param profile: use a different profile for the operation
+    :type profile: Union[str, bool], optional
+    :param region: use a different region for this operation
+    :type region: Union[str, bool], optional
+    :param info: display drift status instead of initiate a drift detection
+    :type info: bool, optional
+    :param select: select individual iresource and detect drift, otherwise, it will perform stack level check
+    :type select: bool, optional
+    :param wait: wait for the drfit detection
+    :type wait: bool, optional
     """
 
     cloudformation = Cloudformation(profile, region)
@@ -43,11 +51,14 @@ def drift_stack(profile=False, region=False, info=False, select=False):
         response = cloudformation.client.detect_stack_drift(
             StackName=cloudformation.stack_name
         )
-        drift_id = response["StackDriftDetectionId"]
-        wait_drift_result(cloudformation, drift_id)
+        drift_id: str = response["StackDriftDetectionId"]
+        print("Drift detection initiated")
+        print("DriftDetectionId: %s" % drift_id)
+        if wait:
+            wait_drift_result(cloudformation, drift_id)
 
     else:
-        logical_id_list = cloudformation.get_stack_resources()
+        logical_id_list: List[str] = cloudformation.get_stack_resources()
 
         if len(logical_id_list) == 1:
             # get individual resource drift status
@@ -58,10 +69,12 @@ def drift_stack(profile=False, region=False, info=False, select=False):
             print(json.dumps(response["StackResourceDrift"], indent=4, default=str))
             print(80 * "-")
             print(
-                f"LogicalResourceId: {response['StackResourceDrift']['LogicalResourceId']}"
+                "LogicalResourceId: %s"
+                % response["StackResourceDrift"]["LogicalResourceId"]
             )
             print(
-                f"StackResourceDriftStatus: {response['StackResourceDrift']['StackResourceDriftStatus']}"
+                "StackResourceDriftStatus: %s"
+                % response["StackResourceDrift"]["StackResourceDriftStatus"]
             )
 
         else:
@@ -69,43 +82,46 @@ def drift_stack(profile=False, region=False, info=False, select=False):
             response = cloudformation.client.detect_stack_drift(
                 StackName=cloudformation.stack_name, LogicalResourceIds=logical_id_list
             )
-            drift_id = response["StackDriftDetectionId"]
-            wait_drift_result(cloudformation, drift_id)
+            drift_id: str = response["StackDriftDetectionId"]
+            print("Drift detection initiated")
+            print("DriftDetectionId: %s" % drift_id)
+            if wait:
+                wait_drift_result(cloudformation, drift_id)
 
 
-def wait_drift_result(cloudformation, drift_id):
+def wait_drift_result(cloudformation: Cloudformation, drift_id: str) -> None:
     """Wait for the drift detection result
 
     aws doesn't provide wait condition, thus creating my own
 
-    Args:
-        cloudformation: instance of the Cloudformation class
-        drift_id: string, drift detection id from the boto3 response
-    Returns:
-        None
+    :param cloudformation: Cloudformation instance
+    :type cloudformation: Cloudformation
+    :param drift_id: the id of the drift detection
+    :type drift_id: str
     """
-    try:
-        print("Drift detection initiated")
-        print(f"DriftDetectionId: {drift_id}")
-        spinner = Spinner(message="Wating for drift detection to complete..")
 
-        spinner.start()
-        while True:
-            time.sleep(5)
+    delay, max_attempts = cloudformation._get_waiter_config()
+    attempts: int = 0
+    response = None
+    with Spinner.spin(message="Wating for drift detection to complete ..."):
+        while attempts <= max_attempts:
+            time.sleep(delay)
             response = cloudformation.client.describe_stack_drift_detection_status(
                 StackDriftDetectionId=drift_id
             )
-            if response["DetectionStatus"] != "DETECTION_IN_PROGRESS":
+            if response.get("DetectionStatus") != "DETECTION_IN_PROGRESS":
                 break
-        spinner.stop()
+    if response is not None:
         response.pop("ResponseMetadata", None)
         print(json.dumps(response, indent=4, default=str))
         print(80 * "-")
         if response["DetectionStatus"] == "DETECTION_COMPLETE":
-            print(f"StackDriftStatus: {response['StackDriftStatus']}")
-            print(f"DriftedStackResourceCount: {response['DriftedStackResourceCount']}")
+            print("StackDriftStatus: %s" % response.get("StackResourceDriftStatus"))
+            print(
+                "DriftedStackResourceCount: %s"
+                % response.get("DriftedStackResourceCount")
+            )
         else:
             print("Drift detection failed")
-    except:
-        Spinner.clear_spinner()
-        raise
+    else:
+        print("Waiter failed: Max attempts exceeded")

@@ -242,6 +242,13 @@ def cloudformation(raw_args: list) -> None:
         help="select individual resource or resources to detect drift",
     )
     drift_cmd.add_argument(
+        "-w",
+        "--wait",
+        action="store_true",
+        default=False,
+        help="wait for the drift detection result",
+    )
+    drift_cmd.add_argument(
         "-P",
         "--profile",
         nargs="?",
@@ -454,7 +461,7 @@ def cloudformation(raw_args: list) -> None:
     elif args.subparser_name == "ls":
         ls_stack(args.profile, args.region, args.resource)
     elif args.subparser_name == "drift":
-        drift_stack(args.profile, args.region, args.info, args.select)
+        drift_stack(args.profile, args.region, args.info, args.select, args.wait)
     elif args.subparser_name == "changeset":
         changeset_stack(
             args.profile,
