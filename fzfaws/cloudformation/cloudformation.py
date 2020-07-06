@@ -99,24 +99,6 @@ class Cloudformation(BaseSession):
                 **kwargs
             )
 
-    def _get_waiter_config(self) -> Tuple[int, int]:
-        """process env and return the waiter config
-
-        :return: return a tuple with delay and max_attempts
-        :rtype: Tuple
-        """
-
-        waiter_config = os.getenv(
-            "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
-        )
-        delay: int = 30
-        max_attempts: int = 120
-        if waiter_config:
-            waiter_config = json.loads(waiter_config)
-            delay = int(waiter_config.get("delay", 30))
-            max_attempts = int(waiter_config.get("max_attempts", 120))
-        return (delay, max_attempts)
-
     def execute_with_capabilities(
         self, cloudformation_action: Callable[..., Dict[str, Any]] = None, **kwargs
     ) -> Dict[str, Any]:
@@ -147,6 +129,24 @@ class Cloudformation(BaseSession):
                 **kwargs, Capabilities=self._get_capabilities(message=error_msg)
             )
         return response
+
+    def _get_waiter_config(self) -> Tuple[int, int]:
+        """process env and return the waiter config
+
+        :return: return a tuple with delay and max_attempts
+        :rtype: Tuple
+        """
+
+        waiter_config = os.getenv(
+            "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
+        )
+        delay: int = 30
+        max_attempts: int = 120
+        if waiter_config:
+            waiter_config = json.loads(waiter_config)
+            delay = int(waiter_config.get("delay", 30))
+            max_attempts = int(waiter_config.get("max_attempts", 120))
+        return (delay, max_attempts)
 
     def _get_capabilities(self, message: str = "") -> List[str]:
         """display help message and let user select capabilities
