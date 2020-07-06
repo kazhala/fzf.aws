@@ -66,3 +66,29 @@ class TestCloudformationDriftStack(unittest.TestCase):
         self.assertRegex(
             self.capturedOutput.getvalue(), r'"StackDriftStatus": "IN_SYNC"'
         )
+
+    @patch("fzfaws.cloudformation.drift_stack.Cloudformation")
+    def test_single_selected_resource(self, MockedCloudformation):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        cloudformation = MockedCloudformation()
+        cloudformation.stack_name = "testing1"
+        cloudformation.stack_details = self.cloudformation_details
+        cloudformation.get_stack_resources.return_value = ["asg1"]
+        cloudformation.client.detect_stack_resource_drift.return_value = {
+            "StackResourceDrift": {
+                "LogicalResourceId": "asg1",
+                "StackResourceDriftStatus": "IN_SYNC",
+            }
+        }
+        drift_stack(select=True)
+
+        MockedCloudformation.assert_called_with(False, False)
+        cloudformation.get_stack_resources.assert_called_once()
+        cloudformation.client.detect_stack_resource_drift.assert_called_once_with(
+            StackName="testing1", LogicalResourceId="asg1"
+        )
+        self.assertRegex(self.capturedOutput.getvalue(), r"LogicalResourceId: asg1")
+        self.assertRegex(
+            self.capturedOutput.getvalue(), r"StackResourceDriftStatus: IN_SYNC"
+        )
