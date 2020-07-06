@@ -92,3 +92,30 @@ class TestCloudformationDriftStack(unittest.TestCase):
         self.assertRegex(
             self.capturedOutput.getvalue(), r"StackResourceDriftStatus: IN_SYNC"
         )
+
+    @patch("fzfaws.cloudformation.drift_stack.wait_drift_result")
+    @patch("fzfaws.cloudformation.drift_stack.Cloudformation")
+    def test_multiple_selected_resource(self, MockedCloudformation, mocked_wait):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        cloudformation = MockedCloudformation()
+        cloudformation.stack_name = "testing1"
+        cloudformation.stack_details = self.cloudformation_details
+        cloudformation.get_stack_resources.return_value = ["asg1", "sg1"]
+        cloudformation.client.detect_stack_drift.return_value = {
+            "StackDriftDetectionId": "1111111"
+        }
+        drift_stack(profile=True, select=True)
+
+        MockedCloudformation.assert_called_with(True, False)
+        cloudformation.get_stack_resources.assert_called_once()
+        cloudformation.set_stack.assert_called_once()
+        cloudformation.client.detect_stack_drift.assert_called_once_with(
+            StackName="testing1", LogicalResourceIds=["asg1", "sg1"]
+        )
+        mocked_wait.assert_not_called()
+        self.assertRegex(self.capturedOutput.getvalue(), r"Drift detection initiated")
+        self.assertRegex(self.capturedOutput.getvalue(), r"DriftDetectionId: 1111111")
+
+        drift_stack(profile=True, select=True, wait=True)
+        mocked_wait.assert_called_once_with(cloudformation, "1111111")
