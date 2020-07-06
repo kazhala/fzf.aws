@@ -3,7 +3,9 @@ import io
 import sys
 import unittest
 from unittest.mock import patch
-from fzfaws.cloudformation.drift_stack import drift_stack
+from fzfaws.cloudformation.drift_stack import drift_stack, wait_drift_result
+from fzfaws.cloudformation import Cloudformation
+from fzfaws.utils import FileLoader
 
 
 class TestCloudformationDriftStack(unittest.TestCase):
@@ -119,3 +121,23 @@ class TestCloudformationDriftStack(unittest.TestCase):
 
         drift_stack(profile=True, select=True, wait=True)
         mocked_wait.assert_called_once_with(cloudformation, "1111111")
+
+    @patch("fzfaws.cloudformation.drift_stack.Cloudformation")
+    def test_wait(self, MockedCloudformation):
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        cloudformation = MockedCloudformation()
+        cloudformation._get_waiter_config.return_value = (1, 120)
+        cloudformation.client.describe_stack_drift_detection_status.return_value = {
+            "DetectionStatus": "DETECTION_COMPLETE",
+            "StackResourceDriftStatus": "IN_SYNC",
+            "DriftedStackResourceCount": 0,
+        }
+        wait_drift_result(cloudformation, "1111111")
+        cloudformation.client.describe_stack_drift_detection_status.assert_called_once_with(
+            StackDriftDetectionId="1111111"
+        )
+        self.assertRegex(self.capturedOutput.getvalue(), r"StackDriftStatus: IN_SYNC")
+        self.assertRegex(
+            self.capturedOutput.getvalue(), r"DriftedStackResourceCount: 0"
+        )
