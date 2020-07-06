@@ -73,7 +73,7 @@ def validate_stack(
                 "VersionId", False
             )
 
-        template_body_loacation = s3.get_object_url(str(version))
+        template_body_loacation = s3.get_object_url("" if not version else str(version))
         response = cloudformation.client.validate_template(
             TemplateURL=template_body_loacation
         )
