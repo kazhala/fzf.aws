@@ -7,7 +7,7 @@ in a centralized place
 import json
 import os
 import re
-from typing import Any, Callable, Dict, Generator, List, Union
+from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 
 from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
 from fzfaws.utils.util import search_dict_in_list
@@ -92,20 +92,30 @@ class Cloudformation(BaseSession):
 
         with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
-            waiter_config = os.getenv(
-                "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
-            )
-            delay: int = 30
-            max_attempts: int = 120
-            if waiter_config:
-                waiter_config = json.loads(waiter_config)
-                delay = int(waiter_config.get("delay", 30))
-                max_attempts = int(waiter_config.get("max_attempts", 120))
+            delay, max_attempts = self._get_waiter_config()
             waiter.wait(
                 StackName=self.stack_name,
                 WaiterConfig={"Delay": delay, "MaxAttempts": max_attempts},
                 **kwargs
             )
+
+    def _get_waiter_config(self) -> Tuple[int, int]:
+        """process env and return the waiter config
+
+        :return: return a tuple with delay and max_attempts
+        :rtype: Tuple
+        """
+
+        waiter_config = os.getenv(
+            "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
+        )
+        delay: int = 30
+        max_attempts: int = 120
+        if waiter_config:
+            waiter_config = json.loads(waiter_config)
+            delay = int(waiter_config.get("delay", 30))
+            max_attempts = int(waiter_config.get("max_attempts", 120))
+        return (delay, max_attempts)
 
     def execute_with_capabilities(
         self, cloudformation_action: Callable[..., Dict[str, Any]] = None, **kwargs
