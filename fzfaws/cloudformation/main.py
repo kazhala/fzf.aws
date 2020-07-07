@@ -223,6 +223,30 @@ def cloudformation(raw_args: list) -> None:
         default=False,
         help="use a different region, set the flag without argument to use fzf and select a region",
     )
+    ls_cmd.add_argument(
+        "--tag",
+        action="store_true",
+        default=False,
+        help="print tag of the stack instead of the entire stack details",
+    )
+    ls_cmd.add_argument(
+        "--arn",
+        action="store_true",
+        default=False,
+        help="print arn of the stack instead of the entire stack details",
+    )
+    ls_cmd.add_argument(
+        "--name",
+        action="store_true",
+        default=False,
+        help="print name of the stack or stack resource instead of the entire details",
+    )
+    ls_cmd.add_argument(
+        "--type",
+        action="store_true",
+        default=False,
+        help="print the type of the stack resource instead of the entire resource details",
+    )
 
     drift_cmd = subparsers.add_parser(
         "drift", description="drift detection on the stack/resources"
@@ -459,7 +483,15 @@ def cloudformation(raw_args: list) -> None:
             args.iam = True
         delete_stack(args.profile, args.region, args.wait, args.iam)
     elif args.subparser_name == "ls":
-        ls_stack(args.profile, args.region, args.resource)
+        ls_stack(
+            args.profile,
+            args.region,
+            args.resource,
+            args.name,
+            args.arn,
+            args.tag,
+            args.type,
+        )
     elif args.subparser_name == "drift":
         drift_stack(args.profile, args.region, args.info, args.select, args.wait)
     elif args.subparser_name == "changeset":
