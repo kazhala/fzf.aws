@@ -59,10 +59,10 @@ class TestCloudformationMain(unittest.TestCase):
     @patch("fzfaws.cloudformation.main.ls_stack")
     def test_ls_stack(self, mocked_ls):
         cloudformation(["ls"])
-        mocked_ls.assert_called_with(False, False, False)
+        mocked_ls.assert_called_with(False, False, False, False, False, False, False)
 
         cloudformation(["ls", "-R", "--resource"])
-        mocked_ls.assert_called_with(False, True, True)
+        mocked_ls.assert_called_with(False, True, True, False, False, False, False)
 
     @patch("fzfaws.cloudformation.main.drift_stack")
     def test_drift_stack(self, mocked_drift):
