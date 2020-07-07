@@ -6,7 +6,6 @@ import threading
 import sys
 import os
 from typing import Optional
-import boto3
 
 
 class S3Progress(object):
@@ -37,11 +36,7 @@ class S3Progress(object):
     """
 
     def __init__(
-        self,
-        filename: str,
-        bucket: str = None,
-        client: boto3.client = None,
-        version_id: str = None,
+        self, filename: str, bucket: str = None, client=None, version_id: str = None,
     ) -> None:
         """constructor
         """

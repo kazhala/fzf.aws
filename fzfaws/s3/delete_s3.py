@@ -232,7 +232,7 @@ def delete_object_recursive(
 
 
 def find_all_version_files(
-    client: boto3.client,
+    client,
     bucket: str,
     path: str,
     file_list: Optional[List[str]] = None,

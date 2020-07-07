@@ -4,7 +4,7 @@ search local files or s3 files and then use boto3 api to
 validate the template syntax
 """
 import json
-from typing import Union
+from typing import Optional, Union
 
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.file_validation import check_is_valid
@@ -13,8 +13,8 @@ from fzfaws.utils import Pyfzf
 
 
 def validate_stack(
-    profile: Union[str, bool] = False,
-    region: Union[str, bool] = False,
+    profile: Optional[Union[str, bool]] = False,
+    region: Optional[Union[str, bool]] = False,
     local_path: Union[str, bool] = False,
     root: bool = False,
     bucket: str = None,

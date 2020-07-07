@@ -7,11 +7,10 @@ import os
 from typing import Optional, List, Tuple
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.utils.exceptions import InvalidS3PathPattern
-import boto3
 
 
 def walk_s3_folder(
-    client: boto3.client,
+    client,
     bucket: str,
     bucket_path: str,
     root: str = "",
