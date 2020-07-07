@@ -42,7 +42,7 @@ class TestCloudformationLsStack(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
     @patch("fzfaws.cloudformation.ls_stack.Cloudformation")
-    def test_resource(self, MockedCloudformation):
+    def test_ls_resource(self, MockedCloudformation):
         cloudformation = MockedCloudformation()
         cloudformation.stack_details = self.stack_response
         cloudformation.stack_name = "testing2"
@@ -84,4 +84,32 @@ class TestCloudformationLsStack(unittest.TestCase):
         self.assertEqual(
             self.capturedOutput.getvalue(),
             "EC2InstanceSecurityGroup\nAWS::EC2::SecurityGroup\n",
+        )
+
+    @patch("fzfaws.cloudformation.ls_stack.Cloudformation")
+    def test_ls_stack(self, MockedCloudformation):
+        cloudformation = MockedCloudformation()
+        cloudformation.stack_name = "dotbare-cicd"
+        cloudformation.stack_details = self.stack_response
+        ls_stack(profile="root", region="us-east-1")
+        MockedCloudformation.assert_called_with("root", "us-east-1")
+        self.assertRegex(self.capturedOutput.getvalue(), r'"StackName": "dotbare-cicd"')
+        self.assertRegex(
+            self.capturedOutput.getvalue(),
+            r'"StackId": "arn:aws:cloudformation:ap-southeast-2:111111:stack/dotbare-cicd/aadsfadsf"',
+        )
+
+        self.capturedOutput.truncate(0)
+        self.capturedOutput.seek(0)
+        ls_stack(name=True, arn=True, tag=True, resource_type=True)
+        self.assertNotRegex(
+            self.capturedOutput.getvalue(), r'"StackName": "dotbare-cicd"'
+        )
+        self.assertNotRegex(
+            self.capturedOutput.getvalue(),
+            r'"StackId": "arn:aws:cloudformation:ap-southeast-2:111111:stack/dotbare-cicd/aadsfadsf"',
+        )
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "dotbare-cicd\narn:aws:cloudformation:ap-southeast-2:111111:stack/dotbare-cicd/aadsfadsf\n[{'Key': 'Application', 'Value': 'mealternative'}, {'Key': 'Name', 'Value': 'mealternative'}]\n",
         )
