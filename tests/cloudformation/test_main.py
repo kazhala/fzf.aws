@@ -67,10 +67,10 @@ class TestCloudformationMain(unittest.TestCase):
     @patch("fzfaws.cloudformation.main.drift_stack")
     def test_drift_stack(self, mocked_drift):
         cloudformation(["drift"])
-        mocked_drift.assert_called_with(False, False, False, False)
+        mocked_drift.assert_called_with(False, False, False, False, False)
 
-        cloudformation(["drift", "-i", "-s"])
-        mocked_drift.assert_called_with(False, False, True, True)
+        cloudformation(["drift", "-i", "-s", "-w"])
+        mocked_drift.assert_called_with(False, False, True, True, True)
 
     @patch("fzfaws.cloudformation.main.changeset_stack")
     def test_changeset_stack(self, mocked_change):
