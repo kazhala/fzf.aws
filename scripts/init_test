@@ -5,6 +5,7 @@
 [[ ! -d "$HOME"/.aws ]] && mkdir "$HOME"/.aws
 [[ -f "$HOME"/.aws/credentials ]] && rm "$HOME"/.aws/credentials
 [[ -f "$HOME"/.aws/config ]] && rm "$HOME"/.aws/config
+[[ ! -f "$HOME/.ssh" ]] && mkdir "$HOME"/.ssh
 
 cat << EOF > "$HOME"/.aws/credentials
 [default]
