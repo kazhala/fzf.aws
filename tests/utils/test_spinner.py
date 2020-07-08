@@ -16,7 +16,7 @@ class TestSpinner(unittest.TestCase):
 
     def test_default(self):
         spinner = Spinner()
-        self.assertEqual(spinner.message, "loading..")
+        self.assertEqual(spinner.message, "loading ...")
         self.assertEqual(spinner.pattern, "|/-\\")
         self.assertEqual(spinner.speed, 0.1)
 
