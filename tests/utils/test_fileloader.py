@@ -267,3 +267,28 @@ class TestFileLoader(unittest.TestCase):
         self.assertEqual(os.environ["FZFAWS_FZF_KEYS"], "--bind=boo:foo")
         self.assertEqual(os.environ["FZFAWS_FZF_OPTS"], "hello")
         self.assertEqual(os.environ["FZFAWS_FZF_EXECUTABLE"], "system")
+
+    def test_set_spinner_env(self):
+        self.fileloader.load_config_file(config_path=self.test_yaml)
+        self.assertEqual(os.environ["FZFAWS_SPINNER_SPEED"], "0.1")
+        self.assertEqual(os.environ["FZFAWS_SPINNER_MESSAGE"], "loading ...")
+        self.assertEqual(os.environ["FZFAWS_SPINNER_PATTERN"], "|/-\\")
+
+        # reset
+        os.environ["FZFAWS_SPINNER_PATTERN"] = ""
+        os.environ["FZFAWS_SPINNER_MESSAGE"] = ""
+        os.environ["FZFAWS_SPINNER_SPEED"] = ""
+
+        # empty test
+        self.fileloader._set_spinner_env({})
+        self.assertEqual(os.getenv("FZFAWS_SPINNER_SPEED", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_SPINNER_MESSAGE", ""), "")
+        self.assertEqual(os.getenv("FZFAWS_SPINNER_PATTERN", ""), "")
+
+        # custom settings
+        self.fileloader._set_spinner_env(
+            {"message": "hello", "speed": "0.8", "pattern": "xxx"}
+        )
+        self.assertEqual(os.environ["FZFAWS_SPINNER_SPEED"], "0.8")
+        self.assertEqual(os.environ["FZFAWS_SPINNER_MESSAGE"], "hello")
+        self.assertEqual(os.environ["FZFAWS_SPINNER_PATTERN"], "xxx")
