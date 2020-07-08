@@ -25,6 +25,12 @@ fzf:
     top: alt-0
     toggle-sort: alt-s
 
+spinner:
+  # This message is only used in fall back situations
+  message: 'loading ...'
+  speed: 0.1
+  pattern: "|/-\\"
+
 # common settings for all services
 global:
   # global waiter config for waiting, it can be override in services

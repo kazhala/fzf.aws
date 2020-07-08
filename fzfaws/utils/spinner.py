@@ -3,11 +3,12 @@
 Using python multi thread to achieve a spinner
 during wait operation for aws
 """
-import sys
-import time
-import threading
-from typing import Any, Callable, Iterator, Optional
 from contextlib import contextmanager
+import os
+import sys
+import threading
+import time
+from typing import Any, Callable, Iterator, Optional
 
 
 class Spinner(threading.Thread):
@@ -32,11 +33,11 @@ class Spinner(threading.Thread):
         """construtor of spinner
         """
         if message is None:
-            message = "loading.."
+            message = str(os.getenv("FZFAWS_SPINNER_MESSAGE", "loading ..."))
         if speed is None:
-            speed = 0.1
+            speed = float(os.getenv("FZFAWS_SPINNER_SPEED", "0.1"))
         if pattern is None:
-            pattern = "|/-\\"
+            pattern = str(os.getenv("FZFAWS_SPINNER_PATTERN", "|/-\\"))
         super().__init__(target=self._spin)
         self.message: str = message
         self.speed: float = speed

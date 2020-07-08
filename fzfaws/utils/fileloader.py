@@ -5,7 +5,7 @@ Used for processing yaml/json files
 import yaml
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from yaml.error import YAMLError
 
@@ -90,6 +90,7 @@ class FileLoader:
                 if not formated_body:
                     return
                 self._set_fzf_env(formated_body.get("fzf", {}))
+                self._set_spinner_env(formated_body.get("spinner", {}))
                 self._set_gloable_env(formated_body.get("global", {}))
                 if not formated_body.get("services"):
                     return
@@ -103,11 +104,26 @@ class FileLoader:
                 print("Config file is malformed, please double check your config file")
                 print(e)
 
-    def _set_cloudformation_env(self, cloudformation_settings: dict) -> None:
+    def _set_spinner_env(self, spinner_settings: Dict[str, Any]) -> None:
+        """spinner settings
+
+        :param spinner_settings: settings for the spinner from the user config
+        :type spinner_settings: Dict[str, Any]
+        """
+        if not spinner_settings:
+            return
+        if spinner_settings.get("message"):
+            os.environ["FZFAWS_SPINNER_MESSAGE"] = spinner_settings["message"]
+        if spinner_settings.get("speed"):
+            os.environ["FZFAWS_SPINNER_SPEED"] = str(spinner_settings["speed"])
+        if spinner_settings.get("pattern"):
+            os.environ["FZFAWS_SPINNER_PATTERN"] = spinner_settings["pattern"]
+
+    def _set_cloudformation_env(self, cloudformation_settings: Dict[str, Any]) -> None:
         """cloudformation settings
 
         :param cloudformation_settings: settins from config file
-        :type cloudformation_settings: dict
+        :type cloudformation_settings: Dict[str, Any]
         """
         if not cloudformation_settings:
             return
