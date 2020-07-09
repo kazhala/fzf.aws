@@ -1,4 +1,4 @@
-"""Main module
+"""Main module.
 
 Typical usage example:
     fzfaws <command> --options

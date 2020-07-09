@@ -1,12 +1,16 @@
-"""file loader class
+"""contains file loader class.
 
-Used for processing yaml/json files
+Contains functions to load yaml file and json file.
+
+Used to process user fzfaws.yml config file and set appropriate
+env variable for other functions to consume.
 """
-import yaml
+
 import json
 import os
 from typing import Any, Dict
 
+import yaml
 from yaml.error import YAMLError
 
 # make yaml class ignore all undefined tags and keep parsing
@@ -15,7 +19,7 @@ yaml.SafeLoader.add_multi_constructor("!", lambda loader, suffix, node: None)
 
 
 class FileLoader:
-    """used to load yaml/json files
+    """Class used to load yaml/json files.
 
     :param path: file path to read
     :type path: str, optional
@@ -24,6 +28,7 @@ class FileLoader:
     """
 
     def __init__(self, path: str = None, body: str = None) -> None:
+        """Construct FileLoader class."""
         if path == None:
             path = ""
         if body == None:
@@ -32,7 +37,7 @@ class FileLoader:
         self.body: str = body
 
     def process_yaml_file(self) -> Dict[str, Any]:
-        """read yaml file and return the file body
+        """Read yaml file and return the file body.
 
         :return: a dict containing both raw file str and dictionary
         :rtype: dict
@@ -42,8 +47,8 @@ class FileLoader:
             formated_body = yaml.safe_load(body)
             return {"body": body, "dictBody": formated_body}
 
-    def process_json_file(self) -> dict:
-        """read the json file and return the file body
+    def process_json_file(self) -> Dict[str, Any]:
+        """Read the json file and return the file body.
 
         :return: a dict containing both raw file str and dictionary
         :rtype: dict
@@ -54,7 +59,7 @@ class FileLoader:
             return {"body": body, "dictBody": formated_body}
 
     def process_yaml_body(self) -> dict:
-        """process the yaml body
+        """Process the yaml body.
 
         :return: loaded dictionary
         :rtyrp: dict
@@ -62,7 +67,7 @@ class FileLoader:
         return yaml.safe_load(self.body)
 
     def process_json_body(self) -> dict:
-        """process the json body
+        """Process the json body.
 
         :return: loaded dictionary
         :rtyrp: dict
@@ -70,7 +75,7 @@ class FileLoader:
         return json.loads(self.body)
 
     def load_config_file(self, config_path: str = None) -> None:
-        """load config file into dict
+        """Load config file into dict.
 
         process all of the configs and set env variable for run time
 
@@ -105,7 +110,7 @@ class FileLoader:
                 print(e)
 
     def _set_spinner_env(self, spinner_settings: Dict[str, Any]) -> None:
-        """spinner settings
+        """Set spinner settings.
 
         :param spinner_settings: settings for the spinner from the user config
         :type spinner_settings: Dict[str, Any]
@@ -120,7 +125,7 @@ class FileLoader:
             os.environ["FZFAWS_SPINNER_PATTERN"] = spinner_settings["pattern"]
 
     def _set_cloudformation_env(self, cloudformation_settings: Dict[str, Any]) -> None:
-        """cloudformation settings
+        """Set cloudformation settings.
 
         :param cloudformation_settings: settins from config file
         :type cloudformation_settings: Dict[str, Any]
@@ -143,11 +148,11 @@ class FileLoader:
                 cloudformation_settings.get("waiter", {})
             )
 
-    def _set_s3_env(self, s3_settings: dict) -> None:
-        """s3 service settings
+    def _set_s3_env(self, s3_settings: Dict[str, Any]) -> None:
+        """Set s3 service settings.
 
         :param s3_settings: s3 settings from config file
-        :type s3_settings: dict
+        :type s3_settings: Dict[str, Any]
         """
         if not s3_settings:
             return
@@ -161,11 +166,11 @@ class FileLoader:
             for key, value in s3_settings.get("default_args").items():
                 os.environ["FZFAWS_S3_%s" % key.upper()] = value
 
-    def _set_ec2_env(self, ec2_settings: dict) -> None:
-        """ec2 service settings
+    def _set_ec2_env(self, ec2_settings: Dict[str, Any]) -> None:
+        """Set ec2 service settings.
 
         :param ec2_settings: ec2 settings from config file
-        :type ec2_settings: dict
+        :type ec2_settings: Dict[str, Any]
         """
         if not ec2_settings:
             return
@@ -181,11 +186,11 @@ class FileLoader:
         if ec2_settings.get("region"):
             os.environ["FZFAWS_EC2_REGION"] = ec2_settings["region"]
 
-    def _set_gloable_env(self, global_settings: dict) -> None:
-        """set global settings
+    def _set_gloable_env(self, global_settings: Dict[str, Any]) -> None:
+        """Set global settings.
 
         :param global_settings: loaded global seetings from config file
-        :type global_settings: dict
+        :type global_settings: Dict[str, Any]
         """
         if not global_settings:
             return
@@ -198,11 +203,11 @@ class FileLoader:
         if global_settings.get("region"):
             os.environ["FZFAWS_GLOBAL_REGION"] = global_settings["region"]
 
-    def _set_fzf_env(self, fzf_settings: dict) -> None:
-        """set env for fzf
+    def _set_fzf_env(self, fzf_settings: Dict[str, Any]) -> None:
+        """Set env for fzf.
 
         :param fzf_settings: loaded fzf settings from config file
-        :type fzf_settings: dict
+        :type fzf_settings: Dict[str, Any]
         """
         if not fzf_settings:
             return
