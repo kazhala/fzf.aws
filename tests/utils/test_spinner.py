@@ -35,11 +35,6 @@ class TestSpinner(unittest.TestCase):
         Spinner.clear_spinner()
         self.assertEqual(Spinner.instances, [])
 
-    def test_exewrapper(self):
-        new_spinner = Spinner()
-        response = new_spinner.execute_with_spinner(lambda x: x, x=1)
-        self.assertEqual(response, 1)
-
     def test_context(self):
         with Spinner.spin(message="hello"):
             response = 1 + 1

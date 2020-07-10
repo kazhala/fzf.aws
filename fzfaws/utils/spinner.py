@@ -1,18 +1,33 @@
-"""contains the class to init a spinner
+"""This module contains the class to create a cli spinner.
 
-Using python multi thread to achieve a spinner
-during wait operation for aws
+The spinner class is utilising the threading to achieve
+a spinner.
 """
 from contextlib import contextmanager
 import os
 import sys
 import threading
 import time
-from typing import Any, Callable, Iterator, Optional
+from typing import Iterator, Optional
 
 
 class Spinner(threading.Thread):
-    """create a spinner in command line async
+    """Create a spinner in the command line.
+
+    Using python threading to achieve the spinner.
+    After the operation finish, call spinner.stop()
+    to stop and remove the spinner.
+
+    It also comes with a context manager that could be
+    used easier.
+
+    Example:
+        with Spinner.spin(message="hello"):
+            long_running_task()
+        print('finished')
+
+    All the arguments are optional, if nothing is found, the spiner
+    will attempt to read the ENV (user config) before proceeding.
 
     :param pattern: pattern to display during spin
     :type pattern: str, optional
@@ -30,8 +45,7 @@ class Spinner(threading.Thread):
         message: Optional[str] = None,
         speed: Optional[float] = None,
     ) -> None:
-        """construtor of spinner
-        """
+        """Construct a spiner."""
         if message is None:
             message = str(os.getenv("FZFAWS_SPINNER_MESSAGE", "loading ..."))
         if speed is None:
@@ -46,14 +60,12 @@ class Spinner(threading.Thread):
         self.__class__.instances.append(self)
 
     def stop(self) -> None:
-        """stop the spinner
-        """
+        """Stop the spinner."""
         self._stopevent.set()
         self.join()
 
     def _spin(self) -> None:
-        """spin the spinner
-        """
+        """Spin the spinner."""
         while not self._stopevent.is_set():
             for cursor in self.pattern:
                 sys.stdout.write("%s %s" % (cursor, self.message))
@@ -61,23 +73,9 @@ class Spinner(threading.Thread):
                 time.sleep(self.speed)
                 sys.stdout.write("\033[2K\033[1G")
 
-    def execute_with_spinner(self, action: Callable, **kwargs) -> Any:
-        """used for basic fetching information from boto3 with spinner
-
-        :param action: function to execute
-        :type action: Callable
-        """
-        try:
-            self.start()
-            response = action(**kwargs)
-            self.stop()
-            return response
-        except:
-            Spinner.clear_spinner()
-            raise
-
     @classmethod
     def clear_spinner(cls) -> None:
+        """Clean up all spinner instance."""
         for spinner in cls.instances:
             if spinner.is_alive():
                 spinner.stop()
@@ -91,7 +89,7 @@ class Spinner(threading.Thread):
         message: Optional[str] = None,
         speed: Optional[float] = None,
     ) -> Iterator[None]:
-        """context manager to handle spinner exit
+        """Context manager to handle spinner start and exit.
 
         :param pattern: pattern to display during spin
         :type pattern: str, optional
