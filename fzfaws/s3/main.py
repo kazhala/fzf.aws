@@ -1,31 +1,33 @@
-"""main entry point for all s3 operations
-
-process raw args passed from __main__.py and route
-commands to appropriate sub functions
-"""
+"""Contains the main entry point for all s3 operations."""
 import argparse
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.s3.upload_s3 import upload_s3
-from fzfaws.s3.download_s3 import download_s3
+from typing import Any, List
+
 from fzfaws.s3.bucket_s3 import bucket_s3
 from fzfaws.s3.delete_s3 import delete_s3
-from fzfaws.s3.presign_s3 import presign_s3
-from fzfaws.s3.object_s3 import object_s3
+from fzfaws.s3.download_s3 import download_s3
 from fzfaws.s3.ls_s3 import ls_s3
+from fzfaws.s3.object_s3 import object_s3
+from fzfaws.s3.presign_s3 import presign_s3
+from fzfaws.s3.upload_s3 import upload_s3
+from fzfaws.utils.pyfzf import Pyfzf
 
 
-def s3(raw_args: list) -> None:
-    """parse arguments and direct traffic to handler, internal use only
+def s3(raw_args: List[Any]) -> None:
+    """Parse arguments and direct traffic to handler, internal use only.
+
+    The raw_args are the processed args through cli.py main function.
+    It also already contains the user default args so no need to process
+    default args anymore.
 
     :param raw_args: list of args to be parsed
     :type raw_args: list
     """
-
     parser = argparse.ArgumentParser(
         description="perform CRUD operations with aws s3 bucket",
         usage="fzfaws s3 [-h] {upload,download,delete,bucket,presign,object,ls} ...",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
+
     upload_cmd = subparsers.add_parser(
         "upload", description="upload a local file/directory to s3 bucket"
     )
@@ -522,7 +524,7 @@ def s3(raw_args: list) -> None:
             fzf.append_fzf(command)
             fzf.append_fzf("\n")
         selected_command = fzf.execute_fzf(
-            empty_allow=True, print_col=1, preview="faws s3 {} -h"
+            empty_allow=True, print_col=1, preview="fzfaws s3 {} -h"
         )
         if selected_command == "upload":
             upload_cmd.print_help()
@@ -536,7 +538,7 @@ def s3(raw_args: list) -> None:
             object_cmd.print_help()
         elif selected_command == "ls":
             ls_cmd.print_help()
-    # the print_help automatically perform a sys exit
+        raise SystemExit
 
     if args.profile == None:
         # when user set --profile flag but without argument

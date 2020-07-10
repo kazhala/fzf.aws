@@ -1,22 +1,22 @@
-"""s3 client wrapper 
-
-A centralized position to initial boto3.client('s3'), better
-management if user decide to change region or use different profile
-"""
+"""Contains the s3 wrapper class."""
 import os
 import re
+from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
+
 from botocore.exceptions import ClientError
+
+from fzfaws.utils import BaseSession, FileLoader, Pyfzf, Spinner, get_confirmation
 from fzfaws.utils.exceptions import (
     InvalidFileType,
     InvalidS3PathPattern,
     NoSelectionMade,
 )
-from fzfaws.utils import Spinner, get_confirmation, BaseSession, Pyfzf, FileLoader
-from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 
 class S3(BaseSession):
-    """handles operation for all s3 related task with boto3.client('s3')
+    """Wrapper class for s3 to interact with s3.
+
+    Handles the bucket operation and object operation.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -29,12 +29,13 @@ class S3(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
+        """Construct the s3 instance."""
         super().__init__(profile=profile, region=region, service_name="s3")
         self.bucket_name: str = ""
         self.path_list: List[str] = [""]
 
     def set_s3_bucket(self, header: str = "") -> None:
-        """list bucket through fzf and let user select a bucket
+        """List bucket through fzf and let user select a bucket.
 
         :param header: header to display in fzf header
         :type header: str, optional
@@ -46,7 +47,13 @@ class S3(BaseSession):
         self.bucket_name = str(fzf.execute_fzf(header=header))
 
     def set_bucket_and_path(self, bucket: str = None) -> None:
-        """method to set both bucket and path, skip fzf selection
+        """Set both bucket and path.
+
+        This is used to process argument of "-b bucket/object", if any of them is set,
+        skip further fzf selection. 
+        
+        E.g. if bucket is set, skip select bucket. If both bucket and object is set, skip
+        all fzf selection.
 
         :param bucket: bucket/path to set, format(Bucket/ or Bucket/path/ or Bucket/filename)
         :type bucket: str, optional
@@ -54,6 +61,7 @@ class S3(BaseSession):
         """
         if not bucket:
             return
+
         # check user input
         result, match = self._validate_input_path(bucket)
         if result == "accesspoint":
@@ -68,7 +76,7 @@ class S3(BaseSession):
             )
 
     def set_s3_path(self, download: bool = False) -> None:
-        """set 'path' of s3 to upload or download
+        """Set 'path' of s3 to upload or download.
 
         s3 folders are not actually folder, found this path listing on
         https://github.com/boto/boto3/issues/134#issuecomment-116766812
@@ -82,8 +90,8 @@ class S3(BaseSession):
         :type download: bool, optional
         :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
-
         selected_option = self._get_path_option(download=download)
+
         if selected_option == "input":
             self.path_list[0] = input("Input the path(newname or newpath/): ")
         elif selected_option == "root":
@@ -162,10 +170,10 @@ class S3(BaseSession):
         multi_select: bool = False,
         deletemark: bool = False,
     ) -> None:
-        """list object within a bucket and let user select a object.
+        """List object within a bucket and let user select a object.
 
-        stores the file path and the filetype into the instance attributes
-        using paginator to get all results
+        Stores the file path and the filetype into the instance attributes
+        using paginator to get all results.
 
         All of the deleted object are displayed in red color when version mode
         is enabled.
@@ -178,8 +186,8 @@ class S3(BaseSession):
         :type deletemark: bool, optional
         :raises NoSelectionMade: when there is no selection made
         """
-
         fzf = Pyfzf()
+
         if not version:
             paginator = self.client.get_paginator("list_objects")
             with Spinner.spin(message="Fetching s3 objects ..."):
@@ -193,6 +201,7 @@ class S3(BaseSession):
                 self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
                 self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+
         else:
             key_list: list = []
             paginator = self.client.get_paginator("list_object_versions")
@@ -252,7 +261,7 @@ class S3(BaseSession):
         non_current: bool = False,
         multi_select: bool = True,
     ) -> List[Dict[str, str]]:
-        """list object versions through fzf
+        """List object versions through fzf.
         
         :param bucket: object's bucketname, if not set, class instance's bucket_name will be used
         :type bucket: str, optional
@@ -267,14 +276,14 @@ class S3(BaseSession):
         :param multi_select: allow multi selection
         :type multi_select: bool, optional
         :return: list of selected versions
-        :rtype: List[dict]
+        :rtype: List[Dict[str, str]]
 
-        example:
+        Example return value:
             [{'Key': s3keypath, 'VersionId': s3objectid}]
         """
-
         bucket = bucket if bucket else self.bucket_name
         key_list: list = []
+
         if key:
             key_list.append(key)
         else:
@@ -317,18 +326,17 @@ class S3(BaseSession):
         return selected_versions
 
     def get_object_data(self, file_type: str = "") -> Dict[str, Any]:
-        """read the s3 object
+        """Read the s3 object.
 
-        read the s3 object file and if is yaml/json file_type, load the file into dict
-        currently is only used for cloudformation
+        Read the s3 object file and if is yaml/json file_type, load the file into dict
+        currently is only used for cloudformation.
 
         :param file_type: type of file to process, supported value: yaml/json
         :type file_type: str
         :return: processed dict of json or yaml
         :raises InvalidFileType: when the file_type is invalid
-        :rtype: dict
+        :rtype: Dict[str, Any]
         """
-
         with Spinner.spin(message="Reading file from s3 ..."):
             s3_object = self.resource.Object(self.bucket_name, self.path_list[0])
             body = s3_object.get()["Body"].read()
@@ -343,7 +351,7 @@ class S3(BaseSession):
         return body_dict
 
     def get_object_url(self, version: str = "", object_key: str = "") -> str:
-        """return the object url of the current selected object
+        """Return the object url of the current selected object.
 
         :param version: get url for versioned object
         :type version: str, optional
@@ -352,9 +360,9 @@ class S3(BaseSession):
         :return: s3 url for the object
         :rtype: str
         """
-
         if not object_key:
             object_key = self.path_list[0]
+
         response = self.client.get_bucket_location(Bucket=self.bucket_name)
         bucket_location = response["LocationConstraint"]
         if not version:
@@ -372,13 +380,13 @@ class S3(BaseSession):
             )
 
     def get_s3_destination_key(self, local_path: str, recursive: bool = False) -> str:
-        """set the s3 key for upload destination
+        """Set the s3 key for upload destination.
 
-        check if the current s3 path ends with '/'
-        if not, pass, since is already a valid path
-        if yes, append the local file name to the s3 path as the key
+        Check if the current s3 path ends with '/'.
+        If not, pass, since is already a valid path.
+        If yes, append the local file name to the s3 path as the key.
 
-        if recursive is set, append '/' to last if '/' does not exist
+        If recursive is set, append '/' to last if '/' does not exist.
 
         :param local_path: local path for download
         :type local_path: str
@@ -392,6 +400,7 @@ class S3(BaseSession):
                 return local_path
             else:
                 return os.path.join(self.path_list[0], local_path)
+
         else:
             if not self.path_list[0]:
                 # if operation is at root level, return the file name
@@ -407,7 +416,7 @@ class S3(BaseSession):
     ) -> Union[
         Tuple[str, Sequence[str]], Tuple[str, Sequence[str]], Tuple[None, None],
     ]:
-        """validate if the user input path is valid format
+        """Validate if the user input path is valid format.
 
         :param user_input: the input from -b flag
         :type user_input: str
@@ -428,7 +437,7 @@ class S3(BaseSession):
             return (None, None)
 
     def _get_path_option(self, download: bool = False) -> str:
-        """pop up fzf for user to select what to do with the path
+        """Pop fzf for user to select what to do with the path.
 
         :param download: if not download, insert append option
         :type download: bool, optional
@@ -454,7 +463,7 @@ class S3(BaseSession):
     def _version_generator(
         self, versions: List[dict], markers: List[dict], non_current: bool, delete: bool
     ) -> Generator[Dict[str, str], None, None]:
-        """version generator to reduce memory usage
+        """Create version generator to reduce memory usage.
 
         :param versions: list of versions from list_object_versions paginator
         :type versions: List[dict]
@@ -467,7 +476,6 @@ class S3(BaseSession):
         :return: formatted dict of version information in generator form
         :rtype: Generator[Dict[str,str], None, None]
         """
-
         for version in versions:
             if (non_current and not version.get("IsLatest")) or not non_current:
                 yield {
@@ -477,6 +485,7 @@ class S3(BaseSession):
                     "DeleteMarker": False,
                     "LastModified": version.get("LastModified"),
                 }
+
         if delete:
             for marker in markers:
                 yield {
