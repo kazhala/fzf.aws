@@ -1,15 +1,16 @@
-"""kms class for interacting with kms service
+"""Module contains the kms class for interacting with kms."""
+from typing import Optional, Union
 
-Handle selection of kms keys
-"""
-from fzfaws.utils import Pyfzf, BaseSession, Spinner
-from typing import Union, Optional
+from fzfaws.utils import BaseSession, Pyfzf, Spinner
 
 
 class KMS(BaseSession):
-    """kms wrapper class around boto3.client('kms')
+    """The kms wrapper class to handle operation around kms.
 
-    handles operation around kms, selection/creation etc
+    Inherite from BaseSession to better control profile, region.
+
+    At the moment is still just a helper class to other
+    class like Cloudformation.
 
     :param profile: profile to use for this operation
     :type profile: Union[str, bool], optional
@@ -22,6 +23,7 @@ class KMS(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
+        """Construct the kms instane."""
         super().__init__(profile=profile, region=region, service_name="kms")
         self.keyids: list = [""]
 
@@ -32,7 +34,7 @@ class KMS(BaseSession):
         multi_select: bool = False,
         empty_allow: bool = True,
     ) -> None:
-        """set the key for kms using fzf
+        """Set the key for kms for further operations.
 
         :param keyids: keyids to set
         :type keyids: Union[list, str], optional
