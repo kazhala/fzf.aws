@@ -1,19 +1,42 @@
-import subprocess
+"""This module contains the wrapper class to interacte with fzf.
+
+The fzf class should be used for all occasion when fzf needs
+to be launched. fzfaws comes with 3 fzf binary files and will
+be used if user doesn't specify to use system fzf in config file.
+"""
 import os
+import subprocess
 import sys
-from fzfaws.utils.exceptions import NoSelectionMade, EmptyList
 from typing import Any, Dict, Generator, List, Optional, Union
+
+from fzfaws.utils.exceptions import EmptyList, NoSelectionMade
 
 
 class Pyfzf:
-    """A simple wrapper class for fzf utilizing subprocess module.
+    r"""A simple wrapper class for fzf utilizing subprocess module.
 
     To create a entry into fzf, use Pyfzf.append_fzf() and pass in the string.
     To create mutiple entries, would require manually pass in \n to seperate each entry.
+
     For a list of response from boto3, it is recommanded to use the process_list() function.
+
+    Example:
+        fzf = Pyfzf()
+        s3 = boto3.client('s3')
+        response = s3.list_buckets()
+        fzf.process_list(response["Buckets"], "Name")
+        selected_bucket = fzf.execute_fzf(multi_select=False)
+
+    The above example process the list of buckets in response and make "Name" the return value.
+    The selected_bucket will be a bucket name.
     """
 
     def __init__(self) -> None:
+        """Construct the Pyfzf instance.
+
+        Credit to https://github.com/pmazurek/aws-fuzzy-finder for the binary detection
+        method.
+        """
         self.fzf_string: str = ""
         if sys.maxsize > 2 ** 32:
             arch = "amd64"
@@ -38,9 +61,9 @@ class Pyfzf:
         )
 
     def append_fzf(self, new_string: str) -> None:
-        """Append stings to fzf_string
+        r"""Append stings to fzf_string.
 
-        To have mutiple entries, seperate them by \n
+        To have mutiple entries, seperate them by '\n'
         Example:fzf.append_fzf('hello')
                 fzf.append_fzf('\n')
                 fzf.append_fzf('world')
@@ -58,7 +81,7 @@ class Pyfzf:
         multi_select: bool = False,
         header: Optional[str] = None,
     ) -> Union[List[Any], List[str], str]:
-        """execute fzf and return formated string
+        r"""Execute fzf and return formated string.
 
         Example:
             fzf = Pyfzf()
@@ -67,8 +90,10 @@ class Pyfzf:
             fzf.append_fzf('World: world')
             fzf.append_fzf('\n')
             print(fzf.execute_fzf(empty_allow=True, print_col=1, preview='cat {}', multi_select=True))
-            Above example would return 'Hello:'' if the first entry is selected, print col is 1
-            if print_col was 2, 'hello' would be printed
+            
+        The selected string would look like "Hello: hello".
+        Above example would return 'Hello:'' if the first entry is selected, print col is 1,
+        if print_col was 2, 'hello' would be printed.
 
         :param empty_allow: determine if empty selection is allowed
         :type empty_allow: bool, optional
@@ -84,7 +109,6 @@ class Pyfzf:
         :return: selected entry from fzf
         :rtype: Union[list[Any], list[str], str]
         """
-
         # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
@@ -152,11 +176,12 @@ class Pyfzf:
         multi_select: bool = False,
         header: Optional[str] = None,
     ) -> Union[List[Any], List[str], str]:
-        """get local files through fzf
+        """Get local files through fzf.
 
-        populate the local files into fzf, if search_from_root is true
+        Populate the local files into fzf, if search_from_root is true
         all files would be populated.
-        Note: could be extremely slow to seach if fd not installed
+
+        Note: could be extremely slow to seach from root if fd not installed.
 
         :param search_from_root: search files from root
         :type search_from_root: bool, optional
@@ -176,7 +201,6 @@ class Pyfzf:
         :return: selected file path or folder path
         :rtype: Union[list[Any], list[str], str]
         """
-
         if search_from_root:
             home_path = os.path.expanduser("~")
             os.chdir(home_path)
@@ -255,7 +279,7 @@ class Pyfzf:
             return str(selected_file_path, "utf-8").strip()
 
     def _construct_fzf_cmd(self) -> List[str]:
-        """construct command for fzf
+        """Construct command for fzf.
 
         :return: command list processable by subprocess
         :rtype: list[str]
@@ -268,10 +292,10 @@ class Pyfzf:
         return cmd_list
 
     def _check_ctrl_c(self, raw_bytes: bytes) -> None:
-        """check if ctrl_c is pressed during fzf invokation
+        """Check if ctrl_c is pressed during fzf invokation.
 
-        If ctrl_c is pressed, exit entire program instead of
-        keep moving forward
+        If ctrl_c is pressed, exit entire fzfaws program instead of
+        keep moving forward.
 
         :param raw_bytes: the raw output from fzf subprocess
         :type raw_bytes: bytes
@@ -282,10 +306,11 @@ class Pyfzf:
             raise KeyboardInterrupt
 
     def _check_fd(self):
-        """check if fd is intalled on the machine
-        """
+        """Check if fd is intalled on the machine."""
         try:
-            subprocess.run(["fd", "-V"], stdout=subprocess.DEVNULL)
+            subprocess.run(
+                ["command", "-v", "fd"], stdout=subprocess.DEVNULL, check=True
+            )
             return True
         except:
             return False
@@ -297,16 +322,18 @@ class Pyfzf:
         *arg_keys,
         empty_allow: bool = False
     ) -> None:
-        """process list passed in and formatted for fzf
+        """Process list passed in and formatted for fzf.
 
-        processes the list passed into it and prepare the fzf operation
-        Note: you will need to invoke fzf.execute_fzf() to pop the fzf
+        Processes the list passed into it and prepare the fzf operation
+        Note: need to invoke fzf.execute_fzf() to pop the fzf
+        process and get the user selection.
 
         Example:
             list = [{'Name': 1, 'Mame': 2}, {'Name': 2, 'Mame': 3}]
             fzf.process_list(list, 'Name', 'Mame')
             fzf.execute_fzf(empty_allow=False)
-            if first entry is selected, it will return 1
+
+        In the above example, if first entry is selected, it will return 1.
 
         :param response_list: list to process
         :type response_list: list
@@ -326,7 +353,9 @@ class Pyfzf:
             raise EmptyList("Result list was empty, exiting..")
 
     def format_selected_to_dict(self, selected_str: str) -> Dict[str, Any]:
-        """format the selected option into a proper dictionary
+        """Format the selected option into a proper dictionary.
+
+        This is only useful if fzf.execute_fzf(print_col=0).
 
         This is useful to use in conjuction with process_list, process_list
         might contain a lot of information but printing all of them into

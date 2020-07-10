@@ -1,9 +1,6 @@
-"""contains file loader class.
+"""This module contains the FileLoader class.
 
-Contains functions to load yaml file and json file.
-
-Used to process user fzfaws.yml config file and set appropriate
-env variable for other functions to consume.
+Import this module to process yaml, json files.
 """
 
 import json
@@ -20,6 +17,12 @@ yaml.SafeLoader.add_multi_constructor("!", lambda loader, suffix, node: None)
 
 class FileLoader:
     """Class used to load yaml/json files.
+
+    FileLoader class is responsible to process yaml or json file or raw file
+    stream and format them to dictionary.
+
+    The main use of the class is to load user configuration file and set
+    appropriate env variables for other functions in fzfaws to consume.
 
     :param path: file path to read
     :type path: str, optional
