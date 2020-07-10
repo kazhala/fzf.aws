@@ -1,6 +1,7 @@
 """The module contains the sns wrapper class."""
-from fzfaws.utils import Pyfzf, BaseSession, Spinner
-from typing import Union, Optional
+from typing import Optional, Union, List
+
+from fzfaws.utils import BaseSession, Pyfzf, Spinner
 
 
 class SNS(BaseSession):
@@ -28,7 +29,7 @@ class SNS(BaseSession):
 
     def set_arns(
         self,
-        arns: Optional[Union[str, list]] = None,
+        arns: Optional[Union[str, List[str]]] = None,
         empty_allow: bool = False,
         header: Optional[str] = None,
         multi_select: bool = False,

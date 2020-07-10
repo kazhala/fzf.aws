@@ -1,14 +1,17 @@
-"""wrapper class for route53
-
-Wraps around boto3.client('route53') and supports region and profile
-"""
+"""Module contains the wrapper class to interacte with route53."""
 import re
+from typing import Any, Dict, List, Optional, Union
+
 from fzfaws.utils import BaseSession, Pyfzf, Spinner
-from typing import Union, Optional
 
 
 class Route53(BaseSession):
-    """wrapper class for route53
+    """The wrapper class for route53.
+
+    Inherite from BaseSession to better control profile, region.
+
+    At the moment is still just a helper class to other
+    class like Cloudformation.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -21,15 +24,16 @@ class Route53(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
-        """construct route53 class
-        """
+        """Construct route53 class."""
         super().__init__(profile=profile, region=region, service_name="route53")
         self.zone_ids: list = [""]
 
     def set_zone_id(
-        self, zone_ids: Optional[Union[str, list]] = None, multi_select: bool = False
+        self,
+        zone_ids: Optional[Union[str, List[str]]] = None,
+        multi_select: bool = False,
     ) -> None:
-        """set the hostedzone
+        """Set the hostedzone id for futher operations.
 
         :param zone_ids: list of zone_ids to set
         :type zone_ids: list, optional
@@ -49,8 +53,19 @@ class Route53(BaseSession):
         elif type(zone_ids) == list:
             self.zone_ids = list(zone_ids)
 
-    def _process_hosted_zone(self, hostedzone_list: list) -> list:
-        """process hostedzone as the response is not raw id
+    def _process_hosted_zone(
+        self, hostedzone_list: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Process hostedzone as the response is not raw id.
+
+        boto3 response for some reason doesn't return the actual zone, but rather
+        with some prefex, this helper function just use a regex to get the actual
+        id.
+
+        :param hostedzone_list: The raw response from boto3
+        :type hostedzone_list: List[Dict[str, Any]]
+        :return: the formatted list of dictionary with correct hostedzone id.
+        :rtype: List[Dict[str, Any]]
         """
         id_list: list = []
         id_pattern = r"/hostedzone/(?P<id>.*)$"
