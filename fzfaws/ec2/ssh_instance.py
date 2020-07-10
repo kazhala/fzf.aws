@@ -1,18 +1,20 @@
-"""ssh into the instance
+"""This module contains the ssh function.
 
-perform ssh operation
+Note: only ssh_instance should be import and used, other functions
+are just helper function for ssh_instance.
 """
 import os
 import subprocess
+from typing import Any, Dict, Union
+
 from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
-from typing import Union
 
 home = os.path.expanduser("~")
 
 
-def check_instance_status(instance: dict) -> None:
-    """check if instance is in running status
+def check_instance_status(instance: Dict[str, Any]) -> None:
+    """Check if instance is in running status.
 
     :param instance: instance details to be checked
     :type instance: dict
@@ -29,12 +31,15 @@ def check_instance_status(instance: dict) -> None:
         )
 
 
-def get_instance_ip(instance: dict, ip_type: str = "dns") -> str:
-    """get instance ip
+def get_instance_ip(instance: Dict[str, Any], ip_type: str = "dns") -> str:
+    """Get instance ip.
+
+    Using a fall back method to check PublicDnsName and them PublicIpAddress
+    and finally the PrivateIpAddress.
 
     :param instance: instance detail
-    :type instance: dict
-    :param ip_type: what ip to get
+    :type instance: Dict[str, Any]
+    :param ip_type: what types of ip to get
     :type ip_type: str, optional
     :return: selected instance ip address or dns address
     :rtype: str
@@ -66,7 +71,7 @@ def ssh_instance(
     tunnel: Union[bool, str] = False,
     keypath: str = "",
 ) -> None:
-    """function to handle ssh operation intot the ec2 instance
+    """Perform ssh operation into the ec2 instance.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -82,7 +87,6 @@ def ssh_instance(
     :type keypath: str, optional
     :raises EC2Error: the selected ec2 instance is not in running state or key pair not detected
     """
-
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance(
         multi_select=False,
@@ -133,7 +137,7 @@ def ssh_instance(
 def construct_normal_ssh(
     ssh_key: str, instance_ip: str, username: str, bastion: bool
 ) -> list:
-    """construct ssh command for subprocess
+    """Construct ssh command for subprocess.
 
     :param ssh_key: ssh key path
     :type ssh_key: str
@@ -147,8 +151,8 @@ def construct_normal_ssh(
     :return: cmd list to ssh
     :rtype: list
     """
-
     print("Instance is running, ready to connect")
+
     # check for file existence
     if os.path.isfile(ssh_key):
         cmd_list: list = ["ssh"]
@@ -170,7 +174,7 @@ def construct_tunnel_ssh(
     dest_ip: str,
     dest_username: str,
 ) -> list:
-    """construct ssh tunnel command for subprocess
+    """Construct ssh tunnel command for subprocess.
 
     :param ssh_key: ssh key path
     :type ssh_key: str
@@ -186,7 +190,6 @@ def construct_tunnel_ssh(
     :return: cmd list to ssh
     :rtype: list
     """
-
     if os.path.isfile(ssh_key):
         cmd_list: list = [
             "ssh",

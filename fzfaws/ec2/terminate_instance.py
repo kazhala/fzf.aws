@@ -1,11 +1,9 @@
-"""terminate the selected instance
-
-contains main function for terminating the instance
-"""
+"""Contains function to terminate the instance."""
 import json
+from typing import Union
+
 from fzfaws.ec2 import EC2
 from fzfaws.utils import get_confirmation
-from typing import Union
 
 
 def terminate_instance(
@@ -13,7 +11,7 @@ def terminate_instance(
     region: Union[str, bool] = False,
     wait: bool = False,
 ) -> None:
-    """terminate the instance
+    """Terminate the instance.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str]
@@ -22,7 +20,6 @@ def terminate_instance(
     :param wait: wait for instance to be terminated
     :type wait: bool, optional
     """
-
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 

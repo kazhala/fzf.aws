@@ -1,11 +1,9 @@
-"""Stop the selected instances
-
-contains main function for stopping the instance
-"""
+"""Contains the function to stop the instance."""
 import json
+from typing import Union
+
 from fzfaws.ec2 import EC2
 from fzfaws.utils import get_confirmation
-from typing import Union
 
 
 def stop_instance(
@@ -14,8 +12,7 @@ def stop_instance(
     hibernate: bool = False,
     wait: bool = False,
 ) -> None:
-    """stop the selected instance
-
+    """Stop the selected instance.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -26,7 +23,6 @@ def stop_instance(
     :param wait: wait for instance to be stopped
     :type wait: bool, optional
     """
-
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 

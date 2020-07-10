@@ -1,23 +1,20 @@
-"""reboot the selected instance/instances
+"""This module contains the reboot function."""
+from typing import Union
 
-contains main function for rebooting instance
-"""
 from fzfaws.ec2 import EC2
 from fzfaws.utils import get_confirmation
-from typing import Union
 
 
 def reboot_instance(
     profile: Union[str, bool] = False, region: Union[str, bool] = False
 ) -> None:
-    """reboot the selected instances
+    """Reboot the selected instances.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
     :param region: region to use for this operation
     :type region: Union[bool, str], optional
     """
-
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 

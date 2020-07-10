@@ -1,11 +1,9 @@
-"""start the selected instance/instances
-
-Contains the main function for starting ec2 instances
-"""
+"""Contains the start_instance function."""
 import json
-from fzfaws.utils import get_confirmation
-from fzfaws.ec2 import EC2
 from typing import Union
+
+from fzfaws.ec2 import EC2
+from fzfaws.utils import get_confirmation
 
 
 def start_instance(
@@ -14,7 +12,7 @@ def start_instance(
     wait: bool = False,
     check: bool = False,
 ) -> None:
-    """start the selected instance
+    """Start the selected instance.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -25,7 +23,6 @@ def start_instance(
     :param check: wait for all checks to be finished
     :type check: bool, optional
     """
-
     ec2 = EC2(profile, region)
     ec2.set_ec2_instance()
 
