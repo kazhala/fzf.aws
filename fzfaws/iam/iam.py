@@ -1,15 +1,18 @@
-"""contains the iam class
+"""This module contains the iam wrapper class."""
+from typing import List, Optional, Union
 
-Wraps around boto3.client('iam') and handles profile
-"""
-from fzfaws.utils.session import BaseSession
 from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.session import BaseSession
 from fzfaws.utils.spinner import Spinner
-from typing import Union, Optional, List
 
 
 class IAM(BaseSession):
-    """Handles all iam related operations here
+    """The iam wrapper class handles the operation around iam.
+
+    Inherite from BaseSession to better control profile, region.
+
+    At the moment is still just a helper class to other
+    class like Cloudformation.
 
     :param profile: profile to use for this operation
     :type profile: Union[str, bool], optional
@@ -22,20 +25,19 @@ class IAM(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
-        """construtor
-        """
+        """Construct the iam instance."""
         super().__init__(profile=profile, region=region, service_name="iam")
         self.arns: List[str] = [""]
 
     def set_arns(
         self,
-        arns: Optional[Union[List, str]] = None,
+        arns: Optional[Union[List[str], str]] = None,
         header: Optional[str] = None,
         empty_allow: bool = True,
         service: Optional[str] = None,
         multi_select: bool = False,
     ) -> None:
-        """set the role arn
+        """Set the role arn for further operations.
 
         :param arns: list of arn to set
         :type arns: list, optional
