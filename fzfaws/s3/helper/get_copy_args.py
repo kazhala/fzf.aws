@@ -1,27 +1,23 @@
-"""get s3 copy argument for preseving all object information
-
-format the argument into a dict in an attempt to preserve all
-previous information including tags, metadata storage_class
-and encryption type
-"""
+"""Contains the function to get s3 copy argument for preserving all object information."""
+from typing import Any, Dict
 from fzfaws.s3 import S3
 from fzfaws.s3.helper.s3args import S3Args
 
 
 def get_copy_args(
     s3: S3, s3_key: str, s3_args: S3Args, extra_args: bool = False, version: str = None
-) -> dict:
-    """get copy argument
+) -> Dict[str, Any]:
+    """Get copy argument for s3 operations.
 
     Format the argument into a dict that could be passed into
-    s3 copy object function through **keywards
+    s3 copy object function through **keywards.
 
-    There are three different cases
-    1. normal object rename and construct full argument for s3.client.copy()
-    2. versioned object rename and construct argument
-        versioned object require to use s3.client.get_object() rather than s3.resource.Object()
-        so the return type are different, one is object and one is dict, hence, multiple checkes
-        in the handler
+    There are two different cases:
+    1. normal object
+    2. versioned object
+
+    This function is supposed to be used when needing to preserve all previous object
+    information such as encryption type, storage_class etc.
 
     :param s3: S3 class instance
     :type s3: S3
@@ -37,7 +33,6 @@ def get_copy_args(
     :return: copy object argument
     :rtype: dict
     """
-
     if version:
         s3_obj = s3.client.get_object(
             Bucket=s3.bucket_name, Key=s3_key, VersionId=version
@@ -136,14 +131,15 @@ def get_copy_args(
     return copy_object_args
 
 
-def check_acl_update(s3_args):
-    """check if any acl is updated
+def check_acl_update(s3_args) -> bool:
+    """Check if any acl is updated.
 
-    If updated, don't preserve any other acl to have the same behavior as put_object_acl
-    Args:
-        s3_args: object, S3Args object
-    Return:
-        A boolean value indicating if the previous acl value should be preserved
+    If updated, don't preserve any other acl to have the same behavior as put_object_acl.
+
+    :param s3_args: S3Args instance
+    :type s3_args: S3Args
+    :return: boolean value indicating if the previous acl value should be preserved
+    :rtype: bool
     """
     return (
         not s3_args.acl_full

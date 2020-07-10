@@ -1,22 +1,19 @@
-"""filter files based on exclude pattern and include pattern
-
-using a list of pattern to filter files
-"""
+"""Contains function to handle glob pattern and determine if file should be excluded."""
 import fnmatch
-from typing import Optional, List
+from typing import List, Optional
 
 
 def exclude_file(
     exclude: Optional[List[str]] = None,
     include: Optional[List[str]] = None,
-    filename=None,
+    filename: str = "",
 ) -> bool:
-    """check filename is valid
+    """Check if the file should be included during any operations.
 
-    process exclude list first than use include to double check
-    if the filename should be included
+    Process exclude list first than use include list to double check
+    if the filename should be included.
 
-    list should be glob pattern, trying to be in sync with aws cli
+    List should be glob pattern, trying to be in sync with aws cli.
 
     :param exclude: exclude glob pattern
     :type exclude: List[str], optional
