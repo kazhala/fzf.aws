@@ -1,16 +1,17 @@
-"""contains some common helper functions
-"""
-from typing import Any, Generator, List, Optional, Dict, Union
+"""This module contains some common helper functions."""
 import os
+from typing import Any, Dict, Generator, List, Optional, Union
 
 
-def remove_dict_from_list(value: Any, target_list: list, key_name: str) -> list:
-    """help function to remove a dict in list
+def remove_dict_from_list(
+    value: Any, target_list: List[Dict[str, Any]], key_name: str
+) -> List[Dict[str, Any]]:
+    """Remove a dict in list.
 
     :param value: value to search for and remove
     :type value: Any
     :param target_list: list that needs to be updated
-    :type target_list: list
+    :type target_list: List[Dict[str, Any]]
     :param key_name: key to match the value
     :type key_name: str
     :return: updated list
@@ -27,8 +28,8 @@ def search_dict_in_list(
     value: Any,
     target_list: Union[List[Dict[str, Any]], Generator[Dict[str, Any], None, None]],
     key_name: str,
-) -> dict:
-    """helper function to find dict in list based on key values
+) -> Dict[str, Any]:
+    """Find dict in list based on key values.
 
     :param value: value to search
     :type value: Any
@@ -39,18 +40,19 @@ def search_dict_in_list(
     :return: dict that matched the value
     :rtype: dict
     """
-
     result = [item for item in target_list if item.get(key_name) == value]
     return result[0] if result else {}
 
 
-def check_dict_value_in_list(value: Any, target_list: list, key_name: str) -> bool:
-    """check if a specific value is in dict
+def check_dict_value_in_list(
+    value: Any, target_list: List[Dict[str, Any]], key_name: str
+) -> bool:
+    """Check if a specific value is in a list of dict.
 
     :param value: value to search
     :type value: Any
     :param target_list: list to search
-    :type target_list: list
+    :type target_list: List[Dict[str, Any]]
     :param name: key name to match
     :type key_name: str
     :return: a bool indicate whether contains or not
@@ -63,7 +65,7 @@ def check_dict_value_in_list(value: Any, target_list: list, key_name: str) -> bo
 
 
 def get_confirmation(message: str) -> bool:
-    """get user confirmation
+    """Get user confirmation.
 
     :param message: message to ask
     :type message: str
@@ -76,13 +78,13 @@ def get_confirmation(message: str) -> bool:
     return True if confirm == "y" else False
 
 
-def get_name_tag(response_item: dict) -> Optional[str]:
-    """get the name tag of the item
+def get_name_tag(response_item: Dict[str, Any]) -> Optional[str]:
+    """Get the name tag of the item.
 
-    This only specific use for boto3 response that contains name tag
+    This is only specificilly used for boto3 response that contains name tag.
 
     :param list_item: boto3 respoonse dict
-    :type list_item: dict
+    :type list_item: Dict[str, Any]
     :return: name tag
     :rtype: Optional[str]
     """
@@ -94,8 +96,8 @@ def get_name_tag(response_item: dict) -> Optional[str]:
         return None
 
 
-def get_default_args(action_command: str, curr_args: list) -> list:
-    """prepend default args to arg list
+def get_default_args(action_command: str, curr_args: List[Any]) -> List[Any]:
+    """Prepend the user config default args to arg list of fzfaws.
 
     User could specify default args in config file and fileloader
     would process and put them in env. This function is used
@@ -103,9 +105,9 @@ def get_default_args(action_command: str, curr_args: list) -> list:
     could still override their default args.
 
     :param curr_args: current argument list
-    :type curr_args: list
+    :type curr_args: List[Any]
     :return: processed arg list
-    :rtype: list
+    :rtype: List[Any]
     """
     if len(curr_args) < 1:
         return curr_args
