@@ -1,10 +1,8 @@
-"""ls instance to show basic information
-
-list instance and describe instance
-"""
+"""This module contains a single function to display information related to ec2."""
 import json
-from fzfaws.ec2 import EC2
 from typing import Union
+
+from fzfaws.ec2 import EC2
 
 
 def ls_instance(
@@ -26,7 +24,7 @@ def ls_instance(
     sg: bool = False,
     subnet: bool = False,
 ) -> None:
-    """display information about the instance
+    """Display information about the instance.
 
     :param profile: profile to use for this operation
     :type profile: Union[bool, str], optional
@@ -64,8 +62,8 @@ def ls_instance(
     :type subet: bool, optional
     :raises SystemExit: when the response is empty
     """
-
     ec2 = EC2(profile, region)
+
     if sg or sgid or sgname:
         if not sgid and not sgname:
             result = ec2.get_security_groups(multi_select=True, return_attr="id")
@@ -105,6 +103,7 @@ def ls_instance(
         else:
             for item in result:
                 print(item)
+
     else:
         ec2.set_ec2_instance()
         if (
@@ -134,5 +133,6 @@ def ls_instance(
 
 
 def dump_response(response: dict) -> None:
+    """Dump the json response."""
     response.pop("ResponseMetadata", None)
     print(json.dumps(response, indent=4, default=str))

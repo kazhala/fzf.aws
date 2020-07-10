@@ -1,27 +1,31 @@
-"""Entry point for all ec2 operations
-
-process the raw_args passed in from __main__.py which is sys.argv[2:]
-read sub command {ssh,start,stop} and route actions to appropriate functions
-"""
+"""The main entry point for all ec2 operations."""
 import argparse
-from fzfaws.utils.pyfzf import Pyfzf
+from typing import Any, List
+
+from fzfaws.ec2.ls_instance import ls_instance
+from fzfaws.ec2.reboot_instance import reboot_instance
 from fzfaws.ec2.ssh_instance import ssh_instance
 from fzfaws.ec2.start_instance import start_instance
 from fzfaws.ec2.stop_instance import stop_instance
-from fzfaws.ec2.reboot_instance import reboot_instance
 from fzfaws.ec2.terminate_instance import terminate_instance
-from fzfaws.ec2.ls_instance import ls_instance
+from fzfaws.utils.pyfzf import Pyfzf
 
 
-def ec2(raw_args: list) -> None:
-    """the main function for ec2 operations
+def ec2(raw_args: List[Any]) -> None:
+    """Process the argument and route to proper functions.
 
-    :param raw_args: raw args from the command line starting from the second position
-    :type raw_args: list
+    Process the reset of cmd argument through argparse. The first argument
+    is processed through cli.py main function, the raw_args are
+    sys.argv[2:].
+
+    The raw_args from the argument already contains user default argument from
+    config files, hence no process is required for user default args.
+
+    :param raw_args: args from command line and also contains user config's default args
+    :type raw_args: List[Any]
     """
     parser = argparse.ArgumentParser(
-        description="Perform actions on the selected instance",
-        usage="fzfaws ec2 [-h] {ssh,stop,terminate,ls,reboot} ...",
+        description="Interacte with EC2 operations.", prog="fzfaws ec2",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
@@ -314,7 +318,7 @@ def ec2(raw_args: list) -> None:
             fzf.append_fzf(command)
             fzf.append_fzf("\n")
         selected_command = fzf.execute_fzf(
-            empty_allow=True, print_col=1, preview="faws ec2 {} -h"
+            empty_allow=True, print_col=1, preview="fzfaws ec2 {} -h"
         )
         if selected_command == "ssh":
             ssh_cmd.print_help()
@@ -328,7 +332,7 @@ def ec2(raw_args: list) -> None:
             terminate_cmd.print_help()
         elif selected_command == "ls":
             ls_cmd.print_help()
-    # the print_help automatically perform a sys exit
+        raise SystemExit
 
     if args.profile == None:
         # when user set --profile flag but without argument

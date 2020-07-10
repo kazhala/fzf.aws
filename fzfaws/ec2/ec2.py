@@ -1,20 +1,22 @@
-"""ec2 wrapper class
-
-A simple wrapper class of ec2 to interact with boto3.client('ec2')
-"""
-import os
+"""Module contains the ec2 wrapper class."""
 import json
-from fzfaws.utils import BaseSession, Pyfzf, get_name_tag, Spinner
-from typing import Dict, Generator, Union, Optional, List
+import os
+from typing import Dict, Generator, List, Optional, Union
+
+from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_name_tag
 
 
 class EC2(BaseSession):
-    """handles operation for all ec2 related task with boto3.client('ec2')
+    """A wrapper class for EC2.
+
+    Handles the selection of ec2 instance and also
+    fetching other ec2 related calls including VPC,
+    subnet stuff as well.
 
     :param profile: profile to use for this operation
-    :type profile: Union[bool, str]
+    :type profile: Union[bool, str], optional
     :param region: region to use for this operation
-    :type region: Union[bool, str]
+    :type region: Union[bool, str], optional
     """
 
     def __init__(
@@ -22,21 +24,19 @@ class EC2(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
-        """constructor
-        """
+        """Construct the instance."""
         super().__init__(profile=profile, region=region, service_name="ec2")
         self.instance_list: list = [{}]
         self.instance_ids: list = [""]
 
     def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
-        """set ec2 instance for current operation
+        """Set ec2 instance for current operation.
 
         :param multi_select: enable multi select
         :type multi_select: bool, optional
         :param header: helper information to display in fzf header
         :type header: str, optional
         """
-
         fzf = Pyfzf()
         with Spinner.spin(message="Fetching EC2 instances ..."):
             paginator = self.client.get_paginator("describe_instances")
@@ -77,26 +77,26 @@ class EC2(BaseSession):
             self.instance_list = [{}]
 
     def print_instance_details(self) -> None:
-        """display information of selected instances
+        """Display information for the selected instances.
 
-        call this method before calling boto3 to do any ec2 opeartion
-        and get confirmation
+        Call this method before calling boto3 to do any ec2 opeartion
+        and get confirmation.
         """
-
         for instance in self.instance_list:
             print(
                 "InstanceId: %s  Name: %s" % (instance["InstanceId"], instance["Name"])
             )
 
     def wait(self, waiter_name: str, message: str = None) -> None:
-        """wait for the operation to be completed
+        """Wait for the operation to be completed.
+
+        This method uses the boto3 waiter.
 
         :param waiter_name: name of boto3 waiter
         :type waiter_name: str
         :param message: message to display during loading
         :type message: str, optional
         """
-
         with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
             waiter_config = os.getenv(
@@ -116,7 +116,7 @@ class EC2(BaseSession):
     def get_security_groups(
         self, multi_select: bool = False, return_attr: str = "id", header: str = None
     ) -> Union[str, list]:
-        """use paginator to get the user selected security groups
+        """Use paginator to get the user selected security groups.
 
         :param multi_select: allow multiple value selection
         :type multi_select: bool, optional
@@ -145,7 +145,7 @@ class EC2(BaseSession):
     def get_instance_id(
         self, multi_select: bool = False, header: str = None
     ) -> Union[str, list]:
-        """use paginator to get instance id and return it
+        """Use paginator to get instance id and return it.
 
         :param multi_select: allow multiple value selection
         :type multi_select: bool, optional
@@ -174,7 +174,7 @@ class EC2(BaseSession):
     def get_subnet_id(
         self, multi_select: bool = False, header: str = None
     ) -> Union[str, list]:
-        """get user selected subnet id through fzf
+        """Get user selected subnet id through fzf.
 
         :param multi_select: allow multiple value selection
         :type multi_select: bool, optional
@@ -200,7 +200,7 @@ class EC2(BaseSession):
     def get_volume_id(
         self, multi_select: bool = False, header: str = None
     ) -> Union[str, list]:
-        """get user selected volume id through fzf
+        """Get user selected volume id through fzf.
 
         :param multi_select: allow multiple value selection
         :type multi_select: bool, optional
@@ -224,7 +224,7 @@ class EC2(BaseSession):
     def get_vpc_id(
         self, multi_select: bool = False, header: str = None
     ) -> Union[str, list]:
-        """get user selected vpc id through fzf
+        """Get user selected vpc id through fzf.
 
         :param multi_select: allow multiple value selection
         :type multi_select: bool, optional
@@ -250,7 +250,7 @@ class EC2(BaseSession):
     def _instance_generator(
         self, instances: List[dict]
     ) -> Generator[Dict[str, str], None, None]:
-        """get ec2 instance helper, format ec2 response and return generator
+        """Get ec2 instance helper, format ec2 response and return generator.
 
         :param instances: list of instance response from boto3
         :type instances: List[dict]

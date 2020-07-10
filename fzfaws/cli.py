@@ -20,7 +20,7 @@ def main() -> None:
     """Entry function of the fzf.aws module."""
     try:
         parser = argparse.ArgumentParser(
-            description="A interactive aws cli experience with the help of fzf",
+            description="A interactive aws cli experience with the help of fzf.",
             prog="fzfaws",
         )
         subparsers = parser.add_subparsers(dest="subparser_name")
