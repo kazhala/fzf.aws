@@ -1,16 +1,14 @@
-"""handles uploading operation of s3
-
-upload local files/directories to s3
-"""
-from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
+"""Contains function to upload file to s3."""
 import os
+from typing import Dict, List, Optional, Union
+
 from fzfaws.s3 import S3
-from fzfaws.utils import get_confirmation, Pyfzf
-from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.exclude_file import exclude_file
-from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3args import S3Args
-from typing import List, Optional, Union, Dict
+from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
+from fzfaws.s3.helper.sync_s3 import sync_s3
+from fzfaws.utils import Pyfzf, get_confirmation
 
 
 def upload_s3(
@@ -25,10 +23,10 @@ def upload_s3(
     include: Optional[List[str]] = None,
     extra_config: bool = False,
 ) -> None:
-    """upload local files/directories to s3
+    """Upload local files/directories to s3.
 
-    upload through boto3 s3 client
-    glob pattern exclude list are handled first then handle the include list
+    Upload through boto3 s3 client.
+    Glob pattern exclude list are handled first then handle the include list.
 
     :param profile: profile to use for this operation
     :type profile: bool, optional
@@ -131,9 +129,9 @@ def upload_s3(
 def recursive_upload(
     s3: S3, local_path: str, exclude: List[str], include: List[str], extra_args: S3Args
 ) -> None:
-    """recursive upload local directory to s3
+    """Recursive upload local directory to s3.
 
-    perform a os.walk to upload everyfile under a directory
+    Perform a os.walk to upload everyfile under a directory.
 
     :param s3: S3 instance
     :type s3: S3

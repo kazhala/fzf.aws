@@ -1,15 +1,12 @@
-"""object settings and attributes update
-
-update settings on s3 object
-"""
+"""Contains function to update s3 object attribute."""
 from typing import List, Optional, Union
 
+from fzfaws.s3 import S3
 from fzfaws.s3.helper.get_copy_args import get_copy_args
 from fzfaws.s3.helper.s3args import S3Args
 from fzfaws.s3.helper.s3progress import S3Progress
 from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
-from fzfaws.s3.s3 import S3
 from fzfaws.utils import get_confirmation
 
 
@@ -28,10 +25,10 @@ def object_s3(
     tagging: bool = False,
     acl: bool = False,
 ) -> None:
-    """update selected object settings
+    """Update selected object settings.
 
-    Display a menu based on recursive and version requirement
-    if name is true, only handle rename
+    Display a menu based on recursive and version requirement.
+    If name is true, only handle rename.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool], optional
@@ -58,7 +55,6 @@ def object_s3(
     :param acl: update acl
     :type acl: bool, optional
     """
-
     if exclude is None:
         exclude = []
     if include is None:
@@ -135,10 +131,10 @@ def object_s3(
 def update_object_version(
     s3: S3, allversion: bool = False, acl: bool = False, tagging: bool = False,
 ) -> None:
-    """update versions of object's attributes
+    """Update versions of object's attributes.
 
     Note: this operation only allow update of acl and tagging, because
-    this won't introduce new objects
+    this won't introduce new objects.
 
     :param s3: S3 instance
     :type s3: S3
@@ -149,7 +145,6 @@ def update_object_version(
     :param tagging: update tagging
     :type tagging: bool, optional
     """
-
     obj_versions = s3.get_object_version(select_all=allversion)
     s3_args = S3Args(s3)
     s3_args.set_extra_args(acl, tagging, version=obj_versions)
@@ -202,7 +197,7 @@ def update_object_recursive(
     exclude: Optional[List[str]] = None,
     include: Optional[List[str]] = None,
 ) -> None:
-    """recusive update object attributes
+    """Recusive update object attributes.
 
     :param s3: S3 class instance
     :type s3: S3
@@ -221,7 +216,6 @@ def update_object_recursive(
     :param include: glob pattern to include
     :type include: List[str], optional
     """
-
     if exclude is None:
         exclude = []
     if include is None:
@@ -280,16 +274,16 @@ def update_object_recursive(
 
 
 def update_object_name(s3: S3, version: bool = False) -> None:
-    """update object name
+    """Update object name.
 
     :param s3: S3 class instance
     :type s3: S3
     :param version: whether to rename version's name, this will create a new object
     :type version: bool, optional
     """
-
     print("Enter the new name below (format: newname or path/newname for a new path)")
     new_name = input("Name(Orignal: %s): " % s3.path_list[0])
+
     if not version:
         print(
             "(dryrun) rename: s3://%s/%s to s3://%s/%s"

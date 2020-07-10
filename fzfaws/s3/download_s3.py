@@ -1,11 +1,9 @@
-"""s3 download operation
-
-Contains the main function to handle the download operation from s3
-"""
-from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
+"""Contains function to download file from s3."""
 import os
 from typing import Dict, List, Optional, Union
+
 from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.s3.s3 import S3
@@ -25,10 +23,10 @@ def download_s3(
     hidden: bool = False,
     version: bool = False,
 ) -> None:
-    """download files/'directory' from s3
+    """Download files/'directory' from s3.
 
-    handles sync, download file and download recursive from a s3 bucket
-    glob pattern are first handled through exclude list and then include list
+    Handles sync, download file and download recursive from a s3 bucket.
+    Glob pattern are first handled through exclude list and then include list.
 
     :param profile: profile to use for this operation
     :type profile: bool, optional
@@ -51,7 +49,6 @@ def download_s3(
     :param version: download version object
     :type version: bool, optional
     """
-
     if not exclude:
         exclude = []
     if not include:
@@ -121,7 +118,7 @@ def download_s3(
 def download_recusive(
     s3: S3, exclude: List[str], include: List[str], local_path: str
 ) -> None:
-    """download s3 recursive
+    """Download s3 recursive.
 
     :param s3: S3 instance
     :type s3: S3
@@ -132,7 +129,6 @@ def download_recusive(
     :param local_path: local directory to download
     :type local_path: str
     """
-
     download_list = walk_s3_folder(
         s3.client,
         s3.bucket_name,
@@ -144,6 +140,7 @@ def download_recusive(
         "download",
         local_path,
     )
+
     if get_confirmation("Confirm?"):
         for s3_key, dest_pathname in download_list:
             if not os.path.exists(os.path.dirname(dest_pathname)):
@@ -163,7 +160,7 @@ def download_recusive(
 def download_version(
     s3: S3, obj_versions: List[Dict[str, str]], local_path: str
 ) -> None:
-    """download versions of a object
+    """Download versions of a object.
 
     :param s3: instance of S3
     :type s3: S3
@@ -185,6 +182,7 @@ def download_version(
                 obj_version.get("VersionId"),
             )
         )
+
     if get_confirmation("Confirm"):
         for obj_version in obj_versions:
             destination_path = os.path.join(

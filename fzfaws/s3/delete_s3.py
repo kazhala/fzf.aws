@@ -1,7 +1,4 @@
-"""contains function for handling delete operation on s3
-
-delete files/folders on s3
-"""
+"""Contains function for handling delete operation on s3."""
 from typing import Dict, List, Optional, Union
 
 import boto3
@@ -24,7 +21,7 @@ def delete_s3(
     deletemark: bool = False,
     clean: bool = False,
 ) -> None:
-    """delete file/directory on the selected s3 bucket
+    """Delete file/directory on the selected s3 bucket.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool], optional
@@ -47,7 +44,6 @@ def delete_s3(
     :param clean: recusive delete all olderversions but leave the current version
     :type clean: bool, optional
     """
-
     if exclude is None:
         exclude = []
     if include is None:
@@ -104,7 +100,7 @@ def delete_s3(
 
 
 def delete_object_version(s3: S3, allversion: bool = False, mfa: str = "") -> None:
-    """delete versions of a object
+    """Delete versions of a object.
 
     :param s3: S3 instance
     :type s3: S3
@@ -113,10 +109,10 @@ def delete_object_version(s3: S3, allversion: bool = False, mfa: str = "") -> No
     :param mfa: mfa serial number and code seperate by space to use mfa privilage
     :type mfa: str, optional
     """
-
     obj_versions = s3.get_object_version(
         delete=True, select_all=allversion, multi_select=True if not mfa else False
     )
+
     for obj_version in obj_versions:
         print(
             "(dryrun) delete: s3://%s/%s with version %s"
@@ -148,7 +144,7 @@ def delete_object_recursive(
     clean: bool = False,
     allversion: bool = False,
 ) -> None:
-    """recursive delete object and their versions if specified
+    """Recursive delete object and their versions if specified.
 
     :param s3: S3 instance
     :type s3: S3
@@ -163,7 +159,6 @@ def delete_object_recursive(
     :param allversion: delete allversions, use to nuke the entire bucket or folder
     :type allversion: bool, optional
     """
-
     if allversion:
         # use a different method other than the walk s3 folder
         # since walk_s3_folder doesn't provide access to deleted version object
@@ -178,6 +173,7 @@ def delete_object_recursive(
             deletemark,
         )
         obj_versions: List[Dict[str, str]] = []
+
         # loop through all files and get their versions
         for file in file_list:
             obj_versions.extend(
@@ -193,6 +189,7 @@ def delete_object_recursive(
                     "with all versions" if not clean else "all non-current versions",
                 )
             )
+
         if get_confirmation(
             "Delete %s?"
             % ("all of their versions" if not clean else "all non-current versions")
@@ -240,10 +237,10 @@ def find_all_version_files(
     include: Optional[List[str]] = None,
     deletemark: bool = False,
 ) -> List[str]:
-    """find all files based on versions
+    """Find all files based on versions.
 
-    This method is able to find all files even deleted files or just delete marker left overs
-    Use this method when needing to cleanly delete all files including their versions
+    This method is able to find all files even deleted files or just delete marker left overs.
+    Use this method when needing to cleanly delete all files including their versions.
 
     :param client: boto3 client
     :type client: boto3.client
@@ -262,7 +259,6 @@ def find_all_version_files(
     :return: return a list of file names including deleted file names with delete mark remained
     :rtype: List[str]
     """
-
     if file_list is None:
         file_list = []
     if exclude is None:

@@ -1,7 +1,4 @@
-"""contains main function for s3 ls command
-
-list files purpose
-"""
+"""Contains function to list information of s3."""
 import json
 from typing import Dict, List, Union
 
@@ -21,7 +18,7 @@ def ls_s3(
     versionid: bool = False,
     bucketpath: str = None,
 ) -> None:
-    """list files and display information on the selected file
+    """Display information on the selected s3 file or bucket.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool], optional
@@ -44,7 +41,6 @@ def ls_s3(
     :param bucketpath: specify a bucket to operate
     :type bucketpath: str, optional
     """
-
     s3 = S3(profile)
     s3.set_bucket_and_path(bucketpath)
     if not s3.bucket_name:
@@ -118,7 +114,7 @@ def ls_s3(
 def get_detailed_info(
     s3: S3, bucket: bool, version: bool, obj_versions: List[Dict[str, str]]
 ) -> None:
-    """print detailed information about bucket, object or version
+    """Print detailed information about bucket, object or version.
 
     :param s3: S3 instance
     :type s3: S3
@@ -129,7 +125,6 @@ def get_detailed_info(
     :param obj_version: list of object versions to print details
     :type obj_version: List[Dict[str, str]]
     """
-
     if bucket:
         response = {}
         with Spinner.spin(message="Fetching bucket information ..."):

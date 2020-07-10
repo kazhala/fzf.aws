@@ -1,7 +1,4 @@
-"""Contains main function for presign url
-
-Generate presigning url for getting an s3 object
-"""
+"""Contains function to presign url."""
 from typing import Union
 
 from fzfaws.s3.s3 import S3
@@ -13,7 +10,7 @@ def presign_s3(
     version: bool = False,
     expires_in: int = 3600,
 ) -> None:
-    """get an object from s3 using fzf and generate presign url for getting an s3 object
+    """Get an object from s3 using fzf and generate presign url for getting the s3 object.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool]
@@ -24,7 +21,6 @@ def presign_s3(
     :param expires_in: expiration period of the url
     :type expires_in: int, optional
     """
-
     s3 = S3(profile)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:

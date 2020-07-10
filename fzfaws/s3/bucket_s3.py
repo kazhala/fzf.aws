@@ -1,18 +1,17 @@
-"""bucket transfer operation
-
-contains the main function for moving object between buckets
-"""
+"""Contains bucket_s3 function to handle operation between buckets."""
 import re
+from typing import Dict, List, Optional, Tuple
+
 from botocore.exceptions import ClientError
-from fzfaws.s3.s3 import S3
+
+from fzfaws.s3.helper.get_copy_args import get_copy_args
+from fzfaws.s3.helper.s3args import S3Args
+from fzfaws.s3.helper.s3progress import S3Progress
+from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 from fzfaws.s3.helper.sync_s3 import sync_s3
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
+from fzfaws.s3.s3 import S3
 from fzfaws.utils import get_confirmation
-from fzfaws.s3.helper.s3progress import S3Progress
-from fzfaws.s3.helper.s3args import S3Args
-from fzfaws.s3.helper.get_copy_args import get_copy_args
-from typing import Dict, Optional, List, Tuple
-from fzfaws.s3.helper.s3transferwrapper import S3TransferWrapper
 
 
 def bucket_s3(
@@ -26,10 +25,10 @@ def bucket_s3(
     version: bool = False,
     preserve: bool = False,
 ) -> None:
-    """transfer file between buckts
+    """Transfer file between buckets.
 
-    handle transfer file between buckets or even within the same bucket
-    Handle glob pattern through exclude list first than it will process the include to explicit include files
+    Handle transfer file between buckets or even within the same bucket.
+    Handle glob pattern through exclude list first than it will process the include to explicit include files.
 
     :param profile: use a different profile for this operation
     :type profile: str, optional
@@ -50,7 +49,6 @@ def bucket_s3(
     :param perserve: save all object's config instead of using the new bucket's settings
     :type perserve: bool, optional
     """
-
     if exclude is None:
         exclude = []
     if include is None:
@@ -74,7 +72,7 @@ def bucket_s3(
         )
     else:
         s3.set_s3_bucket(
-            header="Set the source bucket which contains the file to transfer"
+            header="set the source bucket which contains the file to transfer"
         )
         target_bucket = s3.bucket_name
         if search_folder:
@@ -93,7 +91,7 @@ def bucket_s3(
         dest_bucket, dest_path, _ = process_path_param(to_bucket, s3, True)
     else:
         s3.set_s3_bucket(
-            header="Set the destination bucket where the file should be transfered"
+            header="set the destination bucket where the file should be transfered"
         )
         s3.set_s3_path()
         dest_bucket = s3.bucket_name
@@ -167,12 +165,29 @@ def bucket_s3(
 def copy_version(
     s3: S3,
     dest_bucket: str,
-    dest_path,
+    dest_path: str,
     obj_versions: List[Dict[str, str]],
     target_bucket: str,
     target_path: str,
     preserve: bool,
 ) -> None:
+    """Copy versions of object to other bucket.
+
+    :param s3: S3 instance
+    :type s3: S3
+    :param dest_bucket: the destination bucket to transfer the object
+    :type dest_bucket: str
+    :param dest_path: the destination path in the destination bucket
+    :type dest_path: str
+    :param obj_version: the selected versions through get_object_version()
+    :type obj_version: List[Dict[str, str]]
+    :param target_bucket: the bucket contains the object to transfer
+    :type target_bucket: str
+    :param target_path: the object path of the object to be transfered
+    :type target_path: str
+    :param preserve: preserve previous object details after transfer
+    :type preserve: bool
+    """
     # set s3 attributes for getting destination key
     s3.bucket_name = dest_bucket
     s3.path_list[0] = dest_path
@@ -188,6 +203,7 @@ def copy_version(
                 obj_version.get("VersionId"),
             )
         )
+
     if get_confirmation("Confirm?"):
         for obj_version in obj_versions:
             s3_key = s3.get_s3_destination_key(obj_version.get("Key", ""))
@@ -242,7 +258,7 @@ def recursive_copy(
     include: List[str],
     preserve: bool,
 ) -> None:
-    """recursive_copy object to other bucket
+    """Recursive copy object to other bucket.
 
     :param s3: S3 instance
     :type s3: S3
@@ -261,7 +277,6 @@ def recursive_copy(
     :param preserve: preserve previous object config
     :type preserve: bool
     """
-
     file_list = walk_s3_folder(
         s3.client,
         target_bucket,
@@ -274,6 +289,7 @@ def recursive_copy(
         dest_path,
         dest_bucket,
     )
+
     if get_confirmation("Confirm?"):
         for s3_key, dest_pathname in file_list:
             print(
@@ -303,7 +319,7 @@ def copy_and_preserve(
     dest_path: str,
     version: str = None,
 ) -> None:
-    """copy object to other buckets but preserve details
+    """Copy object to other buckets and preserve previous details.
 
     :param s3: S3 instance, make sure contains bucket name
     :type s3: S3
@@ -317,7 +333,6 @@ def copy_and_preserve(
     :type version: str
     :raises ClientError: clienterror will raise when coping KMS encrypted file, handled internally
     """
-
     copy_source: Dict[str, str] = {"Bucket": target_bucket, "Key": target_path}
     if version:
         copy_source["VersionId"] = version
@@ -370,7 +385,7 @@ def copy_and_preserve(
 def process_path_param(
     bucket: str, s3: S3, search_folder: bool, version: bool = False
 ) -> Tuple[str, str, List[str]]:
-    """process bucket parameter and return bucket name and path
+    """Process bucket parameter and return bucket name and path.
 
     :param bucket: raw bucket parameter from the command line
     :type bucket: str
@@ -381,7 +396,7 @@ def process_path_param(
     :return: user selected bucket informaiton
     :rtype: Tuple[str, str, List[str]]
 
-    example:
+    Example return value:
         (kazhala-lol, hello/, [])
     """
     s3.set_bucket_and_path(bucket)
