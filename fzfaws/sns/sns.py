@@ -1,16 +1,15 @@
-"""sns wrapper class
-
-Wraps around boto3 client
-"""
+"""The module contains the sns wrapper class."""
 from fzfaws.utils import Pyfzf, BaseSession, Spinner
 from typing import Union, Optional
 
 
 class SNS(BaseSession):
-    """sns wrapper class wraps around boto3 client
+    """The sns wrapper class to interacte with boto3.
 
-    Centralized class for better control on profile, region
-    and much more.
+    Inherite from BaseSession to better control profile, region.
+
+    At the moment is still just a helper class to other
+    class like Cloudformation.
 
     :param profile: profile to use for this operation
     :type profile: Union[str, bool], optional
@@ -23,6 +22,7 @@ class SNS(BaseSession):
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
     ) -> None:
+        """Construct the sns class."""
         super().__init__(profile=profile, region=region, service_name="sns")
         self.arns: list = [""]
 
@@ -33,7 +33,7 @@ class SNS(BaseSession):
         header: Optional[str] = None,
         multi_select: bool = False,
     ) -> None:
-        """set the sns arn for operation
+        """Set the sns arn for other operations.
 
         :param arns: arns to init
         :type arns: Union[list, str], optional
