@@ -1,20 +1,32 @@
-"""base session class for all fzfaws aws wrapper classes
+"""The base session class for all fzfaws aws wrapper classes.
 
-Wraps around boto3 session for better profile region management
+Wraps around boto3 session for better profile, region management,
+all class responsible to interacte with boto3 should inherite
+from the BaseSession class.
 """
 import os
+from typing import Optional, Union
+
 from boto3.session import Session
+
 from fzfaws.utils import Pyfzf
-from typing import Union, Optional
 
 
 class BaseSession:
-    """base session class for managing profile and regions
+    """The base session class for managing profile and regions.
+
+    This class sets the profile and region based on user cmd flags
+    and config files. Inherite this class for any class require
+    to interacte with boto3 to ensure the profile and region
+    are set consistently.
+
+    if profile or region is not set, the default value in awscli
+    configureation will be used.
 
     :param profile: profile to use for next operation
-    :type profile: Union[str, bool]
+    :type profile: Union[str, bool], optional
     :param region: region to use for next operation
-    :type region: Union[str, bool]
+    :type region: Union[str, bool], optional
     :param service_name: name of boto3 service to init
     :type service_name: str
     """
@@ -23,9 +35,12 @@ class BaseSession:
         self,
         profile: Optional[Union[str, bool]] = None,
         region: Optional[Union[str, bool]] = None,
-        service_name: Optional[str] = None,
+        service_name: str = "",
     ) -> None:
-        """construtor of BaseSession class
+        """Construct a BaseSession instance.
+
+        If profile or region is True value, then
+        fzf will be launched to let user select region or profile.
         """
         session = Session()
         selected_profile: Optional[str] = None
@@ -70,8 +85,10 @@ class BaseSession:
 
     @property
     def client(self):
+        """Return the client."""
         return self._client
 
     @property
     def resource(self):
+        """Return the resource."""
         return self._resource
