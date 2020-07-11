@@ -1,8 +1,8 @@
-"""contains ParamProcessor class
+"""Contains ParamProcessor helper class.
 
-Used for cloudformation update/changeset/create stack
+Used to process parameter in template for cloudformation update/changeset/create stack.
 """
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 from fzfaws.ec2 import EC2
 from fzfaws.route53 import Route53
@@ -10,10 +10,10 @@ from fzfaws.utils import Pyfzf, Spinner, check_dict_value_in_list, search_dict_i
 
 
 class ParamProcessor:
-    """Process cloudformation template params
+    """Process cloudformation template params.
 
-    utilizing fzf and boto3 to give better experience of entering params
-    for cloudformation
+    Utilizing fzf and boto3 to give better experience of entering params
+    for cloudformation.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool], optional
@@ -32,9 +32,7 @@ class ParamProcessor:
         params: Dict[str, Any] = None,
         original_params: List[Dict[str, Any]] = None,
     ) -> None:
-        """constructor of ParamProcessor
-        """
-
+        """Construct the instance."""
         if params == None:
             params = {}
         if original_params == None:
@@ -67,13 +65,13 @@ class ParamProcessor:
         ]
 
     def process_stack_params(self) -> None:
-        """process the template file parameters
+        """Process the template file parameters.
 
         Loop through the keys in the loaded dict object of params and leverage
         self._get_user_input to get user input through fzf or cmd input
         """
-
         print("Enter parameters specified in your template below")
+
         for parameter_key in self.params:
             print(80 * "-")
             default_value: str = ""
@@ -163,7 +161,7 @@ class ParamProcessor:
         value_type: str = None,
         default: str = None,
     ) -> Union[str, List[str]]:
-        """get user input
+        """Get user input.
 
         :param parameter_key: the current parameter key to obtain user input 
         :type parameter_key: str
@@ -178,8 +176,8 @@ class ParamProcessor:
         :return: return the user selection through fzf or python input
         :rtype: Union[str, List[str]]
         """
-
         user_input: Union[str, List[str]] = ""
+
         # execute fzf if allowed_value array exists
         if "AllowedValues" in self.params[parameter_key]:
             param_header += self._print_parameter_key(
@@ -224,9 +222,7 @@ class ParamProcessor:
     def _print_parameter_key(
         self, parameter_key: str, value_type: str = None, default: str = None
     ) -> str:
-        """helper print function
-        """
-
+        """Print parameter_key."""
         if value_type:
             return "Choose a value for %s(%s: %s)" % (
                 parameter_key,
@@ -237,7 +233,7 @@ class ParamProcessor:
             return "Choose a value for %s" % parameter_key
 
     def _get_selected_param_value(self, type_name: str, param_header: str) -> str:
-        """use fzf to display aws specific parameters
+        """Use fzf to display aws specific parameters.
 
         :param type_name: name of the parameter type
         :type type_name: str
@@ -246,8 +242,8 @@ class ParamProcessor:
         :return: return the selected value 
         :rtype: str
         """
-
         fzf = Pyfzf()
+
         if type_name == "AWS::EC2::KeyPair::KeyName":
             with Spinner.spin(message="Fetching KeyPair ..."):
                 response = self.ec2.client.describe_key_pairs()
@@ -278,7 +274,10 @@ class ParamProcessor:
         return str(fzf.execute_fzf(empty_allow=True, header=param_header))
 
     def _get_list_param_value(self, type_name: str, param_header: str) -> List[str]:
-        """handler if parameter type is a list type
+        """Handle operation if parameter type is a list type.
+
+        This function is almost the same as _get_selected_param_value besides its
+        handling list type rather than single vaiable type.
 
         :param type_name: name of the type of the parameter
         :type type_name: str
@@ -287,8 +286,8 @@ class ParamProcessor:
         :return: processed list of selection from the user
         :rtype: List[str]
         """
-
         fzf = Pyfzf()
+
         if type_name == "List<AWS::EC2::AvailabilityZone::Name>":
             with Spinner.spin(message="Fetching AvailabilityZones ..."):
                 response = self.ec2.client.describe_availability_zones()

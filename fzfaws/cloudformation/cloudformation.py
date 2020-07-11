@@ -30,7 +30,7 @@ class Cloudformation(BaseSession):
         self.stack_details: dict = {}
 
     def set_stack(self) -> None:
-        """Stores the selected stack into the instance attribute."""
+        """Store the selected stack into the instance attribute."""
         fzf = Pyfzf()
         with Spinner.spin(message="Fetching cloudformation stacks ..."):
             paginator = self.client.get_paginator("describe_stacks")
@@ -163,7 +163,7 @@ class Cloudformation(BaseSession):
     def _get_stack_generator(
         self, response: List[Dict[str, Any]]
     ) -> Generator[Dict[str, Any], None, None]:
-        """Generator for boto3 paginator.
+        """Create generator for boto3 paginator.
 
         Attempt to reduce unnecessary memory usage.
 

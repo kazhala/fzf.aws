@@ -17,7 +17,7 @@ def validate_stack(
     version: Union[str, bool] = False,
     no_print: bool = False,
 ) -> None:
-    """validate the selected cloudformation template using boto3 api.
+    """Validate the selected cloudformation template using boto3 api.
 
     This is also used internally by create_stack and update_stack
     operations.
