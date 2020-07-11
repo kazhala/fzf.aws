@@ -1,7 +1,4 @@
-"""construct args for cloudformation
-
-contains the class to configure extra settings of a cloudformation stack
-"""
+"""Contains helper class to set extra arguments for cloudformation."""
 from typing import Dict, List, Optional
 
 from fzfaws.cloudformation import Cloudformation
@@ -12,7 +9,7 @@ from fzfaws.utils import Pyfzf
 
 
 class CloudformationArgs:
-    """helper class to configure extra settings for cloudformation stacks
+    """Helper class to configure extra settings for cloudformation stacks.
 
     Handles tags, roll back, stack policy, notification, termination protection etc
 
@@ -21,8 +18,7 @@ class CloudformationArgs:
     """
 
     def __init__(self, cloudformation: Cloudformation):
-        """constructior
-        """
+        """Construct the instance."""
         self.cloudformation: Cloudformation = cloudformation
         self._extra_args: dict = {}
         self.update_termination: Optional[bool] = None
@@ -39,7 +35,7 @@ class CloudformationArgs:
         search_from_root: bool = False,
         dryrun: bool = False,
     ) -> None:
-        """set extra arguments
+        """Set extra arguments.
 
         Used to determine what args to set and acts like a router
 
@@ -62,8 +58,8 @@ class CloudformationArgs:
         :param dryrun: if true, changeset operation and don't add CreationOption or UpdateOption entry
         :type dryrun: bool, optional
         """
-
         attributes: List[str] = []
+
         if (
             not tags
             and not rollback
@@ -107,25 +103,24 @@ class CloudformationArgs:
                 creation_option = True
 
         if tags:
-            self.set_tags(update)
+            self._set_tags(update)
         if permissions:
-            self.set_permissions(update)
+            self._set_permissions(update)
         if stack_policy:
-            self.set_policy(update, search_from_root)
+            self._set_policy(update, search_from_root)
         if notification:
-            self.set_notification(update)
+            self._set_notification(update)
         if rollback:
-            self.set_rollback(update)
+            self._set_rollback(update)
         if creation_option:
-            self.set_creation(update)
+            self._set_creation(update)
 
-    def set_creation(self, update: bool = False) -> None:
-        """set creation option for stack
+    def _set_creation(self, update: bool = False) -> None:
+        """Set creation option for stack.
 
         :param update: show previous values if update is true
         :type update: bool, optional
         """
-
         print(80 * "-")
         fzf = Pyfzf()
         if not update:
@@ -188,14 +183,14 @@ class CloudformationArgs:
                 elif result and update:
                     self.update_termination = True if result == "True" else False
 
-    def set_rollback(self, update: bool = False) -> None:
-        """set rollback configuration for cloudformation
+    def _set_rollback(self, update: bool = False) -> None:
+        """Set rollback configuration for cloudformation.
         
         :param update: show previous values if true
         :type update: bool, optional
         """
-
         print(80 * "-")
+
         cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
         header: str = "select a cloudwatch alarm to monitor the stack"
         message: str = "MonitoringTimeInMinutes(Default: 0): "
@@ -220,13 +215,12 @@ class CloudformationArgs:
                 "MonitoringTimeInMinutes": int(monitor_time) if monitor_time else 0,
             }
 
-    def set_notification(self, update: bool = False) -> None:
-        """set sns arn for notification
+    def _set_notification(self, update: bool = False) -> None:
+        """Set sns arn for notification.
 
         :param update: show previous values if true
         :type update: bool, optional
         """
-
         print(80 * "-")
         sns = SNS(
             profile=self.cloudformation.profile, region=self.cloudformation.region
@@ -240,10 +234,10 @@ class CloudformationArgs:
         if sns.arns:
             self._extra_args["NotificationARNs"] = sns.arns
 
-    def set_policy(self, update: bool = False, search_from_root: bool = False) -> None:
-        """set the stack_policy for the stack
+    def _set_policy(self, update: bool = False, search_from_root: bool = False) -> None:
+        """Set the stack_policy for the stack.
 
-        Used to prevent update on certain resources
+        Used to prevent update on certain resources.
 
         :param update: determine if stack is updating, if true, set different args
             aws cloudformation takes StackPolicyBody for creation and StackPolicyDuringUpdateBody for update overwrite
@@ -251,7 +245,6 @@ class CloudformationArgs:
         :param search_from_root: search files from root
         :type search_from_root: bool, optional
         """
-
         print(80 * "-")
         fzf = Pyfzf()
         file_path: str = str(
@@ -271,17 +264,16 @@ class CloudformationArgs:
                 body = body.read()
                 self._extra_args["StackPolicyDuringUpdateBody"] = body
 
-    def set_permissions(self, update: bool = False) -> None:
-        """set the iam user for the current stack
+    def _set_permissions(self, update: bool = False) -> None:
+        """Set the iam user for the current stack.
 
         All operation permissions will be based on this
         iam role. Select None to stop using iam role
-        and use current profile permissions
+        and use current profile permissions.
 
         :param update: show previous values if true
         :type update: bool, optional
         """
-
         print(80 * "-")
         iam = IAM(profile=self.cloudformation.profile)
         if not update:
@@ -299,8 +291,8 @@ class CloudformationArgs:
         if iam.arns:
             self._extra_args["RoleARN"] = iam.arns[0]
 
-    def set_tags(self, update: bool = False) -> None:
-        """set tags for the current stack
+    def _set_tags(self, update: bool = False) -> None:
+        """Set tags for the current stack.
 
         Tags are in the format of [
             {
@@ -312,8 +304,8 @@ class CloudformationArgs:
         :param update: determine if is updating the stack, it will show different prompt
         :type update: bool, optional
         """
-
         print(80 * "-")
+
         tag_list: List[Dict[str, str]] = []
         if update:
             if self.cloudformation.stack_details.get("Tags"):
@@ -347,4 +339,5 @@ class CloudformationArgs:
 
     @property
     def extra_args(self):
+        """Return the extra arguments."""
         return self._extra_args

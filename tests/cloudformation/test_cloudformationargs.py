@@ -30,12 +30,12 @@ class TestCloudformationArgs(unittest.TestCase):
 
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "append_fzf")
-    @patch.object(CloudformationArgs, "set_creation")
-    @patch.object(CloudformationArgs, "set_rollback")
-    @patch.object(CloudformationArgs, "set_notification")
-    @patch.object(CloudformationArgs, "set_policy")
-    @patch.object(CloudformationArgs, "set_permissions")
-    @patch.object(CloudformationArgs, "set_tags")
+    @patch.object(CloudformationArgs, "_set_creation")
+    @patch.object(CloudformationArgs, "_set_rollback")
+    @patch.object(CloudformationArgs, "_set_notification")
+    @patch.object(CloudformationArgs, "_set_policy")
+    @patch.object(CloudformationArgs, "_set_permissions")
+    @patch.object(CloudformationArgs, "_set_tags")
     def test_set_extra_args(
         self,
         mocked_tags,
@@ -127,7 +127,7 @@ class TestCloudformationArgs(unittest.TestCase):
     @patch("builtins.input")
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "append_fzf")
-    def test_set_creation(self, mocked_append, mocked_execute, mocked_input):
+    def test__set_creation(self, mocked_append, mocked_execute, mocked_input):
         self.cloudformationargs._extra_args = {}
 
         # normal test
@@ -137,7 +137,7 @@ class TestCloudformationArgs(unittest.TestCase):
             "EnableTerminationProtection",
         ]
         mocked_input.return_value = 1
-        self.cloudformationargs.set_creation()
+        self.cloudformationargs._set_creation()
         mocked_append.assert_has_calls(
             [
                 call("RollbackOnFailure\n"),
@@ -187,7 +187,7 @@ class TestCloudformationArgs(unittest.TestCase):
             "EnableTerminationProtection",
         ]
         mocked_input.return_value = 1
-        self.cloudformationargs.set_creation(update=True)
+        self.cloudformationargs._set_creation(update=True)
         mocked_append.assert_has_calls(
             [call("EnableTerminationProtection\n"), call("True\n"), call("False\n"),]
         )
@@ -213,12 +213,12 @@ class TestCloudformationArgs(unittest.TestCase):
 
     @patch("builtins.input")
     @patch.object(Cloudwatch, "set_arns")
-    def test_set_rollback(self, mocked_arn, mocked_input):
+    def test__set_rollback(self, mocked_arn, mocked_input):
 
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
         # normal test
-        self.cloudformationargs.set_rollback(update=False)
+        self.cloudformationargs._set_rollback(update=False)
         self.assertEqual(
             self.capturedOutput.getvalue(),
             "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
@@ -241,7 +241,7 @@ class TestCloudformationArgs(unittest.TestCase):
                 "MonitoringTimeInMinutes": 1,
             }
         }
-        self.cloudformationargs.set_rollback(update=True)
+        self.cloudformationargs._set_rollback(update=True)
         self.assertEqual(
             self.capturedOutput.getvalue(),
             "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
@@ -254,8 +254,8 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Original: 1): ")
 
     @patch.object(SNS, "set_arns")
-    def test_set_notification(self, mocked_arn):
-        self.cloudformationargs.set_notification()
+    def test__set_notification(self, mocked_arn):
+        self.cloudformationargs._set_notification()
         mocked_arn.assert_called_once_with(
             empty_allow=True, header="select sns topic to notify", multi_select=True
         )
@@ -264,7 +264,7 @@ class TestCloudformationArgs(unittest.TestCase):
         self.cloudformationargs.cloudformation.stack_details = {
             "NotificationARNs": "111111"
         }
-        self.cloudformationargs.set_notification(update=True)
+        self.cloudformationargs._set_notification(update=True)
         mocked_arn.assert_called_once_with(
             empty_allow=True,
             header="select sns topic to notify\nOriginal value: 111111",
@@ -272,11 +272,11 @@ class TestCloudformationArgs(unittest.TestCase):
         )
 
     @patch.object(Pyfzf, "get_local_file")
-    def test_set_policy(self, mocked_file):
+    def test__set_policy(self, mocked_file):
         mocked_file.return_value = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../data/policy.json"
         )
-        self.cloudformationargs.set_policy()
+        self.cloudformationargs._set_policy()
         self.assertEqual(
             self.cloudformationargs._extra_args["StackPolicyBody"],
             json.dumps(
@@ -303,7 +303,7 @@ class TestCloudformationArgs(unittest.TestCase):
 
         mocked_file.reset_mock()
         self.cloudformationargs._extra_args = {}
-        self.cloudformationargs.set_policy(search_from_root=True, update=True)
+        self.cloudformationargs._set_policy(search_from_root=True, update=True)
         self.assertEqual(
             self.cloudformationargs._extra_args["StackPolicyDuringUpdateBody"],
             json.dumps(
@@ -329,8 +329,8 @@ class TestCloudformationArgs(unittest.TestCase):
         )
 
     @patch.object(IAM, "set_arns")
-    def test_set_permissions(self, mocked_arn):
-        self.cloudformationargs.set_permissions()
+    def test__set_permissions(self, mocked_arn):
+        self.cloudformationargs._set_permissions()
         mocked_arn.assert_called_once_with(
             header="Choose an IAM role to explicitly define CloudFormation's permissions\nNote: only IAM role can be assumed by CloudFormation is listed",
             service="cloudformation.amazonaws.com",
@@ -338,7 +338,7 @@ class TestCloudformationArgs(unittest.TestCase):
 
         mocked_arn.reset_mock()
         self.cloudformationargs.cloudformation.stack_details = {"RoleARN": "111111"}
-        self.cloudformationargs.set_permissions(update=True)
+        self.cloudformationargs._set_permissions(update=True)
         mocked_arn.assert_called_once_with(
             header="Select a role Choose an IAM role to explicitly define CloudFormation's permissions\nOriginal value: 111111",
             service="cloudformation.amazonaws.com",
@@ -348,7 +348,7 @@ class TestCloudformationArgs(unittest.TestCase):
     def test_set_tags(self, mocked_input):
         self.cloudformationargs._extra_args = {}
         mocked_input.return_value = ""
-        self.cloudformationargs.set_tags()
+        self.cloudformationargs._set_tags()
         mocked_input.assert_has_calls(
             [call("TagName: "),]
         )
@@ -359,7 +359,7 @@ class TestCloudformationArgs(unittest.TestCase):
         self.cloudformationargs.cloudformation.stack_details = {
             "Tags": [{"Key": "foo", "Value": "boo"}]
         }
-        self.cloudformationargs.set_tags(update=True)
+        self.cloudformationargs._set_tags(update=True)
         mocked_input.assert_has_calls([call("Key(foo): "), call("Value(boo): ")])
         self.assertEqual(
             self.cloudformationargs._extra_args,
