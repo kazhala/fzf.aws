@@ -1,9 +1,4 @@
-"""Cloudformation class to interact with boto3 cloudformation client
-
-Main reason to create a class is to handle different account profile usage
-and different region, so that all initialization of boto3.client could happen
-in a centralized place
-"""
+"""Module contains the cloudformation wrapper class."""
 import json
 import os
 import re
@@ -14,9 +9,9 @@ from fzfaws.utils.util import search_dict_in_list
 
 
 class Cloudformation(BaseSession):
-    """Cloudformation class to interact with boto3.client('cloudformation')
+    """Cloudformation wrapper class to interact with boto3.client('cloudformation').
 
-    handles operations directly related to boto3.client, but nothing else.
+    Handles operations directly related to boto3.client, but nothing else.
     Stuff like process template args or handling cloudformation settings,
     use the cloudformationargs class in helper.
 
@@ -29,14 +24,13 @@ class Cloudformation(BaseSession):
     def __init__(
         self, profile: Union[str, bool] = None, region: Union[str, bool] = None
     ) -> None:
+        """Construct the instance."""
         super().__init__(profile=profile, region=region, service_name="cloudformation")
         self.stack_name: str = ""
         self.stack_details: dict = {}
 
     def set_stack(self) -> None:
-        """stores the selected stack into the instance attribute
-        """
-
+        """Stores the selected stack into the instance attribute."""
         fzf = Pyfzf()
         with Spinner.spin(message="Fetching cloudformation stacks ..."):
             paginator = self.client.get_paginator("describe_stacks")
@@ -54,7 +48,7 @@ class Cloudformation(BaseSession):
     def get_stack_resources(
         self, empty_allow: bool = False, header: str = None
     ) -> List[str]:
-        """list all stack logical resources
+        """List all stack logical resources and return the selected resources.
 
         :param empty_allow: allow empty selection
         :type empty_allow: bool, optional
@@ -63,7 +57,6 @@ class Cloudformation(BaseSession):
         :return: selected list of logical resources LogicalResourceId
         :rtype: List[str]
         """
-
         fzf = Pyfzf()
         paginator = self.client.get_paginator("list_stack_resources")
         for result in paginator.paginate(StackName=self.stack_name):
@@ -82,14 +75,15 @@ class Cloudformation(BaseSession):
         )
 
     def wait(self, waiter_name: str, message: str = None, **kwargs) -> None:
-        """wait for the operation to be completed
+        """Wait for the operation to be completed.
+
+        Require a waiter_name approved by boto3, because it's using boto3 waiter.
 
         :param waiter_name: name for the boto3 waiter
         :type waiter_name: str
         :param message: message to display for spinner
         :type message: str, optional
         """
-
         with Spinner.spin(message=message):
             waiter = self.client.get_waiter(waiter_name)
             delay, max_attempts = self._get_waiter_config()
@@ -102,7 +96,7 @@ class Cloudformation(BaseSession):
     def execute_with_capabilities(
         self, cloudformation_action: Callable[..., Dict[str, Any]] = None, **kwargs
     ) -> Dict[str, Any]:
-        """execute the cloudformation_action with capabilities handled
+        """Execute the cloudformation_action with capabilities handled.
 
         When creating stacks with IAM role or nested stacks related, cloudformation
         require extra capabilities to be acknowledged before creating or updating the stack.
@@ -115,7 +109,6 @@ class Cloudformation(BaseSession):
         :return: boto3 response of the cloudformation action
         :rtype: Dict[str, Any]
         """
-
         try:
             print(json.dumps({**kwargs}, indent=4, default=str))
             if get_confirmation("Confirm?"):
@@ -131,12 +124,11 @@ class Cloudformation(BaseSession):
         return response
 
     def _get_waiter_config(self) -> Tuple[int, int]:
-        """process env and return the waiter config
+        """Process env and return the waiter config.
 
         :return: return a tuple with delay and max_attempts
         :rtype: Tuple
         """
-
         waiter_config = os.getenv(
             "FZFAWS_CLOUDFORMATION_WAITER", os.getenv("FZFAWS_GLOBAL_WAITER", "")
         )
@@ -149,14 +141,13 @@ class Cloudformation(BaseSession):
         return (delay, max_attempts)
 
     def _get_capabilities(self, message: str = "") -> List[str]:
-        """display help message and let user select capabilities
+        """Display help message and let user select capabilities.
 
         :param message: message to display in fzf header
         :type message: str, optional
         :return: selected capabilities to acknowledge
         :rtype: List[str]
         """
-
         fzf = Pyfzf()
         fzf.append_fzf("CAPABILITY_IAM\n")
         fzf.append_fzf("CAPABILITY_NAMED_IAM\n")
@@ -172,9 +163,9 @@ class Cloudformation(BaseSession):
     def _get_stack_generator(
         self, response: List[Dict[str, Any]]
     ) -> Generator[Dict[str, Any], None, None]:
-        """generator for boto3 paginator
+        """Generator for boto3 paginator.
 
-        reduce unnecessary memory usage
+        Attempt to reduce unnecessary memory usage.
 
         :param response: response from paginator.paginate()
         :type response: List[Dict[str, Any]]

@@ -1,7 +1,4 @@
-"""changeset related actions of stacks
-
-create/view changeset of the cloudformation stacks
-"""
+"""Module contains changeset related actions of stacks."""
 import json
 from typing import Any, Dict, Union
 
@@ -12,16 +9,15 @@ from fzfaws.utils.exceptions import NoNameEntered
 
 
 def describe_changes(cloudformation: Cloudformation, changeset_name: str) -> None:
-    """get the result of the changeset
+    """Get the result of the changeset.
 
-    Only for printing information purpose
+    Only for printing information purpose.
 
     :param cloudformation: an instance of the Cloudformation class
     :type cloudformation: Cloudformation
     :param changeset_name: the name of the changeset
     :type changeset_name: str
     """
-
     response = cloudformation.client.describe_change_set(
         ChangeSetName=changeset_name, StackName=cloudformation.stack_name,
     )
@@ -45,7 +41,14 @@ def changeset_stack(
     bucket: str = None,
     version: Union[str, bool] = False,
 ) -> None:
-    """handle changeset actions
+    """Handle changeset actions.
+
+    Main function to interacte with changeset, use argument
+    to control the actions.
+
+    This function is using update_stack to handle all the dirty
+    works as both functions are processing cloudformation arguments
+    and having the same arguments.
 
     :param profile: use a different profile for this operation
     :type profile: Union[bool, str], optional
@@ -73,7 +76,6 @@ def changeset_stack(
     :type version: Union[bool, str], optional
     :raises NoNameEntered: If no changset name is entered
     """
-
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 

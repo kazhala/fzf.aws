@@ -1,9 +1,4 @@
-"""Entry point for all cloudformation operations, internal use only
-
-process the raw_args passed in from __main__.py which is sys.argv[2:]
-read sub command {update,create,delete,drift,changeset} and route
-actions to appropriate functions
-"""
+"""Contains the main entry point for all cloudformation operations."""
 import argparse
 
 from fzfaws.cloudformation.changeset_stack import changeset_stack
@@ -17,12 +12,15 @@ from fzfaws.utils.pyfzf import Pyfzf
 
 
 def cloudformation(raw_args: list) -> None:
-    """parse the argument and route traffic to appropriate handler, internal use only for now
+    """Parse arguments and direct traffic to handler, internal use only.
+
+    The raw_args are the processed args through cli.py main function.
+    It also already contains the user default args so no need to process
+    default args anymore.
 
     :param raw_args: list of args to be parsed
     :type raw_args: list
     """
-
     parser = argparse.ArgumentParser(
         description="CRUD operation on aws cloudformation.",
         usage="faws cloudformation [-h] {update,create,delete,drift,changeset} ...",
@@ -439,7 +437,7 @@ def cloudformation(raw_args: list) -> None:
             drift_cmd.print_help()
         elif selected_command == "changeset":
             changeset_cmd.print_help()
-    # the print_help automatically perform a sys exit
+        raise SystemExit
 
     # when user set --profile/region flag but without argument
     # argparse will have a None value instead of default value False
