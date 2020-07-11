@@ -1,24 +1,21 @@
-"""helper class for constructing extra args for s3
-
-using fzf to construct some of the extra argument for s3 operation
-"""
+"""Module contains the helper class for constructing extra args for s3."""
 import json
+from typing import Any, Dict, List, Optional
+
 from fzfaws.kms.kms import KMS
-from fzfaws.utils import get_confirmation, Pyfzf
 from fzfaws.s3 import S3
-from typing import Any, Dict, Optional, List
+from fzfaws.utils import Pyfzf, get_confirmation
 
 
 class S3Args:
-    """helper class to construct extra argument
+    """A helper class to construct extra argument for extra settings for s3.
 
     :param s3: a instance from the S3 class
     :type s3: S3
     """
 
     def __init__(self, s3: S3):
-        """constructor
-        """
+        """Construct the instance."""
         self.s3: S3 = s3
         self._extra_args = {}
 
@@ -32,9 +29,9 @@ class S3Args:
         version: Optional[List[Dict[str, str]]] = None,
         upload: bool = False,
     ) -> None:
-        """determine what attributes to set
+        """Determine what are the extra settings to set.
 
-        Use fzf menu to let user select attributes to configure
+        Use fzf menu to let user select attributes to configure.
 
         :param storage: set storage class
         :type storage: bool, optional
@@ -51,12 +48,11 @@ class S3Args:
         :param upload: determine if the fzf menu could have empty selection
             allow empty selection during upload operation but not for other operations
         :type upload: bool, optional
-
         """
-
         if not version:
             version = []
         attributes: List[str] = []
+
         if version:
             # only allow modification of the two attributes for versioned object
             # because other modification would introduce a new version
@@ -146,18 +142,18 @@ class S3Args:
             self.set_tags(original=display_original, version=version)
 
     def set_metadata(self, original: str = None) -> None:
-        """set the meta data for the object
+        """Set the meta data for the object.
 
         :param original: original value of metadata
         :type original: str, optional
         """
-
         print(
             "Configure metadata for the objects, enter without value will skip metadata"
         )
         print(
             "Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)"
         )
+
         if original:
             print(80 * "-")
             print("Orignal: %s" % original)
@@ -172,15 +168,15 @@ class S3Args:
                 self._extra_args["Metadata"][key] = value
 
     def set_storageclass(self, original: str = None) -> None:
-        """set valid storage class
+        """Set valid storage class.
 
         :param original: original value of the storage_class
         :type original: str, optional
         """
-
         header = "Select a storage class, esc to use the default storage class of the bucket setting"
         if original:
             header += "\nOriginal: %s" % original
+
         fzf = Pyfzf()
         fzf.append_fzf("STANDARD\n")
         fzf.append_fzf("REDUCED_REDUNDANCY\n")
@@ -196,16 +192,16 @@ class S3Args:
     def set_ACL(
         self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
     ) -> None:
-        """set the ACL option for the current operation
+        """Set the ACL option.
 
         :param original: display original value
         :type original: bool, optional
         :param version: version object to set acl for version
         :type version: List[Dict[str, str]], optional
         """
-
         if not version:
             version = []
+
         fzf = Pyfzf()
         fzf.append_fzf("None (use bucket default ACL setting)\n")
         fzf.append_fzf("Canned ACL (predefined set of grantees and permissions)\n")
@@ -225,7 +221,7 @@ class S3Args:
     def _set_explicit_ACL(
         self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
     ) -> None:
-        """set explicit ACL for grantees and permissions
+        """Set explicit ACL for grantees and permissions.
 
         Get user id/email first than display fzf allow multi_select
         to select permissions
@@ -237,7 +233,6 @@ class S3Args:
         :param version: version of the object
         :type version: List[Dict[str, str]], optional
         """
-
         original_acl: Dict[str, List[str]] = {
             "FULL_CONTROL": [],
             "WRITE_ACP": [],
@@ -330,9 +325,7 @@ class S3Args:
                 self._extra_args[result] = str(accounts)
 
     def _set_canned_ACL(self) -> None:
-        """set the canned ACL for the current operation
-        """
-
+        """Set the canned ACL for the current operation."""
         fzf = Pyfzf()
         fzf.append_fzf("private\n")
         fzf.append_fzf("public-read\n")
@@ -352,15 +345,15 @@ class S3Args:
             self._extra_args["ACL"] = result
 
     def set_encryption(self, original: str = None) -> None:
-        """set the encryption setting
+        """Set the encryption setting.
 
         :param original: previous value of the encryption
         :type original: str, optional
         """
-
         header = "Select a ecryption setting, esc to use the default encryption setting for the bucket"
         if original:
             header += "\nOriginal: %s" % original
+
         fzf = Pyfzf()
         fzf.append_fzf("None (Use bucket default setting)\n")
         fzf.append_fzf("AES256\n")
@@ -380,20 +373,20 @@ class S3Args:
     def set_tags(
         self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
     ) -> None:
-        """set tags for the object
+        """Set the tags.
 
         :param original: whether to fetch orignal tag value
         :type original: bool, optional
         :param version: version information
         :type version: List[Dict[str, str]], optional
         """
-
         print(
             "Enter tags for the upload objects, enter without value will skip tagging"
         )
         print(
             "Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)"
         )
+
         if original:
             print(80 * "-")
             original_tags: list = []
@@ -422,16 +415,20 @@ class S3Args:
             self._extra_args["Tagging"] = tags
 
     def check_tag_acl(self) -> Dict[str, Any]:
-        """check if the only attributes to configure is ACL or Tags
+        """Check if the only attributes to configure is ACL or Tags.
 
         This check is to avoid creating unnescessary version of the object
         because only updating tag and acl doesn't require a new version
-        to be created
+        to be created.
+
+        If any other settings are touched, then boto3 will create a new version
+        of the object if versioning is enabled. By using this check, we can
+        avoid any unnescessary creation.
 
         :return: returns Tags and Grants
         :rtype: Dict[str, Any]
 
-        Example return:
+        Example return value:
             {
                 "Tags": [
                     {"Key": value, "Value": value}
@@ -445,8 +442,8 @@ class S3Args:
                 }
             }
         """
-
         result: Dict[str, Any] = {}
+
         if (
             not self._extra_args.get("StorageClass")
             and not self._extra_args.get("ServerSideEncryption")
@@ -486,44 +483,55 @@ class S3Args:
 
     @property
     def extra_args(self):
+        """Return _extra_args."""
         return self._extra_args
 
     @property
     def storage_class(self):
+        """Return storage_class."""
         return self._extra_args.get("StorageClass")
 
     @property
     def tags(self):
+        """Return tags."""
         return self._extra_args.get("Tagging", "")
 
     @property
     def encryption(self):
+        """Return encryption settings."""
         return self._extra_args.get("ServerSideEncryption", "")
 
     @property
     def kms_id(self):
+        """Return kms id."""
         return self._extra_args.get("SSEKMSKeyId", "")
 
     @property
     def acl(self):
+        """Return acl settings."""
         return self._extra_args.get("ACL", "")
 
     @property
     def metadata(self):
+        """Return metadata."""
         return self._extra_args.get("Metadata", {})
 
     @property
     def acl_full(self):
+        """Return acl full control settings."""
         return self._extra_args.get("GrantFullControl", "")
 
     @property
     def acl_read(self):
+        """Return acl read permission."""
         return self._extra_args.get("GrantRead", "")
 
     @property
     def acl_acp_read(self):
+        """Return acl read permission permission."""
         return self._extra_args.get("GrantReadACP", "")
 
     @property
     def acl_acp_write(self):
+        """Return acl write permission permission."""
         return self._extra_args.get("GrantWriteACP", "")
