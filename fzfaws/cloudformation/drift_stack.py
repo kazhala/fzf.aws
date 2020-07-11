@@ -1,7 +1,4 @@
-"""cloudformation drift detections
-
-detect drift status of the selected cloudformations stack
-"""
+"""Contains function to handle drift detection."""
 import json
 import time
 from typing import List, Union
@@ -17,7 +14,13 @@ def drift_stack(
     select: bool = False,
     wait: bool = False,
 ) -> None:
-    """perform actions on stack drift
+    """Perform actions on stack drift.
+
+    Info: print drift info.
+
+    Select: select resource and detect its drift.
+
+    Default: init and wait for the drift result of the entire stack.
 
     :param profile: use a different profile for the operation
     :type profile: Union[str, bool], optional
@@ -30,7 +33,6 @@ def drift_stack(
     :param wait: wait for the drfit detection
     :type wait: bool, optional
     """
-
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
@@ -90,16 +92,15 @@ def drift_stack(
 
 
 def wait_drift_result(cloudformation: Cloudformation, drift_id: str) -> None:
-    """Wait for the drift detection result
+    """Wait for the drift detection result.
 
-    aws doesn't provide wait condition, thus creating my own
+    Since aws doesn't provide wait condition, creating a custom waiter.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
     :param drift_id: the id of the drift detection
     :type drift_id: str
     """
-
     delay, max_attempts = cloudformation._get_waiter_config()
     attempts: int = 0
     response = None

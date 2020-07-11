@@ -1,7 +1,4 @@
-"""cloudforation create stack operation
-
-create cloudformation stack through both s3 bucket url or local file upload
-"""
+"""Contains the function to create cloudformation stack."""
 import json
 from typing import Any, Dict, Optional, Union
 
@@ -29,7 +26,7 @@ def create_stack(
     bucket: str = None,
     version: Union[str, bool] = False,
 ) -> None:
-    """handle the creation of the cloudformation stack
+    """Handle the creation of the cloudformation stack.
 
     :param profile: use a different profile for this operation
     :type profile: Union[bool, str], optional
@@ -49,7 +46,6 @@ def create_stack(
     :type version: Union[bool, str], optional
     :raises NoNameEntered: when the new stack receive empty string as stack_name
     """
-
     cloudformation = Cloudformation(profile, region)
 
     if local_path:
@@ -88,10 +84,10 @@ def create_stack(
 def construct_local_creation_args(
     cloudformation: Cloudformation, local_path: str
 ) -> Dict[str, Any]:
-    """construct cloudformation create argument for local file
+    """Construct cloudformation create argument for local file.
 
     Perform fzf search on local files json/yaml and then use validate_stack to
-    validate stack through boto3 API before constructing the argument
+    validate stack through boto3 API before constructing the argument.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
@@ -100,7 +96,6 @@ def construct_local_creation_args(
     :return: return the constructed args thats ready for use with boto3
     :rtype: Dict[str, Any]
     """
-
     # validate file type, has to be either yaml or json
     check_is_valid(local_path)
 
@@ -147,10 +142,10 @@ def construct_local_creation_args(
 def construct_s3_creation_args(
     cloudformation: Cloudformation, bucket: Optional[str], version: Union[str, bool]
 ) -> Dict[str, Any]:
-    """construct cloudformation argument for template in s3
+    """Construct cloudformation argument for template in s3.
 
-    retrieve the template from s3 bucket and validate and process the content in it
-    then return the ready to use cloudformation argument for boto3
+    Retrieve the template from s3 bucket and validate and process the content in it
+    then return the ready to use cloudformation argument for boto3.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
@@ -159,7 +154,6 @@ def construct_s3_creation_args(
     :return: return the formated cloudformation argument thats ready to use by boto3
     :rtype: Dict[str, Any]
     """
-
     s3 = S3(cloudformation.profile, cloudformation.region)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:

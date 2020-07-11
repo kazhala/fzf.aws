@@ -1,7 +1,4 @@
-"""display informaiton of the stack
-
-Can display stack resources as well
-"""
+"""Contains the ls function to display information about the stack."""
 import json
 from typing import Union
 
@@ -17,7 +14,7 @@ def ls_stack(
     tag: bool = False,
     resource_type: bool = False,
 ) -> None:
-    """display stack/resource information
+    """Display stack/resource information.
 
     :param profile: use a different profile for this operation
     :type profile: Union[str, bool], optional
@@ -34,7 +31,6 @@ def ls_stack(
     :param resource_type: display type of the resource instead of the entire resource information
     :type resource_type: bool, optional
     """
-
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 

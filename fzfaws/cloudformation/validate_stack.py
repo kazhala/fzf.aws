@@ -1,8 +1,4 @@
-"""contains the main function to validate a given template
-
-search local files or s3 files and then use boto3 api to
-validate the template syntax
-"""
+"""Contains the main function to validate a given template."""
 import json
 from typing import Optional, Union
 
@@ -21,7 +17,7 @@ def validate_stack(
     version: Union[str, bool] = False,
     no_print: bool = False,
 ) -> None:
-    """validate the selected cloudformation template using boto3 api
+    """validate the selected cloudformation template using boto3 api.
 
     This is also used internally by create_stack and update_stack
     operations.
@@ -41,8 +37,8 @@ def validate_stack(
     :param no_print: Don't print the response, only check excpetion
     :type no_print: bool, optional
     """
-
     cloudformation = Cloudformation(profile, region)
+
     if local_path:
         if type(local_path) != str:
             fzf = Pyfzf()

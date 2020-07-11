@@ -1,7 +1,4 @@
-"""cloudformation update stack operations
-
-perform updates to cloudformation
-"""
+"""Contains cloudformation update stack operation handler."""
 import json
 from typing import Any, Dict, List, Optional, Union
 
@@ -31,7 +28,11 @@ def update_stack(
     dryrun: bool = False,
     cloudformation: Optional[Cloudformation] = None,
 ) -> Union[None, dict]:
-    """handle the update of cloudformation stacks
+    """Handle the update of cloudformation stacks.
+
+    This is also used by changeset_stack to create its argument.
+    The dryrun and cloudformation argument in the function is only
+    used by changeset_stack.
 
     :param profile: use a different profile for this operation
     :type profile: Union[bool, str], optional
@@ -58,7 +59,6 @@ def update_stack(
     :return: If dryrun is set, return all the update details as dict {'Parameters': value, 'Tags': value...}
     :rtype: Union[None, dict]
     """
-
     if not cloudformation:
         cloudformation = Cloudformation(profile, region)
         cloudformation.set_stack()
@@ -115,14 +115,16 @@ def update_stack(
 
 
 def non_replacing_update(cloudformation: Cloudformation) -> Dict[str, Any]:
-    """format the required argument for a non-replacing update for boto3
+    """Format the required argument for a non-replacing update for boto3.
+
+    Non-replacing update as in not replacing the template, only
+    updating the parameters.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
     :return: formatted argument that's ready to be used by boto3
     :rtype: Dict[str, Any]
     """
-
     print("Enter new parameter values, skip to use original value")
     updated_parameters: List[Dict[str, Any]] = []
     parameters = cloudformation.stack_details.get("Parameters", [])
@@ -160,10 +162,13 @@ def non_replacing_update(cloudformation: Cloudformation) -> Dict[str, Any]:
 def local_replacing_update(
     cloudformation: Cloudformation, local_path: str
 ) -> Dict[str, Any]:
-    """format cloudformation argument for a replacing update
+    """Format cloudformation argument for a local replacing update.
 
-    process the new template and also comparing with previous parameter
-    value to provide an old value preview
+    Local replacing update as in using a template in the local machine
+    to perform stack update.
+
+    Process the new template and also comparing with previous parameter
+    value to provide an old value preview.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
@@ -172,7 +177,6 @@ def local_replacing_update(
     :return: formatted argument thats ready to be used by boto3
     :rtype: Dict[str, Any]
     """
-
     check_is_valid(local_path)
 
     validate_stack(
@@ -216,10 +220,10 @@ def local_replacing_update(
 def s3_replacing_update(
     cloudformation: Cloudformation, bucket: Optional[str], version: Union[str, bool]
 ) -> Dict[str, Any]:
-    """format argument for a replacing updating through providing template on s3
+    """Format argument for a replacing updating through providing template on s3.
 
-    read the template from s3, comparing parameter names with the original stack
-    to provide a preview of value if possible
+    Read the template from s3, comparing parameter names with the original stack
+    to provide a preview of value if possible.
 
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
@@ -230,7 +234,6 @@ def s3_replacing_update(
     :return: formatted argument thats ready to be used by boto3
     :rtype: Dict[str, Any]
     """
-
     s3 = S3(profile=cloudformation.profile, region=cloudformation.region)
     s3.set_bucket_and_path(bucket)
     if not s3.bucket_name:

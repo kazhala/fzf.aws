@@ -1,7 +1,4 @@
-"""cloudformation delete stack operation
-
-delete operations on the selected cloudformation stack
-"""
+"""Module contains the cloudformation function to delete stack."""
 from typing import Any, Dict, List, Union
 
 from fzfaws.cloudformation import Cloudformation
@@ -15,7 +12,7 @@ def delete_stack(
     wait: bool = False,
     iam: Union[str, bool] = False,
 ) -> None:
-    """handle deltion of the stack
+    """Handle deletion of the stack.
 
     Two situation, normal deletion and retained deletion.
     When the selected stack is already in a 'DELETE_FAILED' state, extra
@@ -32,7 +29,6 @@ def delete_stack(
     :type iam: Union[str, bool]
     :raises SystemExit: when user denied confirmation to delete stack, exit system
     """
-
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
 
