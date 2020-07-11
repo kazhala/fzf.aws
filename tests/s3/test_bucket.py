@@ -28,10 +28,10 @@ class TestS3BucketCopy(unittest.TestCase):
         mocked_bucket.assert_has_calls(
             [
                 call(
-                    header="Set the source bucket which contains the file to transfer"
+                    header="set the source bucket which contains the file to transfer"
                 ),
                 call(
-                    header="Set the destination bucket where the file should be transfered"
+                    header="set the destination bucket where the file should be transfered"
                 ),
             ]
         )
@@ -88,10 +88,10 @@ class TestS3BucketCopy(unittest.TestCase):
         mocked_bucket.assert_has_calls(
             [
                 call(
-                    header="Set the source bucket which contains the file to transfer"
+                    header="set the source bucket which contains the file to transfer"
                 ),
                 call(
-                    header="Set the destination bucket where the file should be transfered"
+                    header="set the destination bucket where the file should be transfered"
                 ),
             ]
         )
@@ -131,10 +131,10 @@ class TestS3BucketCopy(unittest.TestCase):
         mocked_bucket.assert_has_calls(
             [
                 call(
-                    header="Set the source bucket which contains the file to transfer"
+                    header="set the source bucket which contains the file to transfer"
                 ),
                 call(
-                    header="Set the destination bucket where the file should be transfered"
+                    header="set the destination bucket where the file should be transfered"
                 ),
             ]
         )
@@ -153,10 +153,10 @@ class TestS3BucketCopy(unittest.TestCase):
         mocked_bucket.assert_has_calls(
             [
                 call(
-                    header="Set the source bucket which contains the file to transfer"
+                    header="set the source bucket which contains the file to transfer"
                 ),
                 call(
-                    header="Set the destination bucket where the file should be transfered"
+                    header="set the destination bucket where the file should be transfered"
                 ),
             ]
         )
