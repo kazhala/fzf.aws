@@ -1,22 +1,19 @@
-"""s3 operation progress class
-
-helper class to give boto3 progress indicator
-"""
-import threading
-import sys
+"""Module contains the progress bar class for s3 transfering."""
 import os
+import sys
+import threading
 from typing import Optional
 
 
 class S3Progress(object):
-    """s3 operation progress class
+    """The progress bar for s3 transfering.
 
-    helper class for displaying s3 upload/download/copy percentage
-    Upload: spcify the filename only
-    Download/Copy: require a bucket and client parameter as well as the filename
+    Helper class for displaying s3 upload/download/copy percentage.
+    Upload: spcify the filename only.
+    Download/Copy: require a bucket and client parameter as well as the filename.
 
-    This class should be used within the callback of the S3Transfer class from boto
-    reference:
+    This class should be used within the callback of the S3Transfer class from boto.
+    references:
         https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html
         https://stackoverflow.com/a/41855380
 
@@ -38,8 +35,7 @@ class S3Progress(object):
     def __init__(
         self, filename: str, bucket: str = None, client=None, version_id: str = None,
     ) -> None:
-        """constructor
-        """
+        """Construct the progress bar instance."""
         self._filename: str = filename
         self._seen_so_far: float = 0
         self._lock = threading.Lock()
@@ -57,8 +53,10 @@ class S3Progress(object):
             self._size = float(os.path.getsize(filename))
 
     def __call__(self, bytes_amount: float) -> None:
-        # To simplify we'll assume this is hooked up to a single filename.
-        # lock the thread to a single file
+        """Create the bar.
+
+        Locking the thread to a single file.
+        """
         with self._lock:
             self._seen_so_far += bytes_amount
             if self._size == 0:
@@ -79,7 +77,9 @@ class S3Progress(object):
             sys.stdout.write("\033[2K\033[1G")
 
     def human_readable_size(self, value: float) -> Optional[str]:
-        """copied from awscli, try to provide the same experience
+        """Convert bytes to some human readable size.
+
+        Copied from awscli, try to provide the same experience.
 
         Convert an size in bytes into a human readable format.
         """

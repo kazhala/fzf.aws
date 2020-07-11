@@ -1,10 +1,8 @@
-"""process the s3 folder for handling recusive operation on s3
-
-handle the filter and listing of s3 folder
-"""
-import re
+"""Module contains a helper function to recursivly walk and get all s3 object's within given path."""
 import os
-from typing import Optional, List, Tuple
+import re
+from typing import List, Optional, Tuple
+
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 
@@ -21,13 +19,16 @@ def walk_s3_folder(
     destination_path: str = "/",
     destination_bucket: str = "",
 ) -> List[Tuple[str, str]]:
-    """download directory from s3 recursivly
+    """Walk s3 folder recursivly in the given path to obtail all objects.
 
-    reference: https://stackoverflow.com/a/33350380
-    recursivly call walk_s3_folder to reach the bottom level and append the file path
-    to the file_list
+    Reference: https://stackoverflow.com/a/33350380.
+    Recursivly call walk_s3_folder to reach the bottom level and append the file path
+    to the file_list.
 
-    process the destination when root is not bucket root
+    Process the destination when root is not bucket root.
+
+    Different types of operation doesn't change the actual walk behavior, it only changes
+    the information printed.
 
     :param client: boto3.client('s3')
     :type client: boto3.client
@@ -54,10 +55,9 @@ def walk_s3_folder(
     :return: return the list of tuple of file path to download
     :rtype: List[Tuple[str,str]]
 
-    example return value:
+    Example return value:
         [(original_key, destination_key)]
     """
-
     if file_list is None:
         file_list = []
     if exclude is None:

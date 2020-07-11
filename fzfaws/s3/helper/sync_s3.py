@@ -1,10 +1,11 @@
-"""sync operation handler
+"""Module contains function to handle sync operation.
 
-handles bucket/upload/download sync operation
+Note: awscli is required for now.
 """
 import subprocess
+from typing import List, Optional
+
 from fzfaws.utils import get_confirmation
-from typing import Optional, List
 from fzfaws.utils.exceptions import InvalidS3PathPattern
 
 
@@ -14,15 +15,15 @@ def sync_s3(
     from_path: str = "",
     to_path: str = "",
 ) -> None:
-    """sync from_path with to_path
+    """Sync from_path with to_path using awscli.
 
-    utilizing subprocess to call aws cli s3 sync, as boto3 doesn't provide
+    Utilizing subprocess to call aws cli s3 sync, as boto3 doesn't provide
     way to have sync operation.
 
     May try to implement the sync myself using S3 ETag calculation to compare
-    file, require more time and benchmark to see time difference
+    file, require more time and benchmark to see time difference.
 
-    For now, sync is the only process require aws cli to be installed
+    For now, sync is the only process require aws cli to be installed.
 
     :param exclude: list of files to exclude
     :type exclude: List[str], Optional
@@ -34,7 +35,6 @@ def sync_s3(
     :type to_path: str
     :raises InvalidS3PathPattern: when the from_path and to_path is empty
     """
-
     if not from_path or not to_path:
         raise InvalidS3PathPattern(
             "Invalid S3 path pattern for sync, example: s3://bucketname/path/"
