@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import unittest
-from unittest.mock import PropertyMock, patch
+from unittest.mock import PropertyMock, patch, call
 from fzfaws.s3 import S3
 from fzfaws.utils import FileLoader, Pyfzf, BaseSession
 from botocore.stub import Stubber
@@ -329,6 +329,7 @@ class TestS3(unittest.TestCase):
         mocked_append.assert_called_with("Key: version3.com\n")
 
         # version single test
+        mocked_append.reset_mock()
         self.s3.path_list = [""]
         self.s3.bucket_name = "kazhala-version-testing"
         data_path = os.path.join(
@@ -340,27 +341,68 @@ class TestS3(unittest.TestCase):
         mocked_execute.return_value = "sync/policy.json"
         self.s3.set_s3_object(version=True)
         self.assertEqual(self.s3.path_list[0], "sync/policy.json")
-        mocked_append.assert_called_with("Key: wtf.pem\n")
         mocked_execute.assert_called_with(print_col=-1)
+        mocked_append.assert_has_calls(
+            [
+                call("\x1b[31mKey:  elb.pem\x1b[0m\n"),
+                call("\x1b[31mKey: .DS_Store\x1b[0m\n"),
+                call("\x1b[31mKey:  wtf.txt\x1b[0m\n"),
+                call("\x1b[31mKey:  w tf.txt\x1b[0m\n"),
+                call("Key: CHANGELOG.md\n"),
+                call("Key: README.md\n"),
+                call("Key: wtf.pem\n"),
+            ],
+            any_order=True,
+        )
 
         # version multi test
+        mocked_append.reset_mock()
         mocked_execute.return_value = ["sync/policy.json", "wtf.pem"]
         self.s3.set_s3_object(version=True, multi_select=True)
         self.assertEqual(self.s3.path_list, ["sync/policy.json", "wtf.pem"])
-        mocked_append.assert_called_with("Key: wtf.pem\n")
+        mocked_append.assert_has_calls(
+            [
+                call("\x1b[31mKey:  elb.pem\x1b[0m\n"),
+                call("\x1b[31mKey: .DS_Store\x1b[0m\n"),
+                call("\x1b[31mKey:  wtf.txt\x1b[0m\n"),
+                call("\x1b[31mKey:  w tf.txt\x1b[0m\n"),
+                call("Key: CHANGELOG.md\n"),
+                call("Key: README.md\n"),
+                call("Key: wtf.pem\n"),
+            ],
+            any_order=True,
+        )
         mocked_execute.assert_called_with(print_col=-1, multi_select=True)
 
         # version delete marker single
+        mocked_append.reset_mock()
         mocked_execute.return_value = " wtf.txt"
         self.s3.set_s3_object(version=True, deletemark=True)
         self.assertEqual(self.s3.path_list[0], " wtf.txt")
-        mocked_append.assert_called_with("\x1b[31mKey: .DS_Store\x1b[0m\n")
+        mocked_append.assert_has_calls(
+            [
+                call("\x1b[31mKey: .DS_Store\x1b[0m\n"),
+                call("\x1b[31mKey:  elb.pem\x1b[0m\n"),
+                call("\x1b[31mKey:  w tf.txt\x1b[0m\n"),
+                call("\x1b[31mKey:  wtf.txt\x1b[0m\n"),
+            ],
+            any_order=True,
+        )
 
         # version delete marker multiple
+        mocked_append.reset_mock()
         mocked_execute.return_value = [" wtf.txt", ".DS_Store"]
         self.s3.set_s3_object(version=True, deletemark=True, multi_select=True)
         self.assertEqual(self.s3.path_list, [" wtf.txt", ".DS_Store"])
-        mocked_append.assert_called_with("\x1b[31mKey: .DS_Store\x1b[0m\n")
+        mocked_append.assert_has_calls(
+            [
+                call("\x1b[31mKey: .DS_Store\x1b[0m\n"),
+                call("\x1b[31mKey:  elb.pem\x1b[0m\n"),
+                call("\x1b[31mKey:  w tf.txt\x1b[0m\n"),
+                call("\x1b[31mKey:  wtf.txt\x1b[0m\n"),
+            ],
+            any_order=True,
+        )
 
     @patch.object(Paginator, "paginate")
     @patch.object(Pyfzf, "process_list")
