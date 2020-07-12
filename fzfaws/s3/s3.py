@@ -1,6 +1,7 @@
 """Contains the s3 wrapper class."""
 import os
 import re
+import itertools
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 from botocore.exceptions import ClientError
@@ -203,50 +204,16 @@ class S3(BaseSession):
                 self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
 
         else:
-            key_list: list = []
             paginator = self.client.get_paginator("list_object_versions")
             with Spinner.spin(message="Fetching s3 objects ..."):
-                for result in paginator.paginate(Bucket=self.bucket_name):
-                    for version_obj in result.get("DeleteMarkers", []):
-                        if version_obj.get("Key").endswith("/") or not version_obj.get(
-                            "Key"
-                        ):
-                            continue
-                        color_string: str = (
-                            "\033[31m" + "Key: %s" % version_obj.get("Key") + "\033[0m"
-                        )
-                        if color_string not in key_list:
-                            key_list.append(color_string)
-                    if not deletemark:
-                        for version_obj in result.get("Versions", []):
-                            if version_obj.get("Key").endswith(
-                                "/"
-                            ) or not version_obj.get("Key"):
-                                continue
-                            color_string: str = (
-                                "\033[31m"
-                                + "Key: %s" % version_obj.get("Key")
-                                + "\033[0m"
-                            )
-                            norm_string: str = "Key: %s" % version_obj.get("Key")
-                            if (
-                                color_string not in key_list
-                                and norm_string not in key_list
-                            ):
-                                key_list.append(norm_string)
-                            elif color_string in key_list and version_obj.get(
-                                "IsLatest"
-                            ):
-                                # handle the case where delete marker is associated, object is visible because new version has published
-                                key_list.remove(color_string)
-                                key_list.append(norm_string)
-                if key_list:
-                    for item in key_list:
-                        fzf.append_fzf(item + "\n")
-                else:
-                    raise NoSelectionMade(
-                        "Bucket might be empty or there was no selection made"
-                    )
+                results = paginator.paginate(Bucket=self.bucket_name)
+                version_obj_genrator = self._uniq_object_generator(results, deletemark)
+                generated = False
+                for item in version_obj_genrator:
+                    generated = True
+                    fzf.append_fzf(item + "\n")
+                if not generated:
+                    raise NoSelectionMade
             if multi_select:
                 self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
             else:
@@ -495,3 +462,43 @@ class S3(BaseSession):
                     "DeleteMarker": True,
                     "LastModified": marker.get("LastModified"),
                 }
+
+    def _uniq_object_generator(
+        self, results: List[Dict[str, Any]], onlydelete: bool
+    ) -> Generator[str, None, None]:
+        """Create uniq version generator.
+
+        Attempt to improve the performance on big data sets. Comparing with previous
+        solutions, although this handle one less edge case (if user delete a version object
+        but then created a new object with the same name), this is much faster and better
+        in memory usage.
+        
+        :param results: the result from boto3 paginator
+        :type results: List[Dict[str, Any]]
+        :param onlydelete: boolean indicator indicates whether to only show deletemark.
+            This is only used by delete operation with "-d, --deletemark" flag.
+        :type onlydelete: bool
+        :return: return the uniq object generator
+        :rtype: Generator[str, None, None]
+        """
+
+        def _uniq(version_obj):
+            return version_obj.get("Key")
+
+        for result in results:
+            deletemarks = itertools.groupby(result.get("DeleteMarkers", []), _uniq)
+            delete_sets = set()
+            for deletemark, _ in deletemarks:
+                delete_sets.add(deletemark)
+
+            for deletemark in delete_sets:
+                if deletemark.endswith("/"):
+                    continue
+                yield "\033[31m" + "Key: %s" % deletemark + "\033[0m"
+
+            if not onlydelete:
+                for version, _ in itertools.groupby(result.get("Versions", []), _uniq):
+                    if version.endswith("/") or version in delete_sets:
+                        continue
+                    else:
+                        yield "Key: %s" % version
