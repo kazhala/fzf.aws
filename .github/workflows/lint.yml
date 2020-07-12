@@ -31,8 +31,21 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: 12
       - name: Install pyright
         run: npm install -g pyright
       - name: Pyright check
         run: pyright fzfaws
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install black
+        run: pip install black
+      - name: Black check
+        run: black --check --diff fzfaws
