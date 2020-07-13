@@ -36,9 +36,9 @@ def start_instance(
         print("Instance start initiated")
 
         if check:
-            print("Wating for instance to be running and 2/2 status checked..")
+            print("Wating for instance to be running and 2/2 status checked ...")
             ec2.wait("instance_status_ok")
             print("Instance is ready")
         elif wait:
-            ec2.wait("instance_running", "Wating for instance to be running...")
+            ec2.wait("instance_running", "Wating for instance to be running ...")
             print("Instance is running")
