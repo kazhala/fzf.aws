@@ -23,8 +23,7 @@ def s3(raw_args: List[Any]) -> None:
     :type raw_args: list
     """
     parser = argparse.ArgumentParser(
-        description="perform CRUD operations with aws s3 bucket",
-        usage="fzfaws s3 [-h] {upload,download,delete,bucket,presign,object,ls} ...",
+        description="perform CRUD operations with aws s3 bucket", prog="fzfaws s3"
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 

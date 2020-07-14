@@ -21,7 +21,7 @@ def check_instance_status(instance: Dict[str, Any]) -> None:
     """
     if instance["Status"] == "stopped":
         raise EC2Error(
-            "%s is currently stopped, run faws ec2 start to start the instance"
+            "%s is currently stopped, run fzfaws ec2 start to start the instance"
             % instance["InstanceId"]
         )
     elif instance["Status"] != "running":

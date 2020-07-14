@@ -23,7 +23,7 @@ def cloudformation(raw_args: list) -> None:
     """
     parser = argparse.ArgumentParser(
         description="CRUD operation on aws cloudformation.",
-        usage="faws cloudformation [-h] {update,create,delete,drift,changeset} ...",
+        prog="fzfaws cloudformation",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
@@ -423,7 +423,7 @@ def cloudformation(raw_args: list) -> None:
         for command in available_commands:
             fzf.append_fzf("%s\n" % command)
         selected_command = fzf.execute_fzf(
-            empty_allow=True, print_col=1, preview="faws cloudformation {} -h"
+            empty_allow=True, print_col=1, preview="fzfaws cloudformation {} -h"
         )
         if selected_command == "update":
             update_cmd.print_help()
