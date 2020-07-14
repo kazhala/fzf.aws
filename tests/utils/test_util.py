@@ -66,7 +66,7 @@ class TestUtil(unittest.TestCase):
     def test_get_default_args(self):
         fileloader = FileLoader()
         config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         fileloader.load_config_file(config_path=config_path)
         result = get_default_args("ec2", ["start", "-e", "-m"])

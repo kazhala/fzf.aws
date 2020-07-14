@@ -23,7 +23,7 @@ class TestCloudformationParams(unittest.TestCase):
         fileloader = FileLoader(path=data_path)
         params = fileloader.process_yaml_file()["dictBody"].get("Parameters", {})
         config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         fileloader.load_config_file(config_path=config_path)
         self.paramprocessor = ParamProcessor(params=params)

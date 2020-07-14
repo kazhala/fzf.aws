@@ -18,7 +18,7 @@ class TestS3(unittest.TestCase):
         sys.stdout = self.capturedOutput
         fileloader = FileLoader()
         config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         fileloader.load_config_file(config_path=config_path)
         self.s3 = S3()
@@ -494,7 +494,7 @@ class TestS3(unittest.TestCase):
         self.assertEqual(result, {"hello"})
 
         data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         with open(data_path, "r") as file:
             s3 = boto3.resource("s3")
@@ -508,7 +508,7 @@ class TestS3(unittest.TestCase):
         self.assertEqual(result, {"hello"})
 
         data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         with open(data_path, "r") as file:
             s3 = boto3.resource("s3")

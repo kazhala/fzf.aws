@@ -16,7 +16,7 @@ class TestEC2(unittest.TestCase):
     def setUp(self):
         fileloader = FileLoader()
         config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws.yml"
+            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
         )
         fileloader.load_config_file(config_path=config_path)
         self.capturedOutput = io.StringIO()
