@@ -89,3 +89,45 @@ Resources:
       TopicArn: !Ref CodeBuildSNSTopic
       Protocol: email
       Endpoint: kevin7441@gmail.com
+
+  CodeBuildStatusTrigger:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Report codebuild status to fzfaws sns topic
+      EventPattern:
+        source:
+          - 'aws.codebuild'
+        detail-type:
+          - 'CodeBuild Build State Change'
+        detail:
+          build-status:
+            - 'SUCCEEDED'
+            - 'FAILED'
+          project-name:
+            - !Ref CodeBuildProject
+      Name: !Sub '${AWS::StackName}-codebuild-trigger'
+      State: ENABLED
+      Targets:
+        - Arn: !Ref CodeBuildSNSTopic
+          Id: CodeBuildSNSTopic
+          InputTransformer:
+            InputPathsMap:
+              id: '$.detail.build-id'
+              name: '$.detail.project-name'
+              status: '$.detail.build-status'
+            InputTemplate: |
+              "Build <id> for build project <name> has reached the build status of <status>."
+
+  CodeBuildSNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: 'sns:Publish'
+            Resource: !Ref CodeBuildSNSTopic
+      Topics:
+        - !Ref CodeBuildSNSTopic
