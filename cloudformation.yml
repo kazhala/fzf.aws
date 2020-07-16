@@ -53,7 +53,7 @@ Resources:
       RoleName: !Sub '${AWS::StackName}-codebuild'
 
   CodeBuildRolePolicy:
-    Type: 'AWS::IAM::Policy'
+    Type: AWS::IAM::Policy
     Properties:
       PolicyName: !Sub '${AWS::StackName}-codebuild-role-policy'
       PolicyDocument:
@@ -77,3 +77,15 @@ Resources:
               - 'arn:aws:logs:ap-southeast-2:378756445655:log-group:/aws/codebuild/fzfaws:*'
       Roles:
         - !Ref CodeBuildRole
+
+  CodeBuildSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: 'CodeBuildfzfawsNotification'
+
+  CodeBuildSNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref CodeBuildSNSTopic
+      Protocol: email
+      Endpoint: kevin7441@gmail.com
