@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Create the codebuild project and related notifications for fzfaws. The codebuild
+  project is responsible to build the new tags and publish it to pypi as well
+  as building and pushing the docker image to docker hub.
+
+Resources:
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      BadgeEnabled: true
+      Description: CodeBuild project for building and pushit fzfaws to pypi and also docker hub.
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Name: fzfaws
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        Location: https://github.com/kazhala/fzf.aws.git
+        Type: GITHUB
+        ReportBuildStatus: true
+      SourceVersion: master
+      Triggers:
+        Webhook: true
+        FilterGroups:
+          - - Type: EVENT
+              Pattern: PUSH
+            - Type: HEAD_REF
+              Pattern: ^refs/heads/master$
+            - Type: FILE_PATH
+              Pattern: setup.py
+            - Type: COMMIT_MESSAGE
+              Pattern: '^.*v[0-9]+\.[0-9]+\.[0-9]+.*$'
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: 'codebuild.amazonaws.com'
+      Description: !Sub 'CodeBuild role for ${AWS::StackName}'
+      RoleName: !Sub '${AWS::StackName}-codebuild'
+
+  CodeBuildRolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-codebuild-role-policy'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ssm:GetParameters'
+            Resource: 'arn:aws:ssm:ap-southeast-2:378756445655:parameter/fzfaws/*'
+          - Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+            Resource: 'arn:aws:kms:ap-southeast-2:378756445655:key/51311dc6-8e2d-4139-abdc-5a81261eaa40'
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource:
+              - 'arn:aws:logs:ap-southeast-2:378756445655:log-group:/aws/codebuild/fzfaws'
+              - 'arn:aws:logs:ap-southeast-2:378756445655:log-group:/aws/codebuild/fzfaws:*'
+      Roles:
+        - !Ref CodeBuildRole
