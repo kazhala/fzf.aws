@@ -20,7 +20,7 @@ def main() -> None:
     """Entry function of the fzf.aws module."""
     try:
         parser = argparse.ArgumentParser(
-            description="A interactive aws cli experience with the help of fzf.",
+            description="An interactive aws cli experience powered by fzf.",
             prog="fzfaws",
         )
         subparsers = parser.add_subparsers(dest="subparser_name")
@@ -30,7 +30,7 @@ def main() -> None:
 
         if len(sys.argv) < 2:
             parser.print_help()
-            raise SystemExit
+            sys.exit(1)
 
         args = parser.parse_args([sys.argv[1]])
 
@@ -49,7 +49,7 @@ def main() -> None:
     except InvalidFileType:
         print("Selected file is not a valid template file type")
     except (KeyboardInterrupt, SystemExit, SystemError):
-        pass
+        raise
     except NoSelectionMade:
         print("No selection was made or the result was empty")
     except (ClientError, Exception) as e:
