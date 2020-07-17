@@ -163,9 +163,9 @@ class TestFileLoader(unittest.TestCase):
             os.environ["FZFAWS_EC2_WAITER"],
             json.dumps({"delay": 10, "max_attempts": 60}),
         )
-        self.assertEqual(os.environ["FZFAWS_EC2_START"], "-w")
-        self.assertEqual(os.environ["FZFAWS_EC2_STOP"], "-w")
-        self.assertEqual(os.environ["FZFAWS_EC2_REGION"], "ap-southeast-2")
+        self.assertEqual(os.environ["FZFAWS_EC2_START"], "--wait")
+        self.assertEqual(os.environ["FZFAWS_EC2_STOP"], "--wait")
+        self.assertEqual(os.environ["FZFAWS_EC2_REGION"], "us-east-1")
         self.assertEqual(os.environ["FZFAWS_EC2_PROFILE"], "default")
 
         # reset
@@ -210,7 +210,7 @@ class TestFileLoader(unittest.TestCase):
             os.environ["FZFAWS_GLOBAL_WAITER"],
             json.dumps({"delay": 15, "max_attempts": 40}),
         )
-        self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "ap-southeast-2")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "us-east-1")
         self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "default")
 
         # reset

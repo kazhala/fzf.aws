@@ -18,7 +18,7 @@ class TestSession(unittest.TestCase):
     def test_empty_init(self):
         session = BaseSession(service_name="ec2")
         self.assertEqual("default", session.profile)
-        self.assertEqual("ap-southeast-2", session.region)
+        self.assertEqual("us-east-1", session.region)
 
     def test_param_profile_region(self):
         session = BaseSession(
@@ -29,15 +29,15 @@ class TestSession(unittest.TestCase):
 
         session = BaseSession(profile=None, region=None, service_name="ec2")
         self.assertEqual("default", session.profile)
-        self.assertEqual("ap-southeast-2", session.region)
+        self.assertEqual("us-east-1", session.region)
 
         session = BaseSession(profile=None, region=None, service_name="s3")
         self.assertEqual("default", session.profile)
-        self.assertEqual("ap-southeast-2", session.region)
+        self.assertEqual("us-east-1", session.region)
 
         session = BaseSession(profile=None, region=None, service_name="cloudformation")
         self.assertEqual("default", session.profile)
-        self.assertEqual("ap-southeast-2", session.region)
+        self.assertEqual("us-east-1", session.region)
 
     @patch.object(Pyfzf, "append_fzf")
     @patch.object(Pyfzf, "execute_fzf")

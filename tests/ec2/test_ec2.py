@@ -28,7 +28,7 @@ class TestEC2(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.ec2.profile, "default")
-        self.assertEqual(self.ec2.region, "ap-southeast-2")
+        self.assertEqual(self.ec2.region, "us-east-1")
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [{}])
 

@@ -146,7 +146,7 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             UsePreviousTemplate=False,
         )
         mocked_validate.assert_called_with(
-            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
+            "default", "us-east-1", local_path=self.data_path, no_print=True
         )
 
         mocked_local.reset_mock()
@@ -162,7 +162,7 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             UsePreviousTemplate=False,
         )
         mocked_validate.assert_called_with(
-            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
+            "default", "us-east-1", local_path=self.data_path, no_print=True
         )
 
     @patch.object(Cloudformation, "execute_with_capabilities")
@@ -190,7 +190,7 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         mocked_version.assert_called_with("kazhala-lol", "hello.yaml")
         mocked_validate.assert_called_with(
             "default",
-            "ap-southeast-2",
+            "us-east-1",
             bucket="kazhala-lol/hello.yaml",
             version="111111",
             no_print=True,
@@ -208,7 +208,7 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         mocked_version.assert_not_called()
         mocked_validate.assert_called_with(
             "default",
-            "ap-southeast-2",
+            "us-east-1",
             bucket="kazhala-lol/hello.yaml",
             version="111111",
             no_print=True,

@@ -24,7 +24,7 @@ class TestKMS(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.kms.profile, "default")
-        self.assertEqual(self.kms.region, "ap-southeast-2")
+        self.assertEqual(self.kms.region, "us-east-1")
         self.assertEqual(self.kms.keyids, [""])
 
         kms = KMS(profile="root", region="us-east-1")

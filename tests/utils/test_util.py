@@ -70,7 +70,7 @@ class TestUtil(unittest.TestCase):
         )
         fileloader.load_config_file(config_path=config_path)
         result = get_default_args("ec2", ["start", "-e", "-m"])
-        self.assertEqual(result, ["start", "-w", "-e", "-m"])
+        self.assertEqual(result, ["start", "--wait", "-e", "-m"])
 
         result = get_default_args("s3", ["upload", "-b", "-x"])
         self.assertEqual(result, ["upload", "-H", "-b", "-x"])

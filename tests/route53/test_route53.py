@@ -25,7 +25,7 @@ class TestRoute53(unittest.TestCase):
     def test_constructor(self):
         self.assertEqual(self.route53.zone_ids, [""])
         self.assertEqual(self.route53.profile, "default")
-        self.assertEqual(self.route53.region, "ap-southeast-2")
+        self.assertEqual(self.route53.region, "us-east-1")
 
         route53 = Route53(profile="root", region="us-west-1")
         self.assertEqual(route53.zone_ids, [""])

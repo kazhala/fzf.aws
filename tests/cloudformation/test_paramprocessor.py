@@ -35,9 +35,9 @@ class TestCloudformationParams(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.paramprocessor.ec2.profile, "default")
-        self.assertEqual(self.paramprocessor.ec2.region, "ap-southeast-2")
+        self.assertEqual(self.paramprocessor.ec2.region, "us-east-1")
         self.assertEqual(self.paramprocessor.route53.profile, "default")
-        self.assertEqual(self.paramprocessor.route53.region, "ap-southeast-2")
+        self.assertEqual(self.paramprocessor.route53.region, "us-east-1")
         self.assertIsInstance(self.paramprocessor.params, dict)
         self.assertEqual(self.paramprocessor.original_params, [])
         self.assertEqual(self.paramprocessor.processed_params, [])

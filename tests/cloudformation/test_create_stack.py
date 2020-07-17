@@ -55,7 +55,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
 
         mocked_local.assert_called_with(search_from_root=True, cloudformation=True)
         mocked_validate.assert_called_with(
-            "default", "ap-southeast-2", local_path=self.data_path, no_print=True
+            "default", "us-east-1", local_path=self.data_path, no_print=True
         )
         mocked_execute.assert_called_with(
             Parameters=[],
@@ -114,7 +114,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
         mocked_version.assert_called_with("kazhala-lol", "hello.yaml")
         mocked_validate.assert_called_with(
             "default",
-            "ap-southeast-2",
+            "us-east-1",
             bucket="kazhala-lol/hello.yaml",
             version="111111",
             no_print=True,

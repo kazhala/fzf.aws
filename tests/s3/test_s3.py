@@ -28,7 +28,7 @@ class TestS3(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.s3.profile, "default")
-        self.assertEqual(self.s3.region, "ap-southeast-2")
+        self.assertEqual(self.s3.region, "us-east-1")
         self.assertEqual(self.s3.bucket_name, "")
         self.assertEqual(self.s3.path_list, [""])
 
