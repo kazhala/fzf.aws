@@ -72,10 +72,10 @@ def main() -> None:
 
 def copy_config():
     """Copy the default fzfaws.yml to $XDG_CONFIG_HOME/fzfaws/."""
-    default_config_path = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), "./fzfaws.yml"
-    )
-    destination_config_path = "%s/fzfaws/fzfaws.yml" % os.getenv(
+    default_config_path = Path(__file__).resolve().parent.joinpath("./fzfaws.yml")
+    destination_config_path = "%s/fzfaws/" % os.getenv(
         "XDG_CONFIG_HOME", str(Path.home())
     )
+    if not Path(destination_config_path).is_dir():
+        Path(destination_config_path).mkdir(parents=True, exist_ok=True)
     copy(default_config_path, destination_config_path)
