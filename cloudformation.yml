@@ -118,7 +118,7 @@ Resources:
               name: '$.detail.project-name'
               status: '$.detail.build-status'
             InputTemplate: |
-              "Build <id> for build project <name> has reached the build status of <status>."
+              "Project '<name>' has reached the build status of '<status>' for build '<id>'."
 
   CodeBuildSNSTopicPolicy:
     Type: AWS::SNS::TopicPolicy
