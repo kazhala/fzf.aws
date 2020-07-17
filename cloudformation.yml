@@ -62,7 +62,9 @@ Resources:
           - Effect: Allow
             Action:
               - 'ssm:GetParameters'
-            Resource: 'arn:aws:ssm:ap-southeast-2:378756445655:parameter/fzfaws/*'
+            Resource:
+              - 'arn:aws:ssm:ap-southeast-2:378756445655:parameter/docker/*'
+              - 'arn:aws:ssm:ap-southeast-2:378756445655:parameter/pypi/*'
           - Effect: Allow
             Action:
               - 'kms:Decrypt'

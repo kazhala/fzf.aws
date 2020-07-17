@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  parameter-store:
+    PYPI_USERNAME: /pypi/username
+    PYPI_PASSWORD: /pypi/password
+    DOCKER_USERNAME: /docker/username
+    DOCKER_PASSWORD: /docker/password
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.x
+    commands:
+      - echo Installing build tools ...
+      - pip install --upgrade setuptools wheel
+      - echo Installing upload tools ...
+      - pip install --upgrade twine
+
+  build:
+    commands:
+      - echo Building fzfaws ...
+      - python setup.py sdist bdist_wheel
+
+  post_build:
+    commands:
+      - echo Uploading fzfaws to pypi ...
+      - twine upload --username $PYPI_USERNAME --password $PYPI_PASSWORD dist/*

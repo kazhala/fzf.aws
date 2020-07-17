@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fzfaws",
-    version="0.0.1",
+    version="0.0.2",
     author="Kevin Zhuang",
     author_email="kevin7441@gmail.com",
-    description="An interactive aws cli experience with the help of fzf.",
+    description="An interactive aws cli experience with the help of fzf",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/kazhala/fzf.aws",
