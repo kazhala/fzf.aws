@@ -6,6 +6,9 @@ Typical usage example:
 
 import argparse
 import sys
+import os
+from pathlib import Path
+from shutil import copy
 
 from botocore.exceptions import ClientError
 
@@ -23,6 +26,13 @@ def main() -> None:
             description="An interactive aws cli experience powered by fzf.",
             prog="fzfaws",
         )
+        parser.add_argument(
+            "--copy-config",
+            dest="copy_config",
+            action="store_true",
+            default=False,
+            help="Copy the configuration file to $XDG_CONFIG_HOME/fzfaws/ or $HOME/.config/fzfaws/",
+        )
         subparsers = parser.add_subparsers(dest="subparser_name")
         subparsers.add_parser("cloudformation")
         subparsers.add_parser("ec2")
@@ -33,6 +43,10 @@ def main() -> None:
             sys.exit(1)
 
         args = parser.parse_args([sys.argv[1]])
+
+        if args.copy_config:
+            copy_config()
+            sys.exit(0)
 
         fileloader = FileLoader()
         fileloader.load_config_file()
@@ -47,10 +61,21 @@ def main() -> None:
             s3(argument_list)
 
     except InvalidFileType:
-        print("Selected file is not a valid template file type")
+        print("Selected file is not a valid file type.")
     except (KeyboardInterrupt, SystemExit, SystemError):
         raise
     except NoSelectionMade:
-        print("No selection was made or the result was empty")
+        print("No selection was made or the result was empty.")
     except (ClientError, Exception) as e:
         print(e)
+
+
+def copy_config():
+    """Copy the default fzfaws.yml to $XDG_CONFIG_HOME/fzfaws/."""
+    default_config_path = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)), "./fzfaws.yml"
+    )
+    destination_config_path = "%s/fzfaws/fzfaws.yml" % os.getenv(
+        "XDG_CONFIG_HOME", str(Path.home())
+    )
+    copy(default_config_path, destination_config_path)
