@@ -19,12 +19,6 @@ class InvalidFileType(Exception):
     pass
 
 
-class InvalidParameterType(Exception):
-    """When the input parameter in not correct type."""
-
-    pass
-
-
 class EmptyList(Exception):
     """The input list to fzf process list is empty."""
 

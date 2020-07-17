@@ -163,7 +163,7 @@ class S3(BaseSession):
                         % (self.path_list[0] if self.path_list[0] else "root")
                     )
                 else:
-                    raise NoSelectionMade("S3 file path was not configured, exiting..")
+                    raise NoSelectionMade
 
     def set_s3_object(
         self,

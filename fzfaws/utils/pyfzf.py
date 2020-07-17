@@ -52,7 +52,7 @@ class Pyfzf:
             print(
                 "fzfaws currently is only compatible with python3.5+ on MacOS or Linux"
             )
-            raise SystemExit
+            sys.exit(1)
         self.fzf_path: str = (
             "fzf"
             if os.getenv("FZFAWS_FZF_EXECUTABLE", "binary") == "system"
@@ -146,12 +146,12 @@ class Pyfzf:
                 )
 
             if not selection_name and not empty_allow:
-                raise NoSelectionMade("No selection was made")
+                raise NoSelectionMade
         except subprocess.CalledProcessError:
             # this exception may happend if user didn't make a selection in fzf
             # thus ending with non zero exit code
             if not empty_allow:
-                raise NoSelectionMade("No selection was made")
+                raise NoSelectionMade
             elif empty_allow:
                 if multi_select:
                     return []
@@ -259,12 +259,12 @@ class Pyfzf:
             )
             self._check_ctrl_c(selected_file_path)
             if not empty_allow and not selected_file_path:
-                raise NoSelectionMade("No selection was made")
+                raise NoSelectionMade
 
         except subprocess.CalledProcessError:
             # subprocess exception will raise when user press ecs to exit fzf
             if not empty_allow:
-                raise NoSelectionMade("No selection was made")
+                raise NoSelectionMade
             elif empty_allow and directory:
                 # return current directory
                 curdir = os.getcwd()
@@ -350,7 +350,7 @@ class Pyfzf:
                 self.append_fzf("%s: %s" % (arg, item.get(arg)))
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
-            raise EmptyList("Result list was empty, exiting..")
+            raise EmptyList("Result list was empty.")
 
     def format_selected_to_dict(self, selected_str: str) -> Dict[str, Any]:
         """Format the selected option into a proper dictionary.
