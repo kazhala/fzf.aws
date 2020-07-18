@@ -58,9 +58,9 @@ class TestPyfzf(unittest.TestCase):
     @patch.object(subprocess, "check_output")
     def test_execute_fzf(self, mocked_output, mocked_popen):
         mocked_output.return_value = b"hello"
-        result = self.fzf.execute_fzf()
+        result = self.fzf.execute_fzf(print_col=1)
         self.assertEqual(result, "hello")
-        self.assertEqual(mocked_output.call_count, 3)
+        mocked_output.assert_called_once()
 
         mocked_output.return_value = b""
         self.assertRaises(NoSelectionMade, self.fzf.execute_fzf)
@@ -70,11 +70,11 @@ class TestPyfzf(unittest.TestCase):
         self.assertEqual("", result)
 
         mocked_output.return_value = b"hello"
-        result = self.fzf.execute_fzf(multi_select=True)
+        result = self.fzf.execute_fzf(multi_select=True, print_col=1)
         self.assertEqual(result, ["hello"])
 
         mocked_output.return_value = b"hello\nworld"
-        result = self.fzf.execute_fzf(multi_select=True)
+        result = self.fzf.execute_fzf(multi_select=True, print_col=1)
         self.assertEqual(result, ["hello", "world"])
 
     @patch.object(subprocess, "Popen")
@@ -82,9 +82,10 @@ class TestPyfzf(unittest.TestCase):
     def test_check_ctrl_c(self, mocked_output, mocked_popen):
         mocked_output.return_value = b"ctrl-c"
         self.assertRaises(KeyboardInterrupt, self.fzf.execute_fzf)
-        mocked_output.return_value = b"hello"
+        mocked_output.return_value = b"hello world"
         try:
-            self.fzf.execute_fzf()
+            result = self.fzf.execute_fzf()
+            self.assertEqual(result, "world")
         except:
             self.fail("ctrl-c test failed, unexpected exception raise")
 

@@ -341,7 +341,7 @@ class TestS3(unittest.TestCase):
         mocked_execute.return_value = "sync/policy.json"
         self.s3.set_s3_object(version=True)
         self.assertEqual(self.s3.path_list[0], "sync/policy.json")
-        mocked_execute.assert_called_with(print_col=-1)
+        mocked_execute.assert_called_with(delimiter=": ")
         mocked_append.assert_has_calls(
             [
                 call("\x1b[31mKey:  elb.pem\x1b[0m\n"),
@@ -372,7 +372,7 @@ class TestS3(unittest.TestCase):
             ],
             any_order=True,
         )
-        mocked_execute.assert_called_with(print_col=-1, multi_select=True)
+        mocked_execute.assert_called_with(delimiter=": ", multi_select=True)
 
         # version delete marker single
         mocked_append.reset_mock()
@@ -589,20 +589,18 @@ class TestS3(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "append_fzf")
     def test_get_path_option(self, mocked_append, mocked_execute):
-        mocked_execute.return_value = "root: operate on the root level of the bucket"
+        mocked_execute.return_value = "root"
         result = self.s3._get_path_option()
         self.assertEqual(result, "root")
         mocked_append.assert_called_with(
             "append: interactively select a path and then input new path/name to append"
         )
 
-        mocked_execute.return_value = (
-            "append: interactively select a path and then input new path/name to append"
-        )
+        mocked_execute.return_value = "append"
         result = self.s3._get_path_option()
         self.assertEqual(result, "append")
 
-        mocked_execute.return_value = "root: operate on the root level of the bucket"
+        mocked_execute.return_value = "root"
         result = self.s3._get_path_option(download=True)
         self.assertEqual(result, "root")
         mocked_append.assert_called_with("input: manully input the path/name\n")

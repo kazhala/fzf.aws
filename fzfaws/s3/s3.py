@@ -199,9 +199,11 @@ class S3(BaseSession):
                             continue
                         fzf.append_fzf("Key: %s\n" % file.get("Key"))
             if multi_select:
-                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
+                self.path_list = list(
+                    fzf.execute_fzf(multi_select=True, delimiter=": ")
+                )
             else:
-                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+                self.path_list[0] = str(fzf.execute_fzf(delimiter=": "))
 
         else:
             paginator = self.client.get_paginator("list_object_versions")
@@ -215,9 +217,11 @@ class S3(BaseSession):
                 if not generated:
                     raise NoSelectionMade
             if multi_select:
-                self.path_list = list(fzf.execute_fzf(print_col=-1, multi_select=True))
+                self.path_list = list(
+                    fzf.execute_fzf(delimiter=": ", multi_select=True)
+                )
             else:
-                self.path_list[0] = str(fzf.execute_fzf(print_col=-1))
+                self.path_list[0] = str(fzf.execute_fzf(delimiter=": "))
 
     def get_object_version(
         self,
@@ -423,9 +427,10 @@ class S3(BaseSession):
             fzf.execute_fzf(
                 print_col=1,
                 header="Please select which level of the bucket would you like to operate in",
+                delimiter=": ",
             )
         )
-        return selected_option.split(":")[0]
+        return selected_option
 
     def _version_generator(
         self, versions: List[dict], markers: List[dict], non_current: bool, delete: bool

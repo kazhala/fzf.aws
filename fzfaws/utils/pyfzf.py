@@ -80,6 +80,7 @@ class Pyfzf:
         preview: Optional[str] = None,
         multi_select: bool = False,
         header: Optional[str] = None,
+        delimiter: Optional[str] = None,
     ) -> Union[List[Any], List[str], str]:
         r"""Execute fzf and return formated string.
 
@@ -113,7 +114,7 @@ class Pyfzf:
         self.fzf_string = str(self.fzf_string).rstrip()
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = self._construct_fzf_cmd()
-        selection_name: bytes = b""
+        selection: bytes = b""
 
         if header:
             cmd_list.append("--header=%s" % header)
@@ -132,20 +133,7 @@ class Pyfzf:
             # if first line contains ctrl-c, exit
             self._check_ctrl_c(selection)
 
-            # reopen the pipeline, first line will be empty if pass previous test
-            echo_selection = subprocess.Popen(
-                ["echo", selection], stdout=subprocess.PIPE
-            )
-            if print_col == -1:
-                selection_name = subprocess.check_output(
-                    ("awk", '{$1=""; print}'), stdin=echo_selection.stdout
-                )
-            else:
-                selection_name = subprocess.check_output(
-                    ("awk", "{print $%s}" % (print_col)), stdin=echo_selection.stdout,
-                )
-
-            if not selection_name and not empty_allow:
+            if not selection and not empty_allow:
                 raise NoSelectionMade
         except subprocess.CalledProcessError:
             # this exception may happend if user didn't make a selection in fzf
@@ -159,12 +147,17 @@ class Pyfzf:
                     return ""
 
         if multi_select:
+            return_list: List[str] = []
             # multi_select would return everything seperate by \n
-            return_list = str(selection_name, "utf-8").strip().splitlines()
-            return [item.strip() for item in return_list]
+            selections: List[str] = str(selection, "utf-8").strip().splitlines()
+            for item in selections:
+                processed_str = self._get_col(item, print_col, delimiter)
+                return_list.append(processed_str)
+
+            return return_list
         else:
-            # conver the byte to string and remove the empty trailing line
-            return str(selection_name, "utf-8").strip()
+            selection_str: str = str(selection, "utf-8").strip()
+            return self._get_col(selection_str, print_col, delimiter)
 
     def get_local_file(
         self,
@@ -390,3 +383,23 @@ class Pyfzf:
             else:
                 formatted_dict.update({key: value})
         return formatted_dict
+
+    def _get_col(self, string: str, print_col: int, delimiter: Optional[str]) -> str:
+        """Return the wanted col of the given str.
+
+        :param string: string to process
+        :type string: str
+        :param print_col: column to return
+        :type print_col: int
+        :param delimiter: delimiter that seperate the column
+        :type delimiter: Optional[str]
+        :return: the print_col of the string
+        :rtype: str
+        """
+        if print_col == 0:
+            return string
+        else:
+            delimited_str = string.split(delimiter)
+            if print_col - 1 > len(delimited_str):
+                raise NoSelectionMade
+            return delimited_str[print_col - 1]
