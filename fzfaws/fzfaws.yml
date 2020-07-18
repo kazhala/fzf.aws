@@ -122,6 +122,7 @@ services:
     # region: ap-southeast-2
 
     default_args:
-      create: -w -E
-      update: -w -E
-      delete: -w
+      create: --wait --extra
+      update: --wait --extra
+      delete: --wait
+      changeset: --wait
