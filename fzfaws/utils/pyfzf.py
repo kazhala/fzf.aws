@@ -48,9 +48,8 @@ class Pyfzf:
         elif sys.platform.startswith("linux"):
             system = "linux"
         else:
-            print("Your system doesn't seem to be compatible with fzfaws")
             print(
-                "fzfaws currently is only compatible with python3.5+ on MacOS or Linux"
+                "fzfaws currently is only compatible with python3.6+ on MacOS or Linux"
             )
             sys.exit(1)
         self.fzf_path: str = (

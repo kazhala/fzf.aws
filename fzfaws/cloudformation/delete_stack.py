@@ -1,4 +1,5 @@
 """Module contains the cloudformation function to delete stack."""
+import sys
 from typing import Any, Dict, List, Union
 
 from fzfaws.cloudformation import Cloudformation
@@ -27,7 +28,6 @@ def delete_stack(
     :type wait: bool, optional
     :param iam: specify a iam arn to delete this stack
     :type iam: Union[str, bool]
-    :raises SystemExit: when user denied confirmation to delete stack, exit system
     """
     cloudformation = Cloudformation(profile, region)
     cloudformation.set_stack()
@@ -57,7 +57,7 @@ def delete_stack(
     if not get_confirmation(
         "Are you sure you want to delete the stack '%s'?" % cloudformation.stack_name
     ):
-        raise SystemExit
+        sys.exit(1)
 
     cloudformation.client.delete_stack(**cloudformation_args)
     print("Stack deletion initiated")

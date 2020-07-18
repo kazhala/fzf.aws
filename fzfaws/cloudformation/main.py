@@ -1,5 +1,6 @@
 """Contains the main entry point for all cloudformation operations."""
 import argparse
+import sys
 
 from fzfaws.cloudformation.changeset_stack import changeset_stack
 from fzfaws.cloudformation.create_stack import create_stack
@@ -437,7 +438,7 @@ def cloudformation(raw_args: list) -> None:
             drift_cmd.print_help()
         elif selected_command == "changeset":
             changeset_cmd.print_help()
-        raise SystemExit
+        sys.exit(0)
 
     # when user set --profile/region flag but without argument
     # argparse will have a None value instead of default value False

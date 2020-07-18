@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import sys
 from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 
 from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
@@ -114,7 +115,7 @@ class Cloudformation(BaseSession):
             if get_confirmation("Confirm?"):
                 response = cloudformation_action(**kwargs)
             else:
-                raise SystemExit
+                sys.exit(1)
         except self.client.exceptions.InsufficientCapabilitiesException as e:
             pattern = r"^.*(Requires capabilities.*)$"
             error_msg = re.match(pattern, str(e)).group(1)

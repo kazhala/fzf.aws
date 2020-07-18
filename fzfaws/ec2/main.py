@@ -1,5 +1,6 @@
 """The main entry point for all ec2 operations."""
 import argparse
+import sys
 from typing import Any, List
 
 from fzfaws.ec2.ls_instance import ls_instance
@@ -332,7 +333,7 @@ def ec2(raw_args: List[Any]) -> None:
             terminate_cmd.print_help()
         elif selected_command == "ls":
             ls_cmd.print_help()
-        raise SystemExit
+        sys.exit(0)
 
     if args.profile == None:
         # when user set --profile flag but without argument

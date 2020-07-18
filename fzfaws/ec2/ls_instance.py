@@ -60,7 +60,6 @@ def ls_instance(
     :type sg: bool, optional
     :param subet: print information about subnet instead of ec2
     :type subet: bool, optional
-    :raises SystemExit: when the response is empty
     """
     ec2 = EC2(profile, region)
 
