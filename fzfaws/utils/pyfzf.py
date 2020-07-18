@@ -106,6 +106,8 @@ class Pyfzf:
         :type multi_select: bool, optional
         :param header: header to display in fzf
         :type header: str, optional
+        :param delimiter: the delimiter to seperate print_col, like awk number
+        :type delimiter: Optional[str]
         :raises NoSelectionMade: when user did not make a selection and empty_allow is False
         :return: selected entry from fzf
         :rtype: Union[list[Any], list[str], str]
@@ -115,6 +117,7 @@ class Pyfzf:
         fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = self._construct_fzf_cmd()
         selection: bytes = b""
+        selection_str: str = ""
 
         if header:
             cmd_list.append("--header=%s" % header)
@@ -128,13 +131,15 @@ class Pyfzf:
             cmd_list.extend(["--preview", preview])
 
         try:
-            # get the output of fzf and check if ctrl-c is pressed
             selection = subprocess.check_output(cmd_list, stdin=fzf_input.stdout)
-            # if first line contains ctrl-c, exit
-            self._check_ctrl_c(selection)
+            selection_str = str(selection, "utf-8")
 
             if not selection and not empty_allow:
                 raise NoSelectionMade
+
+            # if first line contains ctrl-c, exit
+            self._check_ctrl_c(selection_str)
+
         except subprocess.CalledProcessError:
             # this exception may happend if user didn't make a selection in fzf
             # thus ending with non zero exit code
@@ -149,15 +154,14 @@ class Pyfzf:
         if multi_select:
             return_list: List[str] = []
             # multi_select would return everything seperate by \n
-            selections: List[str] = str(selection, "utf-8").strip().splitlines()
+            selections: List[str] = selection_str.strip().splitlines()
             for item in selections:
                 processed_str = self._get_col(item, print_col, delimiter)
                 return_list.append(processed_str)
 
             return return_list
         else:
-            selection_str: str = str(selection, "utf-8").strip()
-            return self._get_col(selection_str, print_col, delimiter)
+            return self._get_col(selection_str.strip(), print_col, delimiter)
 
     def get_local_file(
         self,
@@ -238,6 +242,7 @@ class Pyfzf:
                     shell=True,
                 )
         selected_file_path: bytes = b""
+        selected_file_path_str: str = ""
 
         try:
             cmd_list: list = self._construct_fzf_cmd()
@@ -250,9 +255,12 @@ class Pyfzf:
             selected_file_path = subprocess.check_output(
                 cmd_list, stdin=list_file.stdout
             )
-            self._check_ctrl_c(selected_file_path)
+            selected_file_path_str = str(selected_file_path, "utf-8")
+
             if not empty_allow and not selected_file_path:
                 raise NoSelectionMade
+
+            self._check_ctrl_c(selected_file_path_str)
 
         except subprocess.CalledProcessError:
             # subprocess exception will raise when user press ecs to exit fzf
@@ -265,11 +273,12 @@ class Pyfzf:
                 return curdir
             elif empty_allow:
                 return [] if empty_allow else ""
+
         if multi_select:
             # multi_select would return everything seperate by \n
-            return str(selected_file_path, "utf-8").strip().splitlines()
+            return selected_file_path_str.strip().splitlines()
         else:
-            return str(selected_file_path, "utf-8").strip()
+            return selected_file_path_str.strip()
 
     def _construct_fzf_cmd(self) -> List[str]:
         """Construct command for fzf.
@@ -284,18 +293,19 @@ class Pyfzf:
             cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
         return cmd_list
 
-    def _check_ctrl_c(self, raw_bytes: bytes) -> None:
+    def _check_ctrl_c(self, fzf_result: str) -> None:
         """Check if ctrl_c is pressed during fzf invokation.
 
         If ctrl_c is pressed, exit entire fzfaws program instead of
         keep moving forward.
 
-        :param raw_bytes: the raw output from fzf subprocess
-        :type raw_bytes: bytes
+        :param fzf_result: the str output of fzf subprocess
+        :type fzf_result: tr
         """
-        check_init = subprocess.Popen(["echo", raw_bytes], stdout=subprocess.PIPE)
-        key_press = subprocess.check_output(["head", "-1"], stdin=check_init.stdout)
-        if (str(key_press, "utf-8").strip()) == "ctrl-c":
+        result = fzf_result.splitlines()
+        if len(result) < 1:
+            return
+        if result[0] == "ctrl-c":
             raise KeyboardInterrupt
 
     def _check_fd(self):
@@ -401,5 +411,7 @@ class Pyfzf:
         else:
             delimited_str = string.split(delimiter)
             if print_col - 1 > len(delimited_str):
-                raise NoSelectionMade
+                # somewhat similar to awk behavior?
+                # when the print col exceed the col number, awk return the entire string
+                return string
             return delimited_str[print_col - 1]
