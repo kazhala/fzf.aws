@@ -5,12 +5,13 @@ Typical usage example:
 """
 
 import argparse
-import sys
 import os
 from pathlib import Path
 from shutil import copy
+import sys
 
 from botocore.exceptions import ClientError
+import pkg_resources
 
 from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
@@ -27,11 +28,18 @@ def main() -> None:
             prog="fzfaws",
         )
         parser.add_argument(
+            "-v",
+            "--version",
+            action="store_true",
+            default=False,
+            help="display the current version",
+        )
+        parser.add_argument(
             "--copy-config",
             dest="copy_config",
             action="store_true",
             default=False,
-            help="Copy the configuration file to $XDG_CONFIG_HOME/fzfaws/ or $HOME/.config/fzfaws/",
+            help="copy the configuration file to $XDG_CONFIG_HOME/fzfaws/ or $HOME/.config/fzfaws/",
         )
         subparsers = parser.add_subparsers(dest="subparser_name")
         subparsers.add_parser("cloudformation")
@@ -47,6 +55,10 @@ def main() -> None:
         if args.copy_config:
             copy_config()
             sys.exit(0)
+        elif args.version:
+            version = pkg_resources.require("fzfaws")[0].version
+            print("Current fzfaws version: %s" % version)
+            sys.exit(0)
 
         fileloader = FileLoader()
         fileloader.load_config_file()
@@ -61,11 +73,13 @@ def main() -> None:
             s3(argument_list)
 
     except InvalidFileType:
-        print("Selected file is not a valid file type.")
-    except (KeyboardInterrupt, SystemExit, SystemError):
+        print("Selected file is not a valid file type")
+    except SystemExit:
         raise
+    except (KeyboardInterrupt, SystemError):
+        sys.exit(1)
     except NoSelectionMade:
-        print("No selection was made or the result was empty.")
+        print("No selection was made or the result was empty")
     except (ClientError, Exception) as e:
         print(e)
 
