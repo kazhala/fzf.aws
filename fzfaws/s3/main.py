@@ -1,5 +1,6 @@
 """Contains the main entry point for all s3 operations."""
 import argparse
+import sys
 from typing import Any, List
 
 from fzfaws.s3.bucket_s3 import bucket_s3
@@ -23,19 +24,20 @@ def s3(raw_args: List[Any]) -> None:
     :type raw_args: list
     """
     parser = argparse.ArgumentParser(
-        description="perform CRUD operations with aws s3 bucket", prog="fzfaws s3"
+        description="Perform operations and interact with aws s3 bucket",
+        prog="fzfaws s3",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
     upload_cmd = subparsers.add_parser(
-        "upload", description="upload a local file/directory to s3 bucket"
+        "upload", description="upload local files/directories to s3 bucket"
     )
     upload_cmd.add_argument(
         "-R",
         "--root",
         action="store_true",
         default=False,
-        help="search local file from root directory",
+        help="search local files/directories from root",
     )
     upload_cmd.add_argument(
         "-b",
@@ -43,8 +45,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     upload_cmd.add_argument(
         "-p",
@@ -52,22 +53,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify the path/paths of a local file to upload"
-        + "(e.g. ~/folder/ or ~/folder/filename)",
+        help="specify paths for local files/directories to upload (e.g. ~/folder/ or ~/folder/filename)",
     )
     upload_cmd.add_argument(
         "-r",
         "--recursive",
         action="store_true",
         default=False,
-        help="upload a directory to s3 bucket recursivly",
+        help="upload directories to s3 bucket recursivly",
     )
     upload_cmd.add_argument(
         "-s",
         "--sync",
         action="store_true",
         default=False,
-        help="use the aws cli s3 sync operation",
+        help="use the aws-cli s3 sync operation",
     )
     upload_cmd.add_argument(
         "-e",
@@ -75,7 +75,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to exclude a number of patterns",
+        help="specify bash style globbing patterns to exclude during the operation",
     )
     upload_cmd.add_argument(
         "-i",
@@ -83,22 +83,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to include files after excluding",
+        help="specify bash style globbing patterns to include during the operation",
     )
     upload_cmd.add_argument(
         "-H",
         "--hidden",
         action="store_true",
         default=False,
-        help="when fd is installed, add this flag to include hidden files in the search",
+        help="include hidden files during file search, useful when fd is installed",
     )
     upload_cmd.add_argument(
         "-E",
         "--extra",
         action="store_true",
         default=False,
-        help="configure extra settings for this upload operation (e.g. ACL, storage class, encryption)"
-        + "otherwise, default settings of the bucket would be used",
+        help="configure extra settings for the upload operation (e.g. ACL, StorageClass, Encryption)",
     )
     upload_cmd.add_argument(
         "-P",
@@ -106,18 +105,18 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     download_cmd = subparsers.add_parser(
-        "download", description="download a file/directory from s3 to local"
+        "download", description="download files/directories from s3"
     )
     download_cmd.add_argument(
         "-R",
         "--root",
         action="store_true",
         default=False,
-        help="search local directory from root directory",
+        help="search local directories from root",
     )
     download_cmd.add_argument(
         "-b",
@@ -125,8 +124,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketname/filename or bucketname/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     download_cmd.add_argument(
         "-p",
@@ -134,22 +132,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify the path for the download destination of the s3 object"
-        + "(e.g. ~/folder/ or ~/folder/filename)",
+        help="specify path for the download destination of the s3 object (e.g. ~/folder/ or ~/folder/filename)",
     )
     download_cmd.add_argument(
         "-r",
         "--recursive",
         action="store_true",
         default=False,
-        help="download a directory from s3 recursivly",
+        help="download directory from s3 recursivly",
     )
     download_cmd.add_argument(
         "-s",
         "--sync",
         action="store_true",
         default=False,
-        help="use the aws cli s3 sync operation",
+        help="use the aws-cli s3 sync operation",
     )
     download_cmd.add_argument(
         "-e",
@@ -157,7 +154,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to exclude a number of patterns",
+        help="specify bash style globbing patterns to exclude during the operation",
     )
     download_cmd.add_argument(
         "-i",
@@ -165,21 +162,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to include files after excluding",
+        help="specify bash style globbing patterns to include during the operation",
     )
     download_cmd.add_argument(
         "-H",
         "--hidden",
         action="store_true",
         default=False,
-        help="when fd is installed, add this flag to include hidden files in the search",
+        help="include hidden directories during directory search, useful when fd is installed",
     )
     download_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="choose a version of the object and download, Note: does not support recursive flag",
+        help="choose versions of the object to download, does not support recursive flag",
     )
     download_cmd.add_argument(
         "-P",
@@ -187,11 +184,11 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     bucket_cmd = subparsers.add_parser(
-        "bucket", description="move file/directory between s3 buckets"
+        "bucket", description="move files/directories between s3 buckets"
     )
     bucket_cmd.add_argument(
         "-b",
@@ -199,7 +196,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="sepcify which bucket contains files to move and skip fzf selection",
+        help="specify the source bucket and skip bucket/path selection",
     )
     bucket_cmd.add_argument(
         "-t",
@@ -207,21 +204,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify the destination bucket and skip fzf selection",
+        help="specify the destination bucket and skip bucket/path selection",
     )
     bucket_cmd.add_argument(
         "-r",
         "--recursive",
         action="store_true",
         default=False,
-        help="move bucket object respectively",
+        help="move bucket directories recursively",
     )
     bucket_cmd.add_argument(
         "-s",
         "--sync",
         action="store_true",
         default=False,
-        help="use the aws cli s3 sync operation",
+        help="use the aws-cli s3 sync operation",
     )
     bucket_cmd.add_argument(
         "-e",
@@ -229,7 +226,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to exclude a number of patterns",
+        help="specify bash style globbing patterns to exclude during the operation",
     )
     bucket_cmd.add_argument(
         "-i",
@@ -237,21 +234,21 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to include files after excluding",
+        help="specify bash style globbing patterns to include during the operation",
     )
     bucket_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="choose a version of the object and transfer, Note: does not support recursive flag",
+        help="choose versions of the object and transfer, does not support recursive flag",
     )
     bucket_cmd.add_argument(
         "-p",
         "--preserve",
         action="store_true",
         default=False,
-        help="preserve all object details when moving object, default False, will use the bucket setting",
+        help="preserve object details when moving object (e.g. StorageClass, ACL, Encryption)",
     )
     bucket_cmd.add_argument(
         "-P",
@@ -259,11 +256,11 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     delete_cmd = subparsers.add_parser(
-        "delete", description="delete file/directory on the s3 bucket"
+        "delete", description="delete files/directories on s3"
     )
     delete_cmd.add_argument(
         "-b",
@@ -271,15 +268,14 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     delete_cmd.add_argument(
         "-r",
         "--recursive",
         action="store_true",
         default=False,
-        help="download a directory from s3 recursivly",
+        help="delete directories from s3 recursivly",
     )
     delete_cmd.add_argument(
         "-e",
@@ -287,7 +283,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to exclude a number of patterns",
+        help="specify bash style globbing patterns to exclude during the operation",
     )
     delete_cmd.add_argument(
         "-i",
@@ -295,7 +291,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to include files after excluding",
+        help="specify bash style globbing patterns to include during the operation",
     )
     delete_cmd.add_argument(
         "-m",
@@ -303,37 +299,36 @@ def s3(raw_args: List[Any]) -> None:
         nargs=2,
         action="store",
         default=[],
-        help="Two argument needed to be specifies, the authentication device's serial number "
-        + "and the value that is displayed on your authentication device. "
-        + "Required to permanently delete a versioned object if versioning is configured with MFA delete enabled",
+        help="perform MFA deletion, require two arguments: the authentication device serial number "
+        + "and the value that is displayed on the authentication device, does not support multiple operations",
     )
     delete_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="choose an or multiple object versions to delete, Note: does not support recursive, to delete all versions recursivly, use -V flag",
+        help="choose object versions to delete, does not support recursive, to delete all versions recursivly, use -V flag",
     )
     delete_cmd.add_argument(
         "-V",
         "--allversion",
         action="store_true",
         default=False,
-        help="delete a versioned object completely including all versions and delete markes",
+        help="delete versioned objects completely including all versions and delete markers",
     )
     delete_cmd.add_argument(
         "-d",
         "--deletemark",
         action="store_true",
         default=False,
-        help="only display and delete object with delete marker, used for cleanup all deleted unwanted object",
+        help="only display and delete object with delete marker, useful for cleaning up all objects with delete marker",
     )
     delete_cmd.add_argument(
         "-c",
         "--clean",
         action="store_true",
         default=False,
-        help="delete all versions recursivly except the current one, used for cleanup s3 bucket with all older versions",
+        help="delete all versions recursivly except the current version, useful for cleaning up versioned s3 bucket",
     )
     delete_cmd.add_argument(
         "-P",
@@ -341,12 +336,12 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     presign_cmd = subparsers.add_parser(
         "presign",
-        description="generate presign url for GET on the selected object based on your current profile permission",
+        description="generate presign url for GET operation on the selected object based on the current profile permission",
     )
     presign_cmd.add_argument(
         "-b",
@@ -354,14 +349,14 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="spcify a s3 path (buckeName/path), use this flag to skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename) and skip s3 bucket/path selection",
     )
     presign_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="generate presign url on a specific version of the object",
+        help="generate presign url on specific object versions",
     )
     presign_cmd.add_argument(
         "-e",
@@ -369,7 +364,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[3600],
-        help="specify a expiration period in seconds, default is 3600 seconds",
+        help="specify an expiration period in seconds, default is 3600 seconds",
     )
     presign_cmd.add_argument(
         "-P",
@@ -377,11 +372,11 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     object_cmd = subparsers.add_parser(
-        "object", description="configure settings and properties of objects in S3"
+        "object", description="configure settings and properties of s3 objects"
     )
     object_cmd.add_argument(
         "-b",
@@ -389,8 +384,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     object_cmd.add_argument(
         "-r",
@@ -404,14 +398,14 @@ def s3(raw_args: List[Any]) -> None:
         "--version",
         action="store_true",
         default=False,
-        help="update setting/configuration of versions of objects",
+        help="update setting/configuration of objects versions",
     )
     object_cmd.add_argument(
         "-V",
         "--allversion",
         action="store_true",
         default=False,
-        help="update setting/configuration for all versions of the selected object",
+        help="update setting/configuration for all versions of the selected objects",
     )
     object_cmd.add_argument(
         "-e",
@@ -419,7 +413,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to exclude a number of patterns",
+        help="specify bash style globbing pattern to exclude during the operation",
     )
     object_cmd.add_argument(
         "-i",
@@ -427,7 +421,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="+",
         action="store",
         default=[],
-        help="specify a number of bash style globbing pattern to include files after excluding",
+        help="specify bash style globbing pattern to include during the operation",
     )
     object_cmd.add_argument(
         "-n",
@@ -442,39 +436,39 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
 
     ls_cmd = subparsers.add_parser(
-        "ls", description="display details about selected object"
+        "ls", description="display details about selected objects/bucket"
     )
     ls_cmd.add_argument(
         "--bucketpath",
         nargs=1,
         action="store",
         default=[],
-        help="spcify a s3 path (buckeName/path), use this flag to skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     ls_cmd.add_argument(
         "-b",
         "--bucket",
         action="store_true",
         default=False,
-        help="display detailed bucket information on the selected bucket",
+        help="display detailed bucket information",
     )
     ls_cmd.add_argument(
         "-v",
         "--version",
         action="store_true",
         default=False,
-        help="display detailed version information on the selected version",
+        help="display detailed object version information",
     )
     ls_cmd.add_argument(
         "-d",
         "--deletemark",
         action="store_true",
         default=False,
-        help="only list deletemark associated object, and display detailed information on the selected version",
+        help="only list object associated with delete marker, and display detailed information on the selected version",
     )
     ls_cmd.add_argument(
         "--url",
@@ -512,12 +506,20 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="use a different profile for the operation",
     )
     args = parser.parse_args(raw_args)
 
     if not raw_args:
-        available_commands = ["upload", "download", "bucket", "delete", "object", "ls"]
+        available_commands = [
+            "upload",
+            "download",
+            "bucket",
+            "delete",
+            "object",
+            "ls",
+            "presign",
+        ]
         fzf = Pyfzf()
         for command in available_commands:
             fzf.append_fzf(command)
@@ -537,7 +539,9 @@ def s3(raw_args: List[Any]) -> None:
             object_cmd.print_help()
         elif selected_command == "ls":
             ls_cmd.print_help()
-        raise SystemExit
+        elif selected_command == "presign":
+            presign_cmd.print_help()
+        sys.exit(0)
 
     if args.profile == None:
         # when user set --profile flag but without argument

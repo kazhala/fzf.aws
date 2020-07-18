@@ -108,7 +108,7 @@ def construct_local_creation_args(
 
     stack_name: str = input("StackName: ")
     if not stack_name:
-        raise NoNameEntered("No stack name entered")
+        raise NoNameEntered("No stack name specified")
 
     fileloader = FileLoader(path=local_path)
     file_data: Dict[str, Any] = {}
@@ -187,7 +187,7 @@ def construct_s3_creation_args(
 
     stack_name: str = input("StackName: ")
     if not stack_name:
-        raise NoNameEntered("No stack name entered")
+        raise NoNameEntered("No stack name specified")
 
     file_data: dict = s3.get_object_data(file_type)
     if "Parameters" in file_data:

@@ -30,4 +30,4 @@ def check_is_valid(file_name) -> None:
     :raises InvalidFileType: When the file is not json or yaml
     """
     if not is_yaml(file_name) and not is_json(file_name):
-        raise InvalidFileType("Selected file is not a valid template file type")
+        raise InvalidFileType

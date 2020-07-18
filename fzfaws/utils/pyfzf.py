@@ -350,7 +350,7 @@ class Pyfzf:
                 self.append_fzf("%s: %s" % (arg, item.get(arg)))
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
-            raise EmptyList("Result list was empty.")
+            raise EmptyList("Result list was empty")
 
     def format_selected_to_dict(self, selected_str: str) -> Dict[str, Any]:
         """Format the selected option into a proper dictionary.
