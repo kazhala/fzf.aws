@@ -1,8 +1,6 @@
 """Contains function for handling delete operation on s3."""
 from typing import Dict, List, Optional, Union
 
-import boto3
-
 from fzfaws.s3.helper.exclude_file import exclude_file
 from fzfaws.s3.helper.walk_s3_folder import walk_s3_folder
 from fzfaws.s3.s3 import S3

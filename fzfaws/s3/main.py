@@ -24,13 +24,13 @@ def s3(raw_args: List[Any]) -> None:
     :type raw_args: list
     """
     parser = argparse.ArgumentParser(
-        description="Perform operations and interact with aws s3 bucket",
+        description="Perform operations and interact with aws s3 bucket.",
         prog="fzfaws s3",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
     upload_cmd = subparsers.add_parser(
-        "upload", description="upload local files/directories to s3 bucket"
+        "upload", description="Upload local files/directories to s3 bucket."
     )
     upload_cmd.add_argument(
         "-R",
@@ -109,7 +109,7 @@ def s3(raw_args: List[Any]) -> None:
     )
 
     download_cmd = subparsers.add_parser(
-        "download", description="download files/directories from s3"
+        "download", description="Download files/directories from s3."
     )
     download_cmd.add_argument(
         "-R",
@@ -188,7 +188,7 @@ def s3(raw_args: List[Any]) -> None:
     )
 
     bucket_cmd = subparsers.add_parser(
-        "bucket", description="move files/directories between s3 buckets"
+        "bucket", description="Move files/directories between s3 buckets."
     )
     bucket_cmd.add_argument(
         "-b",
@@ -260,7 +260,7 @@ def s3(raw_args: List[Any]) -> None:
     )
 
     delete_cmd = subparsers.add_parser(
-        "delete", description="delete files/directories on s3"
+        "delete", description="Delete files/directories on s3."
     )
     delete_cmd.add_argument(
         "-b",
@@ -341,7 +341,7 @@ def s3(raw_args: List[Any]) -> None:
 
     presign_cmd = subparsers.add_parser(
         "presign",
-        description="generate presign url for GET operation on the selected object based on the current profile permission",
+        description="Generate presign url for GET operation on the selected object based on the current profile permission.",
     )
     presign_cmd.add_argument(
         "-b",
@@ -376,7 +376,7 @@ def s3(raw_args: List[Any]) -> None:
     )
 
     object_cmd = subparsers.add_parser(
-        "object", description="configure settings and properties of s3 objects"
+        "object", description="Configure settings and properties of s3 objects."
     )
     object_cmd.add_argument(
         "-b",
@@ -440,7 +440,7 @@ def s3(raw_args: List[Any]) -> None:
     )
 
     ls_cmd = subparsers.add_parser(
-        "ls", description="display details about selected objects/bucket"
+        "ls", description="Display details about selected objects/bucket."
     )
     ls_cmd.add_argument(
         "--bucketpath",

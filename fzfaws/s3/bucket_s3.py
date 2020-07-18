@@ -366,7 +366,7 @@ def copy_and_preserve(
                     "You may have ACL policies that enable public access but "
                     "the destination bucket is blocking all public access, "
                     + "you need to either uncheck 'block all public access' or update your object ACL settings "
-                    + "or try again without the -p flag or continue without preserving the ACL"
+                    + "or try again without the -p flag or continue without preserving the ACL."
                 )
                 if not get_confirmation("Continue without preserving ACL?"):
                     raise

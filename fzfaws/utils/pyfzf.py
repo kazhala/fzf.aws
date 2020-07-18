@@ -1,7 +1,7 @@
 """This module contains the wrapper class to interacte with fzf.
 
 The fzf class should be used for all occasion when fzf needs
-to be launched. fzfaws comes with 3 fzf binary files and will
+to be launched. fzfaws comes with 4 fzf binary files and will
 be used if user doesn't specify to use system fzf in config file.
 """
 import os
