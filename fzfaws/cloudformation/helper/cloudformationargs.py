@@ -77,8 +77,6 @@ class CloudformationArgs:
             fzf.append_fzf("RollbackConfiguration\n")
             if not dryrun and not update:
                 fzf.append_fzf("CreationOption\n")
-            elif not dryrun and update:
-                fzf.append_fzf("UpdateOption\n")
             attributes = list(
                 fzf.execute_fzf(
                     empty_allow=True,
@@ -99,7 +97,7 @@ class CloudformationArgs:
                 notification = True
             elif attribute == "RollbackConfiguration":
                 rollback = True
-            elif attribute == "CreationOption" or attribute == "UpdateOption":
+            elif attribute == "CreationOption":
                 creation_option = True
 
         if tags:
@@ -113,19 +111,14 @@ class CloudformationArgs:
         if rollback:
             self._set_rollback(update)
         if creation_option:
-            self._set_creation(update)
+            self._set_creation()
 
-    def _set_creation(self, update: bool = False) -> None:
-        """Set creation option for stack.
-
-        :param update: show previous values if update is true
-        :type update: bool, optional
-        """
+    def _set_creation(self) -> None:
+        """Set creation option for stack."""
         print(80 * "-")
         fzf = Pyfzf()
-        if not update:
-            fzf.append_fzf("RollbackOnFailure\n")
-            fzf.append_fzf("TimeoutInMinutes\n")
+        fzf.append_fzf("RollbackOnFailure\n")
+        fzf.append_fzf("TimeoutInMinutes\n")
         fzf.append_fzf("EnableTerminationProtection\n")
         selected_options: List[str] = list(
             fzf.execute_fzf(
@@ -155,11 +148,6 @@ class CloudformationArgs:
                     )
             elif option == "TimeoutInMinutes":
                 message = "Specify number of minutes before stack timeout (Default: no timeout): "
-                if update and self.cloudformation.stack_details.get("TimeoutInMinutes"):
-                    message = (
-                        "Specify number of minutes before stack timeout (Original: %s)"
-                        % self.cloudformation.stack_details["TimeoutInMinutes"]
-                    )
                 timeout = input(message)
                 if timeout:
                     self._extra_args["TimeoutInMinutes"] = int(timeout)
@@ -171,17 +159,13 @@ class CloudformationArgs:
                     fzf.execute_fzf(
                         empty_allow=True,
                         print_col=1,
-                        header="%s" "Enable termination protection? (Default: False)"
-                        if not update
-                        else "Enable termination protection?",
+                        header="%s" "Enable termination protection? (Default: False)",
                     )
                 )
-                if result and not update:
+                if result:
                     self._extra_args["EnableTerminationProtection"] = (
                         True if result == "True" else False
                     )
-                elif result and update:
-                    self.update_termination = True if result == "True" else False
 
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.

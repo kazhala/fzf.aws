@@ -62,7 +62,7 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_notify.assert_called_once_with(False)
         mocked_rollback.assert_called_once_with(False)
         mocked_policy.assert_called_once_with(False, False)
-        mocked_create.assert_called_once_with(False)
+        mocked_create.assert_called_once_with()
         mocked_append.assert_has_calls(
             [
                 call("Tags\n"),
@@ -88,7 +88,7 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_notify.assert_called_once_with(True)
         mocked_rollback.assert_called_once_with(True)
         mocked_policy.assert_called_once_with(True, True)
-        mocked_create.assert_called_once_with(True)
+        mocked_create.assert_called_once_with()
         mocked_append.assert_has_calls(
             [
                 call("Tags\n"),
@@ -96,7 +96,6 @@ class TestCloudformationArgs(unittest.TestCase):
                 call("StackPolicy\n"),
                 call("Notifications\n"),
                 call("RollbackConfiguration\n"),
-                call("UpdateOption\n"),
             ]
         )
 
@@ -114,7 +113,7 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_notify.assert_called_once_with(False)
         mocked_rollback.assert_called_once_with(False)
         mocked_policy.assert_called_once_with(False, False)
-        mocked_create.assert_called_once_with(False)
+        mocked_create.assert_called_once_with()
         mocked_append.assert_has_calls(
             [
                 call("Tags\n"),
@@ -177,39 +176,6 @@ class TestCloudformationArgs(unittest.TestCase):
                 "EnableTerminationProtection": False,
             },
         )
-
-        # update test
-        self.cloudformationargs._extra_args = {}
-        mocked_append.reset_mock()
-        mocked_execute.reset_mock()
-        mocked_input.reset_mock()
-        mocked_execute.return_value = [
-            "EnableTerminationProtection",
-        ]
-        mocked_input.return_value = 1
-        self.cloudformationargs._set_creation(update=True)
-        mocked_append.assert_has_calls(
-            [call("EnableTerminationProtection\n"), call("True\n"), call("False\n"),]
-        )
-        mocked_execute.assert_has_calls(
-            [
-                call(
-                    empty_allow=True,
-                    print_col=1,
-                    multi_select=True,
-                    header="select options to configure",
-                ),
-                call(
-                    empty_allow=True,
-                    print_col=1,
-                    header="Enable termination protection?",
-                ),
-            ]
-        )
-        self.assertEqual(
-            self.cloudformationargs.extra_args, {},
-        )
-        self.assertEqual(self.cloudformationargs.update_termination, False)
 
     @patch("builtins.input")
     @patch.object(Cloudwatch, "set_arns")

@@ -110,22 +110,6 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             },
         )
 
-    @patch("fzfaws.cloudformation.update_stack.CloudformationArgs")
-    @patch("builtins.input")
-    @patch("fzfaws.cloudformation.update_stack.Cloudformation")
-    def test_termination(self, MockedCloudformation, mocked_input, MockedArgs):
-        cloudformation = MockedCloudformation()
-        cloudformation.stack_name = "testing2"
-        cloudformation.set_stack.return_value = None
-        cloudformation.execute_with_capabilities.return_value = {}
-        args = MockedArgs()
-        args.set_extra_args.return_value = None
-        args.update_termination = True
-        update_stack(extra=True)
-        cloudformation.client.update_termination_protection.assert_called_with(
-            EnableTerminationProtection=True, StackName="testing2"
-        )
-
     @patch("fzfaws.cloudformation.update_stack.validate_stack")
     @patch.object(Cloudformation, "execute_with_capabilities")
     @patch.object(ParamProcessor, "process_stack_params")
