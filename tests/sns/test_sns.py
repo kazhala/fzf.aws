@@ -1,20 +1,18 @@
 import unittest
-import os
 import io
 import sys
 from unittest.mock import patch
 from fzfaws.sns import SNS
 from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
+from pathlib import Path
 
 
 class TestSNS(unittest.TestCase):
     def setUp(self):
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput
         self.sns = SNS()

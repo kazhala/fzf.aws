@@ -1,15 +1,18 @@
 import io
 import json
 import os
+from pathlib import Path
 import sys
 import unittest
-from unittest.mock import PropertyMock, patch, call
-from fzfaws.s3 import S3
-from fzfaws.utils import FileLoader, Pyfzf, BaseSession
-from botocore.stub import Stubber
+from unittest.mock import PropertyMock, call, patch
+
 import boto3
-from fzfaws.utils.exceptions import InvalidFileType, InvalidS3PathPattern
 from botocore.paginate import Paginator
+from botocore.stub import Stubber
+
+from fzfaws.s3 import S3
+from fzfaws.utils import BaseSession, FileLoader, Pyfzf
+from fzfaws.utils.exceptions import InvalidFileType, InvalidS3PathPattern
 
 
 class TestS3(unittest.TestCase):
@@ -17,10 +20,8 @@ class TestS3(unittest.TestCase):
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         self.s3 = S3()
 
     def tearDown(self):
@@ -44,10 +45,10 @@ class TestS3(unittest.TestCase):
     def test_set_s3_bucket(self, mocked_list, mocked_execute, mocked_client):
         self.s3.bucket_name = ""
         self.s3.path_list = [""]
-        s3_data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../data/s3_bucket.json"
+        s3_data_path = (
+            Path(__file__).resolve().parent.joinpath("../data/s3_bucket.json")
         )
-        with open(s3_data_path, "r") as file:
+        with s3_data_path.open("r") as file:
             response = json.load(file)
 
         # normal test
@@ -210,10 +211,8 @@ class TestS3(unittest.TestCase):
         self.s3.bucket_name = "kazhala-version-testing"
         self.s3.path_list = [""]
         mocked_option.return_value = "interactively"
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../data/s3_object.json"
-        )
-        with open(data_path, "r") as file:
+        data_path = Path(__file__).resolve().parent.joinpath("../data/s3_object.json")
+        with data_path.open("r") as file:
             response = json.load(file)
         mocked_paginator.return_value = response
         mocked_execute.return_value = ""
@@ -493,10 +492,8 @@ class TestS3(unittest.TestCase):
             mocked_json.assert_called_once()
         self.assertEqual(result, {"hello"})
 
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        with open(data_path, "r") as file:
+        data_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        with data_path.open("r") as file:
             s3 = boto3.resource("s3")
             stubber = Stubber(s3.meta.client)
             stubber.add_response("get_object", {"Body": file})
@@ -507,10 +504,8 @@ class TestS3(unittest.TestCase):
             mocked_yaml.assert_called_once()
         self.assertEqual(result, {"hello"})
 
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        with open(data_path, "r") as file:
+        data_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        with data_path.open("r") as file:
             s3 = boto3.resource("s3")
             stubber = Stubber(s3.meta.client)
             stubber.add_response("get_object", {"Body": file})

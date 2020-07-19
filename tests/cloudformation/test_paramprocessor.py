@@ -12,6 +12,7 @@ from fzfaws.utils import FileLoader
 import boto3
 from botocore.stub import Stubber
 import json
+from pathlib import Path
 
 
 class TestCloudformationParams(unittest.TestCase):
@@ -22,10 +23,8 @@ class TestCloudformationParams(unittest.TestCase):
         )
         fileloader = FileLoader(path=data_path)
         params = fileloader.process_yaml_file()["dictBody"].get("Parameters", {})
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         self.paramprocessor = ParamProcessor(params=params)
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput

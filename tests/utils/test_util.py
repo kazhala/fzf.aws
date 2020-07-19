@@ -11,6 +11,7 @@ from fzfaws.utils import (
     get_default_args,
     FileLoader,
 )
+from pathlib import Path
 
 
 class TestUtil(unittest.TestCase):
@@ -65,10 +66,8 @@ class TestUtil(unittest.TestCase):
 
     def test_get_default_args(self):
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         result = get_default_args("ec2", ["start", "-e", "-m"])
         self.assertEqual(result, ["start", "--wait", "-e", "-m"])
 

@@ -6,15 +6,14 @@ from unittest.mock import patch
 from fzfaws.iam import IAM
 from fzfaws.utils import Pyfzf, FileLoader
 from botocore.paginate import Paginator
+from pathlib import Path
 
 
 class TestIAM(unittest.TestCase):
     def setUp(self):
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         self.iam = IAM()
         capturedOutput = io.StringIO()
         sys.stdout = capturedOutput

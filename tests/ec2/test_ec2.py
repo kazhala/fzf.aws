@@ -10,15 +10,14 @@ from botocore.paginate import Paginator
 from fzfaws.utils import Pyfzf
 from botocore.waiter import Waiter
 from fzfaws.utils import FileLoader
+from pathlib import Path
 
 
 class TestEC2(unittest.TestCase):
     def setUp(self):
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         self.ec2 = EC2()

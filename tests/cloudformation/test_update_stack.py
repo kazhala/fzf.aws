@@ -8,6 +8,7 @@ from unittest.mock import ANY, patch
 from fzfaws.cloudformation.update_stack import update_stack
 from fzfaws.utils import Pyfzf, FileLoader
 from fzfaws.cloudformation import Cloudformation
+from pathlib import Path
 
 
 class TestCloudformationUpdateStack(unittest.TestCase):
@@ -19,10 +20,8 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         )
         sys.stdout = self.capturedOutput
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
 
     def tearDown(self):
         sys.stdout = sys.__stdout__

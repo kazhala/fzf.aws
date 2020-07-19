@@ -9,6 +9,7 @@ from fzfaws.ec2 import EC2
 from fzfaws.ec2.ls_instance import ls_instance, dump_response
 import boto3
 from botocore.stub import Stubber
+from pathlib import Path
 
 
 class TestEC2ls(unittest.TestCase):
@@ -16,10 +17,8 @@ class TestEC2ls(unittest.TestCase):
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         fileloader = FileLoader()
-        config_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../../fzfaws/fzfaws.yml"
-        )
-        fileloader.load_config_file(config_path=config_path)
+        config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
+        fileloader.load_config_file(config_path=str(config_path))
 
     def tearDown(self):
         sys.stdout = sys.__stdout__

@@ -13,7 +13,7 @@ class TestFileLoader(unittest.TestCase):
         self.test_json = tempfile.NamedTemporaryFile()
         with open(self.test_json.name, "w") as file:
             file.write(json.dumps({"hello": "world", "foo": "boo"}))
-        self.test_yaml = os.path.join(curr_path, "../../fzfaws/fzfaws.yml")
+        self.test_yaml = os.path.join(curr_path, "../data/fzfaws.yml")
 
     def tearDown(self):
         # reset cloudformation profile/region to align with test config file
