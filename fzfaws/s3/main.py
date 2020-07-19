@@ -24,7 +24,7 @@ def s3(raw_args: List[Any]) -> None:
     :type raw_args: list
     """
     parser = argparse.ArgumentParser(
-        description="Perform operations and interact with aws s3 bucket.",
+        description="Perform operations and interact with aws S3 bucket.",
         prog="fzfaws s3",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
@@ -105,7 +105,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     download_cmd = subparsers.add_parser(
@@ -184,7 +184,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     bucket_cmd = subparsers.add_parser(
@@ -256,7 +256,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     delete_cmd = subparsers.add_parser(
@@ -336,7 +336,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     presign_cmd = subparsers.add_parser(
@@ -372,7 +372,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     object_cmd = subparsers.add_parser(
@@ -436,7 +436,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
 
     ls_cmd = subparsers.add_parser(
@@ -506,7 +506,7 @@ def s3(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile for the operation",
+        help="choose/specify a profile for the operation",
     )
     args = parser.parse_args(raw_args)
 

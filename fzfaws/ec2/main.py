@@ -26,18 +26,20 @@ def ec2(raw_args: List[Any]) -> None:
     :type raw_args: List[Any]
     """
     parser = argparse.ArgumentParser(
-        description="Interacte with EC2 operations.", prog="fzfaws ec2",
+        description="Perform operations and interact with aws EC2.", prog="fzfaws ec2",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
-    ssh_cmd = subparsers.add_parser("ssh", description="ssh into the selected instance")
+    ssh_cmd = subparsers.add_parser(
+        "ssh", description="Connect to instance through ssh."
+    )
     ssh_cmd.add_argument(
         "-p",
         "--path",
         nargs=1,
         action="store",
         default=None,
-        help="specify a different path than config for the location of the key pem file",
+        help="specify path to ssh key pem",
     )
     ssh_cmd.add_argument(
         "-u",
@@ -45,14 +47,14 @@ def ec2(raw_args: List[Any]) -> None:
         nargs=1,
         action="store",
         default=["ec2-user"],
-        help="specify a different username used to ssh into the instance, default is ec2-user",
+        help="specify username used to ssh into the instance, default is ec2-user",
     )
     ssh_cmd.add_argument(
         "-A",
         "--forward",
         action="store_true",
         default=False,
-        help="Add this flag to enable ssh forwarding, same with ssh -A",
+        help="enable ssh forwarding, same effect as ssh -A",
     )
     ssh_cmd.add_argument(
         "-t",
@@ -60,9 +62,10 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="Use this flag to connect to a instance through ssh forwarding, "
-        + "you will be making two fzf selection and then you will be directly connect to the target instance "
-        + "pass in an optional parameter to specify the username to use for tunnal",
+        help="""connect to an instance through tunnelling, 
+        you will be making two instance selections (jumpbox instance and target instance),
+        pass in an optional parameter to specify the username to use for target instance
+        """,
     )
     ssh_cmd.add_argument(
         "-P",
@@ -70,7 +73,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     ssh_cmd.add_argument(
         "-R",
@@ -78,25 +81,25 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     start_cmd = subparsers.add_parser(
-        "start", description="start the selected instance/instances"
+        "start", description="Start the selected instances."
     )
     start_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="pause the program and wait for the instance to be started",
+        help="wait for the instance to finish starting",
     )
     start_cmd.add_argument(
         "-W",
         "--check",
         action="store_true",
         default=False,
-        help="wait until all status check have passes",
+        help="wait until all status checks have passed (2/2 status check)",
     )
     start_cmd.add_argument(
         "-P",
@@ -104,7 +107,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     start_cmd.add_argument(
         "-R",
@@ -112,18 +115,16 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
-    stop_cmd = subparsers.add_parser(
-        "stop", description="stop the selected instance/instances"
-    )
+    stop_cmd = subparsers.add_parser("stop", description="Stop the selected instances.")
     stop_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="pause the program and wait for the instance to be started",
+        help="wait for the instance to be stopped",
     )
     stop_cmd.add_argument(
         "-H",
@@ -138,7 +139,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     stop_cmd.add_argument(
         "-R",
@@ -146,11 +147,11 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     reboot_cmd = subparsers.add_parser(
-        "reboot", description="reboot the selected instance/instances"
+        "reboot", description="Reboot the selected instance/instances."
     )
     reboot_cmd.add_argument(
         "-P",
@@ -158,7 +159,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     reboot_cmd.add_argument(
         "-R",
@@ -166,18 +167,18 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     terminate_cmd = subparsers.add_parser(
-        "terminate", description="Terminate the selected instance/instances"
+        "terminate", description="Terminate the selected instance/instances."
     )
     terminate_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="pause the program and wait for instance to be terminated",
+        help="wait for the instance to be terminated",
     )
     terminate_cmd.add_argument(
         "-P",
@@ -185,7 +186,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     terminate_cmd.add_argument(
         "-R",
@@ -193,47 +194,47 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     ls_cmd = subparsers.add_parser(
-        "ls", description="print the information of the selected instance"
+        "ls", description="Display the information of the selected instance."
     )
     ls_cmd.add_argument(
         "--ipv4",
         action="store_true",
         default=False,
-        help="print out the selected instance ipv4 address",
+        help="display the selected instance ipv4 address",
     )
     ls_cmd.add_argument(
         "--privateip",
         action="store_true",
         default=False,
-        help="print out the selected instance private ip address",
+        help="display the selected instance private ip address",
     )
     ls_cmd.add_argument(
         "--dns",
         action="store_true",
         default=False,
-        help="print out the selected instance public dns address",
+        help="display the selected instance public dns address",
     )
     ls_cmd.add_argument(
         "--az",
         action="store_true",
         default=False,
-        help="print out the selected instance availability zone",
+        help="display the selected instance availability zone",
     )
     ls_cmd.add_argument(
         "--keyname",
         action="store_true",
         default=False,
-        help="print out the selected instance keyname",
+        help="display the selected instance keyname",
     )
     ls_cmd.add_argument(
         "--instanceid",
         action="store_true",
         default=False,
-        help="print out the selected instance id",
+        help="display the selected instance id",
     )
     ls_cmd.add_argument(
         "-s",
@@ -246,52 +247,52 @@ def ec2(raw_args: List[Any]) -> None:
         "--sgid",
         action="store_true",
         default=False,
-        help="print out the selected security group id",
+        help="display the selected security group id",
     )
     ls_cmd.add_argument(
         "--sgname",
         action="store_true",
         default=False,
-        help="print out the selected security group name",
+        help="display the selected security group name",
     )
     ls_cmd.add_argument(
         "-S",
         "--subnet",
         action="store_true",
         default=False,
-        help="print information about subnet instead of ec2 instance",
+        help="display information about subnet instead of ec2 instance",
     )
     ls_cmd.add_argument(
         "--subnetid",
         action="store_true",
         default=False,
-        help="print out the selected subnet id",
+        help="display the selected subnet id",
     )
     ls_cmd.add_argument(
         "-v",
         "--volume",
         action="store_true",
         default=False,
-        help="print information about volume instead of ec2 instance",
+        help="display information about volume instead of ec2 instance",
     )
     ls_cmd.add_argument(
         "--volumeid",
         action="store_true",
         default=False,
-        help="print out the selected volume id",
+        help="display the selected volume id",
     )
     ls_cmd.add_argument(
         "-V",
         "--vpc",
         action="store_true",
         default=False,
-        help="print information about vpc instead of ec2 instance",
+        help="display information about vpc instead of ec2 instance",
     )
     ls_cmd.add_argument(
         "--vpcid",
         action="store_true",
         default=False,
-        help="print out the selected vpc id",
+        help="display the selected vpc id",
     )
     ls_cmd.add_argument(
         "-P",
@@ -299,7 +300,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     ls_cmd.add_argument(
         "-R",
@@ -307,7 +308,7 @@ def ec2(raw_args: List[Any]) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
     args = parser.parse_args(raw_args)
 
