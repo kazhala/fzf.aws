@@ -65,7 +65,7 @@ class S3Args:
                         print_col=1,
                         multi_select=True,
                         empty_allow=False,
-                        header="Select attributes to configure",
+                        header="select attributes to configure",
                     )
                 )
         else:
@@ -81,7 +81,7 @@ class S3Args:
                         print_col=1,
                         multi_select=True,
                         empty_allow=upload,
-                        header="Select attributes to configure",
+                        header="select attributes to configure",
                     )
                 )
 
@@ -173,7 +173,7 @@ class S3Args:
         :param original: original value of the storage_class
         :type original: str, optional
         """
-        header = "Select a storage class, esc to use the default storage class of the bucket setting"
+        header = "select a storage class, esc to use the default storage class of the bucket setting"
         if original:
             header += "\nOriginal: %s" % original
 
@@ -209,7 +209,7 @@ class S3Args:
         result = fzf.execute_fzf(
             empty_allow=True,
             print_col=1,
-            header="Select a type of ACL to grant, aws accept one of canned ACL or explicit ACL",
+            header="select a type of ACL to grant, aws accept one of canned ACL or explicit ACL",
         )
         if result == "Canned":
             self._set_canned_ACL()
@@ -273,7 +273,7 @@ class S3Args:
                             "%s=%s" % ("uri", grantee["Grantee"].get("URI"))
                         )
 
-                print("Current ACL")
+                print("Current ACL:")
                 print(json.dumps(original_acl, indent=4, default=str))
                 print("Note: fzf.aws cannot preserve previous ACL permission")
                 if not get_confirmation("Continue?"):
@@ -338,7 +338,7 @@ class S3Args:
             fzf.execute_fzf(
                 empty_allow=True,
                 print_col=1,
-                header="Select a Canned ACL option, esc to use the default ACL setting for the bucket",
+                header="select a Canned ACL option, esc to use the default ACL setting for the bucket",
             )
         )
         if result:
@@ -350,7 +350,7 @@ class S3Args:
         :param original: previous value of the encryption
         :type original: str, optional
         """
-        header = "Select a ecryption setting, esc to use the default encryption setting for the bucket"
+        header = "select a ecryption setting, esc to use the default encryption setting for the bucket"
         if original:
             header += "\nOriginal: %s" % original
 
@@ -367,7 +367,7 @@ class S3Args:
             )
             current_region = current_region.get("LocationConstraint")
             kms = KMS(self.s3.profile, self.s3.region)
-            kms.set_keyids(header="Select encryption key to use")
+            kms.set_keyids(header="select encryption key to use")
             self._extra_args["SSEKMSKeyId"] = kms.keyids[0]
 
     def set_tags(

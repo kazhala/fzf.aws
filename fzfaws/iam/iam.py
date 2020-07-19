@@ -52,7 +52,7 @@ class IAM(BaseSession):
         """
         if arns is None:
             fzf = Pyfzf()
-            with Spinner.spin(message="Fetching iam roles.."):
+            with Spinner.spin(message="Fetching iam roles ..."):
                 paginator = self.client.get_paginator("list_roles")
                 for result in paginator.paginate():
                     if service:
