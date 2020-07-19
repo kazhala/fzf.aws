@@ -34,7 +34,7 @@ def delete_stack(
 
     logical_id_list: List[str] = []
     if cloudformation.stack_details["StackStatus"] == "DELETE_FAILED":
-        header: str = "The stack is in the failed state, specify any resource to skip during deletion"
+        header: str = "stack is in the failed state, specify any resource to skip during deletion"
         logical_id_list = cloudformation.get_stack_resources(
             empty_allow=True, header=header
         )
@@ -48,7 +48,7 @@ def delete_stack(
     elif iam and type(iam) == bool:
         iam_instance = IAM(profile=cloudformation.profile)
         iam_instance.set_arns(
-            header="Select a iam role with permissions to delete the current stack",
+            header="select a iam role with permissions to delete the current stack",
             service="cloudformation.amazonaws.com",
         )
         if iam_instance.arns[0]:

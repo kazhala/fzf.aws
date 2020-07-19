@@ -224,13 +224,13 @@ class ParamProcessor:
     ) -> str:
         """Print parameter_key."""
         if value_type:
-            return "Choose a value for %s(%s: %s)" % (
+            return "choose a value for %s(%s: %s)" % (
                 parameter_key,
                 value_type,
                 default,
             )
         else:
-            return "Choose a value for %s" % parameter_key
+            return "choose a value for %s" % parameter_key
 
     def _get_selected_param_value(self, type_name: str, param_header: str) -> str:
         """Use fzf to display aws specific parameters.

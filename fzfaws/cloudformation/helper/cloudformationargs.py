@@ -82,7 +82,7 @@ class CloudformationArgs:
                     empty_allow=True,
                     print_col=1,
                     multi_select=True,
-                    header="Select options to configure",
+                    header="select options to configure",
                 )
             )
 
@@ -139,7 +139,7 @@ class CloudformationArgs:
                     fzf.execute_fzf(
                         empty_allow=True,
                         print_col=1,
-                        header="Roll back on failue? (Default: True)",
+                        header="roll back on failue? (Default: True)",
                     )
                 )
                 if result:
@@ -159,7 +159,7 @@ class CloudformationArgs:
                     fzf.execute_fzf(
                         empty_allow=True,
                         print_col=1,
-                        header="%s" "Enable termination protection? (Default: False)",
+                        header="enable termination protection? (Default: False)",
                     )
                 )
                 if result:
@@ -262,12 +262,12 @@ class CloudformationArgs:
         iam = IAM(profile=self.cloudformation.profile)
         if not update:
             header = (
-                "Choose an IAM role to explicitly define CloudFormation's permissions\n"
+                "choose an IAM role to explicitly define CloudFormation's permissions\n"
             )
             header += "Note: only IAM role can be assumed by CloudFormation is listed"
             iam.set_arns(header=header, service="cloudformation.amazonaws.com")
         else:
-            header = "Select a role Choose an IAM role to explicitly define CloudFormation's permissions\n"
+            header = "select a role Choose an IAM role to explicitly define CloudFormation's permissions\n"
             header += "Original value: %s" % self.cloudformation.stack_details.get(
                 "RoleARN"
             )
