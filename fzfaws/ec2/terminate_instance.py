@@ -25,7 +25,6 @@ def terminate_instance(
 
     ec2.print_instance_details()
     if get_confirmation("Above instance will be terminated, continue?"):
-        print("Terminating instance now")
         response = ec2.client.terminate_instances(InstanceIds=ec2.instance_ids)
         response.pop("ResponseMetadata", None)
         print(json.dumps(response, indent=4, default=str))
@@ -33,5 +32,5 @@ def terminate_instance(
         print("Instance termination initiated")
 
         if wait:
-            ec2.wait("instance_terminated", "Wating for instance to be terminated..")
+            ec2.wait("instance_terminated", "Wating for instance to be terminated ...")
             print("Instance terminated")

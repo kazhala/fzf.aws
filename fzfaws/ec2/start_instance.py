@@ -28,7 +28,6 @@ def start_instance(
 
     ec2.print_instance_details()
     if get_confirmation("Above instance will be started, continue?"):
-        print("Starting instance now ...")
         response = ec2.client.start_instances(InstanceIds=ec2.instance_ids,)
         response.pop("ResponseMetadata", None)
         print(json.dumps(response, indent=4, default=str))

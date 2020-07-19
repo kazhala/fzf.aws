@@ -28,7 +28,6 @@ def stop_instance(
 
     ec2.print_instance_details()
     if get_confirmation("Above instance will be stopped, continue?"):
-        print("Stopping instance now ...")
         response = ec2.client.stop_instances(
             InstanceIds=ec2.instance_ids, Hibernate=hibernate
         )
@@ -38,5 +37,5 @@ def stop_instance(
         print("Instance stop initiated")
 
         if wait:
-            ec2.wait("instance_stopped", "Wating for instance to be stopped")
+            ec2.wait("instance_stopped", "Wating for instance to be stopped ...")
             print("Instance stopped")
