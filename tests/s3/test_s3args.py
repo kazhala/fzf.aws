@@ -77,7 +77,7 @@ class TestS3Args(unittest.TestCase):
             print_col=1,
             multi_select=True,
             empty_allow=False,
-            header="Select attributes to configure",
+            header="select attributes to configure",
         )
 
         # normal no call no version test
@@ -126,7 +126,7 @@ class TestS3Args(unittest.TestCase):
             print_col=1,
             multi_select=True,
             empty_allow=False,
-            header="Select attributes to configure",
+            header="select attributes to configure",
         )
         mocked_storage.assert_not_called()
         mocked_acl.assert_called_with(
@@ -164,7 +164,7 @@ class TestS3Args(unittest.TestCase):
         mocked_execute.assert_called_with(
             empty_allow=True,
             print_col=1,
-            header="Select a storage class, esc to use the default storage class of the bucket setting\nOriginal: GLACIER",
+            header="select a storage class, esc to use the default storage class of the bucket setting\nOriginal: GLACIER",
         )
         self.assertEqual(self.s3_args._extra_args, {"StorageClass": "STANDARD"})
 
@@ -174,7 +174,7 @@ class TestS3Args(unittest.TestCase):
         mocked_execute.assert_called_with(
             empty_allow=True,
             print_col=1,
-            header="Select a storage class, esc to use the default storage class of the bucket setting",
+            header="select a storage class, esc to use the default storage class of the bucket setting",
         )
         self.assertEqual(
             self.s3_args._extra_args, {"StorageClass": "REDUCED_REDUNDANCY"}
@@ -319,7 +319,7 @@ class TestS3Args(unittest.TestCase):
         mocked_execute.assert_called_with(
             empty_allow=True,
             print_col=1,
-            header="Select a ecryption setting, esc to use the default encryption setting for the bucket\nOriginal: AES256",
+            header="select an ecryption setting, esc to use the default encryption setting for the bucket\nOriginal: AES256",
         )
 
         # test kms

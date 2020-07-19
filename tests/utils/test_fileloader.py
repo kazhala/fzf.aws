@@ -70,9 +70,9 @@ class TestFileLoader(unittest.TestCase):
         self.fileloader.load_config_file(config_path=self.test_yaml)
         self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_PROFILE", ""), "")
         self.assertEqual(os.getenv("FZFAWS_CLOUDFORMATION_REGION", ""), "")
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-w -E")
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "-w")
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "-w -E")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "--wait --extra")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_DELETE"], "--wait")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_UPDATE"], "--wait --extra")
         self.assertEqual(
             os.environ["FZFAWS_CLOUDFORMATION_WAITER"],
             json.dumps({"delay": 30, "max_attempts": 120}),
@@ -117,8 +117,8 @@ class TestFileLoader(unittest.TestCase):
             ),
         )
         self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "default")
-        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-H")
-        self.assertEqual(os.environ["FZFAWS_S3_DOWNLOAD"], "-H")
+        self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "--hidden")
+        self.assertEqual(os.environ["FZFAWS_S3_DOWNLOAD"], "--hidden")
         self.assertEqual(os.environ["FZFAWS_S3_PRESIGN"], "-e 3600")
         self.assertEqual(os.getenv("FZFAWS_S3_LS", ""), "")
 

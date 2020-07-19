@@ -45,9 +45,6 @@ class TestEC2Terminate(unittest.TestCase):
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*Instance termination initiated.*"
         )
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r".*Terminating instance now.*"
-        )
 
         ec2 = boto3.client("ec2")
         stubber = Stubber(ec2)
@@ -58,5 +55,5 @@ class TestEC2Terminate(unittest.TestCase):
         mocked_confirmation.return_value = True
         terminate_instance(False, False, True)
         mocked_wait.assert_called_once_with(
-            "instance_terminated", "Wating for instance to be terminated.."
+            "instance_terminated", "Wating for instance to be terminated ..."
         )

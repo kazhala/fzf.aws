@@ -46,9 +46,6 @@ class TestEC2Start(unittest.TestCase):
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*Instance start initiated.*",
         )
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r"Starting instance now.*",
-        )
 
         # remock
         ec2 = boto3.client("ec2")
@@ -65,9 +62,6 @@ class TestEC2Start(unittest.TestCase):
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
         mocked_wait.assert_called_once()
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r"Starting instance now.*",
-        )
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*Instance start initiated.*",
         )
@@ -87,9 +81,6 @@ class TestEC2Start(unittest.TestCase):
         start_instance("root", "us-east-1", True, False)
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r"Starting instance now.*",
-        )
         self.assertRegex(
             self.capturedOutput.getvalue(), r".*Instance start initiated.*",
         )

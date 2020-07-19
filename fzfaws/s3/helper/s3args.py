@@ -350,7 +350,7 @@ class S3Args:
         :param original: previous value of the encryption
         :type original: str, optional
         """
-        header = "select a ecryption setting, esc to use the default encryption setting for the bucket"
+        header = "select an ecryption setting, esc to use the default encryption setting for the bucket"
         if original:
             header += "\nOriginal: %s" % original
 

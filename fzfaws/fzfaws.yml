@@ -109,8 +109,8 @@ services:
     profile: default
 
     default_args:
-      upload: -H
-      download: -H
+      upload: --hidden
+      download: --hidden
       presign: -e 3600
 
   cloudformation:
@@ -126,3 +126,4 @@ services:
       update: --wait --extra
       delete: --wait
       changeset: --wait
+      drift: --wait

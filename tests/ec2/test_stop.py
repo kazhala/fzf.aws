@@ -44,7 +44,6 @@ class TestEC2Stop(unittest.TestCase):
         mocked_set_instance.assert_called_once()
         mocked_wait.assert_not_called()
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance stop initiated.*")
-        self.assertRegex(self.capturedOutput.getvalue(), r"Stopping instance now.*")
 
         # mock what needed to be mocked
         ec2 = boto3.client("ec2")
@@ -62,5 +61,4 @@ class TestEC2Stop(unittest.TestCase):
         mocked_set_instance.assert_called_once()
         mocked_wait.assert_called_once()
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance stop initiated.*")
-        self.assertRegex(self.capturedOutput.getvalue(), r"Stopping instance now.*")
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance stopped.*")
