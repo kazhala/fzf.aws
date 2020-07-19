@@ -454,6 +454,8 @@ def cloudformation(raw_args: List[Any]) -> None:
             drift_cmd.print_help()
         elif selected_command == "changeset":
             changeset_cmd.print_help()
+        elif selected_command == "validate":
+            changeset_cmd.print_help()
         sys.exit(0)
 
     # when user set --profile/region flag but without argument

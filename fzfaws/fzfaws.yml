@@ -30,7 +30,8 @@ fzf:
   keybinds:
     toggle-all: alt-a
     jump: alt-j
-    top: alt-0
+    top: alt-t
+    clear-query: alt-0
     toggle-sort: alt-s
 
 # Spinner configs
@@ -118,8 +119,8 @@ services:
       delay: 30
       max_attempts: 120
 
-    # profile: root
-    # region: ap-southeast-2
+    profile: root
+    region: ap-southeast-2
 
     default_args:
       create: --wait --extra
