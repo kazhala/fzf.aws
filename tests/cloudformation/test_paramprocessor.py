@@ -260,15 +260,15 @@ class TestCloudformationParams(unittest.TestCase):
         result = self.paramprocessor._print_parameter_key(
             "SecurityGroups", "Default", "111111"
         )
-        self.assertEqual(result, "Choose a value for SecurityGroups(Default: 111111)")
+        self.assertEqual(result, "choose a value for SecurityGroups(Default: 111111)")
 
         result = self.paramprocessor._print_parameter_key(
             "SecurityGroups", "Original", "111111"
         )
-        self.assertEqual(result, "Choose a value for SecurityGroups(Original: 111111)")
+        self.assertEqual(result, "choose a value for SecurityGroups(Original: 111111)")
 
         result = self.paramprocessor._print_parameter_key("SecurityGroups")
-        self.assertEqual(result, "Choose a value for SecurityGroups")
+        self.assertEqual(result, "choose a value for SecurityGroups")
 
     @patch.object(Route53, "set_zone_id")
     @patch.object(EC2, "get_security_groups")

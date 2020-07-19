@@ -50,7 +50,7 @@ class TestCloudformationDeleteStack(unittest.TestCase):
         )
         cloudformation.get_stack_resources.assert_called_once_with(
             empty_allow=True,
-            header="The stack is in the failed state, specify any resource to skip during deletion",
+            header="stack is in the failed state, specify any resource to skip during deletion",
         )
         cloudformation.client.delete_stack.assert_called_with(
             RetainResources=["S3Bucket", "OAI"], StackName="testing1"
@@ -69,7 +69,7 @@ class TestCloudformationDeleteStack(unittest.TestCase):
         cloudformation.stack_details = {"StackStatus": "CREATE_COMPLETE"}
         delete_stack(iam=True)
         iam.set_arns.assert_called_once_with(
-            header="Select a iam role with permissions to delete the current stack",
+            header="select a iam role with permissions to delete the current stack",
             service="cloudformation.amazonaws.com",
         )
         cloudformation.client.delete_stack.assert_called_with(

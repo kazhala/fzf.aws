@@ -159,12 +159,12 @@ class TestCloudformationArgs(unittest.TestCase):
                 call(
                     empty_allow=True,
                     print_col=1,
-                    header="Roll back on failue? (Default: True)",
+                    header="roll back on failue? (Default: True)",
                 ),
                 call(
                     empty_allow=True,
                     print_col=1,
-                    header="%sEnable termination protection? (Default: False)",
+                    header="enable termination protection? (Default: False)",
                 ),
             ]
         )
@@ -298,7 +298,7 @@ class TestCloudformationArgs(unittest.TestCase):
     def test__set_permissions(self, mocked_arn):
         self.cloudformationargs._set_permissions()
         mocked_arn.assert_called_once_with(
-            header="Choose an IAM role to explicitly define CloudFormation's permissions\nNote: only IAM role can be assumed by CloudFormation is listed",
+            header="choose an IAM role to explicitly define CloudFormation's permissions\nNote: only IAM role can be assumed by CloudFormation is listed",
             service="cloudformation.amazonaws.com",
         )
 
@@ -306,7 +306,7 @@ class TestCloudformationArgs(unittest.TestCase):
         self.cloudformationargs.cloudformation.stack_details = {"RoleARN": "111111"}
         self.cloudformationargs._set_permissions(update=True)
         mocked_arn.assert_called_once_with(
-            header="Select a role Choose an IAM role to explicitly define CloudFormation's permissions\nOriginal value: 111111",
+            header="select a role Choose an IAM role to explicitly define CloudFormation's permissions\nOriginal value: 111111",
             service="cloudformation.amazonaws.com",
         )
 
