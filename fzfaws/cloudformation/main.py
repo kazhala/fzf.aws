@@ -1,6 +1,7 @@
 """Contains the main entry point for all cloudformation operations."""
 import argparse
 import sys
+from typing import Any, List
 
 from fzfaws.cloudformation.changeset_stack import changeset_stack
 from fzfaws.cloudformation.create_stack import create_stack
@@ -12,7 +13,7 @@ from fzfaws.cloudformation.validate_stack import validate_stack
 from fzfaws.utils.pyfzf import Pyfzf
 
 
-def cloudformation(raw_args: list) -> None:
+def cloudformation(raw_args: List[Any]) -> None:
     """Parse arguments and direct traffic to handler, internal use only.
 
     The raw_args are the processed args through cli.py main function.
@@ -23,20 +24,21 @@ def cloudformation(raw_args: list) -> None:
     :type raw_args: list
     """
     parser = argparse.ArgumentParser(
-        description="CRUD operation on aws cloudformation.",
+        description="Perform operations and interact with aws CloudFormation.",
         prog="fzfaws cloudformation",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 
-    update_cmd = subparsers.add_parser("update", description="update an existing stack")
+    update_cmd = subparsers.add_parser(
+        "update", description="Perform update on an existing stack."
+    )
     update_cmd.add_argument(
         "-b",
         "--bucket",
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     update_cmd.add_argument(
         "-v",
@@ -44,14 +46,14 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a previous version of the template in s3 bucket",
+        help="choose a version of the template in s3 bucket",
     )
     update_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
         default=False,
-        help="search local file from root instead of current directory",
+        help="search local files from root",
     )
     update_cmd.add_argument(
         "-l",
@@ -59,21 +61,21 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="upload local file",
+        help="update the stack using template in local machine",
     )
     update_cmd.add_argument(
         "-x",
         "--replace",
         action="store_true",
         default=False,
-        help="replace current template to update",
+        help="perform replacing update, replace the stack with a new template",
     )
     update_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="Pause the script and wait for update complete signal, max wait time 60mins",
+        help="wait for stack to finish update",
     )
     update_cmd.add_argument(
         "-E",
@@ -88,7 +90,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     update_cmd.add_argument(
         "-R",
@@ -96,18 +98,17 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
-    create_cmd = subparsers.add_parser("create", description="create a new stack")
+    create_cmd = subparsers.add_parser("create", description="Create a new stack.")
     create_cmd.add_argument(
         "-b",
         "--bucket",
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     create_cmd.add_argument(
         "-v",
@@ -115,14 +116,14 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a previous version of the template in s3 bucket",
+        help="choose a version of the template in s3 bucket",
     )
     create_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
         default=False,
-        help="search local file from root instead of current directory",
+        help="search local files from root",
     )
     create_cmd.add_argument(
         "-l",
@@ -130,14 +131,14 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="upload local file",
+        help="create stack using template in local machine",
     )
     create_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="Pause the script and wait for create complete signal, max wait time 60mins",
+        help="wait for the stack to finish create",
     )
     create_cmd.add_argument(
         "-E",
@@ -152,7 +153,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     create_cmd.add_argument(
         "-R",
@@ -160,24 +161,26 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
-    delete_cmd = subparsers.add_parser("delete", description="delete an existing stack")
+    delete_cmd = subparsers.add_parser(
+        "delete", description="Delete an existing stack."
+    )
     delete_cmd.add_argument(
         "-i",
         "--iam",
         nargs="?",
         action="store",
         default=False,
-        help="specify a iam arn that has the permission to delete the current stack",
+        help="choose/specify a iam arn that has the permission to delete the current stack",
     )
     delete_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="Pause the script and wait for delete complete signal, max wait time 60mins",
+        help="wait for the stack to be deleted",
     )
     delete_cmd.add_argument(
         "-P",
@@ -185,7 +188,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     delete_cmd.add_argument(
         "-R",
@@ -193,18 +196,18 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     ls_cmd = subparsers.add_parser(
-        "ls", description="list and print infomation of the selcted stack"
+        "ls", description="Display infomation of the selcted stack."
     )
     ls_cmd.add_argument(
         "-r",
         "--resource",
         action="store_true",
         default=False,
-        help="display information on resources",
+        help="display information on stack resources",
     )
     ls_cmd.add_argument(
         "-P",
@@ -212,7 +215,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     ls_cmd.add_argument(
         "-R",
@@ -220,49 +223,49 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
     ls_cmd.add_argument(
         "--tag",
         action="store_true",
         default=False,
-        help="print tag of the stack instead of the entire stack details",
+        help="display tag of the selected stack",
     )
     ls_cmd.add_argument(
         "--arn",
         action="store_true",
         default=False,
-        help="print arn of the stack instead of the entire stack details",
+        help="display arn of the selected stack",
     )
     ls_cmd.add_argument(
         "--name",
         action="store_true",
         default=False,
-        help="print name of the stack or stack resource instead of the entire details",
+        help="display name of the selected stack",
     )
     ls_cmd.add_argument(
         "--type",
         action="store_true",
         default=False,
-        help="print the type of the stack resource instead of the entire resource details",
+        help="display the type of the selected stack resource",
     )
 
     drift_cmd = subparsers.add_parser(
-        "drift", description="drift detection on the stack/resources"
+        "drift", description="Detect drift on stack/resources."
     )
     drift_cmd.add_argument(
         "-i",
         "--info",
         action="store_true",
         default=False,
-        help="Check the current drift status",
+        help="check the current drift status",
     )
     drift_cmd.add_argument(
         "-s",
         "--select",
         action="store_true",
         default=False,
-        help="select individual resource or resources to detect drift",
+        help="select individual resources to detect drift",
     )
     drift_cmd.add_argument(
         "-w",
@@ -277,7 +280,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     drift_cmd.add_argument(
         "-R",
@@ -285,11 +288,11 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     changeset_cmd = subparsers.add_parser(
-        "changeset", description="create a change set for the selected stack"
+        "changeset", description="Create a change set for the selected stack."
     )
     changeset_cmd.add_argument(
         "-b",
@@ -297,8 +300,7 @@ def cloudformation(raw_args: list) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     changeset_cmd.add_argument(
         "-v",
@@ -306,31 +308,35 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a previous version of the template in s3 bucket",
+        help="choose a version of the template in s3 bucket",
     )
     changeset_cmd.add_argument(
         "-r",
         "--root",
         action="store_true",
         default=False,
-        help="search local file from root instead of current directory",
+        help="search local files from root",
     )
     changeset_cmd.add_argument(
-        "-l", "--local", action="store_true", default=False, help="upload local file"
+        "-l",
+        "--local",
+        action="store_true",
+        default=False,
+        help="create the changeset using template in local machine",
     )
     changeset_cmd.add_argument(
         "-w",
         "--wait",
         action="store_true",
         default=False,
-        help="Pause the script and wait for create complete signal, max wait time 60mins",
+        help="wait for the changeset to finish create",
     )
     changeset_cmd.add_argument(
         "-x",
         "--replace",
         action="store_true",
         default=False,
-        help="replace current template to update",
+        help="perform replacing changeset, replace the current template with a new template and create the changeset",
     )
     changeset_cmd.add_argument(
         "-i", "--info", action="store_true", help="view the result of the changeset"
@@ -339,7 +345,7 @@ def cloudformation(raw_args: list) -> None:
         "-e",
         "--execute",
         action="store_true",
-        help="Execute update based on selected changeset",
+        help="execute update based on the selected changeset",
     )
     changeset_cmd.add_argument(
         "-d", "--delete", action="store_true", help="delete the selected changeset"
@@ -357,7 +363,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     changeset_cmd.add_argument(
         "-R",
@@ -365,12 +371,11 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
 
     validate_cmd = subparsers.add_parser(
-        "validate",
-        description="validate the selected template, by default, search a template through s3",
+        "validate", description="Validate the selected template.",
     )
     validate_cmd.add_argument(
         "-b",
@@ -378,8 +383,7 @@ def cloudformation(raw_args: list) -> None:
         nargs=1,
         action="store",
         default=[],
-        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/)"
-        + "using this flag and skip s3 bucket/path selection",
+        help="specify a s3 path (bucketName/filename or bucketName/path/ or bucketName/) and skip s3 bucket/path selection",
     )
     validate_cmd.add_argument(
         "-l",
@@ -387,17 +391,21 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="upload local file",
+        help="validate template in local machine",
     )
     validate_cmd.add_argument(
-        "-r", "--root", action="store_true", default=False, help="search file from root"
+        "-r",
+        "--root",
+        action="store_true",
+        default=False,
+        help="search files from root",
     )
     validate_cmd.add_argument(
         "-v",
         "--version",
         nargs="?",
         default=False,
-        help="use previous versions of the cloudformation template",
+        help="choose a version of the template in s3 bucket",
     )
     validate_cmd.add_argument(
         "-P",
@@ -405,7 +413,7 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different profile, set the flag without argument to use fzf and select a profile",
+        help="choose/specify a profile for the operation",
     )
     validate_cmd.add_argument(
         "-R",
@@ -413,13 +421,21 @@ def cloudformation(raw_args: list) -> None:
         nargs="?",
         action="store",
         default=False,
-        help="use a different region, set the flag without argument to use fzf and select a region",
+        help="choose/specify a region for the operation",
     )
     args = parser.parse_args(raw_args)
 
     # if no argument provided, display help message through fzf
     if not raw_args:
-        available_commands = ["update", "create", "delete", "ls", "drift", "changeset"]
+        available_commands = [
+            "update",
+            "create",
+            "delete",
+            "ls",
+            "drift",
+            "changeset",
+            "validate",
+        ]
         fzf = Pyfzf()
         for command in available_commands:
             fzf.append_fzf("%s\n" % command)
