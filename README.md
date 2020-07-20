@@ -3,16 +3,96 @@
 [![unittest](https://github.com/kazhala/fzf.aws/workflows/Test/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ATest)
 [![lint](https://github.com/kazhala/fzf.aws/workflows/Lint/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ALint)
 [![codebuild](https://codebuild.ap-southeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieWdVWHNJMFllT2JyVkZoSCtoNDNlZkVkK3ZsSEIwZDJHMFBFN21KWThsdk04enQxbnExa012Y01ZcVhXTjJOZTBld2lRSStMOXZEQnROQWVIRVpxVGFRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjVTUEdveURkK2lzNTgyUVMiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)](https://github.com/kazhala/fzf.aws/blob/master/cloudformation.yml)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 [![package version](https://img.shields.io/pypi/v/fzfaws)](https://pypi.org/project/fzfaws/)
 [![python version](https://img.shields.io/pypi/pyversions/fzfaws)](https://pypi.org/project/fzfaws/)
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey)](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py#L52)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
 
 `fzfaws` is a python utility to interact with aws on the command line through [fzf](https://github.com/junegunn/fzf) interface. The primary goal of this project
-is to enhance the experience while interacting with aws on the command line by reducing the number of times to travel between the browser and terminal to search
+is to enhance the aws command line experience by reducing the number of times to travel between the browser and terminal to search
 for aws-cli commands or even aws arn, id etc just for the sake of copy/pasting them for some simple operations.
 
-**Note: still under development, expect breaking changes and bugs.**
+**Note: still under development, expect breaking changes and bugs, use it under caution.**
 
 ![fzfaws demo](https://github.com/kazhala/gif/blob/master/fzfaws-demo.gif)
+
+For more commands and capabilities, checkout wiki.
+
+## About
+
+`fzfaws` is still a young project and will continue to develop to support more services. Table below lists some of the high level view of the supported feature, there
+are advanced flags for each individual operations. For example, most S3 operations take `--version` flag to operate on versioned objects.
+
+| Service        | Support                                                                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EC2            | ssh instance, start instance, stop instance, termiante instance, reboot instance, list instance/vpc related objects information                                                                 |
+| S3             | upload files/directories, download files/directories, move objects/directories between bucktes, update object attributes, delete objects, generate presign url, list objecs/buckets information |
+| CloudFormation | create stack, update stack, create/execute changeset, detect drift, validate template, delete stack, list stack/resources information                                                           |
+| Lambda         | Coming soon ...                                                                                                                                                                                 |
+| KMS            | Coming soon ...                                                                                                                                                                                 |
+
+`fzfaws` is not developed as a replacement tool for aws-cli or any alternatives, it should be used in conjunction with them, hence it will not implement solution for all actions.
+With that said, feature request are very welcome, I would like to discuss and consider them.
+
+## Requirements
+
+### System
+
+`fzfaws` currently only has support for MacOS and Linux systems. For Windows system support, there will need some work to be done on the
+[pyfzf](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py) module as well as the [ssh_instance](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/ec2/ec2.py)
+module, PR welcome.
+
+### Python
+
+`fzfaws` require Python version 3.6+ in order to function properly.
+
+### Optional dependencies
+
+- [aws-cli](https://github.com/aws/aws-cli): `fzfaws` uses `aws-cli` to perform s3 sync operations, only required if you want to use `fzfaws s3 upload --sync`.
+- [fd](https://github.com/sharkdp/fd): improve local file search speed, `fzfaws` will use `fd` over `find` if `fd` is installed.
+
+## Install
+
+`fzfaws` comes with `fzf` binary, you don't need to install `fzf` if you don't have it. Main reason is to allow simple download
+procedure even on remote instances.
+
+```sh
+pip3 install fzfaws
+```
+
+## Usage
+
+Refer to wiki for `fzfaws` capabilities, commands and configuration options.
+
+- Getting started
+- Customization
+- Commands
+- Integrating `fzfaws`
+- Tips and Tricks
+
+## Motivation & Background
+
+`fzfaws` started off as a sets of bash scripts that I wrote to simplify the way I start/stop/terminate/ssh my ec2 instances.
+Later on I also decided to cover CloudFormation because I often need to update my IP parameter in some stacks which
+I don't want to do it in aws console. Since I was learning Python, I decided to give it a go in Python because it can process YAML and JSON much easier.
+You could find the half bash half Python version in [this](https://github.com/kazhala/fzf.aws/tree/archive/shell-version) branch.
+
+As the scripts grow, I decided to make a dedicated project and re-write everything in Python. It was a great help for me to understand more
+about aws and this project was a huge contributor (mainly ec2, s3, cloudformation) to both my associate level and professional level aws certifications.
+
+This is my first python package and I'm still learning stuff along the way, some code style/implementation might drastically differ from others, I'm trying my best
+to refactor everything to align.
+
+## Related projects
+
+- [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder)
+- [saws](https://github.com/donnemartin/saws)
+
+## Credit
+
+- credit to [fzf](https://github.com/junegunn/fzf).
+- credit to [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder) for it's fzf-binary usage.
+- credit to [boto3](https://github.com/boto/boto3).
+- credit to [this](https://stackoverflow.com/a/33350380) answer for the method to walk s3 folder.

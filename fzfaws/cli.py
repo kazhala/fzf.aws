@@ -84,7 +84,7 @@ def main() -> None:
         print(e)
 
 
-def copy_config():
+def copy_config() -> None:
     """Copy the default fzfaws.yml to $XDG_CONFIG_HOME/fzfaws/."""
     default_config_path = Path(__file__).resolve().parent.joinpath("./fzfaws.yml")
     destination_config_path = "%s/fzfaws/" % os.getenv(
