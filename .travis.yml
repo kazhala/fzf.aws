@@ -4,7 +4,7 @@ os: linux
 
 install:
   - pip install -r requirements.txt
-  - pip install codecov
+  - pip install coveralls
 
 before_script:
   - ./scripts/init_test
@@ -13,4 +13,4 @@ script:
   - coverage run -m unittest discover
 
 after_success:
-  - codecov
+  - coveralls
