@@ -12,7 +12,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![license](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
 
-**Note: still under development, expect breaking changes and bugs, use it under caution.**
+**Note: still under development, expect breaking changes and bugs, use it under caution in prod.**
 
 ![fzfaws demo](https://github.com/kazhala/gif/blob/master/fzfaws-demo.gif)
 
@@ -26,14 +26,14 @@ for aws-cli commands or even aws arn, id etc just for the sake of copy/pasting t
 are advanced flags for each individual operations. For example, EC2 ssh instance support tunnelling and most S3 operations take `--version` flag to operate on versioned objects.
 Checkout wiki for detailed commands usage.
 
-| Service         | Support                                                                                                                                                                                         |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EC2             | ssh instance, start instance, stop instance, termiante instance, reboot instance, list instance/vpc related objects information                                                                 |
-| S3              | upload files/directories, download files/directories, move objects/directories between bucktes, update object attributes, delete objects, generate presign url, list objecs/buckets information |
-| CloudFormation  | create stack, update stack, create/execute changeset, detect drift, validate template, delete stack, list stack/resources information                                                           |
-| Coming soon ... | Coming soon ...                                                                                                                                                                                 |
+| Service         | Support                                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| EC2             | ssh instance, start instance, stop instance, terminate instance, reboot instance, list instance/vpc related objects information                                                                  |
+| S3              | upload files/directories, download files/directories, move objects/directories between buckets, update object attributes, delete objects, generate presign url, list objects/buckets information |
+| CloudFormation  | create stack, update stack, create/execute changeset, detect drift, validate template, delete stack, list stack/resources information                                                            |
+| Coming soon ... | Coming soon ...                                                                                                                                                                                  |
 
-`fzfaws` is not developed as a replacement tool for aws-cli or any alternatives, it should be used in conjunction with them, hence it will not implement solution for all actions.
+`fzfaws` is not developed as a replacement tool for `aws-cli` or any alternatives, it should be used in conjunction with them, hence it will not implement solution for all actions.
 With that said, feature request are very welcome, I would like to discuss and consider them.
 
 ## Requirements
@@ -55,7 +55,7 @@ module, PR welcome. You could always utilise the docker build of `fzfaws` on any
 
 ## Install
 
-`fzfaws` comes with `fzf` binary, you don't need to install `fzf` if you don't have it. Main reason is to allow simple download
+`fzfaws` comes with `fzf` binary, it doesn't require `fzf` to be installed. Main reason is to allow simple download
 procedure even on remote instances.
 
 ```sh
@@ -69,7 +69,7 @@ Refer to wiki for `fzfaws` capabilities, commands and configuration options.
 - Getting started
 - Customization
 - Commands
-- Integrating `fzfaws`
+- Integration
 - Tips and Tricks
 
 ## Motivation & Background
@@ -95,11 +95,10 @@ perform under extreme data load, please fire up issues if you face any.
 ## Related projects
 
 - [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder)
-- [saws](https://github.com/donnemartin/saws)
 
 ## Credit
 
 - credit to [fzf](https://github.com/junegunn/fzf).
-- credit to [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder) for it's fzf-binary usage.
 - credit to [boto3](https://github.com/boto/boto3).
+- credit to [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder) for it's fzf-binary usage.
 - credit to [this](https://stackoverflow.com/a/33350380) answer for the method to walk s3 folder.
