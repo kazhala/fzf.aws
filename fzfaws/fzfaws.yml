@@ -74,7 +74,7 @@ services:
   ec2:
     # Path to the directory storing keypairs
     #
-    # fzfaws doesn't recognize env variable liek $HOME
+    # fzfaws doesn't recognize env variable like $HOME
     # use "~" to reference home directory
     keypair: ~/.ssh
 

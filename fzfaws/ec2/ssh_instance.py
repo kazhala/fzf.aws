@@ -10,8 +10,6 @@ from typing import Any, Dict, Union
 from fzfaws.ec2 import EC2
 from fzfaws.utils.exceptions import EC2Error
 
-home = os.path.expanduser("~")
-
 
 def check_instance_status(instance: Dict[str, Any]) -> None:
     """Check if instance is in running status.

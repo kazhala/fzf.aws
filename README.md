@@ -24,7 +24,7 @@ for aws-cli commands or even aws arn, id etc just for the sake of copy/pasting t
 
 `fzfaws` is still a young project and will continue to develop to support more services. Table below lists some of the high level view of the supported feature, there
 are advanced flags for each individual operations. For example, EC2 ssh instance support tunnelling and most S3 operations take `--version` flag to operate on versioned objects.
-Checkout wiki for detailed commands usage.
+Checkout [wiki](https://github.com/kazhala/fzf.aws/wiki) for detailed commands usage.
 
 | Service         | Support                                                                                                                                                                                          |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -42,7 +42,7 @@ With that said, feature request are very welcome, I would like to discuss and co
 
 `fzfaws` currently only has support for MacOS and Linux systems. For Windows system support, there will need some work to be done on the
 [pyfzf](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py) module as well as the [ssh_instance](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/ec2/ec2.py)
-module, PR welcome. You could always utilise the docker build of `fzfaws` on any system, checkout using docker image.
+module, PR welcome. You could always utilise the docker image of `fzfaws` on any system, checkout [wiki](https://github.com/kazhala/fzf.aws/wiki#docker-image) to consult how to use the image.
 
 ### Python
 
@@ -64,13 +64,12 @@ pip3 install fzfaws
 
 ## Usage
 
-Refer to wiki for `fzfaws` capabilities, commands and configuration options.
+Getting started guide and individual service guide are documented in [wiki](https://github.com/kazhala/fzf.aws/wiki).
 
 - Getting started
+- Basic usage
 - Customization
-- Commands
-- Integration
-- Tips and Tricks
+- Docker image
 
 ## Motivation & Background
 
