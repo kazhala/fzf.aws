@@ -28,9 +28,7 @@ class TestS3Download(unittest.TestCase):
             from_path="s3://kazhala-lol/hello/",
             to_path=os.path.dirname(__file__),
         )
-        mocked_local.assert_called_with(
-            False, directory=True, hidden=False, empty_allow=True
-        )
+        mocked_local.assert_called_with(False, directory=True, hidden=False)
 
         download_s3(sync=True, bucket="kazhala-lol/")
         mocked_path.assert_called_with(download=True)
@@ -51,9 +49,7 @@ class TestS3Download(unittest.TestCase):
             from_path="s3://kazhala-lol/hello/",
             to_path=os.path.dirname(__file__),
         )
-        mocked_local.assert_called_with(
-            True, directory=True, hidden=True, empty_allow=True
-        )
+        mocked_local.assert_called_with(True, directory=True, hidden=True)
 
     @patch("fzfaws.s3.download_s3.get_confirmation")
     @patch("fzfaws.s3.download_s3.walk_s3_folder")

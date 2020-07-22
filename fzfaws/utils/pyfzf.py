@@ -217,7 +217,7 @@ class Pyfzf:
 
         else:
             if directory:
-                cmd = "find * -type d"
+                cmd = "echo \033[33m./\033[0m; find * -type d"
             elif cloudformation:
                 cmd = 'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'
             else:

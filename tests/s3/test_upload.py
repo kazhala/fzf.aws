@@ -31,11 +31,7 @@ class TestS3Upload(unittest.TestCase):
             to_path="s3://kazhala-file-transfer/hello/",
         )
         mocked_local_file.assert_called_with(
-            search_from_root=False,
-            directory=True,
-            hidden=False,
-            empty_allow=True,
-            multi_select=False,
+            search_from_root=False, directory=True, hidden=False, multi_select=False,
         )
 
         upload_s3(sync=True, search_root=True, recursive=True, hidden=True)
@@ -43,11 +39,7 @@ class TestS3Upload(unittest.TestCase):
             exclude=[], include=[], from_path="/tmp", to_path="s3:///",
         )
         mocked_local_file.assert_called_with(
-            search_from_root=True,
-            directory=True,
-            hidden=True,
-            empty_allow=True,
-            multi_select=False,
+            search_from_root=True, directory=True, hidden=True, multi_select=False,
         )
         mocked_bucket.assert_called_once()
         mocked_path.assert_called_once()
@@ -110,11 +102,7 @@ class TestS3Upload(unittest.TestCase):
         )
         mocked_recursive.assert_not_called()
         mocked_local_file.assert_called_with(
-            search_from_root=False,
-            directory=False,
-            hidden=False,
-            empty_allow=False,
-            multi_select=True,
+            search_from_root=False, directory=False, hidden=False, multi_select=True,
         )
 
         mocked_local_file.reset_mock()

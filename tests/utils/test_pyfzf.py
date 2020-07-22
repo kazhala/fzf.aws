@@ -2,7 +2,7 @@ import unittest
 import subprocess
 import io
 import sys
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from fzfaws.utils import Pyfzf, FileLoader
 from fzfaws.utils.exceptions import EmptyList, NoSelectionMade
 from pathlib import Path
@@ -87,11 +87,16 @@ class TestPyfzf(unittest.TestCase):
         except:
             self.fail("ctrl-c test failed, unexpected exception raise")
 
+    @patch("fzfaws.utils.Pyfzf._check_fd")
     @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
-    def test_get_local_file(self, mocked_output, mocked_popen):
+    def test_get_local_file(self, mocked_output, mocked_popen, mocked_check):
+        mocked_check.return_value = False
         mocked_output.return_value = b""
         self.assertRaises(NoSelectionMade, self.fzf.get_local_file)
+        mocked_popen.assert_called_with(
+            "find * -type f", shell=True, stderr=ANY, stdout=ANY
+        )
 
         mocked_output.return_value = b"hello"
         result = self.fzf.get_local_file()
@@ -104,6 +109,38 @@ class TestPyfzf(unittest.TestCase):
         mocked_output.return_value = b"hello\nworld\n"
         result = self.fzf.get_local_file(multi_select=True)
         self.assertEqual(result, ["hello", "world"])
+
+        result = self.fzf.get_local_file(directory=True, search_from_root=True)
+        mocked_popen.assert_called_with(
+            "echo \033[33m./\033[0m; find * -type d", shell=True, stderr=ANY, stdout=ANY
+        )
+
+        result = self.fzf.get_local_file(cloudformation=True)
+        mocked_popen.assert_called_with(
+            'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"',
+            shell=True,
+            stderr=ANY,
+            stdout=ANY,
+        )
+
+        mocked_check.return_value = True
+        result = self.fzf.get_local_file(cloudformation=True)
+        mocked_popen.assert_called_with(
+            "fd --type f --regex '(yaml|yml|json)$'",
+            shell=True,
+            stderr=ANY,
+            stdout=ANY,
+        )
+
+        result = self.fzf.get_local_file(directory=True)
+        mocked_popen.assert_called_with(
+            "echo \033[33m./\033[0m; fd --type d", shell=True, stderr=ANY, stdout=ANY,
+        )
+
+        result = self.fzf.get_local_file()
+        mocked_popen.assert_called_with(
+            "fd --type f", shell=True, stderr=ANY, stdout=ANY,
+        )
 
     @patch.object(subprocess, "Popen")
     def test_check_fd(self, mocked_popen):
