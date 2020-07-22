@@ -200,46 +200,33 @@ class Pyfzf:
         if search_from_root:
             home_path = os.path.expanduser("~")
             os.chdir(home_path)
-        if not header and directory and empty_allow:
-            header = "Exit without selection will use %s" % os.getcwd()
+        if not header and directory:
+            header = r"Selecting ./ will use current directory"
+
+        cmd: str = ""
+
         if self._check_fd():
-            cmd_list: list = []
             if directory:
-                cmd_list.extend(["fd", "--type", "d"])
+                cmd = "echo \033[33m./\033[0m; fd --type d"
             elif cloudformation:
-                cmd_list.extend(["fd", "--type", "f", "--regex", r"(yaml|yml|json)$"])
+                cmd = "fd --type f --regex '(yaml|yml|json)$'"
             else:
-                cmd_list.extend(["fd", "--type", "f"])
+                cmd = "fd --type f"
             if hidden:
-                cmd_list.append("-H")
-            list_file = subprocess.Popen(cmd_list, stdout=subprocess.PIPE)
+                cmd += " -H"
 
         else:
-            # set shell=True so that it won't interpret the glob before executing the command
-            # TODO: find another way to use shell=False
             if directory:
-                list_file = subprocess.Popen(
-                    "find * -type d",
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    shell=True,
-                )
+                cmd = "find * -type d"
             elif cloudformation:
-                list_file = subprocess.Popen(
-                    (
-                        'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'
-                    ),
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    shell=True,
-                )
+                cmd = 'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'
             else:
-                list_file = subprocess.Popen(
-                    "find * -type f",
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    shell=True,
-                )
+                cmd = "find * -type f"
+
+        list_file = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, shell=True
+        )
+
         selected_file_path: bytes = b""
         selected_file_path_str: str = ""
 
@@ -265,11 +252,6 @@ class Pyfzf:
             # subprocess exception will raise when user press ecs to exit fzf
             if not empty_allow:
                 raise NoSelectionMade
-            elif empty_allow and directory:
-                # return current directory
-                curdir = os.getcwd()
-                print("%s will be used" % curdir)
-                return curdir
             elif empty_allow:
                 return [] if empty_allow else ""
 

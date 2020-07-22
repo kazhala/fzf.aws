@@ -72,9 +72,7 @@ def download_s3(
     if not local_path:
         fzf = Pyfzf()
         local_path = str(
-            fzf.get_local_file(
-                search_from_root, directory=True, hidden=hidden, empty_allow=True
-            )
+            fzf.get_local_file(search_from_root, directory=True, hidden=hidden)
         )
 
     if sync:

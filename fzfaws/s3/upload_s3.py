@@ -72,7 +72,6 @@ def upload_s3(
             search_from_root=search_root,
             directory=recursive,
             hidden=hidden,
-            empty_allow=recursive,
             multi_select=multi_select,
         )
 
