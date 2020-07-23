@@ -20,12 +20,36 @@ class TestPyfzf(unittest.TestCase):
     def tearDown(self):
         sys.stdout = sys.__stdout__
 
-    def test_constructor(self):
+    @patch("fzfaws.utils.pyfzf.sys")
+    def test_constructor(self, mocked_sys):
         self.assertRegex(
             self.fzf.fzf_path,
             r".*/fzfaws.*/libs/fzf-[0-9]\.[0-9]+\.[0-9]-(linux|darwin)_(386|amd64)",
         )
         self.assertEqual("", self.fzf.fzf_string)
+
+        mocked_sys.maxsize = 4294967295
+        mocked_sys.platform = "linux"
+        fzf = Pyfzf()
+        self.assertRegex(
+            fzf.fzf_path, r".*/fzfaws.*/libs/fzf-[0-9]\.[0-9]+\.[0-9]-linux_386"
+        )
+
+        mocked_sys.maxsize = 42949672951
+        mocked_sys.platform = "darwin"
+        fzf = Pyfzf()
+        self.assertRegex(
+            fzf.fzf_path, r".*/fzfaws.*/libs/fzf-[0-9]\.[0-9]+\.[0-9]-darwin_amd64"
+        )
+
+        mocked_sys.maxsize = 42949672951
+        mocked_sys.platform = "windows"
+        mocked_sys.exit.side_effect = sys.exit
+        self.assertRaises(SystemExit, Pyfzf)
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "fzfaws currently is only compatible with python3.6+ on MacOS or Linux\n",
+        )
 
     def test_append_fzf(self):
         self.fzf.fzf_string = ""
@@ -72,8 +96,14 @@ class TestPyfzf(unittest.TestCase):
         self.assertEqual(result, ["hello"])
 
         mocked_output.return_value = b"hello\nworld"
-        result = self.fzf.execute_fzf(multi_select=True, print_col=1)
+        result = self.fzf.execute_fzf(
+            multi_select=True, print_col=1, preview="hello", header="foo boo"
+        )
         self.assertEqual(result, ["hello", "world"])
+
+        mocked_output.return_value = b"hello world\nfoo boo"
+        result = self.fzf.execute_fzf(multi_select=True, print_col=0)
+        self.assertEqual(result, ["hello world", "foo boo"])
 
     @patch.object(subprocess, "Popen")
     @patch.object(subprocess, "check_output")
@@ -123,14 +153,16 @@ class TestPyfzf(unittest.TestCase):
             stdout=ANY,
         )
 
+        mocked_output.reset_mock()
         mocked_check.return_value = True
-        result = self.fzf.get_local_file(cloudformation=True)
+        result = self.fzf.get_local_file(cloudformation=True, header="hello")
         mocked_popen.assert_called_with(
             "fd --type f --regex '(yaml|yml|json)$'",
             shell=True,
             stderr=ANY,
             stdout=ANY,
         )
+        mocked_output.assert_called_once()
 
         result = self.fzf.get_local_file(directory=True)
         mocked_popen.assert_called_with(
@@ -142,10 +174,15 @@ class TestPyfzf(unittest.TestCase):
             "fd --type f", shell=True, stderr=ANY, stdout=ANY,
         )
 
-    @patch.object(subprocess, "Popen")
-    def test_check_fd(self, mocked_popen):
+    @patch("fzfaws.utils.pyfzf.subprocess")
+    def test_check_fd(self, mocked_subprocess):
+        mocked_subprocess.run.return_value = True
         result = self.fzf._check_fd()
-        self.assertEqual(type(result), bool)
+        self.assertEqual(result, True)
+
+        mocked_subprocess.run.side_effect = Exception(subprocess.CalledProcessError)
+        result = self.fzf._check_fd()
+        self.assertEqual(result, False)
 
     def test_process_list(self):
         self.fzf.fzf_string = ""
