@@ -1,16 +1,17 @@
 # fzf :heart: aws
 
-[![unittest](https://github.com/kazhala/fzf.aws/workflows/Test/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ATest)
-[![lint](https://github.com/kazhala/fzf.aws/workflows/Lint/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ALint)
-[![travis](https://img.shields.io/travis/com/kazhala/fzf.aws/master?label=travis&logo=travis)](https://travis-ci.com/github/kazhala/fzf.aws)
-[![coverage](https://img.shields.io/coveralls/github/kazhala/fzf.aws/master?logo=coveralls)](https://coveralls.io/github/kazhala/fzf.aws?branch=master)
-[![codebuild](https://codebuild.ap-southeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieWdVWHNJMFllT2JyVkZoSCtoNDNlZkVkK3ZsSEIwZDJHMFBFN21KWThsdk04enQxbnExa012Y01ZcVhXTjJOZTBld2lRSStMOXZEQnROQWVIRVpxVGFRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjVTUEdveURkK2lzNTgyUVMiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)](https://github.com/kazhala/fzf.aws/blob/master/cloudformation.yml)
+[![Test](https://github.com/kazhala/fzf.aws/workflows/Test/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ATest)
+[![Lint](https://github.com/kazhala/fzf.aws/workflows/Lint/badge.svg)](https://github.com/kazhala/fzf.aws/actions?query=workflow%3ALint)
+[![Travis](https://img.shields.io/travis/com/kazhala/fzf.aws/master?label=Travis&logo=travis)](https://travis-ci.com/github/kazhala/fzf.aws)
+[![Coverage](https://img.shields.io/coveralls/github/kazhala/fzf.aws/master?label=Coverage&logo=coveralls)](https://coveralls.io/github/kazhala/fzf.aws?branch=master)
+[![AWS CodeBuild](https://codebuild.ap-southeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieWdVWHNJMFllT2JyVkZoSCtoNDNlZkVkK3ZsSEIwZDJHMFBFN21KWThsdk04enQxbnExa012Y01ZcVhXTjJOZTBld2lRSStMOXZEQnROQWVIRVpxVGFRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjVTUEdveURkK2lzNTgyUVMiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)](https://github.com/kazhala/fzf.aws/blob/master/cloudformation.yml)
 
-[![package version](https://img.shields.io/pypi/v/fzfaws)](https://pypi.org/project/fzfaws/)
-[![python version](https://img.shields.io/pypi/pyversions/fzfaws)](https://pypi.org/project/fzfaws/)
-[![platform](https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey)](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py#L52)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![license](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
+[![Package version](https://img.shields.io/pypi/v/fzfaws?label=PyPI)](https://pypi.org/project/fzfaws/)
+[![Python version](https://img.shields.io/pypi/pyversions/fzfaws?label=Python)](https://pypi.org/project/fzfaws/)
+[![Platform](https://img.shields.io/badge/Platform-linux%20%7C%20macos-lightgrey)](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py#L52)
+[![Code lint: pyright](https://img.shields.io/badge/Code%20lint-pyright-yellow)](https://github.com/microsoft/pyright)
+[![Code style: black](https://img.shields.io/badge/Code%20style-black-black)](https://github.com/psf/black)
+[![License](https://img.shields.io/badge/license-MIT-green?label=License)](https://opensource.org/licenses/MIT)
 
 **Note: still under development, expect breaking changes and bugs, use it under caution in prod.**
 
