@@ -74,14 +74,17 @@ def main() -> None:
 
     except InvalidFileType:
         print("Selected file is not a valid file type")
+        sys.exit(1)
     except SystemExit:
         raise
     except (KeyboardInterrupt, SystemError):
         sys.exit(1)
     except NoSelectionMade:
         print("No selection was made or the result was empty")
+        sys.exit(1)
     except (ClientError, Exception) as e:
         print(e)
+        sys.exit(1)
 
 
 def copy_config() -> None:
