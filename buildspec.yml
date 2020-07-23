@@ -17,6 +17,11 @@ phases:
       - echo Installing upload tools ...
       - pip install --upgrade twine
 
+  pre_build:
+    commands:
+      - echo Logging into dockerhub ...
+      - 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin'
+
   build:
     commands:
       - echo Building fzfaws ...
@@ -26,3 +31,9 @@ phases:
     commands:
       - echo Uploading fzfaws to pypi ...
       - twine upload --username $PYPI_USERNAME --password $PYPI_PASSWORD dist/*
+      - echo Building docker image ...
+      - FZFAWS_VERSION=$(awk -F "=" '/\s*version.*,/ {gsub(/("|,)/, "", $2);print $2}' setup.py)
+      - docker image build -t kazhala/fzfaws:latest -t kazhala/fzfaws:$FZFAWS_VERSION .
+      - echo Deploying docker image ...
+      - docker image push kazhala/fzfaws:$FZFAWS_VERSION
+      - docker image push kazhala/fzfaws:latest
