@@ -30,10 +30,12 @@ class Cloudformation(BaseSession):
         self.stack_name: str = ""
         self.stack_details: dict = {}
 
-    def set_stack(self) -> None:
+    def set_stack(self, no_progress=False) -> None:
         """Store the selected stack into the instance attribute."""
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching cloudformation stacks ..."):
+        with Spinner.spin(
+            message="Fetching cloudformation stacks ...", no_progress=no_progress
+        ):
             paginator = self.client.get_paginator("describe_stacks")
             response = paginator.paginate()
             stack_generator = self._get_stack_generator(response)
@@ -47,7 +49,7 @@ class Cloudformation(BaseSession):
         )
 
     def get_stack_resources(
-        self, empty_allow: bool = False, header: str = None
+        self, empty_allow: bool = False, header: str = None, no_progress: bool = False
     ) -> List[str]:
         """List all stack logical resources and return the selected resources.
 
@@ -59,18 +61,19 @@ class Cloudformation(BaseSession):
         :rtype: List[str]
         """
         fzf = Pyfzf()
-        paginator = self.client.get_paginator("list_stack_resources")
-        for result in paginator.paginate(StackName=self.stack_name):
-            for resource in result.get("StackResourceSummaries"):
-                resource["Drift"] = resource.get("DriftInformation").get(
-                    "StackResourceDriftStatus"
+        with Spinner.spin(message="Fetching stack resources ...", no_progress=no_progress):
+            paginator = self.client.get_paginator("list_stack_resources")
+            for result in paginator.paginate(StackName=self.stack_name):
+                for resource in result.get("StackResourceSummaries"):
+                    resource["Drift"] = resource.get("DriftInformation").get(
+                        "StackResourceDriftStatus"
+                    )
+                fzf.process_list(
+                    result.get("StackResourceSummaries"),
+                    "LogicalResourceId",
+                    "ResourceType",
+                    "Drift",
                 )
-            fzf.process_list(
-                result.get("StackResourceSummaries"),
-                "LogicalResourceId",
-                "ResourceType",
-                "Drift",
-            )
         return list(
             fzf.execute_fzf(multi_select=True, header=header, empty_allow=empty_allow)
         )

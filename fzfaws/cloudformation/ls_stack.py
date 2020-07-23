@@ -32,7 +32,7 @@ def ls_stack(
     :type resource_type: bool, optional
     """
     cloudformation = Cloudformation(profile, region)
-    cloudformation.set_stack()
+    cloudformation.set_stack(no_progress=True)
 
     if not resource:
         if not name and not arn and not tag:
@@ -45,7 +45,7 @@ def ls_stack(
             if tag:
                 print(cloudformation.stack_details.get("Tags", []))
     else:
-        logical_id_list = cloudformation.get_stack_resources()
+        logical_id_list = cloudformation.get_stack_resources(no_progress=True)
         for logical_id in logical_id_list:
             response = cloudformation.client.describe_stack_resource(
                 StackName=cloudformation.stack_name, LogicalResourceId=logical_id

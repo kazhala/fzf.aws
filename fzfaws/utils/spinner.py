@@ -44,6 +44,7 @@ class Spinner(threading.Thread):
         pattern: Optional[str] = None,
         message: Optional[str] = None,
         speed: Optional[float] = None,
+        no_progress: bool = False,
     ) -> None:
         """Construct a spiner."""
         if message is None:
@@ -56,6 +57,7 @@ class Spinner(threading.Thread):
         self.message: str = message
         self.speed: float = speed
         self.pattern: str = pattern
+        self.no_progress: bool = no_progress
         self._stopevent = threading.Event()
         self.__class__.instances.append(self)
 
@@ -66,7 +68,7 @@ class Spinner(threading.Thread):
 
     def _spin(self) -> None:
         """Spin the spinner."""
-        while not self._stopevent.is_set():
+        while not self._stopevent.is_set() and not self.no_progress:
             for cursor in self.pattern:
                 sys.stdout.write("%s %s" % (cursor, self.message))
                 sys.stdout.flush()
@@ -88,6 +90,7 @@ class Spinner(threading.Thread):
         pattern: Optional[str] = None,
         message: Optional[str] = None,
         speed: Optional[float] = None,
+        no_progress: bool = False,
     ) -> Iterator[None]:
         """Context manager to handle spinner start and exit.
 
@@ -99,7 +102,9 @@ class Spinner(threading.Thread):
         :type speed: float, optional
         """
         try:
-            spinner = cls(pattern=pattern, message=message, speed=speed)
+            spinner = cls(
+                pattern=pattern, message=message, speed=speed, no_progress=no_progress
+            )
             spinner.start()
             yield
             spinner.stop()
