@@ -65,21 +65,27 @@ def ls_instance(
 
     if sg or sgid or sgname:
         if not sgid and not sgname:
-            result = ec2.get_security_groups(multi_select=True, return_attr="id")
+            result = ec2.get_security_groups(
+                multi_select=True, return_attr="id", no_progress=False
+            )
             if result:
                 response = ec2.client.describe_security_groups(GroupIds=result)
                 dump_response(response)
         else:
             if sgid:
-                result = ec2.get_security_groups(multi_select=True, return_attr="id")
+                result = ec2.get_security_groups(
+                    multi_select=True, return_attr="id", no_progress=True
+                )
                 for item in result:
                     print(item)
             if sgname:
-                result = ec2.get_security_groups(multi_select=True, return_attr="name")
+                result = ec2.get_security_groups(
+                    multi_select=True, return_attr="name", no_progress=True
+                )
                 for item in result:
                     print(item)
     elif subnet or subnetid:
-        result = ec2.get_subnet_id(multi_select=True)
+        result = ec2.get_subnet_id(multi_select=True, no_progress=True)
         if not subnetid and result:
             response = ec2.client.describe_subnets(SubnetIds=result)
             dump_response(response)
@@ -87,7 +93,7 @@ def ls_instance(
             for item in result:
                 print(item)
     elif volume or volumeid:
-        result = ec2.get_volume_id(multi_select=True)
+        result = ec2.get_volume_id(multi_select=True, no_progress=True)
         if not volumeid and result:
             response = ec2.client.describe_volumes(VolumeIds=result)
             dump_response(response)
@@ -95,7 +101,7 @@ def ls_instance(
             for item in result:
                 print(item)
     elif vpc or vpcid:
-        result = ec2.get_vpc_id(multi_select=True)
+        result = ec2.get_vpc_id(multi_select=True, no_progress=True)
         if not vpcid and result:
             response = ec2.client.describe_vpcs(VpcIds=result)
             dump_response(response)
@@ -104,7 +110,7 @@ def ls_instance(
                 print(item)
 
     else:
-        ec2.set_ec2_instance()
+        ec2.set_ec2_instance(no_progress=True)
         if (
             not ipv4
             and not privateip

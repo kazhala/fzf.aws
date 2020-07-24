@@ -29,16 +29,22 @@ class EC2(BaseSession):
         self.instance_list: list = [{}]
         self.instance_ids: list = [""]
 
-    def set_ec2_instance(self, multi_select: bool = True, header: str = None) -> None:
+    def set_ec2_instance(
+        self, multi_select: bool = True, header: str = None, no_progress: bool = False
+    ) -> None:
         """Set ec2 instance for current operation.
 
         :param multi_select: enable multi select
         :type multi_select: bool, optional
         :param header: helper information to display in fzf header
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching EC2 instances ..."):
+        with Spinner.spin(
+            message="Fetching EC2 instances ...", no_progress=no_progress
+        ):
             paginator = self.client.get_paginator("describe_instances")
             for result in paginator.paginate():
                 response_generator = self._instance_generator(result["Reservations"])
@@ -114,7 +120,11 @@ class EC2(BaseSession):
             )
 
     def get_security_groups(
-        self, multi_select: bool = False, return_attr: str = "id", header: str = None
+        self,
+        multi_select: bool = False,
+        return_attr: str = "id",
+        header: str = None,
+        no_progress: bool = False,
     ) -> Union[str, list]:
         """Use paginator to get the user selected security groups.
 
@@ -124,11 +134,15 @@ class EC2(BaseSession):
         :type return_attr: str, optional
         :param header: header to display in fzf
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :return: selected security groups/ids
         :rtype: Union[str, list]
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching SecurityGroups ..."):
+        with Spinner.spin(
+            message="Fetching SecurityGroups ...", no_progress=no_progress
+        ):
             paginator = self.client.get_paginator("describe_security_groups")
             for result in paginator.paginate():
                 response_list = result["SecurityGroups"]
@@ -172,7 +186,7 @@ class EC2(BaseSession):
         )
 
     def get_subnet_id(
-        self, multi_select: bool = False, header: str = None
+        self, multi_select: bool = False, header: str = None, no_progress: bool = False
     ) -> Union[str, list]:
         """Get user selected subnet id through fzf.
 
@@ -181,10 +195,12 @@ class EC2(BaseSession):
         :param header: header to display in fzf header
         :type header: str, optional
         :return: selected subnet id
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :rtype: Union[str, list]
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching Subnets ..."):
+        with Spinner.spin(message="Fetching Subnets ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_subnets")
             for result in paginator.paginate():
                 response_list = result["Subnets"]
@@ -198,7 +214,7 @@ class EC2(BaseSession):
         )
 
     def get_volume_id(
-        self, multi_select: bool = False, header: str = None
+        self, multi_select: bool = False, header: str = None, no_progress: bool = False
     ) -> Union[str, list]:
         """Get user selected volume id through fzf.
 
@@ -206,11 +222,13 @@ class EC2(BaseSession):
         :type multi_select: bool, optional
         :param header: header to display in fzf header
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :return: selected volume id
         :rtype: Union[str, list]
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching EBS volumes ..."):
+        with Spinner.spin(message="Fetching EBS volumes ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_volumes")
             for result in paginator.paginate():
                 response_list = result["Volumes"]
@@ -222,7 +240,7 @@ class EC2(BaseSession):
         )
 
     def get_vpc_id(
-        self, multi_select: bool = False, header: str = None
+        self, multi_select: bool = False, header: str = None, no_progress: bool = False
     ) -> Union[str, list]:
         """Get user selected vpc id through fzf.
 
@@ -230,11 +248,13 @@ class EC2(BaseSession):
         :type multi_select: bool, optional
         :param header: header to display in fzf header
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :return: selected vpc id
         :rtype: Union[str, list]
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching VPCs ..."):
+        with Spinner.spin(message="Fetching VPCs ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_vpcs")
             for result in paginator.paginate():
                 response_list = result["Vpcs"]
