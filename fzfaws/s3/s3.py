@@ -35,14 +35,16 @@ class S3(BaseSession):
         self.bucket_name: str = ""
         self.path_list: List[str] = [""]
 
-    def set_s3_bucket(self, header: str = "") -> None:
+    def set_s3_bucket(self, header: str = "", no_progress: bool = False) -> None:
         """List bucket through fzf and let user select a bucket.
 
         :param header: header to display in fzf header
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fethcing s3 buckets ..."):
+        with Spinner.spin(message="Fetching s3 buckets ...", no_progress=no_progress):
             response = self.client.list_buckets()
         fzf.process_list(response["Buckets"], "Name")
         self.bucket_name = str(fzf.execute_fzf(header=header))
@@ -170,6 +172,7 @@ class S3(BaseSession):
         version: bool = False,
         multi_select: bool = False,
         deletemark: bool = False,
+        no_progress: bool = False,
     ) -> None:
         """List object within a bucket and let user select a object.
 
@@ -185,13 +188,17 @@ class S3(BaseSession):
         :type multi_select: bool, optional
         :param deletemark: show deletemark object in the list
         :type deletemark: bool, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :raises NoSelectionMade: when there is no selection made
         """
         fzf = Pyfzf()
 
         if not version:
             paginator = self.client.get_paginator("list_objects")
-            with Spinner.spin(message="Fetching s3 objects ..."):
+            with Spinner.spin(
+                message="Fetching s3 objects ...", no_progress=no_progress
+            ):
                 for result in paginator.paginate(Bucket=self.bucket_name):
                     for file in result.get("Contents", []):
                         if file.get("Key").endswith("/") or not file.get("Key"):
@@ -207,7 +214,9 @@ class S3(BaseSession):
 
         else:
             paginator = self.client.get_paginator("list_object_versions")
-            with Spinner.spin(message="Fetching s3 objects ..."):
+            with Spinner.spin(
+                message="Fetching s3 objects ...", no_progress=no_progress
+            ):
                 results = paginator.paginate(Bucket=self.bucket_name)
                 version_obj_genrator = self._uniq_object_generator(results, deletemark)
                 generated = False
@@ -231,6 +240,7 @@ class S3(BaseSession):
         select_all: bool = False,
         non_current: bool = False,
         multi_select: bool = True,
+        no_progress: bool = False,
     ) -> List[Dict[str, str]]:
         """List object versions through fzf.
         
@@ -246,6 +256,8 @@ class S3(BaseSession):
         :type non_current: bool, optional
         :param multi_select: allow multi selection
         :type multi_select: bool, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :return: list of selected versions
         :rtype: List[Dict[str, str]]
 
@@ -263,7 +275,9 @@ class S3(BaseSession):
         selected_versions: list = []
         for key in key_list:
             response_generator: Union[list, Generator[Dict[str, str], None, None]] = []
-            with Spinner.spin(message="Fetching object versions ..."):
+            with Spinner.spin(
+                message="Fetching object versions ...", no_progress=no_progress
+            ):
                 paginator = self.client.get_paginator("list_object_versions")
                 for result in paginator.paginate(Bucket=bucket, Prefix=key):
                     response_generator = self._version_generator(

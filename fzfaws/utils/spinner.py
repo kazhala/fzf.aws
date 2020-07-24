@@ -35,6 +35,8 @@ class Spinner(threading.Thread):
     :type message: str, optional
     :param speed: speed to spin
     :type speed: float, optional
+    :param no_progress: don't display progress bar, useful for ls command
+    :type no_progress: bool, optional
     """
 
     instances: list = []
@@ -100,6 +102,8 @@ class Spinner(threading.Thread):
         :type message: str, optional
         :param speed: speed to spin
         :type speed: float, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         """
         try:
             spinner = cls(

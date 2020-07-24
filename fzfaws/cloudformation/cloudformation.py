@@ -31,7 +31,11 @@ class Cloudformation(BaseSession):
         self.stack_details: dict = {}
 
     def set_stack(self, no_progress=False) -> None:
-        """Store the selected stack into the instance attribute."""
+        """Store the selected stack into the instance attribute.
+
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
+        """
         fzf = Pyfzf()
         with Spinner.spin(
             message="Fetching cloudformation stacks ...", no_progress=no_progress
@@ -57,11 +61,15 @@ class Cloudformation(BaseSession):
         :type empty_allow: bool, optional
         :param header: information to be displayed in fzf header
         :type header: str, optional
+        :param no_progress: don't display progress bar, useful for ls command
+        :type no_progress: bool, optional
         :return: selected list of logical resources LogicalResourceId
         :rtype: List[str]
         """
         fzf = Pyfzf()
-        with Spinner.spin(message="Fetching stack resources ...", no_progress=no_progress):
+        with Spinner.spin(
+            message="Fetching stack resources ...", no_progress=no_progress
+        ):
             paginator = self.client.get_paginator("list_stack_resources")
             for result in paginator.paginate(StackName=self.stack_name):
                 for resource in result.get("StackResourceSummaries"):
