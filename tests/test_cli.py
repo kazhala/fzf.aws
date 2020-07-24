@@ -72,7 +72,7 @@ class TestCLI(unittest.TestCase):
     def test_exceptions(self, mocked_args):
         mocked_args.side_effect = InvalidFileType
         sys.argv = [__file__, "s3"]
-        main()
+        self.assertRaises(SystemExit, main)
         self.assertEqual(
             self.capturedOuput.getvalue(), "Selected file is not a valid file type\n"
         )
@@ -87,4 +87,4 @@ class TestCLI(unittest.TestCase):
 
         mocked_args.side_effect = ClientError
         sys.argv = [__file__, "s3"]
-        main()
+        self.assertRaises(SystemExit, main)

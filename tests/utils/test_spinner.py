@@ -19,12 +19,21 @@ class TestSpinner(unittest.TestCase):
         self.assertEqual(spinner.message, "loading ...")
         self.assertEqual(spinner.pattern, "|/-\\")
         self.assertEqual(spinner.speed, 0.1)
+        self.assertEqual(spinner.no_progress, False)
 
     def test_nondefault(self):
-        spinner = Spinner(pattern="1234", message="hello..", speed=0.01)
+        spinner = Spinner(
+            pattern="1234", message="hello..", speed=0.01, no_progress=True
+        )
         self.assertEqual(spinner.message, "hello..")
         self.assertEqual(spinner.pattern, "1234")
         self.assertEqual(spinner.speed, 0.01)
+        self.assertEqual(spinner.no_progress, True)
+
+    def test_no_progress(self):
+        with Spinner.spin(no_progress=True):
+            print("hello")
+        self.assertEqual(self.capturedOutput.getvalue(), "hello\n")
 
     def test_spin(self):
         self.spinner.start()

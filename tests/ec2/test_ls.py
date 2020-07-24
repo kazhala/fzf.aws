@@ -176,7 +176,9 @@ class TestEC2ls(unittest.TestCase):
             self.capturedOutput.getvalue(),
             r"GroupName.*hellotesting-EC2InstanceSecurityGroup",
         )
-        mocked_sg.assert_called_with(multi_select=True, return_attr="id")
+        mocked_sg.assert_called_with(
+            multi_select=True, return_attr="id", no_progress=True
+        )
 
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
@@ -184,7 +186,9 @@ class TestEC2ls(unittest.TestCase):
         self.assertEqual(
             self.capturedOutput.getvalue(), "sg-006ae18653dc5acd7\n",
         )
-        mocked_sg.assert_called_with(multi_select=True, return_attr="id")
+        mocked_sg.assert_called_with(
+            multi_select=True, return_attr="id", no_progress=True
+        )
 
         mocked_sg.return_value = ["hellotesting-EC2InstanceSecurityGroup"]
         self.capturedOutput.truncate(0)
@@ -193,4 +197,6 @@ class TestEC2ls(unittest.TestCase):
         self.assertEqual(
             self.capturedOutput.getvalue(), "hellotesting-EC2InstanceSecurityGroup\n",
         )
-        mocked_sg.assert_called_with(multi_select=True, return_attr="name")
+        mocked_sg.assert_called_with(
+            multi_select=True, return_attr="name", no_progress=True
+        )
