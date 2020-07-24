@@ -66,7 +66,7 @@ def ls_instance(
     if sg or sgid or sgname:
         if not sgid and not sgname:
             result = ec2.get_security_groups(
-                multi_select=True, return_attr="id", no_progress=False
+                multi_select=True, return_attr="id", no_progress=True
             )
             if result:
                 response = ec2.client.describe_security_groups(GroupIds=result)
