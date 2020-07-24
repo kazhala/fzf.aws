@@ -254,6 +254,7 @@ class S3(BaseSession):
         """
         bucket = bucket if bucket else self.bucket_name
         key_list: list = []
+        fzf = Pyfzf()
 
         if key:
             key_list.append(key)
@@ -262,24 +263,33 @@ class S3(BaseSession):
         selected_versions: list = []
         for key in key_list:
             response_generator: Union[list, Generator[Dict[str, str], None, None]] = []
-            paginator = self.client.get_paginator("list_object_versions")
-            for result in paginator.paginate(Bucket=bucket, Prefix=key):
-                response_generator = self._version_generator(
-                    result.get("Versions", []),
-                    result.get("DeleteMarkers", []),
-                    non_current,
-                    delete,
-                )
+            with Spinner.spin(message="Fetching object versions ..."):
+                paginator = self.client.get_paginator("list_object_versions")
+                for result in paginator.paginate(Bucket=bucket, Prefix=key):
+                    response_generator = self._version_generator(
+                        result.get("Versions", []),
+                        result.get("DeleteMarkers", []),
+                        non_current,
+                        delete,
+                    )
+                    if not select_all:
+                        fzf.process_list(
+                            response_generator,
+                            "VersionId",
+                            "Key",
+                            "IsLatest",
+                            "DeleteMarker",
+                            "LastModified",
+                        )
+                    else:
+                        selected_versions.extend(
+                            [
+                                {"Key": key, "VersionId": version.get("VersionId")}
+                                for version in response_generator
+                            ]
+                        )
+
             if not select_all:
-                fzf = Pyfzf()
-                fzf.process_list(
-                    response_generator,
-                    "VersionId",
-                    "Key",
-                    "IsLatest",
-                    "DeleteMarker",
-                    "LastModified",
-                )
                 if delete and multi_select:
                     for result in fzf.execute_fzf(multi_select=True):
                         selected_versions.append({"Key": key, "VersionId": result})
@@ -287,13 +297,6 @@ class S3(BaseSession):
                     selected_versions.append(
                         {"Key": key, "VersionId": str(fzf.execute_fzf())}
                     )
-            else:
-                selected_versions.extend(
-                    [
-                        {"Key": key, "VersionId": version.get("VersionId")}
-                        for version in response_generator
-                    ]
-                )
         return selected_versions
 
     def get_object_data(self, file_type: str = "") -> Dict[str, Any]:
