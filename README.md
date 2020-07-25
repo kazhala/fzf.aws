@@ -86,6 +86,8 @@ about aws and this project definitely took some impact (mainly ec2, s3, cloudfor
 This is my first python package and I'm still learning stuff along the way, some code style/implementation might drastically differ from others, I'm trying my best
 to refactor everything to align.
 
+Leave a star :)
+
 ## Testing
 
 `fzfaws` is fully tested using the unittest module, heavy mocking were implemented to thoroughly test the interaction with aws as well
@@ -94,11 +96,11 @@ perform under extreme data load, please fire up issues if you face any.
 
 ## Related projects
 
-- [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder)
+- [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder): A clean and well written project focus on ssh into EC2 instance.
 
 ## Credit
 
 - credit to [fzf](https://github.com/junegunn/fzf).
 - credit to [boto3](https://github.com/boto/boto3).
-- credit to [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder) for it's fzf-binary usage.
+- credit to [aws-fuzzy-finder](https://github.com/pmazurek/aws-fuzzy-finder) for it's fzf-binary detection usage.
 - credit to [this](https://stackoverflow.com/a/33350380) answer for the method to walk s3 folder.

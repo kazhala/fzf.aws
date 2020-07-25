@@ -34,7 +34,7 @@ def object_s3(
     :type profile: Union[str, bool], optional
     :param bucket: bucket name that contains the object
     :type bucket: str, optional
-    :param recursive: recusive update object attr
+    :param recursive: recursive update object attr
     :type recursive: bool, optional
     :param allversion: update all versions of a object
     :type allversion: bool, optional
@@ -197,7 +197,7 @@ def update_object_recursive(
     exclude: Optional[List[str]] = None,
     include: Optional[List[str]] = None,
 ) -> None:
-    """Recusive update object attributes.
+    """Recursive update object attributes.
 
     :param s3: S3 class instance
     :type s3: S3

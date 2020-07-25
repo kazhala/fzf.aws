@@ -18,7 +18,7 @@ class Pyfzf:
     To create a entry into fzf, use Pyfzf.append_fzf() and pass in the string.
     To create mutiple entries, would require manually pass in \n to seperate each entry.
 
-    For a list of response from boto3, it is recommanded to use the process_list() function.
+    For a list of response from boto3, it is recommended to use the process_list() function.
 
     Example:
         fzf = Pyfzf()
