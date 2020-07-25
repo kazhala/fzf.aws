@@ -4,7 +4,7 @@ import io
 import os
 from types import GeneratorType
 import unittest
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from fzfaws.ec2 import EC2
 from botocore.paginate import Paginator
 from fzfaws.utils import Pyfzf
@@ -227,44 +227,9 @@ class TestEC2(unittest.TestCase):
             mocked_result.return_value = json.load(json_file)
 
         mocked_fzf_execute.return_value = "sg-006ae18653dc5acd7"
-        assert_array = [
-            {
-                "GroupName": "hellotesting-EC2InstanceSecurityGroup",
-                "GroupId": "sg-006ae18653dc5acd7",
-                "Tags": [
-                    {"Key": "hasdf", "Value": "asdfa"},
-                    {
-                        "Key": "aws:cloudformation:stack-id",
-                        "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/hellotesting/05feb330-88f3-11ea-ae79-0aa5d4eec80a",
-                    },
-                    {
-                        "Key": "aws:cloudformation:logical-id",
-                        "Value": "EC2InstanceSecurityGroup",
-                    },
-                    {"Key": "aws:cloudformation:stack-name", "Value": "hellotesting",},
-                ],
-                "VpcId": "vpc-5c03313b",
-                "Name": None,
-            },
-            {
-                "GroupName": "default-ssh",
-                "GroupId": "sg-0106a116cd9343134",
-                "Tags": [
-                    {
-                        "Key": "aws:cloudformation:stack-id",
-                        "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/SG-default/fd03c970-6d70-11ea-ba51-0a97b58f1090",
-                    },
-                    {"Key": "aws:cloudformation:stack-name", "Value": "SG-default"},
-                    {"Key": "aws:cloudformation:logical-id", "Value": "DefaultSSHSG",},
-                    {"Key": "Name", "Value": "default-ssh"},
-                ],
-                "VpcId": "vpc-5c03313b",
-                "Name": "default-ssh",
-            },
-        ]
         self.ec2.get_security_groups()
         mocked_fzf_list.assert_called_with(
-            assert_array, "GroupId", "GroupName", "Name",
+            ANY, "GroupId", "GroupName", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -276,7 +241,7 @@ class TestEC2(unittest.TestCase):
             multi_select=True, return_attr="name", header="hello"
         )
         mocked_fzf_list.assert_called_with(
-            assert_array, "GroupName", "Name",
+            ANY, "GroupName", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
@@ -295,12 +260,7 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_instance_id()
         mocked_fzf_list.assert_called_with(
-            [
-                {"InstanceId": "11111111", "Name": "meal-Bean-10PYXE0G1F4HS"},
-                {"InstanceId": "22222222", "Name": "default-ubuntu"},
-            ],
-            "InstanceId",
-            "Name",
+            ANY, "InstanceId", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -327,43 +287,7 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_subnet_id()
         mocked_fzf_list.assert_called_with(
-            [
-                {
-                    "AvailabilityZone": "ap-southeast-2a",
-                    "CidrBlock": "172.31.32.0/20",
-                    "SubnetId": "subnet-d31f089a",
-                    "VpcId": "vpc-5c03313b",
-                    "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-d31f089a",
-                    "Name": None,
-                },
-                {
-                    "AvailabilityZone": "ap-southeast-2c",
-                    "CidrBlock": "10.1.3.0/24",
-                    "SubnetId": "subnet-07ff9f753e9552040",
-                    "VpcId": "vpc-0f07bd18d891bc5c0",
-                    "Tags": [
-                        {
-                            "Key": "aws:cloudformation:stack-id",
-                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4",
-                        },
-                        {"Key": "Name", "Value": "playground-PublicC"},
-                        {
-                            "Key": "aws:cloudformation:logical-id",
-                            "Value": "PublicSubnetC",
-                        },
-                        {
-                            "Key": "aws:cloudformation:stack-name",
-                            "Value": "VPC-playground",
-                        },
-                    ],
-                    "SubnetArn": "arn:aws:ec2:ap-southeast-2:111111:subnet/subnet-07ff9f753e9552040",
-                    "Name": "playground-PublicC",
-                },
-            ],
-            "SubnetId",
-            "AvailabilityZone",
-            "CidrBlock",
-            "Name",
+            ANY, "SubnetId", "AvailabilityZone", "CidrBlock", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -390,22 +314,7 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_volume_id()
         mocked_fzf_list.assert_called_with(
-            [
-                {
-                    "VolumeId": "vol-03d755609d4783573",
-                    "Iops": 100,
-                    "VolumeType": "gp2",
-                    "Name": None,
-                },
-                {
-                    "VolumeId": "vol-04bf0dd95936347fc",
-                    "Iops": 100,
-                    "VolumeType": "gp2",
-                    "Name": None,
-                },
-            ],
-            "VolumeId",
-            "Name",
+            ANY, "VolumeId", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -432,42 +341,7 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_vpc_id()
         mocked_fzf_list.assert_called_with(
-            [
-                {
-                    "CidrBlock": "10.1.0.0/16",
-                    "State": "available",
-                    "VpcId": "vpc-0f07bd18d891bc5c0",
-                    "OwnerId": "111111",
-                    "InstanceTenancy": "default",
-                    "IsDefault": False,
-                    "Tags": [
-                        {
-                            "Key": "aws:cloudformation:stack-name",
-                            "Value": "VPC-playground",
-                        },
-                        {"Key": "aws:cloudformation:logical-id", "Value": "CustomVPC"},
-                        {"Key": "Name", "Value": "playground"},
-                        {
-                            "Key": "aws:cloudformation:stack-id",
-                            "Value": "arn:aws:cloudformation:ap-southeast-2:111111:stack/VPC-playground/9c001d70-763c-11ea-931a-025411181be4",
-                        },
-                    ],
-                    "Name": "playground",
-                },
-                {
-                    "CidrBlock": "172.31.0.0/16",
-                    "State": "available",
-                    "VpcId": "vpc-5c03313b",
-                    "OwnerId": "111111",
-                    "InstanceTenancy": "default",
-                    "IsDefault": True,
-                    "Name": None,
-                },
-            ],
-            "VpcId",
-            "IsDefault",
-            "CidrBlock",
-            "Name",
+            ANY, "VpcId", "IsDefault", "CidrBlock", "Name",
         )
         mocked_fzf_execute.assert_called_with(
             empty_allow=True, multi_select=False, header=None
@@ -492,3 +366,68 @@ class TestEC2(unittest.TestCase):
         for instance in generator:
             self.assertIsInstance(instance, dict)
             self.assertRegex(instance["InstanceId"], r"[0-9]*")
+
+    def test_name_tag_generator(self):
+        data = [
+            {
+                "CidrBlock": "10.1.0.0/16",
+                "State": "available",
+                "VpcId": "vpc-0f07bd18d891bc5c0",
+                "OwnerId": "111111",
+                "InstanceTenancy": "default",
+                "IsDefault": False,
+                "Tags": [
+                    {"Key": "aws:cloudformation:logical-id", "Value": "CustomVPC"},
+                    {"Key": "Name", "Value": "playground"},
+                ],
+            },
+            {
+                "CidrBlock": "172.31.0.0/16",
+                "State": "available",
+                "VpcId": "vpc-5c03313b",
+                "OwnerId": "111111",
+                "InstanceTenancy": "default",
+                "IsDefault": True,
+            },
+        ]
+        transformed = [
+            {
+                "CidrBlock": "10.1.0.0/16",
+                "State": "available",
+                "VpcId": "vpc-0f07bd18d891bc5c0",
+                "OwnerId": "111111",
+                "InstanceTenancy": "default",
+                "IsDefault": False,
+                "Tags": [
+                    {"Key": "aws:cloudformation:logical-id", "Value": "CustomVPC"},
+                    {"Key": "Name", "Value": "playground"},
+                ],
+                "Name": "playground",
+            },
+            {
+                "CidrBlock": "172.31.0.0/16",
+                "State": "available",
+                "VpcId": "vpc-5c03313b",
+                "OwnerId": "111111",
+                "InstanceTenancy": "default",
+                "IsDefault": True,
+                "Name": None,
+            },
+        ]
+        generator = self.ec2._name_tag_generator(data)
+        self.assertEqual(transformed, list(generator))
+
+    def test_instance_id_generator(self):
+        json_path = (
+            Path(__file__).resolve().parent.joinpath("../data/ec2_instance.json")
+        )
+        with json_path.open("r") as file:
+            response = json.load(file)[0]["Reservations"]
+        generator = self.ec2._instance_id_generator(response)
+        self.assertEqual(
+            [
+                {"InstanceId": "11111111", "Name": "meal-Bean-10PYXE0G1F4HS"},
+                {"InstanceId": "22222222", "Name": "default-ubuntu"},
+            ],
+            list(generator),
+        )
