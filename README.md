@@ -9,8 +9,8 @@
 [![Package version](https://img.shields.io/pypi/v/fzfaws?label=PyPI)](https://pypi.org/project/fzfaws/)
 [![Python version](https://img.shields.io/pypi/pyversions/fzfaws?label=Python)](https://pypi.org/project/fzfaws/)
 [![Platform](https://img.shields.io/badge/Platform-linux%20%7C%20macos-lightgrey)](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py#L52)
-[![Code lint: pyright](https://img.shields.io/badge/Code%20lint-pyright-yellow)](https://github.com/microsoft/pyright)
-[![Code style: black](https://img.shields.io/badge/Code%20style-black-black)](https://github.com/psf/black)
+[![Code Lint: pyright](https://img.shields.io/badge/Code%20Lint-pyright-yellow)](https://github.com/microsoft/pyright)
+[![Code Style: black](https://img.shields.io/badge/Code%20Style-black-black)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/license-MIT-green?label=License)](https://opensource.org/licenses/MIT)
 
 **Note: still under development, expect breaking changes and bugs, use it under caution in prod.**
