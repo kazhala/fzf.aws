@@ -1,7 +1,7 @@
 """Module contains the ec2 wrapper class."""
 import json
 import os
-from typing import Dict, Generator, List, Optional, Union
+from typing import Any, Dict, Generator, List, Optional, Union
 
 from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_name_tag
 
@@ -145,13 +145,13 @@ class EC2(BaseSession):
         ):
             paginator = self.client.get_paginator("describe_security_groups")
             for result in paginator.paginate():
-                response_list = result["SecurityGroups"]
-                for sg in response_list:
-                    sg["Name"] = get_name_tag(sg)
+                response_generator = self._name_tag_generator(
+                    result.get("SecurityGroups", [])
+                )
                 if return_attr == "id":
-                    fzf.process_list(response_list, "GroupId", "GroupName", "Name")
+                    fzf.process_list(response_generator, "GroupId", "GroupName", "Name")
                 elif return_attr == "name":
-                    fzf.process_list(response_list, "GroupName", "Name")
+                    fzf.process_list(response_generator, "GroupName", "Name")
         return fzf.execute_fzf(
             multi_select=multi_select, empty_allow=True, header=header
         )
@@ -172,15 +172,10 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching EC2 instances ..."):
             paginator = self.client.get_paginator("describe_instances")
             for result in paginator.paginate():
-                response_list = []
-                for instance in result["Reservations"]:
-                    response_list.append(
-                        {
-                            "InstanceId": instance["Instances"][0]["InstanceId"],
-                            "Name": get_name_tag(instance["Instances"][0]),
-                        }
-                    )
-                fzf.process_list(response_list, "InstanceId", "Name")
+                response_generator = self._instance_id_generator(
+                    result.get("Reservations", [])
+                )
+                fzf.process_list(response_generator, "InstanceId", "Name")
         return fzf.execute_fzf(
             multi_select=multi_select, empty_allow=True, header=header
         )
@@ -203,11 +198,13 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching Subnets ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_subnets")
             for result in paginator.paginate():
-                response_list = result["Subnets"]
-                for subnet in response_list:
-                    subnet["Name"] = get_name_tag(subnet)
+                response_generator = self._name_tag_generator(result.get("Subnets", []))
                 fzf.process_list(
-                    response_list, "SubnetId", "AvailabilityZone", "CidrBlock", "Name"
+                    response_generator,
+                    "SubnetId",
+                    "AvailabilityZone",
+                    "CidrBlock",
+                    "Name",
                 )
         return fzf.execute_fzf(
             multi_select=multi_select, empty_allow=True, header=header
@@ -231,10 +228,8 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching EBS volumes ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_volumes")
             for result in paginator.paginate():
-                response_list = result["Volumes"]
-                for volume in response_list:
-                    volume["Name"] = get_name_tag(volume)
-                fzf.process_list(response_list, "VolumeId", "Name")
+                response_generator = self._name_tag_generator(result.get("Volumes", []))
+                fzf.process_list(response_generator, "VolumeId", "Name")
         return fzf.execute_fzf(
             multi_select=multi_select, empty_allow=True, header=header
         )
@@ -257,23 +252,43 @@ class EC2(BaseSession):
         with Spinner.spin(message="Fetching VPCs ...", no_progress=no_progress):
             paginator = self.client.get_paginator("describe_vpcs")
             for result in paginator.paginate():
-                response_list = result["Vpcs"]
-                for vpc in response_list:
-                    vpc["Name"] = get_name_tag(vpc)
+                response_generator = self._name_tag_generator(result.get("Vpcs", []))
                 fzf.process_list(
-                    response_list, "VpcId", "IsDefault", "CidrBlock", "Name"
+                    response_generator, "VpcId", "IsDefault", "CidrBlock", "Name"
                 )
         return fzf.execute_fzf(
             empty_allow=True, multi_select=multi_select, header=header
         )
 
+    def _name_tag_generator(
+        self, response: List[Dict[str, Any]]
+    ) -> Generator[Dict[str, Any], None, None]:
+        for item in response:
+            yield {**item, "Name": get_name_tag(item)}
+
+    def _instance_id_generator(
+        self, instances: List[Dict[str, Any]]
+    ) -> Generator[Dict[str, str], None, None]:
+        """Create a generator for listing instance ids.
+
+        :param instances: list of instance from boto3 response
+        :type instances: List[Dict[str, Any]]
+        :return: formatted dict of instance id information in generator form
+        :rtype: Generator[Dict[str,str], None, None]
+        """
+        for instance in instances:
+            yield {
+                "InstanceId": instance["Instances"][0]["InstanceId"],
+                "Name": get_name_tag(instance["Instances"][0]),
+            }
+
     def _instance_generator(
-        self, instances: List[dict]
+        self, instances: List[Dict[str, Any]]
     ) -> Generator[Dict[str, str], None, None]:
         """Get ec2 instance helper, format ec2 response and return generator.
 
         :param instances: list of instance response from boto3
-        :type instances: List[dict]
+        :type instances: List[Dict[str, Any]]
         :return: formatted dict of instance information in generator form
         :rtype: Generator[Dict[str,str], None, None]
         """
