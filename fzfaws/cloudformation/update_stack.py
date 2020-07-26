@@ -118,29 +118,27 @@ def non_replacing_update(cloudformation: Cloudformation) -> Dict[str, Any]:
     :return: formatted argument that's ready to be used by boto3
     :rtype: Dict[str, Any]
     """
-    print("Enter new parameter values, skip to use original value")
+    template_response = cloudformation.client.get_template(
+        StackName=cloudformation.stack_name
+    )
+    fileloader = FileLoader(body=template_response.get("TemplateBody", ""))
+    try:
+        template_data: Dict[str, Any] = fileloader.process_json_body()
+    except json.JSONDecodeError:
+        template_data: Dict[str, Any] = fileloader.process_yaml_body()
     updated_parameters: List[Dict[str, Any]] = []
-    parameters = cloudformation.stack_details.get("Parameters", [])
 
-    for parameter in parameters:
-        parameter_value = input(
-            "%s(%s): " % (parameter["ParameterKey"], parameter["ParameterValue"])
+    if template_data.get("Parameters"):
+        paramprocessor = ParamProcessor(
+            cloudformation.profile,
+            cloudformation.region,
+            template_data["Parameters"],
+            cloudformation.stack_details.get("Parameters"),
         )
-        if parameter_value == '""' or parameter_value == "''":
-            updated_parameters.append(
-                {"ParameterKey": parameter["ParameterKey"], "ParameterValue": "",}
-            )
-        elif not parameter_value:
-            updated_parameters.append(
-                {"ParameterKey": parameter["ParameterKey"], "UsePreviousValue": True,}
-            )
-        else:
-            updated_parameters.append(
-                {
-                    "ParameterKey": parameter["ParameterKey"],
-                    "ParameterValue": parameter_value,
-                }
-            )
+        paramprocessor.process_stack_params()
+        updated_parameters = paramprocessor.processed_params
+    else:
+        updated_parameters = []
 
     cloudformation_args = {
         "cloudformation_action": cloudformation.client.update_stack,
