@@ -26,10 +26,10 @@ class TestCloudformationUpdateStack(unittest.TestCase):
     def tearDown(self):
         sys.stdout = sys.__stdout__
 
+    @patch("fzfaws.cloudformation.update_stack.ParamProcessor")
     @patch("fzfaws.cloudformation.update_stack.CloudformationArgs")
-    @patch("builtins.input")
     @patch("fzfaws.cloudformation.update_stack.Cloudformation")
-    def test_non_replacing_update(self, MockedCloudformation, mocked_input, MockedArgs):
+    def test_non_replacing_update(self, MockedCloudformation, MockedArgs, MockedParam):
         cloudformation = MockedCloudformation()
         cloudformation.stack_name = "testing1"
         cloudformation.stack_details = {
@@ -41,13 +41,25 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         }
         cloudformation.set_stack.return_value = None
         cloudformation.execute_with_capabilities.return_value = {}
-        mocked_input.return_value = "foo"
+        with open(self.data_path, "r") as file:
+            cloudformation.client.get_template.return_value = {
+                "TemplateBody": file.read()
+            }
+        paramprocessor = MockedParam()
+        paramprocessor.process_stack_params.return_value = None
+        paramprocessor.processed_params = [
+            {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+            {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+            {"ParameterKey": "WebServer", "ParameterValue": "Yes"},
+        ]
+
         update_stack()
+
         cloudformation.execute_with_capabilities.assert_called_with(
             Parameters=[
-                {"ParameterKey": "SSHLocation", "ParameterValue": "foo"},
-                {"ParameterKey": "Hello", "ParameterValue": "foo"},
-                {"ParameterKey": "WebServer", "ParameterValue": "foo"},
+                {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+                {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+                {"ParameterKey": "WebServer", "ParameterValue": "Yes"},
             ],
             StackName="testing1",
             UsePreviousTemplate=True,
@@ -66,9 +78,9 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         )
         cloudformation.execute_with_capabilities.assert_called_with(
             Parameters=[
-                {"ParameterKey": "SSHLocation", "ParameterValue": "foo"},
-                {"ParameterKey": "Hello", "ParameterValue": "foo"},
-                {"ParameterKey": "WebServer", "ParameterValue": "foo"},
+                {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+                {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+                {"ParameterKey": "WebServer", "ParameterValue": "Yes"},
             ],
             StackName="testing1",
             UsePreviousTemplate=True,
@@ -79,9 +91,9 @@ class TestCloudformationUpdateStack(unittest.TestCase):
             update=True, search_from_root=False, dryrun=False
         )
 
-    @patch("builtins.input")
+    @patch("fzfaws.cloudformation.update_stack.ParamProcessor")
     @patch("fzfaws.cloudformation.update_stack.Cloudformation")
-    def test_dryrun(self, MockedCloudformation, mocked_input):
+    def test_dryrun(self, MockedCloudformation, MockedParam):
         cloudformation = MockedCloudformation()
         cloudformation.stack_name = "testing1"
         cloudformation.stack_details = {
@@ -93,15 +105,27 @@ class TestCloudformationUpdateStack(unittest.TestCase):
         }
         cloudformation.set_stack.return_value = None
         cloudformation.execute_with_capabilities.return_value = {}
-        mocked_input.return_value = ""
+        cloudformation.execute_with_capabilities.return_value = {}
+        with open(self.data_path, "r") as file:
+            cloudformation.client.get_template.return_value = {
+                "TemplateBody": file.read()
+            }
+        paramprocessor = MockedParam()
+        paramprocessor.process_stack_params.return_value = None
+        paramprocessor.processed_params = [
+            {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+            {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+            {"ParameterKey": "WebServer", "ParameterValue": "Yes"},
+        ]
+
         result = update_stack(dryrun=True)
         self.assertEqual(
             result,
             {
                 "Parameters": [
-                    {"ParameterKey": "SSHLocation", "UsePreviousValue": True},
-                    {"ParameterKey": "Hello", "UsePreviousValue": True},
-                    {"ParameterKey": "WebServer", "UsePreviousValue": True},
+                    {"ParameterKey": "SSHLocation", "ParameterValue": "0.0.0.0/0"},
+                    {"ParameterKey": "Hello", "ParameterValue": "i-0a23663d658dcee1c"},
+                    {"ParameterKey": "WebServer", "ParameterValue": "Yes"},
                 ],
                 "StackName": "testing1",
                 "UsePreviousTemplate": True,
