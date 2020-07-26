@@ -67,10 +67,10 @@ pip3 install fzfaws
 
 Getting started guide and individual service guide are documented in [wiki](https://github.com/kazhala/fzf.aws/wiki).
 
-- Getting started
-- Basic usage
-- Customization
-- Docker image
+- [General Usage](https://github.com/kazhala/fzf.aws/wiki)
+- [EC2](https://github.com/kazhala/fzf.aws/wiki/EC2)
+- [CloudFormation](https://github.com/kazhala/fzf.aws/wiki/CloudFormation)
+- [S3](https://github.com/kazhala/fzf.aws/wiki/S3)
 
 ## Motivation & Background
 
