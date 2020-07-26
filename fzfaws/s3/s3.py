@@ -98,74 +98,63 @@ class S3(BaseSession):
         if selected_option == "input":
             self.path_list[0] = input("Input the path(newname or newpath/): ")
         elif selected_option == "root":
-            print("S3 file path is set to root")
+            # print("S3 file path is set to root")
+            pass
         elif selected_option == "append" or selected_option == "interactively":
             paginator = self.client.get_paginator("list_objects")
             fzf = Pyfzf()
-            try:
-                parents = []
-                # interactively search down 'folders' in s3
-                while True:
-                    if len(parents) > 0:
-                        fzf.append_fzf("..\n")
-                    with Spinner.spin(message="Fetching s3 objects ..."):
-                        preview: str = ""
-                        for result in paginator.paginate(
-                            Bucket=self.bucket_name,
-                            Prefix=self.path_list[0],
-                            Delimiter="/",
-                        ):
-                            for prefix in result.get("CommonPrefixes", []):
-                                fzf.append_fzf("%s\n" % prefix.get("Prefix"))
-                            for content in result.get("Contents", []):
-                                preview += content.get("Key")
-                                preview += "^"
+            parents = []
+            # interactively search down 'folders' in s3
+            while True:
+                if len(parents) > 0:
+                    fzf.append_fzf("\033[34m../\033[0m\n")
+                fzf.append_fzf("\033[33m./\033[0m\n")
+                with Spinner.spin(message="Fetching s3 objects ..."):
+                    preview: str = ""
+                    for result in paginator.paginate(
+                        Bucket=self.bucket_name,
+                        Prefix=self.path_list[0],
+                        Delimiter="/",
+                    ):
+                        for prefix in result.get("CommonPrefixes", []):
+                            fzf.append_fzf("%s\n" % prefix.get("Prefix"))
+                        for content in result.get("Contents", []):
+                            preview += content.get("Key")
+                            preview += "^"
 
-                    # has to use tr to transform the string to new line during preview by fzf
-                    # not sure why, but if directly use \n, fzf preview interpret as a new command
-                    # TODO: findout why
-                    selected_path = str(
-                        fzf.execute_fzf(
-                            empty_allow=True,
-                            print_col=0,
-                            header="PWD: s3://%s/%s (press ESC to use current path)"
-                            % (self.bucket_name, self.path_list[0]),
-                            preview="echo %s | tr '^' '\n'" % preview.rstrip(),
-                        )
+                # has to use tr to transform the string to new line during preview by fzf
+                # not sure why, but if directly use \n, fzf preview interpret as a new command
+                # TODO: findout why
+                selected_path = str(
+                    fzf.execute_fzf(
+                        print_col=0,
+                        header='PWD: s3://%s/%s (select "./" will the current path)'
+                        % (self.bucket_name, self.path_list[0]),
+                        preview="echo %s | tr '^' '\n'" % preview.rstrip(),
                     )
-                    if not selected_path:
-                        raise NoSelectionMade
-                    if selected_path == "..":
-                        self.path_list[0] = parents.pop()
-                    else:
-                        parents.append(self.path_list[0])
-                        self.path_list[0] = selected_path
-                    # reset fzf string
-                    fzf.fzf_string = ""
-            except ClientError:
-                raise
-            except KeyboardInterrupt:
-                raise
-            except:
-                if selected_option == "append":
-                    print(
-                        "Current PWD is s3://%s/%s"
-                        % (self.bucket_name, self.path_list[0])
-                    )
-                    new_path = input(
-                        "Input the new path to append(newname or newpath/): "
-                    )
-                    self.path_list[0] += new_path
-                if get_confirmation(
-                    "S3 file path will be set to s3://%s/%s"
-                    % (self.bucket_name, self.path_list[0],)
-                ):
-                    print(
-                        "S3 file path is set to %s"
-                        % (self.path_list[0] if self.path_list[0] else "root")
-                    )
-                else:
+                )
+                if not selected_path:
                     raise NoSelectionMade
+                if selected_path == "../":
+                    self.path_list[0] = parents.pop()
+                elif selected_path == "./":
+                    break
+                else:
+                    parents.append(self.path_list[0])
+                    self.path_list[0] = selected_path
+                # reset fzf string
+                fzf.fzf_string = ""
+
+            if selected_option == "append":
+                print(
+                    "Current PWD is s3://%s/%s" % (self.bucket_name, self.path_list[0])
+                )
+                new_path = input("Input the new path to append(newname or newpath/): ")
+                self.path_list[0] += new_path
+        print(
+            "S3 file path is set to %s"
+            % (self.path_list[0] if self.path_list[0] else "root")
+        )
 
     def set_s3_object(
         self,
