@@ -13,7 +13,7 @@
 [![Code Style: black](https://img.shields.io/badge/Code%20Style-black-black)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/license-MIT-green?label=License)](https://opensource.org/licenses/MIT)
 
-**Note: still under development, expect breaking changes and bugs, use it under caution in prod.**
+**Note: still under development, may have breaking changes and bugs, use it under caution.**
 
 ![fzfaws demo](https://github.com/kazhala/gif/blob/master/fzfaws-demo.gif)
 
@@ -44,6 +44,7 @@ With that said, feature request are very welcome, I would like to discuss and co
 `fzfaws` currently only has support for MacOS and Linux systems. For Windows system support, there will need some work to be done on the
 [pyfzf](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/utils/pyfzf.py) module as well as the [ssh_instance](https://github.com/kazhala/fzf.aws/blob/master/fzfaws/ec2/ec2.py)
 module, PR welcome. You could always utilise the docker image of `fzfaws` on any system, checkout [wiki](https://github.com/kazhala/fzf.aws/wiki#docker-image) to consult how to use the image.
+It should theoretically support Windows WSL, if you are getting error message please let me know.
 
 ### Python
 
@@ -81,10 +82,10 @@ I don't want to do it in aws console. Since I was learning Python, I decided to 
 You could find the half bash half Python version in [this](https://github.com/kazhala/fzf.aws/tree/archive/shell-version) branch.
 
 As the scripts grow, I decided to make a dedicated project and re-write everything in Python. It was a great help for me to understand more
-about aws and this project definitely took some impact (mainly ec2, s3, cloudformation) on both my associate level and professional level aws certifications.
+about aws and this project definitely took some positive impact (mainly ec2, s3, cloudformation) on my aws certification exams.
 
-This is my first python package and I'm still learning stuff along the way, some code style/implementation might drastically differ from others, I'm trying my best
-to refactor everything to align.
+It's more of a learning project for me, it is also my first python package and I'm still learning stuff along the way,
+some code style/implementation might drastically differ from others, I'm trying my best to refactor everything to align.
 
 Leave a star :)
 
