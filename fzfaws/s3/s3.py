@@ -432,7 +432,7 @@ class S3(BaseSession):
         selected_option = str(
             fzf.execute_fzf(
                 print_col=1,
-                header="Please select which level of the bucket would you like to operate in",
+                header="select which level of the bucket would you like to operate in",
                 delimiter=": ",
             )
         )

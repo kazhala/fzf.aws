@@ -203,7 +203,7 @@ class Pyfzf:
             home_path = os.path.expanduser("~")
             os.chdir(home_path)
         if not header and directory:
-            header = r"Selecting ./ will use current directory"
+            header = r"select ./ will use current directory"
 
         cmd: str = ""
 
