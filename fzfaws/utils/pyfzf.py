@@ -113,7 +113,6 @@ class Pyfzf:
         """
         # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
-        fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = self._construct_fzf_cmd()
         selection: bytes = b""
         selection_str: str = ""
@@ -130,7 +129,16 @@ class Pyfzf:
             cmd_list.extend(["--preview", preview])
 
         try:
-            selection = subprocess.check_output(cmd_list, stdin=fzf_input.stdout)
+            proc = subprocess.Popen(
+                cmd_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None
+            )
+            stdin = proc.stdin
+            stdin.write(self.fzf_string.encode("utf-8"))
+            stdin.flush()
+            stdin.close()
+            stdout = proc.stdout
+            selection = stdout.read()
+
             selection_str = str(selection, "utf-8")
 
             if not selection and not empty_allow:
@@ -139,16 +147,10 @@ class Pyfzf:
             # if first line contains ctrl-c, exit
             self._check_ctrl_c(selection_str)
 
-        except subprocess.CalledProcessError:
-            # this exception may happend if user didn't make a selection in fzf
-            # thus ending with non zero exit code
+        except (subprocess.CalledProcessError, IOError):
             if not empty_allow:
                 raise NoSelectionMade
-            elif empty_allow:
-                if multi_select:
-                    return []
-                else:
-                    return ""
+            return [] if multi_select else ""
 
         if multi_select:
             return_list: List[str] = []
