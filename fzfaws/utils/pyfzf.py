@@ -333,7 +333,9 @@ class Pyfzf:
             self.append_fzf("%s: %s" % (key_name, item.get(key_name)))
             for arg in arg_keys:
                 self.append_fzf(" | ")
-                self.append_fzf("%s: %s" % (arg, item.get(arg)))
+                self.append_fzf(
+                    "%s: %s" % (arg, item.get(arg) if item.get(arg) else None)
+                )
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
             raise EmptyList("Result list was empty")

@@ -1,5 +1,5 @@
 """Module contains lambda wrapper class."""
-from typing import Union, Optional
+from typing import Any, Dict, List, Union, Optional
 from fzfaws.utils import BaseSession, Spinner, Pyfzf
 
 
@@ -21,9 +21,10 @@ class Lambdaf(BaseSession):
         """Construct the instance."""
         super().__init__(profile=profile, region=region, service_name="lambda")
         self.function_name: str = ""
+        self.function_detail: Dict[str, str] = {}
 
     def set_lambdaf(
-        self, no_progress: bool = False, header: str = "", function_name: str = ""
+        self, no_progress: bool = False, header: str = "", all_version: bool = False
     ) -> None:
         """Set the function name for lambda operation.
 
@@ -31,19 +32,16 @@ class Lambdaf(BaseSession):
         :type no_progress: bool
         :param header: header to display in fzf header
         :type header: str, optional
-        :param function_name: the function_name to operate, skip fzf selection
-        :type function_name: str
+        :param all_version: list all versions of all functions
+        :type all_version: bool, optional
         """
-        if function_name:
-            self.function_name = function_name
-            return
-
         with Spinner.spin(
             message="Fetching lambda functions ...", no_progress=no_progress
         ):
             fzf = Pyfzf()
             paginator = self.client.get_paginator("list_functions")
-            for result in paginator.paginate():
+            arguments = {"FunctionVersion": "ALL"} if all_version else {}
+            for result in paginator.paginate(**arguments):
                 fzf.process_list(
                     result.get("Functions", {}),
                     "FunctionName",
@@ -51,4 +49,6 @@ class Lambdaf(BaseSession):
                     "Version",
                     "Description",
                 )
-        self.function_name = str(fzf.execute_fzf(header=header))
+        selected_function = fzf.execute_fzf(header=header, print_col=0)
+        self.function_detail = fzf.format_selected_to_dict(str(selected_function))
+        self.function_name = self.function_detail.get("FunctionName", "")
