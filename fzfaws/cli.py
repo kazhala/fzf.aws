@@ -16,6 +16,7 @@ import pkg_resources
 from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
 from fzfaws.s3.main import s3
+from fzfaws.lambdaf.main import lambdaf
 from fzfaws.utils import FileLoader, get_default_args
 from fzfaws.utils.exceptions import InvalidFileType, NoSelectionMade
 
@@ -45,6 +46,7 @@ def main() -> None:
         subparsers.add_parser("cloudformation")
         subparsers.add_parser("ec2")
         subparsers.add_parser("s3")
+        subparsers.add_parser("lambda")
 
         if len(sys.argv) < 2:
             parser.print_help()
@@ -65,12 +67,14 @@ def main() -> None:
 
         argument_list = get_default_args(args.subparser_name, sys.argv[2:])
 
-        if args.subparser_name == "cloudformation":
-            cloudformation(argument_list)
-        elif args.subparser_name == "ec2":
-            ec2(argument_list)
-        elif args.subparser_name == "s3":
-            s3(argument_list)
+        actions = {
+            "cloudformation": cloudformation,
+            "ec2": ec2,
+            "s3": s3,
+            "lambda": lambdaf,
+        }
+
+        actions[args.subparser_name](argument_list)
 
     except InvalidFileType:
         print("Selected file is not a valid file type")

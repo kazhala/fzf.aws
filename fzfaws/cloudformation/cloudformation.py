@@ -5,8 +5,13 @@ import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 
-from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
-from fzfaws.utils.util import search_dict_in_list
+from fzfaws.utils import (
+    BaseSession,
+    Pyfzf,
+    Spinner,
+    get_confirmation,
+    search_dict_in_list,
+)
 
 
 class Cloudformation(BaseSession):
