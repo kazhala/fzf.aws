@@ -1,10 +1,11 @@
 """Module contains functions to handle lambda invokations."""
-from typing import Any, Union, Dict
+import base64
+import json
+import pprint
+from typing import Dict, Union
+
 from fzfaws.lambdaf import Lambdaf
 from fzfaws.utils import Spinner
-import json
-import base64
-from pprint import pprint
 
 
 def invoke_function(
@@ -43,8 +44,11 @@ def invoke_function_sync(lambdaf: Lambdaf) -> None:
         response = lambdaf.client.invoke(**function_args)
         response.pop("ResponseMetadata", None)
         response["Payload"] = json.loads(response["Payload"].read().decode("utf-8"))
-        response["LogResult"] = base64.b64decode(response["LogResult"]).decode("utf-8")
-    pprint(response)
+        log_result = response.pop("LogResult", None)
+        log_result = base64.b64decode(log_result).decode("utf-8")
+    pprint.pprint(log_result)
+    print(80 * "-")
+    print(json.dumps(response, indent=4, default=str))
 
 
 def get_function_name(details: Dict[str, str]) -> Dict[str, str]:
