@@ -15,8 +15,8 @@ class TestLambdaf(unittest.TestCase):
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
         config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
-        fileloader = FileLoader(path=str(config_path))
-        fileloader.load_config_file()
+        fileloader = FileLoader()
+        fileloader.load_config_file(config_path=str(config_path))
         self.lambdaf = Lambdaf()
 
     def tearDown(self):
@@ -24,7 +24,7 @@ class TestLambdaf(unittest.TestCase):
 
     def test_constructor(self):
         self.assertEqual(self.lambdaf.profile, "default")
-        self.assertEqual(self.lambdaf.region, "ap-southeast-2")
+        self.assertEqual(self.lambdaf.region, "us-east-1")
         self.assertEqual(self.lambdaf.function_name, "")
         self.assertEqual(self.lambdaf.function_detail, {})
 
