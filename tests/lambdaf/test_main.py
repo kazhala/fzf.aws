@@ -29,4 +29,10 @@ class TestLambdafMain(unittest.TestCase):
     @patch("fzfaws.lambdaf.main.invoke_function")
     def test_invoke(self, mocked_lambdaf):
         lambdaf(["invoke", "--all", "--async"])
-        mocked_lambdaf.assert_called_once_with(False, False, True, True)
+        mocked_lambdaf.assert_called_once_with(False, False, True, True, False, False)
+
+        mocked_lambdaf.reset_mock()
+        lambdaf(["invoke", "--payload", "./test.json"])
+        mocked_lambdaf.assert_called_once_with(
+            False, False, False, False, "./test.json", False
+        )
