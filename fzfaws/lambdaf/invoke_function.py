@@ -29,6 +29,22 @@ def invoke_function(
     lambdaf.set_lambdaf(header="select function to invoke", all_version=all_version)
     if not asynk:
         invoke_function_sync(lambdaf)
+    else:
+        invoke_function_async(lambdaf)
+
+
+def invoke_function_async(lambdaf: Lambdaf) -> None:
+    """Invoke the lambda asynchronously.
+
+    :param lambdaf: the instance of Lambdaf
+    :type lambdaf: Lambdaf
+    """
+    function_args: Dict[str, str] = get_function_name(lambdaf.function_detail)
+    function_args["InvocationType"] = "Event"
+    response = lambdaf.client.invoke(**function_args)
+    response.pop("ResponseMetadata", None)
+    response.pop("Payload", None)
+    print(json.dumps(response, indent=4, default=str))
 
 
 def invoke_function_sync(lambdaf: Lambdaf) -> None:
