@@ -56,6 +56,7 @@ def invoke_function(
 
 def invoke_function_async(lambdaf: Lambdaf, payload_path: str = "") -> None:
     """Invoke the lambda asynchronously.
+
     :param lambdaf: the instance of Lambdaf
     :type lambdaf: Lambdaf
     :param payload_path: path to lambda function payload
@@ -74,6 +75,7 @@ def invoke_function_async(lambdaf: Lambdaf, payload_path: str = "") -> None:
 
 def invoke_function_sync(lambdaf: Lambdaf, payload_path: str = "") -> None:
     """Invoke the lambda synchronously.
+
     :param lambdaf: the instance of Lambdaf
     :type lambdaf: Lambdaf
     :param payload_path: path to lambda function payload
