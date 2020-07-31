@@ -1,6 +1,7 @@
 """This module contains some common helper functions."""
 import os
 from typing import Any, Dict, Generator, List, Optional, Union
+from PyInquirer import prompt
 
 
 def remove_dict_from_list(
@@ -64,7 +65,7 @@ def check_dict_value_in_list(
     return False
 
 
-def get_confirmation(message: str) -> bool:
+def get_confirmation(message: str = "Confirm?") -> bool:
     """Get user confirmation.
 
     :param message: message to ask
@@ -72,10 +73,11 @@ def get_confirmation(message: str) -> bool:
     :return: user confirm status
     :rtype: bool
     """
-    confirm = None
-    while confirm != "y" and confirm != "n":
-        confirm = input("%s(y/n): " % message).lower()
-    return True if confirm == "y" else False
+    questions = [
+        {"type": "confirm", "message": message, "name": "continue", "default": False}
+    ]
+    answers = prompt(questions)
+    return answers.get("continue", False)
 
 
 def get_name_tag(response_item: Dict[str, Any]) -> Optional[str]:
