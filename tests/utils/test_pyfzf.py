@@ -151,6 +151,11 @@ class TestPyfzf(unittest.TestCase):
             stdout=ANY,
         )
 
+        result = self.fzf.get_local_file(json=True)
+        mocked_popen.assert_called_with(
+            'find * -type f -name "*.json"', shell=True, stderr=ANY, stdout=ANY,
+        )
+
         mocked_output.reset_mock()
         mocked_check.return_value = True
         result = self.fzf.get_local_file(cloudformation=True, header="hello")
@@ -161,6 +166,11 @@ class TestPyfzf(unittest.TestCase):
             stdout=ANY,
         )
         mocked_output.assert_called_once()
+
+        result = self.fzf.get_local_file(json=True, header="hello")
+        mocked_popen.assert_called_with(
+            "fd --type f --regex 'json$'", shell=True, stderr=ANY, stdout=ANY,
+        )
 
         result = self.fzf.get_local_file(directory=True)
         mocked_popen.assert_called_with(
