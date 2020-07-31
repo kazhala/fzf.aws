@@ -262,7 +262,7 @@ class TestCloudformationArgs(unittest.TestCase):
         )
         mocked_file.assert_called_once_with(
             search_from_root=False,
-            cloudformation=True,
+            json=True,
             empty_allow=True,
             header="select the policy document you would like to use",
         )
@@ -289,7 +289,7 @@ class TestCloudformationArgs(unittest.TestCase):
         )
         mocked_file.assert_called_once_with(
             search_from_root=True,
-            cloudformation=True,
+            json=True,
             empty_allow=True,
             header="select the policy document you would like to use",
         )

@@ -234,7 +234,7 @@ class CloudformationArgs:
         file_path: str = str(
             fzf.get_local_file(
                 search_from_root=search_from_root,
-                cloudformation=True,
+                json=True,
                 empty_allow=True,
                 header="select the policy document you would like to use",
             )
