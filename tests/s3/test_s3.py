@@ -592,7 +592,8 @@ class TestS3(unittest.TestCase):
                     ],
                     "filter": ANY,
                 }
-            ]
+            ],
+            style=ANY,
         )
 
         result = self.s3._get_path_option(download=True)
@@ -609,7 +610,8 @@ class TestS3(unittest.TestCase):
                     ],
                     "filter": ANY,
                 }
-            ]
+            ],
+            style=ANY,
         )
 
         mocked_prompt.return_value = {}

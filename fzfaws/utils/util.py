@@ -1,7 +1,18 @@
 """This module contains some common helper functions."""
 import os
 from typing import Any, Dict, Generator, List, Optional, Union
-from PyInquirer import prompt
+from PyInquirer import prompt, style_from_dict, Token
+
+prompt_style = style_from_dict(
+    {
+        Token.QuestionMark: "#E5C07B bold",
+        Token.Selected: "#61AFEF bold",
+        Token.Instruction: "",
+        Token.Answer: "#61AFEF bold",
+        Token.Question: "",
+        Token.Pointer: "#C678DD bold",
+    }
+)
 
 
 def remove_dict_from_list(
@@ -76,7 +87,7 @@ def get_confirmation(message: str = "Confirm?") -> bool:
     questions = [
         {"type": "confirm", "message": message, "name": "continue", "default": False}
     ]
-    answers = prompt(questions)
+    answers = prompt(questions, style=prompt_style)
     if not answers:
         raise KeyboardInterrupt
     return answers.get("continue", False)

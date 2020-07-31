@@ -5,7 +5,7 @@ import itertools
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 from PyInquirer import prompt
 
-from fzfaws.utils import BaseSession, FileLoader, Pyfzf, Spinner
+from fzfaws.utils import BaseSession, FileLoader, Pyfzf, Spinner, prompt_style
 from fzfaws.utils.exceptions import (
     InvalidFileType,
     InvalidS3PathPattern,
@@ -436,7 +436,7 @@ class S3(BaseSession):
                 "filter": lambda val: val.split(": ")[0],
             },
         ]
-        result = prompt(questions)
+        result = prompt(questions, style=prompt_style)
         if not result:
             raise KeyboardInterrupt
         return result.get("selected_option", "input")
