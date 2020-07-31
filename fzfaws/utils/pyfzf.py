@@ -173,6 +173,7 @@ class Pyfzf:
         empty_allow: bool = False,
         multi_select: bool = False,
         header: Optional[str] = None,
+        json: bool = False,
     ) -> Union[List[Any], List[str], str]:
         """Get local files through fzf.
 
@@ -212,6 +213,8 @@ class Pyfzf:
                 cmd = "echo \033[33m./\033[0m; fd --type d"
             elif cloudformation:
                 cmd = "fd --type f --regex '(yaml|yml|json)$'"
+            elif json:
+                cmd = "fd --type f --regex 'json$'"
             else:
                 cmd = "fd --type f"
             if hidden:
@@ -222,6 +225,8 @@ class Pyfzf:
                 cmd = "echo \033[33m./\033[0m; find * -type d"
             elif cloudformation:
                 cmd = 'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'
+            elif json:
+                cmd = 'find * -type f -name "*.json"'
             else:
                 cmd = "find * -type f"
 

@@ -25,6 +25,21 @@ def lambdaf(raw_args: List[Any]) -> None:
         "invoke", description="Invoke lambda function synchronously."
     )
     invoke_cmd.add_argument(
+        "-p",
+        "--payload",
+        action="store",
+        nargs="?",
+        default=False,
+        help="specify a json file to provide to lambda as input",
+    )
+    invoke_cmd.add_argument(
+        "-r",
+        "--root",
+        action="store_true",
+        default=False,
+        help="search file from home directory when using --payload flag",
+    )
+    invoke_cmd.add_argument(
         "-A",
         "--all",
         action="store_true",
@@ -68,4 +83,8 @@ def lambdaf(raw_args: List[Any]) -> None:
         args.region = True
 
     if args.subparser_name == "invoke":
-        invoke_function(args.profile, args.region, args.asynk, args.all)
+        if args.payload == None:
+            args.payload = True
+        invoke_function(
+            args.profile, args.region, args.asynk, args.all, args.payload, args.root
+        )
