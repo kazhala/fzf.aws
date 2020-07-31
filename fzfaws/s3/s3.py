@@ -93,11 +93,15 @@ class S3(BaseSession):
         :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
         selected_option = self._get_path_option(download=download)
+        questions: List[Dict[str, str]] = [{"type": "input", "name": "s3_path",}]
 
         if selected_option == "input":
-            self.path_list[0] = input("Input the path(newname or newpath/): ")
+            questions[0]["message"] = "Input the path(newname or newpath/)"
+            result = prompt(questions, style=prompt_style)
+            if not result:
+                raise KeyboardInterrupt
+            self.path_list[0] = result.get("s3_path", "")
         elif selected_option == "root":
-            # print("S3 file path is set to root")
             pass
         elif selected_option == "append" or selected_option == "interactively":
             paginator = self.client.get_paginator("list_objects")
@@ -148,7 +152,13 @@ class S3(BaseSession):
                 print(
                     "Current PWD is s3://%s/%s" % (self.bucket_name, self.path_list[0])
                 )
-                new_path = input("Input the new path to append(newname or newpath/): ")
+                questions[0][
+                    "message"
+                ] = "Input the new path to append(newname or newpath/)"
+                result = prompt(questions, style=prompt_style)
+                if not result:
+                    raise KeyboardInterrupt
+                new_path = result.get("s3_path", "")
                 self.path_list[0] += new_path
         print(
             "S3 file path is set to %s"

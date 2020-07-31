@@ -5,12 +5,13 @@ from PyInquirer import prompt, style_from_dict, Token
 
 prompt_style = style_from_dict(
     {
-        Token.QuestionMark: "#E5C07B bold",
+        Token.Separator: "#6C6C6C",
+        Token.QuestionMark: "#5F819D",
         Token.Selected: "#61AFEF bold",
         Token.Instruction: "",
-        Token.Answer: "#61AFEF bold",
-        Token.Question: "",
-        Token.Pointer: "#C678DD bold",
+        Token.Answer: "#FF9D00 bold",
+        Token.Question: "bold",
+        Token.Pointer: "#FF9D00 bold",
     }
 )
 

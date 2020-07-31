@@ -177,12 +177,12 @@ class TestS3(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "append_fzf")
     @patch.object(Paginator, "paginate")
-    @patch("builtins.input")
+    @patch("fzfaws.s3.s3.prompt")
     @patch.object(S3, "_get_path_option")
     def test_set_s3_path(
         self,
         mocked_option,
-        mocked_input,
+        mocked_prompt,
         mocked_paginator,
         mocked_append,
         mocked_execute,
@@ -190,7 +190,7 @@ class TestS3(unittest.TestCase):
         # input
         self.s3.bucket_name = "kazhala-version-testing"
         mocked_option.return_value = "input"
-        mocked_input.return_value = "hello"
+        mocked_prompt.return_value = {"s3_path": "hello"}
         self.s3.set_s3_path()
         self.assertEqual(self.s3.path_list[0], "hello")
 
@@ -252,7 +252,7 @@ class TestS3(unittest.TestCase):
         mocked_option.return_value = "append"
         mocked_paginator.return_value = response
         mocked_execute.return_value = "./"
-        mocked_input.return_value = "newpath/"
+        mocked_prompt.return_value = {"s3_path": "newpath/"}
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
             print_col=0,
@@ -278,7 +278,7 @@ class TestS3(unittest.TestCase):
         mocked_option.return_value = "append"
         mocked_paginator.return_value = response
         mocked_execute.return_value = "./"
-        mocked_input.return_value = "obj1"
+        mocked_prompt.return_value = {"s3_path": "obj1"}
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
             print_col=0,
