@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import PropertyMock, call, patch
+from unittest.mock import ANY, PropertyMock, call, patch
 
 import boto3
 from botocore.paginate import Paginator
@@ -174,7 +174,6 @@ class TestS3(unittest.TestCase):
         self.assertEqual(result, None)
         self.assertEqual(match, None)
 
-    @patch("fzfaws.s3.s3.get_confirmation")
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "append_fzf")
     @patch.object(Paginator, "paginate")
@@ -187,7 +186,6 @@ class TestS3(unittest.TestCase):
         mocked_paginator,
         mocked_append,
         mocked_execute,
-        mocked_confirmation,
     ):
         # input
         self.s3.bucket_name = "kazhala-version-testing"
@@ -217,7 +215,6 @@ class TestS3(unittest.TestCase):
             response = json.load(file)
         mocked_paginator.return_value = response
         mocked_execute.return_value = "./"
-        mocked_confirmation.return_value = True
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
             print_col=0,
@@ -235,7 +232,6 @@ class TestS3(unittest.TestCase):
         self.s3.bucket_name = "kazhala-version-testing"
         self.s3.path_list = ["hello/"]
         mocked_execute.return_value = "./"
-        mocked_confirmation.return_value = True
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
             print_col=0,
@@ -256,7 +252,6 @@ class TestS3(unittest.TestCase):
         mocked_option.return_value = "append"
         mocked_paginator.return_value = response
         mocked_execute.return_value = "./"
-        mocked_confirmation.return_value = True
         mocked_input.return_value = "newpath/"
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
@@ -283,7 +278,6 @@ class TestS3(unittest.TestCase):
         mocked_option.return_value = "append"
         mocked_paginator.return_value = response
         mocked_execute.return_value = "./"
-        mocked_confirmation.return_value = True
         mocked_input.return_value = "obj1"
         self.s3.set_s3_path()
         mocked_execute.assert_called_with(
@@ -579,24 +573,47 @@ class TestS3(unittest.TestCase):
         )
         self.assertEqual(result, "hello/tmp/hello.txt")
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_get_path_option(self, mocked_append, mocked_execute):
-        mocked_execute.return_value = "root"
+    @patch("fzfaws.s3.s3.prompt")
+    def test_get_path_option(self, mocked_prompt):
+        mocked_prompt.return_value = {"selected_option": "root"}
         result = self.s3._get_path_option()
         self.assertEqual(result, "root")
-        mocked_append.assert_called_with(
-            "append: interactively select a path and then input new path/name to append"
+        mocked_prompt.assert_called_with(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_option",
+                    "message": "Select which level of the bucket would you like to operate in",
+                    "choices": [
+                        "root: use the root level of the bucket",
+                        "interactively: select a path through fzf",
+                        "input: enter the path/name",
+                        "append: select a path and then enter path/name to append",
+                    ],
+                    "filter": ANY,
+                }
+            ]
         )
 
-        mocked_execute.return_value = "append"
-        result = self.s3._get_path_option()
-        self.assertEqual(result, "append")
-
-        mocked_execute.return_value = "root"
         result = self.s3._get_path_option(download=True)
-        self.assertEqual(result, "root")
-        mocked_append.assert_called_with("input: manully input the path/name\n")
+        mocked_prompt.assert_called_with(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_option",
+                    "message": "Select which level of the bucket would you like to operate in",
+                    "choices": [
+                        "root: use the root level of the bucket",
+                        "interactively: select a path through fzf",
+                        "input: enter the path/name",
+                    ],
+                    "filter": ANY,
+                }
+            ]
+        )
+
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.s3._get_path_option)
 
     def test_version_gernator(self):
         data_path = os.path.join(
