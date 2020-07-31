@@ -77,6 +77,8 @@ def get_confirmation(message: str = "Confirm?") -> bool:
         {"type": "confirm", "message": message, "name": "continue", "default": False}
     ]
     answers = prompt(questions)
+    if not answers:
+        raise KeyboardInterrupt
     return answers.get("continue", False)
 
 

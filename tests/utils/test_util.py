@@ -52,6 +52,9 @@ class TestUtil(unittest.TestCase):
         response = get_confirmation("Confirm?")
         self.assertFalse(response)
 
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, get_confirmation)
+
     def test_get_name_tag(self):
         data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../data/ec2_instance.json"
