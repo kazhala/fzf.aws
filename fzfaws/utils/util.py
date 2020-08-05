@@ -30,7 +30,7 @@ class URLQueryStringValidator(Validator):
 class CommaListValidator(Validator):
     def validate(self, document):
         match = re.match(
-            r"^((id|emailAddress|uri)=[A-Za-z@.\/:]+?(,|$))+", document.text
+            r"^((id|emailAddress|uri)=[A-Za-z@.\/:-]+?(,|$))+", document.text
         )
         if not match:
             raise ValidationError(

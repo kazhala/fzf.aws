@@ -199,7 +199,7 @@ class S3Args:
         ]
 
         if original:
-            questions[0]["message"] = "Select a storage class (Orignal: %s)" % original
+            questions[0]["message"] = "Select a storage class (Original: %s)" % original
 
         result = prompt(questions, style=prompt_style)
 
@@ -380,21 +380,27 @@ class S3Args:
 
     def _set_canned_ACL(self) -> None:
         """Set the canned ACL for the current operation."""
-        fzf = Pyfzf()
-        fzf.append_fzf("private\n")
-        fzf.append_fzf("public-read\n")
-        fzf.append_fzf("public-read-write\n")
-        fzf.append_fzf("authenticated-read\n")
-        fzf.append_fzf("aws-exec-read\n")
-        fzf.append_fzf("bucket-owner-read\n")
-        fzf.append_fzf("bucket-owner-full-control\n")
-        result: str = str(
-            fzf.execute_fzf(
-                empty_allow=True,
-                print_col=1,
-                header="select a Canned ACL option, esc to use the default ACL setting for the bucket",
-            )
-        )
+        choices = [
+            "private",
+            "public-read",
+            "public-read-write",
+            "authenticated-read",
+            "aws-exec-read",
+            "bucket-owner-read",
+            "bucket-owner-full-control",
+        ]
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_acl",
+                "message": "Select a Canned ACL option",
+                "choices": choices,
+            }
+        ]
+        answers = prompt(questions, style=prompt_style)
+        if not questions:
+            raise KeyboardInterrupt
+        result = answers.get("selected_acl")
         if result:
             self._extra_args["ACL"] = result
 
@@ -404,15 +410,29 @@ class S3Args:
         :param original: previous value of the encryption
         :type original: str, optional
         """
-        header = "select an ecryption setting, esc to use the default encryption setting for the bucket"
+        choices = [
+            "None (Use bucket default setting)",
+            "AES256",
+            "aws:kms",
+        ]
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_encryption",
+                "message": "select an encryption setting",
+                "choices": choices,
+            }
+        ]
         if original:
-            header += "\nOriginal: %s" % original
+            questions[0]["message"] = (
+                "select an encryption setting (Original: %s)" % original
+            )
 
-        fzf = Pyfzf()
-        fzf.append_fzf("None (Use bucket default setting)\n")
-        fzf.append_fzf("AES256\n")
-        fzf.append_fzf("aws:kms\n")
-        result: str = str(fzf.execute_fzf(empty_allow=True, print_col=1, header=header))
+        answers = prompt(questions, style=prompt_style)
+        if not answers:
+            raise KeyboardInterrupt
+
+        result = answers.get("selected_encryption")
         if result:
             self._extra_args["ServerSideEncryption"] = result
         if result == "aws:kms":
@@ -435,14 +455,19 @@ class S3Args:
         :type version: List[Dict[str, str]], optional
         """
         print(
-            "Enter tags for the upload objects, enter without value will skip tagging"
-        )
-        print(
             "Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)"
         )
 
+        questions = [
+            {
+                "type": "input",
+                "name": "answer",
+                "message": "Tags",
+                "validate": URLQueryStringValidator,
+            }
+        ]
+
         if original:
-            print(80 * "-")
             original_tags: list = []
             original_values: str = ""
             if not version:
@@ -452,7 +477,6 @@ class S3Args:
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
                 original_values = "&".join(original_tags)
-                print("Orignal: %s" % original_values)
             elif len(version) == 1:
                 tags = self.s3.client.get_object_tagging(
                     Bucket=self.s3.bucket_name,
@@ -462,11 +486,13 @@ class S3Args:
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
                 original_values = "&".join(original_tags)
-                print("Orignal: %s" % original_values)
+            questions[0]["default"] = original_values
 
-        tags = input("Tags: ")
-        if tags:
-            self._extra_args["Tagging"] = tags
+        answer = prompt(questions, style=prompt_style)
+        if not answer:
+            raise KeyboardInterrupt
+        tags = answer.get("answer")
+        self._extra_args["Tagging"] = tags
 
     def check_tag_acl(self) -> Dict[str, Any]:
         """Check if the only attributes to configure is ACL or Tags.
