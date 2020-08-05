@@ -203,8 +203,10 @@ class Pyfzf:
         if search_from_root:
             home_path = os.path.expanduser("~")
             os.chdir(home_path)
-        if not header and directory:
+        if not header and directory and not search_from_root:
             header = r"select ./ will use current directory"
+        elif not header and directory and search_from_root:
+            header = r"select ./ will use the home directory"
 
         cmd: str = ""
 
