@@ -103,7 +103,7 @@ class S3(BaseSession):
             self.path_list[0] = result.get("s3_path", "")
         elif selected_option == "root":
             pass
-        elif selected_option == "append" or selected_option == "interactively":
+        elif selected_option == "append" or selected_option == "select":
             paginator = self.client.get_paginator("list_objects")
             fzf = Pyfzf()
             parents = []
@@ -432,7 +432,7 @@ class S3(BaseSession):
         """
         choices: List[str] = [
             "root: use the root level of the bucket",
-            "interactively: select a path through fzf",
+            "select: select a path through fzf",
             "input: enter the path/name",
         ]
         if not download:

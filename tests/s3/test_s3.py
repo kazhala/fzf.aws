@@ -204,12 +204,12 @@ class TestS3(unittest.TestCase):
             self.capturedOutput.getvalue(), "S3 file path is set to root\n"
         )
 
-        # interactively normal
+        # select normal
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
         self.s3.bucket_name = "kazhala-version-testing"
         self.s3.path_list = [""]
-        mocked_option.return_value = "interactively"
+        mocked_option.return_value = "select"
         data_path = Path(__file__).resolve().parent.joinpath("../data/s3_object.json")
         with data_path.open("r") as file:
             response = json.load(file)
@@ -586,7 +586,7 @@ class TestS3(unittest.TestCase):
                     "message": "Select which level of the bucket would you like to operate in",
                     "choices": [
                         "root: use the root level of the bucket",
-                        "interactively: select a path through fzf",
+                        "select: select a path through fzf",
                         "input: enter the path/name",
                         "append: select a path and then enter path/name to append",
                     ],
@@ -605,7 +605,7 @@ class TestS3(unittest.TestCase):
                     "message": "Select which level of the bucket would you like to operate in",
                     "choices": [
                         "root: use the root level of the bucket",
-                        "interactively: select a path through fzf",
+                        "select: select a path through fzf",
                         "input: enter the path/name",
                     ],
                     "filter": ANY,

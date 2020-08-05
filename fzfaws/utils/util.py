@@ -1,7 +1,8 @@
 """This module contains some common helper functions."""
 import os
 from typing import Any, Dict, Generator, List, Optional, Union
-from PyInquirer import prompt, style_from_dict, Token
+from PyInquirer import prompt, style_from_dict, Token, Validator, ValidationError
+import re
 
 prompt_style = style_from_dict(
     {
@@ -14,6 +15,28 @@ prompt_style = style_from_dict(
         Token.Pointer: "#FF9D00 bold",
     }
 )
+
+
+class URLQueryStringValidator(Validator):
+    def validate(self, document):
+        match = re.match(r"^([A-Za-z0-9-]+?=[A-Za-z0-9-]+(&|$))*$", document.text)
+        if not match:
+            raise ValidationError(
+                message="Format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)",
+                cursor_position=len(document.text),
+            )
+
+
+class CommaListValidator(Validator):
+    def validate(self, document):
+        match = re.match(
+            r"^((id|emailAddress|uri)=[A-Za-z@.\/:]+?(,|$))+", document.text
+        )
+        if not match:
+            raise ValidationError(
+                message="Format should be a comma seperated list (e.g. id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers)",
+                cursor_position=len(document.text),
+            )
 
 
 def remove_dict_from_list(
