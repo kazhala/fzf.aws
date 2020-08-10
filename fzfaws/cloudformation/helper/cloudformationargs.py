@@ -1,11 +1,13 @@
 """Contains helper class to set extra arguments for cloudformation."""
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+from PyInquirer import prompt
 
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudwatch import Cloudwatch
 from fzfaws.iam import IAM
 from fzfaws.sns import SNS
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, prompt_style
 
 
 class CloudformationArgs:
@@ -68,23 +70,28 @@ class CloudformationArgs:
             and not creation_option
             and not notification
         ):
-            fzf = Pyfzf()
-            fzf.append_fzf("Tags\n")
-            fzf.append_fzf("Permissions\n")
+            choices: List[Dict[str, str]] = [
+                {"name": "Tags"},
+                {"name": "Permissions"},
+                {"name": "Notifications"},
+                {"name": "RollbackConfiguration"},
+            ]
             if not dryrun:
-                fzf.append_fzf("StackPolicy\n")
-            fzf.append_fzf("Notifications\n")
-            fzf.append_fzf("RollbackConfiguration\n")
+                choices.append({"name": "StackPolicy"})
             if not dryrun and not update:
-                fzf.append_fzf("CreationOption\n")
-            attributes = list(
-                fzf.execute_fzf(
-                    empty_allow=True,
-                    print_col=1,
-                    multi_select=True,
-                    header="select options to configure",
-                )
-            )
+                choices.append({"name": "CreationOption"})
+            questions: List[Dict[str, Any]] = [
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select options to configure",
+                    "choices": choices,
+                }
+            ]
+            result = prompt(questions, style=prompt_style)
+            if not result:
+                raise KeyboardInterrupt
+            attributes = result.get("answer", [])
 
         for attribute in attributes:
             if attribute == "Tags":
@@ -115,57 +122,52 @@ class CloudformationArgs:
 
     def _set_creation(self) -> None:
         """Set creation option for stack."""
-        print(80 * "-")
-        fzf = Pyfzf()
-        fzf.append_fzf("RollbackOnFailure\n")
-        fzf.append_fzf("TimeoutInMinutes\n")
-        fzf.append_fzf("EnableTerminationProtection\n")
-        selected_options: List[str] = list(
-            fzf.execute_fzf(
-                empty_allow=True,
-                print_col=1,
-                multi_select=True,
-                header="select options to configure",
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "checkbox",
+                "name": "selected_options",
+                "message": "Select creation options to configure",
+                "choices": [
+                    {"name": "RollbackOnFailure"},
+                    {"name": "TimeoutInMinutes"},
+                    {"name": "EnableTerminationProtection"},
+                ],
+            },
+            {
+                "type": "rawlist",
+                "name": "rollback",
+                "message": "Roll back on failure?",
+                "choices": ["True", "False"],
+                "when": lambda x: "RollbackOnFailure" in x["selected_options"],
+            },
+            {
+                "type": "input",
+                "name": "timeout",
+                "message": "Specify number of minutes before timeout",
+                "when": lambda x: "TimeoutInMinutes" in x["selected_options"],
+            },
+            {
+                "type": "rawlist",
+                "name": "termination",
+                "message": "Enable termination protection?",
+                "choices": ["True", "False"],
+                "when": lambda x: "EnableTerminationProtection"
+                in x["selected_options"],
+            },
+        ]
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        if result.get("rollback"):
+            self._extra_args["OnFailure"] = (
+                "ROLLBACK" if result["rollback"] == "True" else "DO_NOTHING"
             )
-        )
-
-        for option in selected_options:
-            result: str = ""
-            if option == "RollbackOnFailure":
-                fzf.fzf_string = ""
-                fzf.append_fzf("True\n")
-                fzf.append_fzf("False\n")
-                result = str(
-                    fzf.execute_fzf(
-                        empty_allow=True,
-                        print_col=1,
-                        header="roll back on failue? (Default: True)",
-                    )
-                )
-                if result:
-                    self._extra_args["OnFailure"] = (
-                        "ROLLBACK" if result == "True" else "DO_NOTHING"
-                    )
-            elif option == "TimeoutInMinutes":
-                message = "Specify number of minutes before stack timeout (Default: no timeout): "
-                timeout = input(message)
-                if timeout:
-                    self._extra_args["TimeoutInMinutes"] = int(timeout)
-            elif option == "EnableTerminationProtection":
-                fzf.fzf_string = ""
-                fzf.append_fzf("True\n")
-                fzf.append_fzf("False\n")
-                result = str(
-                    fzf.execute_fzf(
-                        empty_allow=True,
-                        print_col=1,
-                        header="enable termination protection? (Default: False)",
-                    )
-                )
-                if result:
-                    self._extra_args["EnableTerminationProtection"] = (
-                        True if result == "True" else False
-                    )
+        if result.get("timeout"):
+            self._extra_args["TimeoutInMinutes"] = int(result["timeout"])
+        if result.get("termination"):
+            self._extra_args["EnableTerminationProtection"] = (
+                True if result["termination"] == "True" else False
+            )
 
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.

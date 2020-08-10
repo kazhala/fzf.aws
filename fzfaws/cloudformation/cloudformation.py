@@ -5,8 +5,8 @@ import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 from PyInquirer import prompt
-from fzfaws.utils import prompt_style
 
+from fzfaws.utils import prompt_style
 from fzfaws.utils import (
     BaseSession,
     Pyfzf,
