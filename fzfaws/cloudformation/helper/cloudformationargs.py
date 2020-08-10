@@ -7,7 +7,7 @@ from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudwatch import Cloudwatch
 from fzfaws.iam import IAM
 from fzfaws.sns import SNS
-from fzfaws.utils import Pyfzf, prompt_style
+from fzfaws.utils import Pyfzf, URLQueryStringValidator, prompt_style
 
 
 class CloudformationArgs:
@@ -293,37 +293,32 @@ class CloudformationArgs:
         :param update: determine if is updating the stack, it will show different prompt
         :type update: bool, optional
         """
-        tag_list: List[Dict[str, str]] = []
+        print("Tag format should be a URL Query alike string (e.g. foo=boo&name=yes)")
 
-        if update:
-            if self.cloudformation.stack_details.get("Tags"):
-                print("Update original tags")
-                print("Skip the value to use previous value")
-                print('Enter "deletetag" in any field to remove a tag')
-                for tag in self.cloudformation.stack_details["Tags"]:
-                    tag_key = input("Key(%s): " % tag["Key"])
-                    if not tag_key:
-                        tag_key = tag["Key"]
-                    tag_value = input("Value(%s): " % tag["Value"])
-                    if not tag_value:
-                        tag_value = tag["Value"]
-                    if tag_key == "deletetag" or tag_value == "deletetag":
-                        continue
-                    tag_list.append({"Key": tag_key, "Value": tag_value})
-        print("Enter new tags below")
-        print("Enter an empty value to stop entering for new tags")
-        while True:
-            tag_name: str = input("TagName: ")
-            if not tag_name:
-                break
-            tag_value: str = input("TagValue: ")
-            if not tag_value:
-                break
-            tag_list.append({"Key": tag_name, "Value": tag_value})
-        if tag_list:
-            self._extra_args["Tags"] = tag_list
-        elif not tag_list and update:
-            self._extra_args["Tags"] = []
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "input",
+                "message": "Tags",
+                "name": "answer",
+                "validate": URLQueryStringValidator,
+            }
+        ]
+        if update and self.cloudformation.stack_details.get("Tags"):
+            default_tag_value: List[str] = []
+            for tag in self.cloudformation.stack_details.get("Tags", []):
+                default_tag_value.append(
+                    "%s=%s" % (tag.get("Key", ""), tag.get("Value", ""))
+                )
+            questions[0]["default"] = "&".join(default_tag_value)
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        tag_list: List[Dict[str, str]] = []
+        for tag in result.get("answer", "").split("&"):
+            if tag != "":
+                tag_name, tag_value = tag.split("=")
+                tag_list.append({"Key": tag_name, "Value": tag_value})
+        self._extra_args["Tags"] = tag_list
 
     @property
     def extra_args(self):
