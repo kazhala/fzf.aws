@@ -12,7 +12,7 @@ from fzfaws.cloudformation.helper.file_validation import (
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.cloudformation.validate_stack import validate_stack
 from fzfaws.s3 import S3
-from fzfaws.utils import Pyfzf, FileLoader
+from fzfaws.utils import FileLoader, Pyfzf
 
 
 def update_stack(
