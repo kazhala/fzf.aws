@@ -2,6 +2,8 @@
 import json
 from typing import Any, Dict, Optional, Union
 
+from PyInquirer import prompt
+
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.cloudformation.helper.file_validation import (
@@ -12,8 +14,7 @@ from fzfaws.cloudformation.helper.file_validation import (
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.cloudformation.validate_stack import validate_stack
 from fzfaws.s3 import S3
-from fzfaws.utils import FileLoader, Pyfzf
-from fzfaws.utils.exceptions import NoNameEntered
+from fzfaws.utils import FileLoader, Pyfzf, prompt_style, StackNameValidator
 
 
 def create_stack(
@@ -106,9 +107,7 @@ def construct_local_creation_args(
         no_print=True,
     )
 
-    stack_name: str = input("StackName: ")
-    if not stack_name:
-        raise NoNameEntered("No stack name specified")
+    stack_name = get_stack_name()
 
     fileloader = FileLoader(path=local_path)
     file_data: Dict[str, Any] = {}
@@ -185,9 +184,7 @@ def construct_s3_creation_args(
     elif is_json(s3.path_list[0]):
         file_type = "json"
 
-    stack_name: str = input("StackName: ")
-    if not stack_name:
-        raise NoNameEntered("No stack name specified")
+    stack_name = get_stack_name()
 
     file_data: dict = s3.get_object_data(file_type)
     if "Parameters" in file_data:
@@ -210,3 +207,19 @@ def construct_s3_creation_args(
     }
 
     return cloudformation_args
+
+
+def get_stack_name() -> str:
+    """Get user to input the stack name."""
+    questions = [
+        {
+            "type": "input",
+            "name": "answer",
+            "message": "StackName",
+            "validate": StackNameValidator,
+        }
+    ]
+    result = prompt(questions, style=prompt_style)
+    if not result:
+        raise KeyboardInterrupt
+    return result.get("answer", "")
