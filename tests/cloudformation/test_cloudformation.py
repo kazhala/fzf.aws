@@ -1,17 +1,16 @@
 import io
 import json
 import os
+from pathlib import Path
 import sys
 import unittest
-from unittest.mock import ANY, call, patch
-from pathlib import Path
+from unittest.mock import ANY, patch
 
 from botocore.paginate import Paginator
 from botocore.waiter import Waiter
 
 from fzfaws.cloudformation import Cloudformation
-from fzfaws.utils import FileLoader
-from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils import FileLoader, Pyfzf, prompt_style
 
 
 class TestCloudformation(unittest.TestCase):
@@ -231,43 +230,36 @@ class TestCloudformation(unittest.TestCase):
         mocked_confirm.return_value = False
         self.assertRaises(SystemExit, self.cloudformation.execute_with_capabilities)
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_get_capabilities(self, mocked_append, mocked_execute):
-        mocked_execute.return_value = ["CAPABILITY_IAM"]
+    @patch("fzfaws.cloudformation.cloudformation.prompt")
+    def test_get_capabilities(self, mocked_prompt):
+        mocked_prompt.return_value = {"answer": ["CAPABILITY_IAM"]}
         result = self.cloudformation._get_capabilities(message="lol")
-        mocked_append.assert_has_calls(
+        mocked_prompt.assert_called_once_with(
             [
-                call("CAPABILITY_IAM\n"),
-                call("CAPABILITY_NAMED_IAM\n"),
-                call("CAPABILITY_AUTO_EXPAND"),
-            ]
-        )
-        mocked_execute.assert_called_once_with(
-            empty_allow=True,
-            print_col=1,
-            multi_select=True,
-            header="lol\nPlease select the capabilities to acknowledge and proceed\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html",
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select the capabilities to acknowledge and proceed",
+                    "choices": [
+                        {"name": "CAPABILITY_IAM"},
+                        {"name": "CAPABILITY_NAMED_IAM"},
+                        {"name": "CAPABILITY_AUTO_EXPAND"},
+                    ],
+                }
+            ],
+            style=prompt_style,
         )
         self.assertEqual(result, ["CAPABILITY_IAM"])
+        self.assertEqual(
+            self.capturedOutput.getvalue(),
+            "lol\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html\n",
+        )
 
-        mocked_execute.reset_mock()
-        mocked_append.reset_mock()
-        mocked_execute.return_value = ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"]
+        mocked_prompt.reset_mock()
+        mocked_prompt.return_value = {
+            "answer": ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"]
+        }
         result = self.cloudformation._get_capabilities()
-        mocked_append.assert_has_calls(
-            [
-                call("CAPABILITY_IAM\n"),
-                call("CAPABILITY_NAMED_IAM\n"),
-                call("CAPABILITY_AUTO_EXPAND"),
-            ]
-        )
-        mocked_execute.assert_called_once_with(
-            empty_allow=True,
-            print_col=1,
-            multi_select=True,
-            header="\nPlease select the capabilities to acknowledge and proceed\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html",
-        )
         self.assertEqual(result, ["CAPABILITY_IAM", "CAPABILITY_AUTO_EXPAND"])
 
     def test_get_stack_generator(self):
