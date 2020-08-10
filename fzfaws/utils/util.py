@@ -18,7 +18,10 @@ prompt_style = style_from_dict(
 
 
 class URLQueryStringValidator(Validator):
+    """Validate Query strying for PyInquirer input."""
+
     def validate(self, document):
+        """Validate user input."""
         match = re.match(r"^([A-Za-z0-9-]+?=[A-Za-z0-9-]+(&|$))*$", document.text)
         if not match:
             raise ValidationError(
@@ -28,7 +31,10 @@ class URLQueryStringValidator(Validator):
 
 
 class CommaListValidator(Validator):
+    """Validate comma seperated list for PyInquirer input."""
+
     def validate(self, document):
+        """Validate user input."""
         match = re.match(
             r"^((id|emailAddress|uri)=[A-Za-z@.\/:-]+?(,|$))+", document.text
         )
