@@ -7,7 +7,6 @@ from PyInquirer import prompt
 from fzfaws.kms.kms import KMS
 from fzfaws.s3 import S3
 from fzfaws.utils import (
-    Pyfzf,
     get_confirmation,
     prompt_style,
     URLQueryStringValidator,
@@ -57,7 +56,7 @@ class S3Args:
             allow empty selection during upload operation but not for other operations
         :type upload: bool, optional
         """
-        if not version:
+        if version is None:
             version = []
         choices: List[Dict[str, str]] = []
 
@@ -84,7 +83,10 @@ class S3Args:
                 "choices": choices,
             }
         ]
-        result = prompt(questions, style=prompt_style)
+        if choices:
+            result = prompt(questions, style=prompt_style)
+        else:
+            result = {"selected_attributes": []}
         if not result:
             raise KeyboardInterrupt
 
@@ -398,7 +400,7 @@ class S3Args:
             }
         ]
         answers = prompt(questions, style=prompt_style)
-        if not questions:
+        if not answers:
             raise KeyboardInterrupt
         result = answers.get("selected_acl")
         if result:
