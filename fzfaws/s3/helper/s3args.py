@@ -421,13 +421,13 @@ class S3Args:
             {
                 "type": "rawlist",
                 "name": "selected_encryption",
-                "message": "select an encryption setting",
+                "message": "Select an encryption setting",
                 "choices": choices,
             }
         ]
         if original:
             questions[0]["message"] = (
-                "select an encryption setting (Original: %s)" % original
+                "Select an encryption setting (Original: %s)" % original
             )
 
         answers = prompt(questions, style=prompt_style)
