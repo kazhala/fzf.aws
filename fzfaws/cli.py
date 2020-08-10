@@ -3,7 +3,6 @@
 Typical usage example:
     fzfaws <command> --options
 """
-
 import argparse
 import os
 from pathlib import Path
@@ -15,8 +14,8 @@ import pkg_resources
 
 from fzfaws.cloudformation.main import cloudformation
 from fzfaws.ec2.main import ec2
-from fzfaws.s3.main import s3
 from fzfaws.lambdaf.main import lambdaf
+from fzfaws.s3.main import s3
 from fzfaws.utils import FileLoader, get_default_args
 from fzfaws.utils.exceptions import InvalidFileType, NoSelectionMade
 

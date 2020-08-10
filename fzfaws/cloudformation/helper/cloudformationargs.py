@@ -175,23 +175,26 @@ class CloudformationArgs:
         :param update: show previous values if true
         :type update: bool, optional
         """
-        print(80 * "-")
-
         cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
         header: str = "select a cloudwatch alarm to monitor the stack"
-        message: str = "MonitoringTimeInMinutes(Default: 0): "
+        questions: List[Dict[str, str]] = [
+            {"type": "input", "message": "MonitoringTimeInMinutes", "name": "answer"}
+        ]
         if update and self.cloudformation.stack_details.get("RollbackConfiguration"):
             header += "\nOriginal value: %s" % self.cloudformation.stack_details[
                 "RollbackConfiguration"
             ].get("RollbackTriggers")
-            message = "MonitoringTimeInMinutes(Original: %s): " % self.cloudformation.stack_details[
-                "RollbackConfiguration"
-            ].get(
-                "MonitoringTimeInMinutes"
+            questions[0]["default"] = str(
+                self.cloudformation.stack_details["RollbackConfiguration"].get(
+                    "MonitoringTimeInMinutes", ""
+                )
             )
         cloudwatch.set_arns(empty_allow=True, header=header, multi_select=True)
-        print("Selected arns: %s" % cloudwatch.arns)
-        monitor_time = input(message)
+        print("Selected alarm: %s" % cloudwatch.arns)
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        monitor_time = result.get("answer")
         if cloudwatch.arns:
             self._extra_args["RollbackConfiguration"] = {
                 "RollbackTriggers": [
@@ -207,7 +210,6 @@ class CloudformationArgs:
         :param update: show previous values if true
         :type update: bool, optional
         """
-        print(80 * "-")
         sns = SNS(
             profile=self.cloudformation.profile, region=self.cloudformation.region
         )
@@ -217,6 +219,7 @@ class CloudformationArgs:
                 "NotificationARNs"
             )
         sns.set_arns(empty_allow=True, header=header, multi_select=True)
+        print("Selected notification: %s" % sns.arns)
         if sns.arns:
             self._extra_args["NotificationARNs"] = sns.arns
 
@@ -231,7 +234,6 @@ class CloudformationArgs:
         :param search_from_root: search files from root
         :type search_from_root: bool, optional
         """
-        print(80 * "-")
         fzf = Pyfzf()
         file_path: str = str(
             fzf.get_local_file(
@@ -249,6 +251,7 @@ class CloudformationArgs:
             with open(str(file_path), "r") as body:
                 body = body.read()
                 self._extra_args["StackPolicyDuringUpdateBody"] = body
+        print("Selected policy: %s" % file_path)
 
     def _set_permissions(self, update: bool = False) -> None:
         """Set the iam user for the current stack.
@@ -260,7 +263,6 @@ class CloudformationArgs:
         :param update: show previous values if true
         :type update: bool, optional
         """
-        print(80 * "-")
         iam = IAM(profile=self.cloudformation.profile)
         if not update:
             header = (
@@ -274,6 +276,7 @@ class CloudformationArgs:
                 "RoleARN"
             )
             iam.set_arns(header=header, service="cloudformation.amazonaws.com")
+        print("Selected role: %s" % iam.arns[0])
         if iam.arns:
             self._extra_args["RoleARN"] = iam.arns[0]
 
@@ -290,9 +293,8 @@ class CloudformationArgs:
         :param update: determine if is updating the stack, it will show different prompt
         :type update: bool, optional
         """
-        print(80 * "-")
-
         tag_list: List[Dict[str, str]] = []
+
         if update:
             if self.cloudformation.stack_details.get("Tags"):
                 print("Update original tags")
