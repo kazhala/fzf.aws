@@ -1,8 +1,9 @@
 """This module contains some common helper functions."""
 import os
-from typing import Any, Dict, Generator, List, Optional, Union
-from PyInquirer import prompt, style_from_dict, Token, Validator, ValidationError
 import re
+from typing import Any, Dict, Generator, List, Optional, Union
+
+from PyInquirer import Token, ValidationError, Validator, prompt, style_from_dict
 
 prompt_style = style_from_dict(
     {

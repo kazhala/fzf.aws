@@ -1,18 +1,24 @@
-from fzfaws.utils.util import CommaListValidator, URLQueryStringValidator, prompt_style
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.session import BaseSession
 import io
 import json
 import os
+from pathlib import Path
 import sys
 import unittest
 from unittest.mock import ANY, PropertyMock, patch
-from fzfaws.s3.helper.s3args import S3Args
-from fzfaws.s3 import S3
+
 import boto3
 from botocore.stub import Stubber
+
 from fzfaws.kms import KMS
-from pathlib import Path
+from fzfaws.s3 import S3
+from fzfaws.s3.helper.s3args import S3Args
+from fzfaws.utils import (
+    Pyfzf,
+    BaseSession,
+    CommaListValidator,
+    URLQueryStringValidator,
+    prompt_style,
+)
 
 
 class TestS3Args(unittest.TestCase):
