@@ -6,7 +6,8 @@ import unittest
 from unittest.mock import ANY, patch
 
 from fzfaws.cloudformation.cloudformation import Cloudformation
-from fzfaws.cloudformation.create_stack import create_stack, get_stack_name
+from fzfaws.cloudformation.create_stack import create_stack
+from fzfaws.cloudformation.helper import get_stack_name
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
 from fzfaws.s3.s3 import S3
@@ -29,7 +30,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
     def tearDown(self):
         sys.stdout = sys.__stdout__
 
-    @patch("fzfaws.cloudformation.create_stack.prompt")
+    @patch("fzfaws.cloudformation.create_stack.get_stack_name")
     @patch.object(ParamProcessor, "process_stack_params")
     @patch.object(Cloudformation, "wait")
     @patch.object(Cloudformation, "execute_with_capabilities")
@@ -42,9 +43,9 @@ class TestCloudformationCreateStack(unittest.TestCase):
         mocked_execute,
         mocked_wait,
         mocked_process,
-        mocked_prompt,
+        mocked_stackname,
     ):
-        mocked_prompt.return_value = {"answer": "testing-stack"}
+        mocked_stackname.return_value = "testing-stack"
         mocked_local.return_value = self.data_path
         create_stack(local_path=True, root=True, wait=True)
 
@@ -80,7 +81,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
             "stack_create_complete", "Waiting for stack to be ready ..."
         )
 
-    @patch("fzfaws.cloudformation.create_stack.prompt")
+    @patch("fzfaws.cloudformation.create_stack.get_stack_name")
     @patch.object(ParamProcessor, "process_stack_params")
     @patch.object(Cloudformation, "wait")
     @patch.object(Cloudformation, "execute_with_capabilities")
@@ -97,9 +98,9 @@ class TestCloudformationCreateStack(unittest.TestCase):
         mocked_execute,
         mocked_wait,
         mocked_process,
-        mocked_prompt,
+        mocked_stackname,
     ):
-        mocked_prompt.return_value = {"answer": "testing-stack"}
+        mocked_stackname.return_value = "testing-stack"
         mocked_version.return_value = [{"VersionId": "111111"}]
         fileloader = FileLoader(self.data_path)
         mocked_data.return_value = fileloader.process_yaml_file()
@@ -164,12 +165,3 @@ class TestCloudformationCreateStack(unittest.TestCase):
         mocked_execute.assert_called_with(StackName="testing-stack")
         mocked_set_args.assert_called_with(search_from_root=False)
         mocked_wait.assert_called_once()
-
-    @patch("fzfaws.cloudformation.create_stack.prompt")
-    def test_get_stack_name(self, mocked_prompt):
-        mocked_prompt.return_value = {"answer": "hello"}
-        result = get_stack_name()
-        self.assertEqual(result, "hello")
-
-        mocked_prompt.return_value = {}
-        self.assertRaises(KeyboardInterrupt, get_stack_name)
