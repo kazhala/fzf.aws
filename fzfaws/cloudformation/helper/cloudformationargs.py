@@ -172,11 +172,11 @@ class CloudformationArgs:
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.
         
-        :param update: show previous values if true
+        :param update: show previous values and set default values if true
         :type update: bool, optional
         """
         cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
-        header: str = "select a cloudwatch alarm to monitor the stack"
+        header: str = "select cloudwatch alarms to monitor the stack"
         questions: List[Dict[str, str]] = [
             {"type": "input", "message": "MonitoringTimeInMinutes", "name": "answer"}
         ]
@@ -213,7 +213,7 @@ class CloudformationArgs:
         sns = SNS(
             profile=self.cloudformation.profile, region=self.cloudformation.region
         )
-        header = "select sns topic to notify"
+        header = "select sns topics to notify"
         if update:
             header += "\nOriginal value: %s" % self.cloudformation.stack_details.get(
                 "NotificationARNs"
@@ -290,7 +290,7 @@ class CloudformationArgs:
             }
         ]
 
-        :param update: determine if is updating the stack, it will show different prompt
+        :param update: determine if is updating the stack, it will set default tag value
         :type update: bool, optional
         """
         print("Tag format should be a URL Query alike string (e.g. foo=boo&name=yes)")

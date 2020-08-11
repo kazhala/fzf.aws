@@ -1,16 +1,16 @@
-from fzfaws.iam.iam import IAM
 import io
 import json
 import os
 import sys
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudformation.helper.cloudformationargs import CloudformationArgs
 from fzfaws.cloudwatch import Cloudwatch
-from fzfaws.sns.sns import SNS
-from fzfaws.utils import Pyfzf
+from fzfaws.iam.iam import IAM
+from fzfaws.sns import SNS
+from fzfaws.utils import Pyfzf, prompt_style
 
 
 class TestCloudformationArgs(unittest.TestCase):
@@ -28,8 +28,7 @@ class TestCloudformationArgs(unittest.TestCase):
         self.assertEqual(self.cloudformationargs.update_termination, None)
         self.assertIsInstance(self.cloudformationargs.cloudformation, Cloudformation)
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.prompt")
     @patch.object(CloudformationArgs, "_set_creation")
     @patch.object(CloudformationArgs, "_set_rollback")
     @patch.object(CloudformationArgs, "_set_notification")
@@ -44,18 +43,19 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_notify,
         mocked_rollback,
         mocked_create,
-        mocked_append,
-        mocked_execute,
+        mocked_prompt,
     ):
         # normal test
-        mocked_execute.return_value = [
-            "Tags",
-            "Permissions",
-            "StackPolicy",
-            "Notifications",
-            "RollbackConfiguration",
-            "CreationOption",
-        ]
+        mocked_prompt.return_value = {
+            "answer": [
+                "Tags",
+                "Permissions",
+                "StackPolicy",
+                "Notifications",
+                "RollbackConfiguration",
+                "CreationOption",
+            ]
+        }
         self.cloudformationargs.set_extra_args()
         mocked_tags.assert_called_once_with(False)
         mocked_perm.assert_called_once_with(False)
@@ -63,15 +63,23 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_rollback.assert_called_once_with(False)
         mocked_policy.assert_called_once_with(False, False)
         mocked_create.assert_called_once_with()
-        mocked_append.assert_has_calls(
+        mocked_prompt.assert_called_once_with(
             [
-                call("Tags\n"),
-                call("Permissions\n"),
-                call("StackPolicy\n"),
-                call("Notifications\n"),
-                call("RollbackConfiguration\n"),
-                call("CreationOption\n"),
-            ]
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select options to configure",
+                    "choices": [
+                        {"name": "Tags"},
+                        {"name": "Permissions"},
+                        {"name": "Notifications"},
+                        {"name": "RollbackConfiguration"},
+                        {"name": "StackPolicy"},
+                        {"name": "CreationOption"},
+                    ],
+                }
+            ],
+            style=prompt_style,
         )
 
         mocked_tags.reset_mock()
@@ -80,7 +88,7 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_rollback.reset_mock()
         mocked_policy.reset_mock()
         mocked_create.reset_mock()
-        mocked_append.reset_mock()
+        mocked_prompt.reset_mock()
         # update test
         self.cloudformationargs.set_extra_args(update=True, search_from_root=True)
         mocked_tags.assert_called_once_with(True)
@@ -89,14 +97,22 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_rollback.assert_called_once_with(True)
         mocked_policy.assert_called_once_with(True, True)
         mocked_create.assert_called_once_with()
-        mocked_append.assert_has_calls(
+        mocked_prompt.assert_called_once_with(
             [
-                call("Tags\n"),
-                call("Permissions\n"),
-                call("StackPolicy\n"),
-                call("Notifications\n"),
-                call("RollbackConfiguration\n"),
-            ]
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select options to configure",
+                    "choices": [
+                        {"name": "Tags"},
+                        {"name": "Permissions"},
+                        {"name": "Notifications"},
+                        {"name": "RollbackConfiguration"},
+                        {"name": "StackPolicy"},
+                    ],
+                }
+            ],
+            style=prompt_style,
         )
 
         mocked_tags.reset_mock()
@@ -105,7 +121,7 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_rollback.reset_mock()
         mocked_policy.reset_mock()
         mocked_create.reset_mock()
-        mocked_append.reset_mock()
+        mocked_prompt.reset_mock()
         # dryrun test
         self.cloudformationargs.set_extra_args(dryrun=True)
         mocked_tags.assert_called_once_with(False)
@@ -114,92 +130,122 @@ class TestCloudformationArgs(unittest.TestCase):
         mocked_rollback.assert_called_once_with(False)
         mocked_policy.assert_called_once_with(False, False)
         mocked_create.assert_called_once_with()
-        mocked_append.assert_has_calls(
+        mocked_prompt.assert_called_once_with(
             [
-                call("Tags\n"),
-                call("Permissions\n"),
-                call("Notifications\n"),
-                call("RollbackConfiguration\n"),
-            ]
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select options to configure",
+                    "choices": [
+                        {"name": "Tags"},
+                        {"name": "Permissions"},
+                        {"name": "Notifications"},
+                        {"name": "RollbackConfiguration"},
+                    ],
+                }
+            ],
+            style=prompt_style,
         )
 
-    @patch("builtins.input")
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test__set_creation(self, mocked_append, mocked_execute, mocked_input):
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.cloudformationargs.set_extra_args)
+
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.prompt")
+    def test__set_creation(self, mocked_prompt):
         self.cloudformationargs._extra_args = {}
 
         # normal test
-        mocked_execute.return_value = [
-            "RollbackOnFailure",
-            "TimeoutInMinutes",
-            "EnableTerminationProtection",
-        ]
-        mocked_input.return_value = 1
+        mocked_prompt.return_value = {
+            "selected_options": [
+                "RollbackOnFailure",
+                "TimeoutInMinutes",
+                "EnableTerminationProtection",
+            ],
+            "rollback": "True",
+            "timeout": "5",
+            "termination": "False",
+        }
         self.cloudformationargs._set_creation()
-        mocked_append.assert_has_calls(
-            [
-                call("RollbackOnFailure\n"),
-                call("TimeoutInMinutes\n"),
-                call("EnableTerminationProtection\n"),
-                call("True\n"),
-                call("False\n"),
-                call("True\n"),
-                call("False\n"),
-            ]
-        )
-        mocked_execute.assert_has_calls(
-            [
-                call(
-                    empty_allow=True,
-                    print_col=1,
-                    multi_select=True,
-                    header="select options to configure",
-                ),
-                call(
-                    empty_allow=True,
-                    print_col=1,
-                    header="roll back on failue? (Default: True)",
-                ),
-                call(
-                    empty_allow=True,
-                    print_col=1,
-                    header="enable termination protection? (Default: False)",
-                ),
-            ]
-        )
         self.assertEqual(
-            self.cloudformationargs.extra_args,
+            self.cloudformationargs._extra_args,
             {
-                "OnFailure": "DO_NOTHING",
-                "TimeoutInMinutes": 1,
+                "OnFailure": "ROLLBACK",
+                "TimeoutInMinutes": 5,
                 "EnableTerminationProtection": False,
             },
         )
-
-    @patch("builtins.input")
-    @patch.object(Cloudwatch, "set_arns")
-    def test__set_rollback(self, mocked_arn, mocked_input):
-
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-        # normal test
-        self.cloudformationargs._set_rollback(update=False)
-        self.assertEqual(
-            self.capturedOutput.getvalue(),
-            "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "checkbox",
+                    "name": "selected_options",
+                    "message": "Select creation options to configure",
+                    "choices": [
+                        {"name": "RollbackOnFailure"},
+                        {"name": "TimeoutInMinutes"},
+                        {"name": "EnableTerminationProtection"},
+                    ],
+                },
+                {
+                    "type": "rawlist",
+                    "name": "rollback",
+                    "message": "Roll back on failure?",
+                    "choices": ["True", "False"],
+                    "when": ANY,
+                },
+                {
+                    "type": "input",
+                    "name": "timeout",
+                    "message": "Specify number of minutes before timeout",
+                    "when": ANY,
+                },
+                {
+                    "type": "rawlist",
+                    "name": "termination",
+                    "message": "Enable termination protection?",
+                    "choices": ["True", "False"],
+                    "when": ANY,
+                },
+            ],
+            style=prompt_style,
         )
-        mocked_arn.assert_called_once_with(
+
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.cloudformationargs._set_creation)
+
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.prompt")
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.Cloudwatch")
+    def test__set_rollback(self, MockedCloudwatch, mocked_prompt):
+        self.cloudformationargs._extra_args = {}
+
+        # normal test
+        cloudwatch = MockedCloudwatch.return_value
+        cloudwatch.arns = ["hello"]
+        mocked_prompt.return_value = {"answer": "5"}
+        self.cloudformationargs._set_rollback(update=False)
+        cloudwatch.set_arns.assert_called_once_with(
             empty_allow=True,
-            header="select a cloudwatch alarm to monitor the stack",
+            header="select cloudwatch alarms to monitor the stack",
             multi_select=True,
         )
-        mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Default: 0): ")
+        mocked_prompt.assert_called_once_with(
+            [{"type": "input", "message": "MonitoringTimeInMinutes", "name": "answer"}],
+            style=prompt_style,
+        )
+        self.assertEqual(
+            self.cloudformationargs._extra_args,
+            {
+                "RollbackConfiguration": {
+                    "RollbackTriggers": [
+                        {"Arn": "hello", "Type": "AWS::CloudWatch::Alarm"}
+                    ],
+                    "MonitoringTimeInMinutes": 5,
+                }
+            },
+        )
 
-        mocked_arn.reset_mock()
-        mocked_input.reset_mock()
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
+        cloudwatch.set_arns.reset_mock()
+        mocked_prompt.reset_mock()
         # update test
         self.cloudformationargs.cloudformation.stack_details = {
             "RollbackConfiguration": {
@@ -208,32 +254,46 @@ class TestCloudformationArgs(unittest.TestCase):
             }
         }
         self.cloudformationargs._set_rollback(update=True)
-        self.assertEqual(
-            self.capturedOutput.getvalue(),
-            "--------------------------------------------------------------------------------\nSelected arns: ['']\n",
-        )
-        mocked_arn.assert_called_once_with(
+        cloudwatch.set_arns.assert_called_once_with(
             empty_allow=True,
-            header="select a cloudwatch alarm to monitor the stack\nOriginal value: 111111",
+            header="select cloudwatch alarms to monitor the stack\nOriginal value: 111111",
             multi_select=True,
         )
-        mocked_input.assert_called_once_with("MonitoringTimeInMinutes(Original: 1): ")
-
-    @patch.object(SNS, "set_arns")
-    def test__set_notification(self, mocked_arn):
-        self.cloudformationargs._set_notification()
-        mocked_arn.assert_called_once_with(
-            empty_allow=True, header="select sns topic to notify", multi_select=True
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "input",
+                    "message": "MonitoringTimeInMinutes",
+                    "name": "answer",
+                    "default": "1",
+                }
+            ],
+            style=prompt_style,
         )
 
-        mocked_arn.reset_mock()
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.cloudformationargs._set_rollback)
+
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.SNS")
+    def test__set_notification(self, MockedSNS):
+        sns = MockedSNS.return_value
+        sns.arns = ["hello"]
+        self.cloudformationargs._set_notification()
+        sns.set_arns.assert_called_once_with(
+            empty_allow=True, header="select sns topics to notify", multi_select=True
+        )
+        self.assertEqual(
+            self.cloudformationargs._extra_args, {"NotificationARNs": ["hello"]}
+        )
+
+        sns.set_arns.reset_mock()
         self.cloudformationargs.cloudformation.stack_details = {
             "NotificationARNs": "111111"
         }
         self.cloudformationargs._set_notification(update=True)
-        mocked_arn.assert_called_once_with(
+        sns.set_arns.assert_called_once_with(
             empty_allow=True,
-            header="select sns topic to notify\nOriginal value: 111111",
+            header="select sns topics to notify\nOriginal value: 111111",
             multi_select=True,
         )
 
@@ -294,40 +354,56 @@ class TestCloudformationArgs(unittest.TestCase):
             header="select the policy document you would like to use",
         )
 
-    @patch.object(IAM, "set_arns")
-    def test__set_permissions(self, mocked_arn):
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.IAM")
+    def test__set_permissions(self, MockedIAM):
+        iam = MockedIAM.return_value
+        iam.arns = ["hello"]
         self.cloudformationargs._set_permissions()
-        mocked_arn.assert_called_once_with(
+        iam.set_arns.assert_called_once_with(
             header="choose an IAM role to explicitly define CloudFormation's permissions\nNote: only IAM role can be assumed by CloudFormation is listed",
             service="cloudformation.amazonaws.com",
         )
+        self.assertEqual(self.cloudformationargs.extra_args, {"RoleARN": "hello"})
 
-        mocked_arn.reset_mock()
+        iam.set_arns.reset_mock()
         self.cloudformationargs.cloudformation.stack_details = {"RoleARN": "111111"}
         self.cloudformationargs._set_permissions(update=True)
-        mocked_arn.assert_called_once_with(
+        iam.set_arns.assert_called_once_with(
             header="select a role Choose an IAM role to explicitly define CloudFormation's permissions\nOriginal value: 111111",
             service="cloudformation.amazonaws.com",
         )
 
-    @patch("builtins.input")
-    def test_set_tags(self, mocked_input):
-        self.cloudformationargs._extra_args = {}
-        mocked_input.return_value = ""
-        self.cloudformationargs._set_tags()
-        mocked_input.assert_has_calls(
-            [call("TagName: "),]
-        )
-        self.assertEqual(self.cloudformationargs._extra_args, {})
+    @patch("fzfaws.cloudformation.helper.cloudformationargs.prompt")
+    def test_set_tags(self, mocked_prompt):
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.cloudformationargs._set_tags)
 
-        mocked_input.reset_mock()
-        mocked_input.return_value = ""
-        self.cloudformationargs.cloudformation.stack_details = {
-            "Tags": [{"Key": "foo", "Value": "boo"}]
-        }
-        self.cloudformationargs._set_tags(update=True)
-        mocked_input.assert_has_calls([call("Key(foo): "), call("Value(boo): ")])
+        mocked_prompt.reset_mock()
+        mocked_prompt.return_value = {"answer": "foo=boo&yes=no"}
+        self.cloudformationargs._set_tags()
         self.assertEqual(
             self.cloudformationargs._extra_args,
-            {"Tags": [{"Key": "foo", "Value": "boo"}]},
+            {"Tags": [{"Key": "foo", "Value": "boo"}, {"Key": "yes", "Value": "no"},]},
+        )
+        mocked_prompt.assert_called_once_with(
+            [{"type": "input", "message": "Tags", "name": "answer", "validate": ANY,}],
+            style=prompt_style,
+        )
+
+        mocked_prompt.reset_mock()
+        self.cloudformationargs.cloudformation.stack_details = {
+            "Tags": [{"Key": "foo", "Value": "boo"}, {"Key": "hello", "Value": "yes"}]
+        }
+        self.cloudformationargs._set_tags(update=True)
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "input",
+                    "message": "Tags",
+                    "name": "answer",
+                    "validate": ANY,
+                    "default": "foo=boo&hello=yes",
+                }
+            ],
+            style=prompt_style,
         )
