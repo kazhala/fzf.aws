@@ -78,7 +78,6 @@ class ParamProcessor:
         selected_params: List[str] = self._get_param_selection()
 
         for parameter_key in selected_params:
-            print(80 * "-")
             default_value: str = ""
             param_header: str = ""
 
@@ -154,6 +153,7 @@ class ParamProcessor:
                 print(param_header.rstrip())
             self.params.pop(parameter_key, None)
             print("ParameterValue: %s" % parameter_value)
+            print(80 * "-")
 
         # add all the unproccessed parameter to the processed_params list
         for parameter_key in self.params:
@@ -182,7 +182,7 @@ class ParamProcessor:
         parameter_type: str,
         param_header: str,
         value_type: str = None,
-        default: str = None,
+        default: str = "",
     ) -> Union[str, List[str]]:
         """Get user input.
 
@@ -227,27 +227,24 @@ class ParamProcessor:
                 user_input = self._get_list_param_value(parameter_type, param_header)
             else:
                 print(param_header.rstrip())
-                if not value_type:
-                    user_input = input("%s: " % parameter_key)
-                elif value_type == "Default":
-                    user_input = input("%s(Default: %s): " % (parameter_key, default))
-                elif value_type == "Original":
-                    user_input = input("%s(Original: %s): " % (parameter_key, default))
-        if not user_input and default:
-            return default
-        elif user_input == "''":
-            return ""
-        elif user_input == '""':
-            return ""
-        else:
-            return user_input
+                questions = [
+                    {"type": "input", "message": parameter_key, "name": "answer",}
+                ]
+                if default:
+                    questions[0]["default"] = default
+                result = prompt(questions, style=prompt_style)
+                if not result:
+                    raise KeyboardInterrupt
+                user_input = result.get("answer", "")
+                return user_input
+        return user_input if user_input else default
 
     def _print_parameter_key(
         self, parameter_key: str, value_type: str = None, default: str = None
     ) -> str:
         """Print parameter_key."""
         if value_type:
-            return "choose a value for %s(%s: %s)" % (
+            return "choose a value for %s (%s: %s)" % (
                 parameter_key,
                 value_type,
                 default,
