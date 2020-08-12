@@ -4,9 +4,11 @@ Used to process parameter in template for cloudformation update/changeset/create
 """
 from typing import Any, Dict, List, Optional, Union
 
+from PyInquirer import prompt
+
 from fzfaws.ec2 import EC2
 from fzfaws.route53 import Route53
-from fzfaws.utils import Pyfzf, Spinner, check_dict_value_in_list, search_dict_in_list
+from fzfaws.utils import Pyfzf, Spinner, prompt_style
 
 
 class ParamProcessor:
@@ -40,8 +42,6 @@ class ParamProcessor:
         self.ec2 = EC2(profile, region)
         self.route53 = Route53(profile, region)
         self.params: Dict[str, Any] = params
-        self.original_params: List[Dict[str, Any]] = original_params
-        self.processed_params: List[Dict[str, Any]] = []
         self._aws_specific_param: List[str] = [
             "AWS::EC2::AvailabilityZone::Name",
             "AWS::EC2::Instance::Id",
@@ -63,6 +63,11 @@ class ParamProcessor:
             "List<AWS::EC2::VPC::Id>",
             "List<AWS::Route53::HostedZone::Id>",
         ]
+        self.original_params: Dict[str, Any] = {
+            param["ParameterKey"]: param.get("ParameterValue", "")
+            for param in original_params
+        }
+        self.processed_params: List[Dict[str, Any]] = []
 
     def process_stack_params(self) -> None:
         """Process the template file parameters.
@@ -70,9 +75,9 @@ class ParamProcessor:
         Loop through the keys in the loaded dict object of params and leverage
         self._get_user_input to get user input through fzf or cmd input
         """
-        print("Enter parameters specified in your template below")
+        selected_params: List[str] = self._get_param_selection()
 
-        for parameter_key in self.params:
+        for parameter_key in selected_params:
             print(80 * "-")
             default_value: str = ""
             param_header: str = ""
@@ -99,13 +104,9 @@ class ParamProcessor:
             ):
                 param_header += "For list type parameters, use comma to sperate items(e.g. values: value1, value2)"
 
-            if check_dict_value_in_list(
-                parameter_key, self.original_params, "ParameterKey"
-            ):
+            if parameter_key in self.original_params:
                 # check if there is original value i.e. udpating the stack
-                original_value: str = search_dict_in_list(
-                    parameter_key, self.original_params, "ParameterKey"
-                ).get("ParameterValue", "")
+                original_value = self.original_params[parameter_key]
                 parameter_value = self._get_user_input(
                     parameter_key,
                     parameter_type,
@@ -151,7 +152,29 @@ class ParamProcessor:
                 # it's hard for user to track what they have gone through
                 # hence printing the header information to terminal as well
                 print(param_header.rstrip())
+            self.params.pop(parameter_key, None)
             print("ParameterValue: %s" % parameter_value)
+
+        # add all the unproccessed parameter to the processed_params list
+        for parameter_key in self.params:
+            if parameter_key in self.original_params:
+                self.processed_params.append(
+                    {
+                        "ParameterKey": parameter_key,
+                        "ParameterValue": self.original_params[parameter_key],
+                    }
+                )
+            elif self.params[parameter_key].get("Default"):
+                self.processed_params.append(
+                    {
+                        "ParameterKey": parameter_key,
+                        "ParameterValue": self.params[parameter_key]["Default"],
+                    }
+                )
+            else:
+                self.processed_params.append(
+                    {"ParameterKey": parameter_key, "ParameterValue": ""}
+                )
 
     def _get_user_input(
         self,
@@ -319,3 +342,40 @@ class ParamProcessor:
         return list(
             fzf.execute_fzf(multi_select=True, empty_allow=True, header=param_header)
         )
+
+    def _get_param_selection(self) -> List[str]:
+        """Prompt user to select parameter to edit.
+
+        :return: return the selected list of parameter
+        :rtype: List[str]
+        """
+        choices: List[Dict[str, str]] = []
+        for parameter_key in self.params:
+            if not self.original_params:
+                title = (
+                    "%s: %s"
+                    % (parameter_key, self.params[parameter_key].get("Default"))
+                    if self.params[parameter_key].get("Default")
+                    else parameter_key
+                )
+                choices.append({"name": title})
+            else:
+                original_value = self.original_params.get(parameter_key)
+                if original_value:
+                    title = "%s: %s" % (parameter_key, original_value,)
+                    choices.append({"name": title})
+                else:
+                    choices.append({"name": parameter_key})
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "checkbox",
+                "name": "answer",
+                "message": "Select parameters to edit",
+                "choices": choices,
+                "filter": lambda x: [i.split(": ")[0] for i in x],
+            }
+        ]
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        return result.get("answer", [])
