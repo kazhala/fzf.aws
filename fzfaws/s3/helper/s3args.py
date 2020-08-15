@@ -2,9 +2,16 @@
 import json
 from typing import Any, Dict, List, Optional
 
+from PyInquirer import prompt
+
 from fzfaws.kms.kms import KMS
 from fzfaws.s3 import S3
-from fzfaws.utils import Pyfzf, get_confirmation
+from fzfaws.utils import (
+    get_confirmation,
+    prompt_style,
+    URLQueryStringValidator,
+    CommaListValidator,
+)
 
 
 class S3Args:
@@ -49,43 +56,41 @@ class S3Args:
             allow empty selection during upload operation but not for other operations
         :type upload: bool, optional
         """
-        if not version:
+        if version is None:
             version = []
-        attributes: List[str] = []
+        choices: List[Dict[str, str]] = []
 
         if version:
             # only allow modification of the two attributes for versioned object
             # because other modification would introduce a new version
             if not metadata and not acl and not tags:
-                fzf = Pyfzf()
-                fzf.append_fzf("ACL\n")
-                fzf.append_fzf("Tagging")
-                attributes = list(
-                    fzf.execute_fzf(
-                        print_col=1,
-                        multi_select=True,
-                        empty_allow=False,
-                        header="select attributes to configure",
-                    )
-                )
+                choices = [{"name": "ACL"}, {"name": "Tagging"}]
         else:
             if not storage and not acl and not metadata and not encryption and not tags:
-                fzf = Pyfzf()
-                fzf.append_fzf("StorageClass\n")
-                fzf.append_fzf("ACL\n")
-                fzf.append_fzf("Encryption\n")
-                fzf.append_fzf("Metadata\n")
-                fzf.append_fzf("Tagging\n")
-                attributes = list(
-                    fzf.execute_fzf(
-                        print_col=1,
-                        multi_select=True,
-                        empty_allow=upload,
-                        header="select attributes to configure",
-                    )
-                )
+                choices = [
+                    {"name": "StorageClass"},
+                    {"name": "ACL"},
+                    {"name": "Encryption"},
+                    {"name": "Metadata"},
+                    {"name": "Tagging"},
+                ]
 
-        for attribute in attributes:
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "checkbox",
+                "name": "selected_attributes",
+                "message": "Select attributes to configure",
+                "choices": choices,
+            }
+        ]
+        if choices:
+            result = prompt(questions, style=prompt_style)
+        else:
+            result = {"selected_attributes": []}
+        if not result:
+            raise KeyboardInterrupt
+
+        for attribute in result.get("selected_attributes", []):
             if attribute == "StorageClass":
                 storage = True
             elif attribute == "ACL":
@@ -147,25 +152,29 @@ class S3Args:
         :param original: original value of metadata
         :type original: str, optional
         """
-        print(
-            "Configure metadata for the objects, enter without value will skip metadata"
-        )
+        questions: List[Dict[str, str]] = [
+            {
+                "type": "input",
+                "name": "metadata",
+                "message": "Metadata",
+                "validate": URLQueryStringValidator,
+                "default": original,
+            }
+        ]
         print(
             "Metadata format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)"
         )
-
-        if original:
-            print(80 * "-")
-            print("Orignal: %s" % original)
-        metadata = input("Metadata: ")
-        if metadata:
-            self._extra_args["Metadata"] = {}
-            for item in metadata.split("&"):
-                if "=" not in item:
-                    # handle case for hello=world&foo=boo&
-                    continue
-                key, value = item.split("=")
-                self._extra_args["Metadata"][key] = value
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        metadata = result.get("metadata", "")
+        self._extra_args["Metadata"] = {}
+        for item in metadata.split("&"):
+            if "=" not in item:
+                # handle case for hello=world&foo=boo&
+                continue
+            key, value = item.split("=")
+            self._extra_args["Metadata"][key] = value
 
     def set_storageclass(self, original: str = None) -> None:
         """Set valid storage class.
@@ -173,21 +182,36 @@ class S3Args:
         :param original: original value of the storage_class
         :type original: str, optional
         """
-        header = "select a storage class, esc to use the default storage class of the bucket setting"
-        if original:
-            header += "\nOriginal: %s" % original
+        choices = [
+            "STANDARD",
+            "REDUCED_REDUNDANCY",
+            "STANDARD_IA",
+            "ONEZONE_IA",
+            "INTELLIGENT_TIERING",
+            "GLACIER",
+            "DEEP_ARCHIVE",
+        ]
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_class",
+                "message": "Select a storage class",
+                "choices": choices,
+            }
+        ]
 
-        fzf = Pyfzf()
-        fzf.append_fzf("STANDARD\n")
-        fzf.append_fzf("REDUCED_REDUNDANCY\n")
-        fzf.append_fzf("STANDARD_IA\n")
-        fzf.append_fzf("ONEZONE_IA\n")
-        fzf.append_fzf("INTELLIGENT_TIERING\n")
-        fzf.append_fzf("GLACIER\n")
-        fzf.append_fzf("DEEP_ARCHIVE\n")
-        result = fzf.execute_fzf(empty_allow=True, print_col=1, header=header)
-        if result:
-            self._extra_args["StorageClass"] = result
+        if original:
+            questions[0]["message"] = "Select a storage class (Original: %s)" % original
+
+        result = prompt(questions, style=prompt_style)
+
+        if not result:
+            raise KeyboardInterrupt
+
+        storage_class = result.get("selected_class")
+
+        if storage_class:
+            self._extra_args["StorageClass"] = storage_class
 
     def set_ACL(
         self, original: bool = False, version: Optional[List[Dict[str, str]]] = None
@@ -202,15 +226,27 @@ class S3Args:
         if not version:
             version = []
 
-        fzf = Pyfzf()
-        fzf.append_fzf("None (use bucket default ACL setting)\n")
-        fzf.append_fzf("Canned ACL (predefined set of grantees and permissions)\n")
-        fzf.append_fzf("Explicit ACL (explicit set grantees and permissions)\n")
-        result = fzf.execute_fzf(
-            empty_allow=True,
-            print_col=1,
-            header="select a type of ACL to grant, aws accept one of canned ACL or explicit ACL",
-        )
+        choices = [
+            "None: use bucket default ACL setting",
+            "Canned ACL: select predefined set of grantees and permissions",
+            "Explicit ACL: explicitly define grantees and permissions",
+        ]
+
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_acl",
+                "message": "Select a type of ACL to grant, aws accept either canned ACL or explicit ACL",
+                "choices": choices,
+                "filter": lambda x: x.split(" ")[0],
+            }
+        ]
+        answers = prompt(questions, style=prompt_style)
+        if not answers:
+            raise KeyboardInterrupt
+
+        result = answers.get("selected_acl", "None")
+
         if result == "Canned":
             self._set_canned_ACL()
         elif result == "Explicit":
@@ -275,72 +311,98 @@ class S3Args:
 
                 print("Current ACL:")
                 print(json.dumps(original_acl, indent=4, default=str))
-                print("Note: fzf.aws cannot preserve previous ACL permission")
+                print("Note: fzfaws cannot preserve previous ACL permission")
                 if not get_confirmation("Continue?"):
                     return
 
-        # get what permission to set
-        fzf = Pyfzf()
-        fzf.append_fzf("GrantFullControl\n")
-        fzf.append_fzf("GrantRead\n")
-        fzf.append_fzf("GrantReadACP\n")
-        fzf.append_fzf("GrantWriteACP\n")
-        results: List[str] = list(
-            fzf.execute_fzf(empty_allow=True, print_col=1, multi_select=True)
-        )
+        choices = [
+            {"name": "GrantFullControl"},
+            {"name": "GrantRead"},
+            {"name": "GrantReadACP"},
+            {"name": "GrantWriteACP"},
+        ]
+        questions = [
+            {
+                "type": "checkbox",
+                "name": "selected_acl",
+                "message": "Select ACL to configure",
+                "choices": choices,
+            }
+        ]
+        answers = prompt(questions, style=prompt_style)
+        if not answers:
+            raise KeyboardInterrupt
+
+        results = answers.get("selected_acl", [])
+
         if not results:
             print(
                 "No permission is set, default ACL settings of the bucket would be used"
             )
         else:
+            print(
+                "Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (seperate by comma)"
+            )
+            print(
+                "Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers"
+            )
             for result in results:
-                print("Set permisstion for %s" % result)
-                print(
-                    "Enter a list of either the Canonical ID, Account email, Predefined Group url to grant permission (Seperate by comma)"
-                )
-                print(
-                    "Format: id=XXX,id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers"
-                )
+                questions = [
+                    {
+                        "type": "input",
+                        "name": "input_acl",
+                        "message": result,
+                        "validate": CommaListValidator,
+                    }
+                ]
+
                 if original:
-                    print(80 * "-")
                     if result == "GrantFullControl" and original_acl.get(
                         "FULL_CONTROL"
                     ):
-                        print(
-                            "Orignal: %s"
-                            % ",".join(original_acl.get("FULL_CONTROL", []))
+                        questions[0]["default"] = ",".join(
+                            original_acl.get("FULL_CONTROL", [])
                         )
                     elif result == "GrantRead" and original_acl.get("READ"):
-                        print("Orignal: %s" % ",".join(original_acl.get("READ", [])))
+                        questions[0]["default"] = ",".join(original_acl.get("READ", []))
                     elif result == "GrantReadACP" and original_acl.get("READ_ACP"):
-                        print(
-                            "Orignal: %s" % ",".join(original_acl.get("READ_ACP", []))
+                        questions[0]["default"] = ",".join(
+                            original_acl.get("READ_ACP", [])
                         )
                     elif result == "GrantWriteACP" and original_acl.get("WRITE_ACP"):
-                        print(
-                            "Orignal: %s" % ",".join(original_acl.get("WRITE_ACP", []))
+                        questions[0]["default"] = ",".join(
+                            original_acl.get("WRITE_ACP", [])
                         )
-                accounts = input("Accounts: ")
-                print(80 * "-")
+
+                answers = prompt(questions, style=prompt_style)
+                if not answers:
+                    raise KeyboardInterrupt
+                accounts = answers.get("input_acl", "")
                 self._extra_args[result] = str(accounts)
 
     def _set_canned_ACL(self) -> None:
         """Set the canned ACL for the current operation."""
-        fzf = Pyfzf()
-        fzf.append_fzf("private\n")
-        fzf.append_fzf("public-read\n")
-        fzf.append_fzf("public-read-write\n")
-        fzf.append_fzf("authenticated-read\n")
-        fzf.append_fzf("aws-exec-read\n")
-        fzf.append_fzf("bucket-owner-read\n")
-        fzf.append_fzf("bucket-owner-full-control\n")
-        result: str = str(
-            fzf.execute_fzf(
-                empty_allow=True,
-                print_col=1,
-                header="select a Canned ACL option, esc to use the default ACL setting for the bucket",
-            )
-        )
+        choices = [
+            "private",
+            "public-read",
+            "public-read-write",
+            "authenticated-read",
+            "aws-exec-read",
+            "bucket-owner-read",
+            "bucket-owner-full-control",
+        ]
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_acl",
+                "message": "Select a Canned ACL option",
+                "choices": choices,
+            }
+        ]
+        answers = prompt(questions, style=prompt_style)
+        if not answers:
+            raise KeyboardInterrupt
+        result = answers.get("selected_acl")
         if result:
             self._extra_args["ACL"] = result
 
@@ -350,15 +412,29 @@ class S3Args:
         :param original: previous value of the encryption
         :type original: str, optional
         """
-        header = "select an ecryption setting, esc to use the default encryption setting for the bucket"
+        choices = [
+            "None (Use bucket default setting)",
+            "AES256",
+            "aws:kms",
+        ]
+        questions = [
+            {
+                "type": "rawlist",
+                "name": "selected_encryption",
+                "message": "Select an encryption setting",
+                "choices": choices,
+            }
+        ]
         if original:
-            header += "\nOriginal: %s" % original
+            questions[0]["message"] = (
+                "Select an encryption setting (Original: %s)" % original
+            )
 
-        fzf = Pyfzf()
-        fzf.append_fzf("None (Use bucket default setting)\n")
-        fzf.append_fzf("AES256\n")
-        fzf.append_fzf("aws:kms\n")
-        result: str = str(fzf.execute_fzf(empty_allow=True, print_col=1, header=header))
+        answers = prompt(questions, style=prompt_style)
+        if not answers:
+            raise KeyboardInterrupt
+
+        result = answers.get("selected_encryption")
         if result:
             self._extra_args["ServerSideEncryption"] = result
         if result == "aws:kms":
@@ -381,14 +457,19 @@ class S3Args:
         :type version: List[Dict[str, str]], optional
         """
         print(
-            "Enter tags for the upload objects, enter without value will skip tagging"
-        )
-        print(
             "Tag format should be a URL Query alike string (e.g. tagname=hello&tag2=world)"
         )
 
+        questions = [
+            {
+                "type": "input",
+                "name": "answer",
+                "message": "Tags",
+                "validate": URLQueryStringValidator,
+            }
+        ]
+
         if original:
-            print(80 * "-")
             original_tags: list = []
             original_values: str = ""
             if not version:
@@ -398,7 +479,6 @@ class S3Args:
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
                 original_values = "&".join(original_tags)
-                print("Orignal: %s" % original_values)
             elif len(version) == 1:
                 tags = self.s3.client.get_object_tagging(
                     Bucket=self.s3.bucket_name,
@@ -408,11 +488,13 @@ class S3Args:
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))
                 original_values = "&".join(original_tags)
-                print("Orignal: %s" % original_values)
+            questions[0]["default"] = original_values
 
-        tags = input("Tags: ")
-        if tags:
-            self._extra_args["Tagging"] = tags
+        answer = prompt(questions, style=prompt_style)
+        if not answer:
+            raise KeyboardInterrupt
+        tags = answer.get("answer")
+        self._extra_args["Tagging"] = tags
 
     def check_tag_acl(self) -> Dict[str, Any]:
         """Check if the only attributes to configure is ACL or Tags.

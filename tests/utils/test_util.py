@@ -1,7 +1,7 @@
 import os
 import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from fzfaws.utils import (
     check_dict_value_in_list,
     get_confirmation,
@@ -42,14 +42,29 @@ class TestUtil(unittest.TestCase):
         result = check_dict_value_in_list("yes", test_list, "yes")
         self.assertFalse(result)
 
-    @patch("builtins.input")
-    def test_get_confirmation(self, mocked_input):
-        mocked_input.return_value = "y"
+    @patch("fzfaws.utils.util.prompt")
+    def test_get_confirmation(self, mocked_prompt):
+        mocked_prompt.return_value = {"continue": True}
         response = get_confirmation("Confirm?")
         self.assertTrue(response)
-        mocked_input.return_value = "n"
+        mocked_prompt.assert_called_with(
+            [
+                {
+                    "type": "confirm",
+                    "message": "Confirm?",
+                    "name": "continue",
+                    "default": False,
+                }
+            ],
+            style=ANY,
+        )
+
+        mocked_prompt.return_value = {"continue": False}
         response = get_confirmation("Confirm?")
         self.assertFalse(response)
+
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, get_confirmation)
 
     def test_get_name_tag(self):
         data_path = os.path.join(

@@ -1,33 +1,37 @@
-from fzfaws.route53.route53 import Route53
-from fzfaws.ec2.ec2 import EC2
-from fzfaws.utils.session import BaseSession
-from fzfaws.utils.pyfzf import Pyfzf
-import os
 import io
+import json
+import os
+from pathlib import Path
 import sys
 import unittest
-from unittest.mock import PropertyMock, call, patch
-from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
-from fzfaws.utils import FileLoader
+from unittest.mock import ANY, PropertyMock, call, patch
+
 import boto3
 from botocore.stub import Stubber
-import json
-from pathlib import Path
+
+from fzfaws.cloudformation.helper.paramprocessor import ParamProcessor
+from fzfaws.ec2.ec2 import EC2
+from fzfaws.route53.route53 import Route53
+from fzfaws.utils import FileLoader
+from fzfaws.utils.pyfzf import Pyfzf
+from fzfaws.utils.session import BaseSession
 
 
 class TestCloudformationParams(unittest.TestCase):
     def setUp(self):
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "../data/cloudformation_template.yaml",
+        data_path = (
+            Path(__file__)
+            .resolve()
+            .parent.joinpath("../data/cloudformation_template.yaml")
         )
-        fileloader = FileLoader(path=data_path)
+        fileloader = FileLoader(path=str(data_path))
         params = fileloader.process_yaml_file()["dictBody"].get("Parameters", {})
         config_path = Path(__file__).resolve().parent.joinpath("../data/fzfaws.yml")
         fileloader.load_config_file(config_path=str(config_path))
         self.paramprocessor = ParamProcessor(params=params)
         self.capturedOutput = io.StringIO()
         sys.stdout = self.capturedOutput
+        self.maxDiff = None
 
     def tearDown(self):
         sys.stdout = sys.__stdout__
@@ -38,7 +42,7 @@ class TestCloudformationParams(unittest.TestCase):
         self.assertEqual(self.paramprocessor.route53.profile, "default")
         self.assertEqual(self.paramprocessor.route53.region, "us-east-1")
         self.assertIsInstance(self.paramprocessor.params, dict)
-        self.assertEqual(self.paramprocessor.original_params, [])
+        self.assertEqual(self.paramprocessor.original_params, {})
         self.assertEqual(self.paramprocessor.processed_params, [])
 
         paramprocessor = ParamProcessor(profile="root", region="us-east-1")
@@ -48,11 +52,21 @@ class TestCloudformationParams(unittest.TestCase):
         self.assertEqual(paramprocessor.route53.region, "us-east-1")
         self.assertEqual(paramprocessor.params, {})
         self.assertEqual(paramprocessor.processed_params, [])
-        self.assertEqual(paramprocessor.original_params, [])
+        self.assertEqual(paramprocessor.original_params, {})
 
+    @patch.object(ParamProcessor, "_get_param_selection")
     @patch.object(ParamProcessor, "_get_user_input")
-    def test_process_stack_params(self, mocked_input):
+    def test_process_stack_params1(self, mocked_input, mocked_selection):
         mocked_input.return_value = "111111"
+        mocked_selection.return_value = [
+            "InstanceRole",
+            "LatestAmiId",
+            "SubnetId",
+            "SecurityGroups",
+            "KeyName",
+            "WebServer",
+            "InstanceType",
+        ]
 
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
@@ -97,58 +111,21 @@ class TestCloudformationParams(unittest.TestCase):
             ]
         )
 
-        mocked_input.return_value = "222222"
-        self.paramprocessor.processed_params = []
-        self.paramprocessor.original_params = [
-            {"ParameterKey": "KeyName", "ParameterValue": "fooboo"},
-            {"ParameterKey": "SecurityGroups", "ParameterValue": "sg-111111",},
-            {"ParameterKey": "WebServer", "ParameterValue": "No"},
-            {
-                "ParameterKey": "LatestAmiId",
-                "ParameterValue": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
-                "ResolvedValue": "ami-08fdde86b93accf1c",
-            },
-            {"ParameterKey": "InstanceRole", "ParameterValue": ""},
-            {"ParameterKey": "SubnetId", "ParameterValue": "subnet-111111"},
-            {"ParameterKey": "InstanceType", "ParameterValue": "t2.micro"},
-        ]
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
-        self.paramprocessor.process_stack_params()
-        self.assertEqual(
-            self.paramprocessor.processed_params,
-            [
-                {"ParameterKey": "InstanceRole", "ParameterValue": "222222"},
-                {"ParameterKey": "LatestAmiId", "ParameterValue": "222222"},
-                {"ParameterKey": "SubnetId", "ParameterValue": "222222"},
-                {"ParameterKey": "SecurityGroups", "ParameterValue": "222222"},
-                {"ParameterKey": "KeyName", "ParameterValue": "222222"},
-                {"ParameterKey": "WebServer", "ParameterValue": "222222"},
-                {"ParameterKey": "InstanceType", "ParameterValue": "222222"},
-            ],
-        )
-        self.assertRegex(
-            self.capturedOutput.getvalue(),
-            r"Description: The subnet this instance should be deployed to",
-        )
-        self.assertRegex(
-            self.capturedOutput.getvalue(),
-            r"ConstraintDescription: must be the name of an existing EC2 KeyPair",
-        )
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r"ParameterValue: 222222",
-        )
-        mocked_input.assert_called_with(
-            "InstanceType",
-            "String",
-            "Description: EC2 instance type\nConstraintDescription: must be a valid EC2 instance type\nType: String\n",
-            "Original",
-            "t2.micro",
-        )
-
+    @patch.object(ParamProcessor, "_get_param_selection")
+    @patch.object(ParamProcessor, "_get_user_input")
+    def test_process_stack_params2(self, mocked_input, mocked_selection):
         mocked_input.return_value = ["111111", "222222"]
+        mocked_selection.return_value = [
+            "InstanceRole",
+            "LatestAmiId",
+            "SubnetId",
+            "SecurityGroups",
+            "KeyName",
+            "WebServer",
+            "InstanceType",
+        ]
         self.paramprocessor.processed_params = []
-        self.paramprocessor.original_params = []
+        self.paramprocessor.original_params = {}
         self.paramprocessor.process_stack_params()
         self.assertEqual(
             self.paramprocessor.processed_params,
@@ -163,7 +140,35 @@ class TestCloudformationParams(unittest.TestCase):
             ],
         )
 
-    @patch("builtins.input")
+    @patch.object(ParamProcessor, "_get_param_selection")
+    @patch.object(ParamProcessor, "_get_user_input")
+    def test_process_stack_params3(self, mocked_input, mocked_selection):
+        mocked_selection.return_value = [
+            "SecurityGroups",
+            "SubnetId",
+            "KeyName",
+        ]
+        mocked_input.return_value = ["111111"]
+        self.paramprocessor.processed_params = []
+        self.paramprocessor.original_params = {}
+        self.paramprocessor.process_stack_params()
+        self.assertEqual(
+            self.paramprocessor.processed_params,
+            [
+                {"ParameterKey": "SecurityGroups", "ParameterValue": "111111"},
+                {"ParameterKey": "SubnetId", "ParameterValue": "111111"},
+                {"ParameterKey": "KeyName", "ParameterValue": "111111"},
+                {"ParameterKey": "InstanceRole", "ParameterValue": ""},
+                {
+                    "ParameterKey": "LatestAmiId",
+                    "ParameterValue": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
+                },
+                {"ParameterKey": "WebServer", "ParameterValue": "No"},
+                {"ParameterKey": "InstanceType", "ParameterValue": "t2.micro"},
+            ],
+        )
+
+    @patch("fzfaws.cloudformation.helper.paramprocessor.prompt")
     @patch.object(ParamProcessor, "_get_list_param_value")
     @patch.object(ParamProcessor, "_get_selected_param_value")
     @patch.object(Pyfzf, "execute_fzf")
@@ -176,15 +181,27 @@ class TestCloudformationParams(unittest.TestCase):
         mocked_execute,
         mocked_select,
         mocked_list,
-        mocked_input,
+        mocked_prompt,
     ):
 
+        mocked_prompt.return_value = {}
+        self.assertRaises(
+            KeyboardInterrupt,
+            self.paramprocessor._get_user_input,
+            "InstanceRole",
+            "String",
+            "foo boo",
+        )
+
+        mocked_prompt.reset_mock()
         # normal var with no default value test
-        mocked_input.return_value = "111111"
+        mocked_prompt.return_value = {"answer": "111111"}
         result = self.paramprocessor._get_user_input(
             "InstanceRole", "String", "foo boo"
         )
-        mocked_input.assert_called_once_with("InstanceRole: ")
+        mocked_prompt.assert_called_once_with(
+            [{"type": "input", "message": "InstanceRole", "name": "answer"}], style=ANY
+        )
         mocked_print.assert_not_called()
         mocked_append.assert_not_called()
         mocked_execute.assert_not_called()
@@ -192,7 +209,31 @@ class TestCloudformationParams(unittest.TestCase):
         mocked_list.assert_not_called()
         self.assertEqual(result, "111111")
 
-        mocked_input.reset_mock()
+        mocked_prompt.reset_mock()
+        # normal var with no default value test
+        mocked_prompt.return_value = {"answer": "111111"}
+        result = self.paramprocessor._get_user_input(
+            "InstanceRole", "String", "foo boo", default="wtf"
+        )
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "input",
+                    "message": "InstanceRole",
+                    "name": "answer",
+                    "default": "wtf",
+                }
+            ],
+            style=ANY,
+        )
+        mocked_print.assert_not_called()
+        mocked_append.assert_not_called()
+        mocked_execute.assert_not_called()
+        mocked_select.assert_not_called()
+        mocked_list.assert_not_called()
+        self.assertEqual(result, "111111")
+
+        mocked_prompt.reset_mock()
         mocked_print.reset_mock()
         mocked_append.reset_mock()
         mocked_execute.reset_mock()
@@ -211,10 +252,10 @@ class TestCloudformationParams(unittest.TestCase):
         )
         mocked_select.assert_not_called()
         mocked_list.assert_not_called()
-        mocked_input.assert_not_called()
+        mocked_prompt.assert_not_called()
         self.assertEqual(result, "111111")
 
-        mocked_input.reset_mock()
+        mocked_prompt.reset_mock()
         mocked_print.reset_mock()
         mocked_append.reset_mock()
         mocked_execute.reset_mock()
@@ -231,10 +272,10 @@ class TestCloudformationParams(unittest.TestCase):
         mocked_append.assert_not_called()
         mocked_execute.assert_not_called()
         mocked_list.assert_not_called()
-        mocked_input.assert_not_called()
+        mocked_prompt.assert_not_called()
         self.assertEqual(result, "111111")
 
-        mocked_input.reset_mock()
+        mocked_prompt.reset_mock()
         mocked_print.reset_mock()
         mocked_append.reset_mock()
         mocked_execute.reset_mock()
@@ -245,26 +286,26 @@ class TestCloudformationParams(unittest.TestCase):
         result = self.paramprocessor._get_user_input(
             "SecurityGroups", "List<AWS::EC2::SecurityGroup::Id>", "foo boo"
         )
-        mocked_print.assert_called_with("SecurityGroups", None, None)
+        mocked_print.assert_called_with("SecurityGroups", None, "")
         mocked_list.assert_called_once_with(
             "List<AWS::EC2::SecurityGroup::Id>", "foo boo"
         )
         mocked_append.assert_not_called()
         mocked_execute.assert_not_called()
         mocked_select.assert_not_called()
-        mocked_input.assert_not_called()
+        mocked_prompt.assert_not_called()
         self.assertEqual(result, "111111")
 
     def test_print_parameter_key(self):
         result = self.paramprocessor._print_parameter_key(
             "SecurityGroups", "Default", "111111"
         )
-        self.assertEqual(result, "choose a value for SecurityGroups(Default: 111111)")
+        self.assertEqual(result, "choose a value for SecurityGroups (Default: 111111)")
 
         result = self.paramprocessor._print_parameter_key(
             "SecurityGroups", "Original", "111111"
         )
-        self.assertEqual(result, "choose a value for SecurityGroups(Original: 111111)")
+        self.assertEqual(result, "choose a value for SecurityGroups (Original: 111111)")
 
         result = self.paramprocessor._print_parameter_key("SecurityGroups")
         self.assertEqual(result, "choose a value for SecurityGroups")
@@ -381,3 +422,56 @@ class TestCloudformationParams(unittest.TestCase):
         )
         mocked_zone.assert_called_once()
         self.assertEqual(result, [""])
+
+    @patch("fzfaws.cloudformation.helper.paramprocessor.prompt")
+    def test_get_param_selection(self, mocked_prompt):
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.paramprocessor._get_param_selection)
+
+        mocked_prompt.reset_mock()
+        mocked_prompt.return_value = {
+            "answer": [
+                "InstanceRole",
+                "LatestAmiId",
+                "SubnetId",
+                "SecurityGroups",
+                "KeyName",
+                "WebServer",
+                "InstanceType",
+            ]
+        }
+        result = self.paramprocessor._get_param_selection()
+        self.assertEqual(
+            result,
+            [
+                "InstanceRole",
+                "LatestAmiId",
+                "SubnetId",
+                "SecurityGroups",
+                "KeyName",
+                "WebServer",
+                "InstanceType",
+            ],
+        )
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select parameters to edit",
+                    "choices": [
+                        {"name": "InstanceRole"},
+                        {
+                            "name": "LatestAmiId: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+                        },
+                        {"name": "SubnetId"},
+                        {"name": "SecurityGroups"},
+                        {"name": "KeyName"},
+                        {"name": "WebServer: No"},
+                        {"name": "InstanceType: t2.micro"},
+                    ],
+                    "filter": ANY,
+                }
+            ],
+            style=ANY,
+        )

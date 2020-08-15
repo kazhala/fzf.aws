@@ -1,11 +1,13 @@
 """Contains helper class to set extra arguments for cloudformation."""
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+from PyInquirer import prompt
 
 from fzfaws.cloudformation import Cloudformation
 from fzfaws.cloudwatch import Cloudwatch
 from fzfaws.iam import IAM
 from fzfaws.sns import SNS
-from fzfaws.utils import Pyfzf
+from fzfaws.utils import Pyfzf, URLQueryStringValidator, prompt_style
 
 
 class CloudformationArgs:
@@ -68,23 +70,28 @@ class CloudformationArgs:
             and not creation_option
             and not notification
         ):
-            fzf = Pyfzf()
-            fzf.append_fzf("Tags\n")
-            fzf.append_fzf("Permissions\n")
+            choices: List[Dict[str, str]] = [
+                {"name": "Tags"},
+                {"name": "Permissions"},
+                {"name": "Notifications"},
+                {"name": "RollbackConfiguration"},
+            ]
             if not dryrun:
-                fzf.append_fzf("StackPolicy\n")
-            fzf.append_fzf("Notifications\n")
-            fzf.append_fzf("RollbackConfiguration\n")
+                choices.append({"name": "StackPolicy"})
             if not dryrun and not update:
-                fzf.append_fzf("CreationOption\n")
-            attributes = list(
-                fzf.execute_fzf(
-                    empty_allow=True,
-                    print_col=1,
-                    multi_select=True,
-                    header="select options to configure",
-                )
-            )
+                choices.append({"name": "CreationOption"})
+            questions: List[Dict[str, Any]] = [
+                {
+                    "type": "checkbox",
+                    "name": "answer",
+                    "message": "Select options to configure",
+                    "choices": choices,
+                }
+            ]
+            result = prompt(questions, style=prompt_style)
+            if not result:
+                raise KeyboardInterrupt
+            attributes = result.get("answer", [])
 
         for attribute in attributes:
             if attribute == "Tags":
@@ -115,81 +122,79 @@ class CloudformationArgs:
 
     def _set_creation(self) -> None:
         """Set creation option for stack."""
-        print(80 * "-")
-        fzf = Pyfzf()
-        fzf.append_fzf("RollbackOnFailure\n")
-        fzf.append_fzf("TimeoutInMinutes\n")
-        fzf.append_fzf("EnableTerminationProtection\n")
-        selected_options: List[str] = list(
-            fzf.execute_fzf(
-                empty_allow=True,
-                print_col=1,
-                multi_select=True,
-                header="select options to configure",
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "checkbox",
+                "name": "selected_options",
+                "message": "Select creation options to configure",
+                "choices": [
+                    {"name": "RollbackOnFailure"},
+                    {"name": "TimeoutInMinutes"},
+                    {"name": "EnableTerminationProtection"},
+                ],
+            },
+            {
+                "type": "rawlist",
+                "name": "rollback",
+                "message": "Roll back on failure?",
+                "choices": ["True", "False"],
+                "when": lambda x: "RollbackOnFailure" in x["selected_options"],
+            },
+            {
+                "type": "input",
+                "name": "timeout",
+                "message": "Specify number of minutes before timeout",
+                "when": lambda x: "TimeoutInMinutes" in x["selected_options"],
+            },
+            {
+                "type": "rawlist",
+                "name": "termination",
+                "message": "Enable termination protection?",
+                "choices": ["True", "False"],
+                "when": lambda x: "EnableTerminationProtection"
+                in x["selected_options"],
+            },
+        ]
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        if result.get("rollback"):
+            self._extra_args["OnFailure"] = (
+                "ROLLBACK" if result["rollback"] == "True" else "DO_NOTHING"
             )
-        )
-
-        for option in selected_options:
-            result: str = ""
-            if option == "RollbackOnFailure":
-                fzf.fzf_string = ""
-                fzf.append_fzf("True\n")
-                fzf.append_fzf("False\n")
-                result = str(
-                    fzf.execute_fzf(
-                        empty_allow=True,
-                        print_col=1,
-                        header="roll back on failue? (Default: True)",
-                    )
-                )
-                if result:
-                    self._extra_args["OnFailure"] = (
-                        "ROLLBACK" if result == "True" else "DO_NOTHING"
-                    )
-            elif option == "TimeoutInMinutes":
-                message = "Specify number of minutes before stack timeout (Default: no timeout): "
-                timeout = input(message)
-                if timeout:
-                    self._extra_args["TimeoutInMinutes"] = int(timeout)
-            elif option == "EnableTerminationProtection":
-                fzf.fzf_string = ""
-                fzf.append_fzf("True\n")
-                fzf.append_fzf("False\n")
-                result = str(
-                    fzf.execute_fzf(
-                        empty_allow=True,
-                        print_col=1,
-                        header="enable termination protection? (Default: False)",
-                    )
-                )
-                if result:
-                    self._extra_args["EnableTerminationProtection"] = (
-                        True if result == "True" else False
-                    )
+        if result.get("timeout"):
+            self._extra_args["TimeoutInMinutes"] = int(result["timeout"])
+        if result.get("termination"):
+            self._extra_args["EnableTerminationProtection"] = (
+                True if result["termination"] == "True" else False
+            )
 
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.
         
-        :param update: show previous values if true
+        :param update: show previous values and set default values if true
         :type update: bool, optional
         """
-        print(80 * "-")
-
         cloudwatch = Cloudwatch(self.cloudformation.profile, self.cloudformation.region)
-        header: str = "select a cloudwatch alarm to monitor the stack"
-        message: str = "MonitoringTimeInMinutes(Default: 0): "
+        header: str = "select cloudwatch alarms to monitor the stack"
+        questions: List[Dict[str, str]] = [
+            {"type": "input", "message": "MonitoringTimeInMinutes", "name": "answer"}
+        ]
         if update and self.cloudformation.stack_details.get("RollbackConfiguration"):
             header += "\nOriginal value: %s" % self.cloudformation.stack_details[
                 "RollbackConfiguration"
             ].get("RollbackTriggers")
-            message = "MonitoringTimeInMinutes(Original: %s): " % self.cloudformation.stack_details[
-                "RollbackConfiguration"
-            ].get(
-                "MonitoringTimeInMinutes"
+            questions[0]["default"] = str(
+                self.cloudformation.stack_details["RollbackConfiguration"].get(
+                    "MonitoringTimeInMinutes", ""
+                )
             )
         cloudwatch.set_arns(empty_allow=True, header=header, multi_select=True)
-        print("Selected arns: %s" % cloudwatch.arns)
-        monitor_time = input(message)
+        print("Selected alarm: %s" % cloudwatch.arns)
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        monitor_time = result.get("answer")
         if cloudwatch.arns:
             self._extra_args["RollbackConfiguration"] = {
                 "RollbackTriggers": [
@@ -205,16 +210,16 @@ class CloudformationArgs:
         :param update: show previous values if true
         :type update: bool, optional
         """
-        print(80 * "-")
         sns = SNS(
             profile=self.cloudformation.profile, region=self.cloudformation.region
         )
-        header = "select sns topic to notify"
+        header = "select sns topics to notify"
         if update:
             header += "\nOriginal value: %s" % self.cloudformation.stack_details.get(
                 "NotificationARNs"
             )
         sns.set_arns(empty_allow=True, header=header, multi_select=True)
+        print("Selected notification: %s" % sns.arns)
         if sns.arns:
             self._extra_args["NotificationARNs"] = sns.arns
 
@@ -229,12 +234,11 @@ class CloudformationArgs:
         :param search_from_root: search files from root
         :type search_from_root: bool, optional
         """
-        print(80 * "-")
         fzf = Pyfzf()
         file_path: str = str(
             fzf.get_local_file(
                 search_from_root=search_from_root,
-                cloudformation=True,
+                json=True,
                 empty_allow=True,
                 header="select the policy document you would like to use",
             )
@@ -247,6 +251,7 @@ class CloudformationArgs:
             with open(str(file_path), "r") as body:
                 body = body.read()
                 self._extra_args["StackPolicyDuringUpdateBody"] = body
+        print("Selected policy: %s" % file_path)
 
     def _set_permissions(self, update: bool = False) -> None:
         """Set the iam user for the current stack.
@@ -258,7 +263,6 @@ class CloudformationArgs:
         :param update: show previous values if true
         :type update: bool, optional
         """
-        print(80 * "-")
         iam = IAM(profile=self.cloudformation.profile)
         if not update:
             header = (
@@ -272,6 +276,7 @@ class CloudformationArgs:
                 "RoleARN"
             )
             iam.set_arns(header=header, service="cloudformation.amazonaws.com")
+        print("Selected role: %s" % iam.arns[0])
         if iam.arns:
             self._extra_args["RoleARN"] = iam.arns[0]
 
@@ -285,41 +290,35 @@ class CloudformationArgs:
             }
         ]
 
-        :param update: determine if is updating the stack, it will show different prompt
+        :param update: determine if is updating the stack, it will set default tag value
         :type update: bool, optional
         """
-        print(80 * "-")
+        print("Tag format should be a URL Query alike string (e.g. foo=boo&name=yes)")
 
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "input",
+                "message": "Tags",
+                "name": "answer",
+                "validate": URLQueryStringValidator,
+            }
+        ]
+        if update and self.cloudformation.stack_details.get("Tags"):
+            default_tag_value: List[str] = []
+            for tag in self.cloudformation.stack_details.get("Tags", []):
+                default_tag_value.append(
+                    "%s=%s" % (tag.get("Key", ""), tag.get("Value", ""))
+                )
+            questions[0]["default"] = "&".join(default_tag_value)
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
         tag_list: List[Dict[str, str]] = []
-        if update:
-            if self.cloudformation.stack_details.get("Tags"):
-                print("Update original tags")
-                print("Skip the value to use previous value")
-                print('Enter "deletetag" in any field to remove a tag')
-                for tag in self.cloudformation.stack_details["Tags"]:
-                    tag_key = input("Key(%s): " % tag["Key"])
-                    if not tag_key:
-                        tag_key = tag["Key"]
-                    tag_value = input("Value(%s): " % tag["Value"])
-                    if not tag_value:
-                        tag_value = tag["Value"]
-                    if tag_key == "deletetag" or tag_value == "deletetag":
-                        continue
-                    tag_list.append({"Key": tag_key, "Value": tag_value})
-        print("Enter new tags below")
-        print("Enter an empty value to stop entering for new tags")
-        while True:
-            tag_name: str = input("TagName: ")
-            if not tag_name:
-                break
-            tag_value: str = input("TagValue: ")
-            if not tag_value:
-                break
-            tag_list.append({"Key": tag_name, "Value": tag_value})
-        if tag_list:
-            self._extra_args["Tags"] = tag_list
-        elif not tag_list and update:
-            self._extra_args["Tags"] = []
+        for tag in result.get("answer", "").split("&"):
+            if tag != "":
+                tag_name, tag_value = tag.split("=")
+                tag_list.append({"Key": tag_name, "Value": tag_value})
+        self._extra_args["Tags"] = tag_list
 
     @property
     def extra_args(self):

@@ -76,41 +76,39 @@ class TestPyfzf(unittest.TestCase):
             ],
         )
 
-    @patch.object(subprocess, "Popen")
-    @patch.object(subprocess, "check_output")
-    def test_execute_fzf(self, mocked_output, mocked_popen):
-        mocked_output.return_value = b"hello"
+    @patch("fzfaws.utils.pyfzf.subprocess.Popen")
+    def test_execute_fzf(self, MockedPopen):
+        proc = MockedPopen()
+        proc.stdout.read.return_value = b"hello"
         result = self.fzf.execute_fzf(print_col=1)
         self.assertEqual(result, "hello")
-        mocked_output.assert_called_once()
 
-        mocked_output.return_value = b""
+        proc.stdout.read.return_value = b""
         self.assertRaises(NoSelectionMade, self.fzf.execute_fzf)
 
-        mocked_output.return_value = b""
         result = self.fzf.execute_fzf(empty_allow=True)
         self.assertEqual("", result)
 
-        mocked_output.return_value = b"hello"
+        proc.stdout.read.return_value = b"hello"
         result = self.fzf.execute_fzf(multi_select=True, print_col=1)
         self.assertEqual(result, ["hello"])
 
-        mocked_output.return_value = b"hello\nworld"
+        proc.stdout.read.return_value = b"hello\nworld"
         result = self.fzf.execute_fzf(
             multi_select=True, print_col=1, preview="hello", header="foo boo"
         )
         self.assertEqual(result, ["hello", "world"])
 
-        mocked_output.return_value = b"hello world\nfoo boo"
+        proc.stdout.read.return_value = b"hello world\nfoo boo"
         result = self.fzf.execute_fzf(multi_select=True, print_col=0)
         self.assertEqual(result, ["hello world", "foo boo"])
 
-    @patch.object(subprocess, "Popen")
-    @patch.object(subprocess, "check_output")
-    def test_check_ctrl_c(self, mocked_output, mocked_popen):
-        mocked_output.return_value = b"ctrl-c"
+    @patch("fzfaws.utils.pyfzf.subprocess.Popen")
+    def test_check_ctrl_c(self, MockedPopen):
+        proc = MockedPopen()
+        proc.stdout.read.return_value = b"ctrl-c"
         self.assertRaises(KeyboardInterrupt, self.fzf.execute_fzf)
-        mocked_output.return_value = b"hello world"
+        proc.stdout.read.return_value = b"hello world"
         try:
             result = self.fzf.execute_fzf()
             self.assertEqual(result, "world")
@@ -153,6 +151,11 @@ class TestPyfzf(unittest.TestCase):
             stdout=ANY,
         )
 
+        result = self.fzf.get_local_file(json=True)
+        mocked_popen.assert_called_with(
+            'find * -type f -name "*.json"', shell=True, stderr=ANY, stdout=ANY,
+        )
+
         mocked_output.reset_mock()
         mocked_check.return_value = True
         result = self.fzf.get_local_file(cloudformation=True, header="hello")
@@ -163,6 +166,11 @@ class TestPyfzf(unittest.TestCase):
             stdout=ANY,
         )
         mocked_output.assert_called_once()
+
+        result = self.fzf.get_local_file(json=True, header="hello")
+        mocked_popen.assert_called_with(
+            "fd --type f --regex 'json$'", shell=True, stderr=ANY, stdout=ANY,
+        )
 
         result = self.fzf.get_local_file(directory=True)
         mocked_popen.assert_called_with(

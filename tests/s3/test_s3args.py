@@ -1,16 +1,24 @@
-from fzfaws.utils.pyfzf import Pyfzf
-from fzfaws.utils.session import BaseSession
 import io
 import json
 import os
+from pathlib import Path
 import sys
 import unittest
-from unittest.mock import PropertyMock, patch
-from fzfaws.s3.helper.s3args import S3Args
-from fzfaws.s3 import S3
+from unittest.mock import ANY, PropertyMock, patch
+
 import boto3
 from botocore.stub import Stubber
+
 from fzfaws.kms import KMS
+from fzfaws.s3 import S3
+from fzfaws.s3.helper.s3args import S3Args
+from fzfaws.utils import (
+    Pyfzf,
+    BaseSession,
+    CommaListValidator,
+    URLQueryStringValidator,
+    prompt_style,
+)
 
 
 class TestS3Args(unittest.TestCase):
@@ -29,29 +37,25 @@ class TestS3Args(unittest.TestCase):
         self.assertIsInstance(self.s3_args.s3, S3)
         self.assertEqual(self.s3_args._extra_args, {})
 
+    @patch("fzfaws.s3.helper.s3args.prompt")
     @patch.object(S3Args, "set_tags")
     @patch.object(S3Args, "set_metadata")
     @patch.object(S3Args, "set_encryption")
     @patch.object(S3Args, "set_ACL")
     @patch.object(S3Args, "set_storageclass")
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
     @patch.object(BaseSession, "resource", new_callable=PropertyMock)
     def test_set_extra_args(
         self,
         mocked_resource,
-        mocked_append,
-        mocked_execute,
         mocked_storage,
         mocked_acl,
         mocked_encryption,
         mocked_metadata,
         mocked_tags,
+        mocked_prompt,
     ):
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../data/s3_obj.json"
-        )
-        with open(data_path, "r") as file:
+        data_path = Path(__file__).resolve().parent.joinpath("../data/s3_obj.json")
+        with data_path.open("r") as file:
             response = json.load(file)
 
         # normal no version test
@@ -59,32 +63,44 @@ class TestS3Args(unittest.TestCase):
         stubber = Stubber(s3.meta.client)
         stubber.add_response("get_object", response)
         stubber.activate()
-        mocked_execute.return_value = [
-            "StorageClass",
-            "ACL",
-            "Metadata",
-            "Encryption",
-            "Tagging",
-        ]
+        mocked_prompt.return_value = {
+            "selected_attributes": [
+                "StorageClass",
+                "ACL",
+                "Metadata",
+                "Encryption",
+                "Tagging",
+            ]
+        }
+
         self.s3_args.set_extra_args()
-        mocked_append.assert_called_with("Tagging\n")
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "checkbox",
+                    "name": "selected_attributes",
+                    "message": "Select attributes to configure",
+                    "choices": [
+                        {"name": "StorageClass"},
+                        {"name": "ACL"},
+                        {"name": "Encryption"},
+                        {"name": "Metadata"},
+                        {"name": "Tagging"},
+                    ],
+                }
+            ],
+            style=prompt_style,
+        )
         mocked_storage.assert_called()
         mocked_acl.assert_called_with(original=True, version=[])
         mocked_encryption.assert_called()
         mocked_metadata.assert_called()
         mocked_tags.assert_called_with(original=True, version=[])
-        mocked_execute.assert_called_with(
-            print_col=1,
-            multi_select=True,
-            empty_allow=False,
-            header="select attributes to configure",
-        )
 
         # normal no call no version test
         mocked_encryption.reset_mock()
-        mocked_execute.reset_mock()
+        mocked_prompt.reset_mock()
         mocked_tags.reset_mock()
-        mocked_append.reset_mock()
         mocked_tags.reset_mock()
         mocked_metadata.reset_mock()
         mocked_storage.reset_mock()
@@ -95,10 +111,8 @@ class TestS3Args(unittest.TestCase):
         stubber.activate()
         self.s3_args.set_extra_args(storage=True, upload=True)
         mocked_storage.assert_called()
-        mocked_append.assert_not_called()
-        mocked_execute.assert_not_called()
+        mocked_prompt.assert_not_called()
         mocked_tags.assert_not_called()
-        mocked_append.assert_not_called()
         mocked_tags.assert_not_called()
         mocked_metadata.assert_not_called()
         mocked_acl.assert_not_called()
@@ -106,9 +120,8 @@ class TestS3Args(unittest.TestCase):
 
         # version test
         mocked_encryption.reset_mock()
-        mocked_execute.reset_mock()
+        mocked_prompt.reset_mock()
         mocked_tags.reset_mock()
-        mocked_append.reset_mock()
         mocked_tags.reset_mock()
         mocked_metadata.reset_mock()
         mocked_storage.reset_mock()
@@ -117,16 +130,9 @@ class TestS3Args(unittest.TestCase):
         stubber = Stubber(s3.meta.client)
         stubber.add_response("get_object", response)
         stubber.activate()
-        mocked_execute.return_value = ["ACL", "Tagging"]
+        mocked_prompt.return_value = {"selected_attributes": ["ACL", "Tagging"]}
         self.s3_args.set_extra_args(
             version=[{"Key": "hello.json", "VersionId": "11111111"}]
-        )
-        mocked_append.assert_called_with("Tagging")
-        mocked_execute.assert_called_with(
-            print_col=1,
-            multi_select=True,
-            empty_allow=False,
-            header="select attributes to configure",
         )
         mocked_storage.assert_not_called()
         mocked_acl.assert_called_with(
@@ -138,99 +144,113 @@ class TestS3Args(unittest.TestCase):
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
         )
 
-    @patch("builtins.input")
-    def test_set_metadata(self, mocked_input):
+    @patch("fzfaws.s3.helper.s3args.prompt")
+    def test_set_metadata(self, mocked_prompt):
         self.capturedOutput.truncate(0)
         self.capturedOutput.seek(0)
         self.s3_args._extra_args = {}
-        mocked_input.return_value = "foo=boo"
+        mocked_prompt.return_value = {"metadata": "foo=boo"}
         self.s3_args.set_metadata(original="hello")
         self.assertEqual(self.s3_args._extra_args, {"Metadata": {"foo": "boo"}})
-        self.assertRegex(self.capturedOutput.getvalue(), "Orignal: hello")
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "input",
+                    "name": "metadata",
+                    "message": "Metadata",
+                    "validate": URLQueryStringValidator,
+                    "default": "hello",
+                }
+            ],
+            style=prompt_style,
+        )
 
-        mocked_input.return_value = "foo=boo&hello=world&"
+        mocked_prompt.return_value = {"metadata": "foo=boo&hello=world&"}
         self.s3_args.set_metadata()
         self.assertEqual(
             self.s3_args._extra_args, {"Metadata": {"foo": "boo", "hello": "world"}}
         )
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_set_storageclass(self, mocked_append, mocked_execute):
+    @patch("fzfaws.s3.helper.s3args.prompt")
+    def test_set_storageclass(self, mocked_prompt):
         self.s3_args._extra_args = {}
-        mocked_execute.return_value = "STANDARD"
+        mocked_prompt.return_value = {"selected_class": "STANDARD"}
         self.s3_args.set_storageclass(original="GLACIER")
-        mocked_append.assert_called_with("DEEP_ARCHIVE\n")
-        mocked_execute.assert_called_with(
-            empty_allow=True,
-            print_col=1,
-            header="select a storage class, esc to use the default storage class of the bucket setting\nOriginal: GLACIER",
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_class",
+                    "message": "Select a storage class (Original: GLACIER)",
+                    "choices": [
+                        "STANDARD",
+                        "REDUCED_REDUNDANCY",
+                        "STANDARD_IA",
+                        "ONEZONE_IA",
+                        "INTELLIGENT_TIERING",
+                        "GLACIER",
+                        "DEEP_ARCHIVE",
+                    ],
+                }
+            ],
+            style=prompt_style,
         )
         self.assertEqual(self.s3_args._extra_args, {"StorageClass": "STANDARD"})
 
-        mocked_execute.return_value = "REDUCED_REDUNDANCY"
+        mocked_prompt.return_value = {"selected_class": "REDUCED_REDUNDANCY"}
         self.s3_args.set_storageclass()
-        mocked_append.assert_called_with("DEEP_ARCHIVE\n")
-        mocked_execute.assert_called_with(
-            empty_allow=True,
-            print_col=1,
-            header="select a storage class, esc to use the default storage class of the bucket setting",
-        )
         self.assertEqual(
             self.s3_args._extra_args, {"StorageClass": "REDUCED_REDUNDANCY"}
         )
 
+    @patch("fzfaws.s3.helper.s3args.prompt")
     @patch.object(S3Args, "_set_explicit_ACL")
     @patch.object(S3Args, "_set_canned_ACL")
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_set_ACL(
-        self, mocked_append, mocked_execute, mocked_canned, mocked_explicit
-    ):
-
-        mocked_execute.return_value = "None"
+    def test_set_ACL(self, mocked_canned, mocked_explicit, mocked_prompt):
+        mocked_prompt.return_value = {"selected_acl": "None"}
         self.s3_args.set_ACL()
-        mocked_append.assert_called_with(
-            "Explicit ACL (explicit set grantees and permissions)\n"
-        )
         mocked_canned.assert_not_called()
         mocked_explicit.assert_not_called()
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_acl",
+                    "message": "Select a type of ACL to grant, aws accept either canned ACL or explicit ACL",
+                    "choices": [
+                        "None: use bucket default ACL setting",
+                        "Canned ACL: select predefined set of grantees and permissions",
+                        "Explicit ACL: explicitly define grantees and permissions",
+                    ],
+                    "filter": ANY,
+                }
+            ],
+            style=ANY,
+        )
 
-        mocked_execute.return_value = "Canned"
+        mocked_prompt.return_value = {"selected_acl": "Canned"}
         self.s3_args.set_ACL(
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
         )
-        mocked_append.assert_called_with(
-            "Explicit ACL (explicit set grantees and permissions)\n"
-        )
-        mocked_canned.assert_called()
+        mocked_canned.assert_called_once()
         mocked_explicit.assert_not_called()
 
         mocked_canned.reset_mock()
-        mocked_execute.return_value = "Explicit"
+        mocked_prompt.return_value = {"selected_acl": "Explicit"}
         self.s3_args.set_ACL(
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
-        )
-        mocked_append.assert_called_with(
-            "Explicit ACL (explicit set grantees and permissions)\n"
         )
         mocked_canned.assert_not_called()
         mocked_explicit.assert_called_with(
             original=True, version=[{"Key": "hello.json", "VersionId": "11111111"}]
         )
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
+    @patch("fzfaws.s3.helper.s3args.prompt")
     @patch.object(BaseSession, "client", new_callable=PropertyMock)
     @patch("fzfaws.s3.helper.s3args.get_confirmation")
-    @patch("builtins.input")
-    def test_set_explicit_ACL(
-        self, mocked_input, mocked_confirm, mocked_client, mocked_append, mocked_execute
-    ):
-        data_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "../data/s3_acl.json"
-        )
-        with open(data_path, "r") as file:
+    def test_set_explicit_ACL(self, mocked_confirm, mocked_client, mocked_prompt):
+        data_path = Path(__file__).resolve().parent.joinpath("../data/s3_acl.json")
+        with data_path.open("r") as file:
             response = json.load(file)
 
         # test orignal values
@@ -249,9 +269,6 @@ class TestS3Args(unittest.TestCase):
             self.capturedOutput.getvalue(),
             r".*uri=http://acs.amazonaws.com/groups/global/AllUsers",
         )
-        self.assertRegex(
-            self.capturedOutput.getvalue(), r".*\"FULL_CONTROL\": \[\]",
-        )
 
         # test no original value, set permissions
         self.capturedOutput.truncate(0)
@@ -261,65 +278,91 @@ class TestS3Args(unittest.TestCase):
         stubber.add_response("get_object_acl", response)
         stubber.activate()
         mocked_client.return_value = s3
-        mocked_execute.return_value = ["GrantFullControl", "GrantRead"]
-        mocked_input.return_value = "id=11111111,emailAddress=hello@gmail.com"
+        mocked_prompt.return_value = {"selected_acl": ["GrantFullControl", "GrantRead"]}
         self.s3_args._set_explicit_ACL()
+
         self.assertEqual(
-            self.s3_args._extra_args["GrantFullControl"],
-            "id=11111111,emailAddress=hello@gmail.com",
+            self.s3_args._extra_args["GrantFullControl"], "",
         )
         self.assertEqual(
-            self.s3_args._extra_args["GrantRead"],
-            "id=11111111,emailAddress=hello@gmail.com",
+            self.s3_args._extra_args["GrantRead"], "",
         )
-        self.assertNotRegex(self.capturedOutput.getvalue(), r"Orignal")
+        mocked_prompt.assert_called_with(
+            [
+                {
+                    "type": "input",
+                    "name": "input_acl",
+                    "message": "GrantRead",
+                    "validate": CommaListValidator,
+                }
+            ],
+            style=prompt_style,
+        )
 
         # test original value, set permissions
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
+        mocked_prompt.reset_mock()
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
         stubber.add_response("get_object_acl", response)
         stubber.activate()
         mocked_client.return_value = s3
-        mocked_execute.return_value = ["GrantRead"]
-        mocked_input.return_value = "id=2222222,emailAddress=hello@gmail.com"
+        mocked_prompt.return_value = {"selected_acl": "GrantRead"}
         mocked_confirm.return_value = True
         self.s3_args._set_explicit_ACL(original=True)
         self.assertEqual(
-            self.s3_args._extra_args["GrantRead"],
-            "id=2222222,emailAddress=hello@gmail.com",
-        )
-        self.assertRegex(
-            self.capturedOutput.getvalue(),
-            r"Orignal: uri=http://acs.amazonaws.com/groups/global/AllUsers",
+            self.s3_args._extra_args["GrantRead"], "",
         )
 
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_set_canned_ACL(self, mocked_append, mocked_execute):
-        mocked_execute.return_value = "private"
+    @patch("fzfaws.s3.helper.s3args.prompt")
+    def test_set_canned_ACL(self, mocked_prompt):
+        mocked_prompt.return_value = {"selected_acl": "private"}
         self.s3_args._set_canned_ACL()
         self.assertEqual(self.s3_args._extra_args["ACL"], "private")
-        mocked_append.assert_called_with("bucket-owner-full-control\n")
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_acl",
+                    "message": "Select a Canned ACL option",
+                    "choices": [
+                        "private",
+                        "public-read",
+                        "public-read-write",
+                        "authenticated-read",
+                        "aws-exec-read",
+                        "bucket-owner-read",
+                        "bucket-owner-full-control",
+                    ],
+                }
+            ],
+            style=prompt_style,
+        )
 
         self.s3_args._extra_args["ACL"] = None
-        mocked_execute.return_value = ""
-        self.s3_args._set_canned_ACL()
-        self.assertEqual(self.s3_args._extra_args["ACL"], None)
+        mocked_prompt.return_value = {}
+        self.assertRaises(KeyboardInterrupt, self.s3_args._set_canned_ACL)
 
+    @patch("fzfaws.s3.helper.s3args.prompt")
     @patch.object(BaseSession, "client", new_callable=PropertyMock)
     @patch.object(KMS, "set_keyids")
-    @patch.object(Pyfzf, "execute_fzf")
-    @patch.object(Pyfzf, "append_fzf")
-    def test_encryption(self, mocked_append, mocked_execute, mocked_kms, mocked_client):
-        mocked_execute.return_value = "None"
+    def test_encryption(self, mocked_kms, mocked_client, mocked_prompt):
+        mocked_prompt.return_value = {"selected_encryption": "None"}
         self.s3_args.set_encryption(original="AES256")
         self.assertEqual(self.s3_args._extra_args["ServerSideEncryption"], "None")
-        mocked_execute.assert_called_with(
-            empty_allow=True,
-            print_col=1,
-            header="select an ecryption setting, esc to use the default encryption setting for the bucket\nOriginal: AES256",
+        mocked_prompt(
+            [
+                {
+                    "type": "rawlist",
+                    "name": "selected_encryption",
+                    "message": "select an encryption setting (Original: AES256)",
+                    "choices": [
+                        "None (Use bucket default setting)",
+                        "AES256",
+                        "aws:kms",
+                    ],
+                }
+            ],
+            style=ANY,
         )
 
         # test kms
@@ -329,49 +372,59 @@ class TestS3Args(unittest.TestCase):
         stubber.activate()
         mocked_client.return_value = s3
 
-        mocked_execute.return_value = "aws:kms"
+        mocked_prompt.return_value = {"selected_encryption": "aws:kms"}
         self.s3_args.set_encryption(original="AES256")
         self.assertEqual(self.s3_args._extra_args["ServerSideEncryption"], "aws:kms")
         self.assertEqual(self.s3_args._extra_args["SSEKMSKeyId"], "")
 
+    @patch("fzfaws.s3.helper.s3args.prompt")
     @patch.object(BaseSession, "client", new_callable=PropertyMock)
-    @patch("builtins.input")
-    def test_set_tags(self, mocked_input, mocked_client):
-        mocked_input.return_value = "hello=world"
+    def test_set_tags(self, mocked_client, mocked_prompt):
+        mocked_prompt.return_value = {"answer": "hello=world"}
         self.s3_args.set_tags()
         self.assertEqual(self.s3_args._extra_args["Tagging"], "hello=world")
 
+        data_path = Path(__file__).resolve().parent.joinpath("../data/s3_tags.json")
+        with data_path.open("r") as file:
+            response = json.load(file)
         data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "../data/s3_tags.json"
         )
         with open(data_path, "r") as file:
             response = json.load(file)
 
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
+        mocked_prompt.reset_mock()
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
         stubber.add_response("get_object_tagging", response)
         stubber.activate()
         mocked_client.return_value = s3
-        mocked_input.return_value = "foo=boo"
+        mocked_prompt.return_value = {"answer": "foo=boo"}
         self.s3_args.set_tags(original=True)
         self.assertEqual(self.s3_args._extra_args["Tagging"], "foo=boo")
-        self.assertRegex(self.capturedOutput.getvalue(), r"Orignal: name=yes")
+        mocked_prompt.assert_called_once_with(
+            [
+                {
+                    "type": "input",
+                    "name": "answer",
+                    "message": "Tags",
+                    "validate": URLQueryStringValidator,
+                    "default": "name=yes",
+                }
+            ],
+            style=prompt_style,
+        )
 
-        self.capturedOutput.truncate(0)
-        self.capturedOutput.seek(0)
         s3 = boto3.client("s3")
         stubber = Stubber(s3)
         stubber.add_response("get_object_tagging", response)
         stubber.activate()
         mocked_client.return_value = s3
-        mocked_input.return_value = "foo=boo"
+        mocked_prompt.return_value = {"answer": "foo=boo"}
         self.s3_args.set_tags(
             original=True, version=[{"Key": "hello", "VersionId": "11111111"}]
         )
         self.assertEqual(self.s3_args._extra_args["Tagging"], "foo=boo")
-        self.assertRegex(self.capturedOutput.getvalue(), r"Orignal: name=yes")
 
     def test_check_tag_acl(self):
         self.s3_args._extra_args["StorageClass"] = "None"

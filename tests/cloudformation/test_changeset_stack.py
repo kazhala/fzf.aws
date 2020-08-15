@@ -1,9 +1,10 @@
-from fzfaws.utils.pyfzf import Pyfzf
 import io
 import sys
 import unittest
 from unittest.mock import call, patch
+
 from fzfaws.cloudformation.changeset_stack import changeset_stack
+from fzfaws.utils.pyfzf import Pyfzf
 
 
 class TestCloudformationChangesetStack(unittest.TestCase):
@@ -117,13 +118,17 @@ class TestCloudformationChangesetStack(unittest.TestCase):
             ]
         )
 
+    @patch("fzfaws.cloudformation.changeset_stack.get_stack_name")
+    @patch("fzfaws.cloudformation.changeset_stack.prompt")
     @patch("fzfaws.cloudformation.changeset_stack.update_stack")
-    @patch("builtins.input")
     @patch("fzfaws.cloudformation.changeset_stack.Cloudformation")
-    def test_create_changeset(self, MockedCloudformation, mocked_input, mocked_udpate):
+    def test_create_changeset(
+        self, MockedCloudformation, mocked_udpate, mocked_prompt, mocked_stackname
+    ):
         cloudformation = MockedCloudformation()
         cloudformation.stack_name = "testing1"
-        mocked_input.return_value = "fooboo"
+        mocked_stackname.return_value = "fooboo"
+        mocked_prompt.return_value = {"answer": "hello"}
         mocked_udpate.return_value = {
             "Parameters": [
                 {"ParameterKey": "SSHLocation", "UsePreviousValue": True},
@@ -138,7 +143,7 @@ class TestCloudformationChangesetStack(unittest.TestCase):
         changeset_stack(profile="root", region="us-east-1")
         cloudformation.execute_with_capabilities.assert_called_once_with(
             ChangeSetName="fooboo",
-            Description="fooboo",
+            Description="hello",
             Parameters=[
                 {"ParameterKey": "SSHLocation", "UsePreviousValue": True},
                 {"ParameterKey": "Hello", "UsePreviousValue": True},

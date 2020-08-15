@@ -3,10 +3,9 @@ import os
 import re
 import itertools
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
+from PyInquirer import prompt
 
-from botocore.exceptions import ClientError
-
-from fzfaws.utils import BaseSession, FileLoader, Pyfzf, Spinner, get_confirmation
+from fzfaws.utils import BaseSession, FileLoader, Pyfzf, Spinner, prompt_style
 from fzfaws.utils.exceptions import (
     InvalidFileType,
     InvalidS3PathPattern,
@@ -94,13 +93,17 @@ class S3(BaseSession):
         :raises NoSelectionMade: when user did not make a bucket selection, exit
         """
         selected_option = self._get_path_option(download=download)
+        questions: List[Dict[str, str]] = [{"type": "input", "name": "s3_path",}]
 
         if selected_option == "input":
-            self.path_list[0] = input("Input the path(newname or newpath/): ")
+            questions[0]["message"] = "Input the path(newname or newpath/)"
+            result = prompt(questions, style=prompt_style)
+            if not result:
+                raise KeyboardInterrupt
+            self.path_list[0] = result.get("s3_path", "")
         elif selected_option == "root":
-            # print("S3 file path is set to root")
             pass
-        elif selected_option == "append" or selected_option == "interactively":
+        elif selected_option == "append" or selected_option == "select":
             paginator = self.client.get_paginator("list_objects")
             fzf = Pyfzf()
             parents = []
@@ -149,7 +152,13 @@ class S3(BaseSession):
                 print(
                     "Current PWD is s3://%s/%s" % (self.bucket_name, self.path_list[0])
                 )
-                new_path = input("Input the new path to append(newname or newpath/): ")
+                questions[0][
+                    "message"
+                ] = "Input the new path to append(newname or newpath/)"
+                result = prompt(questions, style=prompt_style)
+                if not result:
+                    raise KeyboardInterrupt
+                new_path = result.get("s3_path", "")
                 self.path_list[0] += new_path
         print(
             "S3 file path is set to %s"
@@ -414,29 +423,33 @@ class S3(BaseSession):
             return (None, None)
 
     def _get_path_option(self, download: bool = False) -> str:
-        """Pop fzf for user to select what to do with the path.
+        """Prompt user to select a path option.
 
         :param download: if not download, insert append option
         :type download: bool, optional
         :return: selected option
         :rtype: str
         """
-        fzf = Pyfzf()
-        fzf.append_fzf("root: operate on the root level of the bucket\n")
-        fzf.append_fzf("interactively: interactively select a path through s3\n")
-        fzf.append_fzf("input: manully input the path/name\n")
+        choices: List[str] = [
+            "root: use the root level of the bucket",
+            "select: select a path through fzf",
+            "input: enter the path/name",
+        ]
         if not download:
-            fzf.append_fzf(
-                "append: interactively select a path and then input new path/name to append"
-            )
-        selected_option = str(
-            fzf.execute_fzf(
-                print_col=1,
-                header="Please select which level of the bucket would you like to operate in",
-                delimiter=": ",
-            )
-        )
-        return selected_option
+            choices.append("append: select a path and then enter path/name to append")
+        questions: List[Dict[str, Any]] = [
+            {
+                "type": "rawlist",
+                "name": "selected_option",
+                "message": "Select which level of the bucket would you like to operate in",
+                "choices": choices,
+                "filter": lambda val: val.split(": ")[0],
+            },
+        ]
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        return result.get("selected_option", "input")
 
     def _version_generator(
         self, versions: List[dict], markers: List[dict], non_current: bool, delete: bool

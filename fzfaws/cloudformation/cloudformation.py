@@ -4,9 +4,16 @@ import os
 import re
 import sys
 from typing import Any, Callable, Dict, Generator, List, Tuple, Union
+from PyInquirer import prompt
 
-from fzfaws.utils import BaseSession, Pyfzf, Spinner, get_confirmation
-from fzfaws.utils.util import search_dict_in_list
+from fzfaws.utils import prompt_style
+from fzfaws.utils import (
+    BaseSession,
+    Pyfzf,
+    Spinner,
+    get_confirmation,
+    search_dict_in_list,
+)
 
 
 class Cloudformation(BaseSession):
@@ -160,17 +167,26 @@ class Cloudformation(BaseSession):
         :return: selected capabilities to acknowledge
         :rtype: List[str]
         """
-        fzf = Pyfzf()
-        fzf.append_fzf("CAPABILITY_IAM\n")
-        fzf.append_fzf("CAPABILITY_NAMED_IAM\n")
-        fzf.append_fzf("CAPABILITY_AUTO_EXPAND")
-        message += "\nPlease select the capabilities to acknowledge and proceed"
-        message += "\nMore information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html"
-        return list(
-            fzf.execute_fzf(
-                empty_allow=True, print_col=1, multi_select=True, header=message
-            )
+        print(message)
+        print(
+            "More information: https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html"
         )
+        questions = [
+            {
+                "type": "checkbox",
+                "name": "answer",
+                "message": "Select the capabilities to acknowledge and proceed",
+                "choices": [
+                    {"name": "CAPABILITY_IAM"},
+                    {"name": "CAPABILITY_NAMED_IAM"},
+                    {"name": "CAPABILITY_AUTO_EXPAND"},
+                ],
+            }
+        ]
+        result = prompt(questions, style=prompt_style)
+        if not result:
+            raise KeyboardInterrupt
+        return result.get("answer", [])
 
     def _get_stack_generator(
         self, response: List[Dict[str, Any]]

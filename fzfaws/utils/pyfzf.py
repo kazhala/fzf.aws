@@ -113,7 +113,6 @@ class Pyfzf:
         """
         # remove trailing spaces/lines
         self.fzf_string = str(self.fzf_string).rstrip()
-        fzf_input = subprocess.Popen(("echo", self.fzf_string), stdout=subprocess.PIPE)
         cmd_list: list = self._construct_fzf_cmd()
         selection: bytes = b""
         selection_str: str = ""
@@ -130,7 +129,16 @@ class Pyfzf:
             cmd_list.extend(["--preview", preview])
 
         try:
-            selection = subprocess.check_output(cmd_list, stdin=fzf_input.stdout)
+            proc = subprocess.Popen(
+                cmd_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None
+            )
+            stdin = proc.stdin
+            stdin.write(self.fzf_string.encode("utf-8"))
+            stdin.flush()
+            stdin.close()
+            stdout = proc.stdout
+            selection = stdout.read()
+
             selection_str = str(selection, "utf-8")
 
             if not selection and not empty_allow:
@@ -139,16 +147,10 @@ class Pyfzf:
             # if first line contains ctrl-c, exit
             self._check_ctrl_c(selection_str)
 
-        except subprocess.CalledProcessError:
-            # this exception may happend if user didn't make a selection in fzf
-            # thus ending with non zero exit code
+        except (subprocess.CalledProcessError, IOError):
             if not empty_allow:
                 raise NoSelectionMade
-            elif empty_allow:
-                if multi_select:
-                    return []
-                else:
-                    return ""
+            return [] if multi_select else ""
 
         if multi_select:
             return_list: List[str] = []
@@ -171,6 +173,7 @@ class Pyfzf:
         empty_allow: bool = False,
         multi_select: bool = False,
         header: Optional[str] = None,
+        json: bool = False,
     ) -> Union[List[Any], List[str], str]:
         """Get local files through fzf.
 
@@ -200,8 +203,10 @@ class Pyfzf:
         if search_from_root:
             home_path = os.path.expanduser("~")
             os.chdir(home_path)
-        if not header and directory:
-            header = r"Selecting ./ will use current directory"
+        if not header and directory and not search_from_root:
+            header = r"select ./ will use current directory"
+        elif not header and directory and search_from_root:
+            header = r"select ./ will use the home directory"
 
         cmd: str = ""
 
@@ -210,6 +215,8 @@ class Pyfzf:
                 cmd = "echo \033[33m./\033[0m; fd --type d"
             elif cloudformation:
                 cmd = "fd --type f --regex '(yaml|yml|json)$'"
+            elif json:
+                cmd = "fd --type f --regex 'json$'"
             else:
                 cmd = "fd --type f"
             if hidden:
@@ -220,6 +227,8 @@ class Pyfzf:
                 cmd = "echo \033[33m./\033[0m; find * -type d"
             elif cloudformation:
                 cmd = 'find * -type f -name "*.json" -o -name "*.yaml" -o -name "*.yml"'
+            elif json:
+                cmd = 'find * -type f -name "*.json"'
             else:
                 cmd = "find * -type f"
 
@@ -331,7 +340,9 @@ class Pyfzf:
             self.append_fzf("%s: %s" % (key_name, item.get(key_name)))
             for arg in arg_keys:
                 self.append_fzf(" | ")
-                self.append_fzf("%s: %s" % (arg, item.get(arg)))
+                self.append_fzf(
+                    "%s: %s" % (arg, item.get(arg) if item.get(arg) else None)
+                )
             self.append_fzf("\n")
         if not self.fzf_string and not empty_allow:
             raise EmptyList("Result list was empty")

@@ -2,10 +2,12 @@
 import json
 from typing import Any, Dict, Union
 
+from PyInquirer import prompt
+
 from fzfaws.cloudformation import Cloudformation
+from fzfaws.cloudformation.helper import get_stack_name
 from fzfaws.cloudformation.update_stack import update_stack
-from fzfaws.utils import Pyfzf, get_confirmation
-from fzfaws.utils.exceptions import NoNameEntered
+from fzfaws.utils import Pyfzf, get_confirmation, prompt_style
 
 
 def describe_changes(cloudformation: Cloudformation, changeset_name: str) -> None:
@@ -123,10 +125,11 @@ def changeset_stack(
                     )
 
     else:
-        changeset_name = input("Enter name of this changeset: ")
-        if not changeset_name:
-            raise NoNameEntered("No changeset name specified")
-        changeset_description = input("Description: ")
+        changeset_name = get_stack_name(message="ChangeSetName")
+        questions = [{"type": "input", "message": "Description", "name": "answer"}]
+        result = prompt(questions, style=prompt_style)
+        changeset_description = result.get("answer", "")
+
         # since is almost same operation as update stack
         # let update_stack handle it, but return update details instead of execute
         cloudformation_args = update_stack(

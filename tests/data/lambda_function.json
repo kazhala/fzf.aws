@@ -1,0 +1,66 @@
+[
+  {
+    "ResponseMetadata": {
+      "RequestId": "e5bcf623-da65-48c6-9013-59e00ad4482a",
+      "HTTPStatusCode": 200,
+      "HTTPHeaders": {
+        "date": "Wed, 29 Jul 2020 04:50:20 GMT",
+        "content-type": "application/json",
+        "content-length": "2958",
+        "connection": "keep-alive",
+        "x-amzn-requestid": "e5bcf623-da65-48c6-9013-59e00ad4482a"
+      },
+      "RetryAttempts": 0
+    },
+    "Functions": [
+      {
+        "FunctionName": "Auto-check-drift-LambdaStack-27L1HV-LambdaFunction-11LA8NZ2OZWIM",
+        "FunctionArn": "arn:aws:lambda:ap-southeast-2:378756445655:function:Auto-check-drift-LambdaStack-27L1HV-LambdaFunction-11LA8NZ2OZWIM",
+        "Runtime": "python3.8",
+        "Role": "arn:aws:iam::378756445655:role/Auto-check-drift-lambda-role",
+        "Handler": "DetectCloudformationDrift.lambda_handler",
+        "CodeSize": 544,
+        "Description": "Search through specified regions and init drift detection on cloudformation stacks and also print current drift status",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "LastModified": "2020-04-23T07:52:42.583+0000",
+        "CodeSha256": "18KZnlzFBCT/0D/RlecUTI/JuIxfZNHtNC9Et54ZK2Q=",
+        "Version": "$LATEST",
+        "TracingConfig": { "Mode": "PassThrough" },
+        "RevisionId": "e784a6ee-e0f0-4390-af45-0ea2924448fa"
+      },
+      {
+        "FunctionName": "Auto-stop-ec2-LambdaStack-YUR0KXN6X-LambdaFunction-1Q7UDJ03FVX21",
+        "FunctionArn": "arn:aws:lambda:ap-southeast-2:378756445655:function:Auto-stop-ec2-LambdaStack-YUR0KXN6X-LambdaFunction-1Q7UDJ03FVX21",
+        "Runtime": "python3.8",
+        "Role": "arn:aws:iam::378756445655:role/Auto-stop-ec2-lambda-role",
+        "Handler": "index.lambda_handler",
+        "CodeSize": 519,
+        "Description": "Search through all region and stop all non server ec2 instances",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "LastModified": "2020-03-13T09:55:14.849+0000",
+        "CodeSha256": "HNfExeUsL8af2pkkThaLHk7rSXZ94s4ZOwJvZ3eNaIw=",
+        "Version": "$LATEST",
+        "TracingConfig": { "Mode": "PassThrough" },
+        "RevisionId": "9d6653c1-3b0a-4049-b74f-28640f4bc415"
+      },
+      {
+        "FunctionName": "testing",
+        "FunctionArn": "arn:aws:lambda:ap-southeast-2:378756445655:function:testing",
+        "Runtime": "python3.8",
+        "Role": "arn:aws:iam::378756445655:role/lambda_invoke",
+        "Handler": "lambda_function.lambda_handler",
+        "CodeSize": 273,
+        "Description": "",
+        "Timeout": 3,
+        "MemorySize": 128,
+        "LastModified": "2020-07-29T01:37:53.054+0000",
+        "CodeSha256": "+X2UokFzBK7oCszeiNg8q4cf3uMIb0+AAIIshxxNjOQ=",
+        "Version": "$LATEST",
+        "TracingConfig": { "Mode": "PassThrough" },
+        "RevisionId": "0a91548c-0886-42a7-aacb-7dd1f0c9481a"
+      }
+    ]
+  }
+]

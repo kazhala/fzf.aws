@@ -1,6 +1,49 @@
 """This module contains some common helper functions."""
 import os
+import re
 from typing import Any, Dict, Generator, List, Optional, Union
+
+from PyInquirer import Token, ValidationError, Validator, prompt, style_from_dict
+
+prompt_style = style_from_dict(
+    {
+        Token.Separator: "#6C6C6C",
+        Token.QuestionMark: "#5F819D",
+        Token.Selected: "#61AFEF bold",
+        Token.Instruction: "",
+        Token.Answer: "#FF9D00 bold",
+        Token.Question: "bold",
+        Token.Pointer: "#FF9D00 bold",
+    }
+)
+
+
+class URLQueryStringValidator(Validator):
+    """Validate Query strying for PyInquirer input."""
+
+    def validate(self, document):
+        """Validate user input."""
+        match = re.match(r"^([A-Za-z0-9-]+?=[A-Za-z0-9-]+(&|$))*$", document.text)
+        if not match:
+            raise ValidationError(
+                message="Format should be a URL Query alike string (e.g. Content-Type=hello&Cache-Control=world)",
+                cursor_position=len(document.text),
+            )
+
+
+class CommaListValidator(Validator):
+    """Validate comma seperated list for PyInquirer input."""
+
+    def validate(self, document):
+        """Validate user input."""
+        match = re.match(
+            r"^((id|emailAddress|uri)=[A-Za-z@.\/:-]+?(,|$))+", document.text
+        )
+        if not match:
+            raise ValidationError(
+                message="Format should be a comma seperated list (e.g. id=XXX,emailAddress=XXX@gmail.com,uri=http://acs.amazonaws.com/groups/global/AllUsers)",
+                cursor_position=len(document.text),
+            )
 
 
 def remove_dict_from_list(
@@ -64,7 +107,7 @@ def check_dict_value_in_list(
     return False
 
 
-def get_confirmation(message: str) -> bool:
+def get_confirmation(message: str = "Confirm?") -> bool:
     """Get user confirmation.
 
     :param message: message to ask
@@ -72,10 +115,13 @@ def get_confirmation(message: str) -> bool:
     :return: user confirm status
     :rtype: bool
     """
-    confirm = None
-    while confirm != "y" and confirm != "n":
-        confirm = input("%s(y/n): " % message).lower()
-    return True if confirm == "y" else False
+    questions = [
+        {"type": "confirm", "message": message, "name": "continue", "default": False}
+    ]
+    answers = prompt(questions, style=prompt_style)
+    if not answers:
+        raise KeyboardInterrupt
+    return answers.get("continue", False)
 
 
 def get_name_tag(response_item: Dict[str, Any]) -> Optional[str]:
