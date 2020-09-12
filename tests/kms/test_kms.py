@@ -26,8 +26,8 @@ class TestKMS(unittest.TestCase):
         self.assertEqual(self.kms.region, "us-east-1")
         self.assertEqual(self.kms.keyids, [""])
 
-        kms = KMS(profile="root", region="us-east-1")
-        self.assertEqual(kms.profile, "root")
+        kms = KMS(profile="master", region="us-east-1")
+        self.assertEqual(kms.profile, "master")
         self.assertEqual(kms.region, "us-east-1")
         self.assertEqual(kms.keyids, [""])
 
@@ -50,7 +50,10 @@ class TestKMS(unittest.TestCase):
                     },
                 ],
                 "Truncated": False,
-                "ResponseMetadata": {"HTTPStatusCode": 200, "RetryAttempts": 0,},
+                "ResponseMetadata": {
+                    "HTTPStatusCode": 200,
+                    "RetryAttempts": 0,
+                },
             }
         ]
 

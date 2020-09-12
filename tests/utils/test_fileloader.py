@@ -1,8 +1,9 @@
-import os
 import json
-import unittest
+import os
 import tempfile
+import unittest
 from unittest.mock import patch
+
 from fzfaws.utils import FileLoader
 
 
@@ -95,9 +96,13 @@ class TestFileLoader(unittest.TestCase):
 
         # custom settings
         self.fileloader._set_cloudformation_env(
-            {"profile": "root", "region": "us-east-2", "default_args": {"create": "-l"}}
+            {
+                "profile": "master",
+                "region": "us-east-2",
+                "default_args": {"create": "-l"},
+            }
         )
-        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_PROFILE"], "master")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_REGION"], "us-east-2")
         self.assertEqual(os.environ["FZFAWS_CLOUDFORMATION_CREATE"], "-l")
 
@@ -141,16 +146,21 @@ class TestFileLoader(unittest.TestCase):
         self.fileloader._set_s3_env(
             {
                 "transfer_config": {"multipart_threshold": 1, "multipart_chunksize": 1},
-                "profile": "root",
+                "profile": "master",
                 "default_args": {"upload": "-R", "ls": "-b"},
             }
         )
         self.assertEqual(
             os.environ["FZFAWS_S3_TRANSFER"],
-            json.dumps({"multipart_threshold": 1, "multipart_chunksize": 1,}),
+            json.dumps(
+                {
+                    "multipart_threshold": 1,
+                    "multipart_chunksize": 1,
+                }
+            ),
         )
         self.assertEqual(os.environ["FZFAWS_S3_UPLOAD"], "-R")
-        self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_S3_PROFILE"], "master")
         self.assertEqual(os.environ["FZFAWS_S3_LS"], "-b")
         self.assertEqual(os.getenv("FZFAWS_S3_DOWNLOAD", ""), "")
         self.assertEqual(os.getenv("FZFAWS_S3_PRESIGN", ""), "")
@@ -192,16 +202,17 @@ class TestFileLoader(unittest.TestCase):
                 "waiter": {"max_attempts": 40},
                 "default_args": {"ssh": "-A"},
                 "region": "us-east-1",
-                "profile": "root",
+                "profile": "master",
             }
         )
         self.assertEqual(os.environ["FZFAWS_EC2_KEYPAIRS"], "$HOME/Anywhere/aws")
         self.assertEqual(
-            os.environ["FZFAWS_EC2_WAITER"], json.dumps({"max_attempts": 40}),
+            os.environ["FZFAWS_EC2_WAITER"],
+            json.dumps({"max_attempts": 40}),
         )
         self.assertEqual(os.environ["FZFAWS_EC2_SSH"], "-A")
         self.assertEqual(os.environ["FZFAWS_EC2_REGION"], "us-east-1")
-        self.assertEqual(os.environ["FZFAWS_EC2_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_EC2_PROFILE"], "master")
 
     def test_set_global_env(self):
         # normal test
@@ -226,17 +237,17 @@ class TestFileLoader(unittest.TestCase):
 
         # custom settings
         self.fileloader._set_gloable_env(
-            {"profile": "root", "region": "us-east-1", "waiter": {"delay": 10}}
+            {"profile": "master", "region": "us-east-1", "waiter": {"delay": 10}}
         )
         self.assertEqual(os.environ["FZFAWS_GLOBAL_WAITER"], json.dumps({"delay": 10}))
         self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "us-east-1")
-        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "master")
 
         os.environ["FZFAWS_GLOBAL_WAITER"] = ""
-        self.fileloader._set_gloable_env({"profile": "root", "region": "us-east-1"})
+        self.fileloader._set_gloable_env({"profile": "master", "region": "us-east-1"})
         self.assertEqual(os.environ["FZFAWS_GLOBAL_WAITER"], "")
         self.assertEqual(os.environ["FZFAWS_GLOBAL_REGION"], "us-east-1")
-        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "root")
+        self.assertEqual(os.environ["FZFAWS_GLOBAL_PROFILE"], "master")
 
     def test_set_fzf_env(self):
         # normal test

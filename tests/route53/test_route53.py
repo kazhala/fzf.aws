@@ -26,9 +26,9 @@ class TestRoute53(unittest.TestCase):
         self.assertEqual(self.route53.profile, "default")
         self.assertEqual(self.route53.region, "us-east-1")
 
-        route53 = Route53(profile="root", region="us-west-1")
+        route53 = Route53(profile="master", region="us-west-1")
         self.assertEqual(route53.zone_ids, [""])
-        self.assertEqual(route53.profile, "root")
+        self.assertEqual(route53.profile, "master")
         self.assertEqual(route53.region, "us-west-1")
 
     @patch.object(Pyfzf, "execute_fzf")
@@ -37,7 +37,10 @@ class TestRoute53(unittest.TestCase):
     def test_set_zone_id(self, mocked_result, mocked_fzf_process, mocked_fzf_execute):
         mocked_result.return_value = [
             {
-                "ResponseMetadata": {"HTTPStatusCode": 200, "RetryAttempts": 0,},
+                "ResponseMetadata": {
+                    "HTTPStatusCode": 200,
+                    "RetryAttempts": 0,
+                },
                 "HostedZones": [
                     {
                         "Id": "/hostedzone/111111",
@@ -130,10 +133,15 @@ class TestRoute53(unittest.TestCase):
 
         # missing attr test
         test_list = [
-            {"Id": "/hostedzone/111111",},
-            {"Id": "/hostedzone/222222",},
+            {
+                "Id": "/hostedzone/111111",
+            },
+            {
+                "Id": "/hostedzone/222222",
+            },
         ]
         result = self.route53._process_hosted_zone(test_list)
         self.assertEqual(
-            [{"Id": "111111", "Name": None}, {"Id": "222222", "Name": None}], result,
+            [{"Id": "111111", "Name": None}, {"Id": "222222", "Name": None}],
+            result,
         )

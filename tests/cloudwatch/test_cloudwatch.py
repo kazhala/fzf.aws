@@ -25,8 +25,8 @@ class TestCloudWwatch(unittest.TestCase):
         self.assertEqual(self.cloudwatch.region, "us-east-1")
         self.assertEqual(self.cloudwatch.arns, [""])
 
-        cloudwatch = Cloudwatch(profile="root", region="us-east-1")
-        self.assertEqual(cloudwatch.profile, "root")
+        cloudwatch = Cloudwatch(profile="master", region="us-east-1")
+        self.assertEqual(cloudwatch.profile, "master")
         self.assertEqual(cloudwatch.region, "us-east-1")
         self.assertEqual(cloudwatch.arns, [""])
 

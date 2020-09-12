@@ -22,7 +22,9 @@ class TestCloudformationLsStack(unittest.TestCase):
                 {"Key": "Application", "Value": "mealternative"},
                 {"Key": "Name", "Value": "mealternative"},
             ],
-            "DriftInformation": {"StackDriftStatus": "IN_SYNC",},
+            "DriftInformation": {
+                "StackDriftStatus": "IN_SYNC",
+            },
         }
         self.resource_response = {
             "StackResourceDetail": {
@@ -91,8 +93,8 @@ class TestCloudformationLsStack(unittest.TestCase):
         cloudformation = MockedCloudformation()
         cloudformation.stack_name = "dotbare-cicd"
         cloudformation.stack_details = self.stack_response
-        ls_stack(profile="root", region="us-east-1")
-        MockedCloudformation.assert_called_with("root", "us-east-1")
+        ls_stack(profile="master", region="us-east-1")
+        MockedCloudformation.assert_called_with("master", "us-east-1")
         self.assertRegex(self.capturedOutput.getvalue(), r'"StackName": "dotbare-cicd"')
         self.assertRegex(
             self.capturedOutput.getvalue(),

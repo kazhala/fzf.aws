@@ -68,9 +68,9 @@ class TestCloudformationValidateStack(unittest.TestCase):
             "https://s3-ap-southeast-2.amazonaws.com/kazhala-lol/hello.yaml"
         )
         s3.get_object_version.return_value = [{"VersionId": "111111"}]
-        validate_stack(profile="root", region="ap-southeast-2")
-        MockedS3.assert_called_with("root", "ap-southeast-2")
-        MockedCloudformation.assert_called_with("root", "ap-southeast-2")
+        validate_stack(profile="master", region="ap-southeast-2")
+        MockedS3.assert_called_with("master", "ap-southeast-2")
+        MockedCloudformation.assert_called_with("master", "ap-southeast-2")
         s3.get_object_url.assert_called_once_with("")
         cloudformation.client.validate_template.assert_called_once_with(
             TemplateURL="https://s3-ap-southeast-2.amazonaws.com/kazhala-lol/hello.yaml"

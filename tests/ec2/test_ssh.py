@@ -75,7 +75,7 @@ class TestSSH(unittest.TestCase):
         # normal
         mocked_ssh_cmd.return_value = ["sleep", "0"]
         mocked_instance_ip.return_value = "11111111"
-        ssh_instance(profile="root", region="us-east-1", bastion=True, tunnel=True)
+        ssh_instance(profile="master", region="us-east-1", bastion=True, tunnel=True)
         mocked_set_instance.assert_called_with(
             multi_select=False, header="select the destination instance"
         )

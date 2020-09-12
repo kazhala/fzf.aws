@@ -100,7 +100,11 @@ class TestCloudformationChangesetStack(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch("fzfaws.cloudformation.changeset_stack.Cloudformation")
     def test_delete_changeset(
-        self, MockedCloudformation, mocked_execute, mocked_process, mocked_confirm,
+        self,
+        MockedCloudformation,
+        mocked_execute,
+        mocked_process,
+        mocked_confirm,
     ):
         mocked_confirm.return_value = True
         cloudformation = MockedCloudformation()
@@ -140,7 +144,7 @@ class TestCloudformationChangesetStack(unittest.TestCase):
             "cloudformation_action": cloudformation.client.create_change_set,
         }
         cloudformation.execute_with_capabilities.return_value = {}
-        changeset_stack(profile="root", region="us-east-1")
+        changeset_stack(profile="master", region="us-east-1")
         cloudformation.execute_with_capabilities.assert_called_once_with(
             ChangeSetName="fooboo",
             Description="hello",
@@ -166,7 +170,7 @@ class TestCloudformationChangesetStack(unittest.TestCase):
             cloudformation=cloudformation,
             dryrun=True,
         )
-        MockedCloudformation.assert_called_with("root", "us-east-1")
+        MockedCloudformation.assert_called_with("master", "us-east-1")
 
         changeset_stack(
             replace=True, wait=True, extra=True, bucket="kazhala-lol/hello.yaml"

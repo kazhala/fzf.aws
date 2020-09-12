@@ -31,9 +31,9 @@ class TestCloudformation(unittest.TestCase):
         self.assertEqual(self.cloudformation.stack_name, "")
         self.assertEqual(self.cloudformation.stack_details, {})
 
-        cloudformation = Cloudformation(profile="root", region="us-east-1")
+        cloudformation = Cloudformation(profile="master", region="us-east-1")
         self.assertEqual(cloudformation.region, "us-east-1")
-        self.assertEqual(cloudformation.profile, "root")
+        self.assertEqual(cloudformation.profile, "master")
         self.assertEqual(cloudformation.stack_name, "")
         self.assertEqual(cloudformation.stack_details, {})
 
@@ -189,7 +189,9 @@ class TestCloudformation(unittest.TestCase):
         self.cloudformation.stack_name = "fooboo"
         self.cloudformation.wait(waiter_name="stack_create_complete", message="hello")
         mocked_wait.assert_called_once_with(
-            ANY, StackName="fooboo", WaiterConfig={"Delay": 15, "MaxAttempts": 40},
+            ANY,
+            StackName="fooboo",
+            WaiterConfig={"Delay": 15, "MaxAttempts": 40},
         )
 
         self.capturedOutput.truncate(0)

@@ -33,8 +33,8 @@ class TestS3(unittest.TestCase):
         self.assertEqual(self.s3.bucket_name, "")
         self.assertEqual(self.s3.path_list, [""])
 
-        s3 = S3(profile="root", region="us-east-1")
-        self.assertEqual(s3.profile, "root")
+        s3 = S3(profile="master", region="us-east-1")
+        self.assertEqual(s3.profile, "master")
         self.assertEqual(s3.region, "us-east-1")
         self.assertEqual(s3.bucket_name, "")
         self.assertEqual(s3.path_list, [""])
@@ -156,7 +156,8 @@ class TestS3(unittest.TestCase):
         )
         self.assertEqual(result, "accesspoint")
         self.assertEqual(
-            match, ("arn:aws:s3:us-west-2:123456789012:accesspoint/test/", "hello"),
+            match,
+            ("arn:aws:s3:us-west-2:123456789012:accesspoint/test/", "hello"),
         )
 
         result, match = self.s3._validate_input_path(

@@ -65,11 +65,11 @@ class TestCloudformationCreateStack(unittest.TestCase):
 
         mocked_local.reset_mock()
         create_stack(
-            profile="root", region="us-east-1", local_path=self.data_path, wait=True
+            profile="master", region="us-east-1", local_path=self.data_path, wait=True
         )
         mocked_local.assert_not_called()
         mocked_validate.assert_called_with(
-            "root", "us-east-1", local_path=self.data_path, no_print=True
+            "master", "us-east-1", local_path=self.data_path, no_print=True
         )
         mocked_execute.assert_called_with(
             Parameters=[],
@@ -127,7 +127,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
 
         mocked_version.reset_mock()
         create_stack(
-            profile="root",
+            profile="master",
             region="us-east-1",
             bucket="kazhala-lol/hello.yaml",
             version="111111",
@@ -135,7 +135,7 @@ class TestCloudformationCreateStack(unittest.TestCase):
         )
         mocked_version.assert_not_called()
         mocked_validate.assert_called_with(
-            "root",
+            "master",
             "us-east-1",
             bucket="kazhala-lol/hello.yaml",
             version="111111",

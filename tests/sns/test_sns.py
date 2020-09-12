@@ -25,8 +25,8 @@ class TestSNS(unittest.TestCase):
         self.assertEqual(self.sns.region, "us-east-1")
         self.assertEqual(self.sns.arns, [""])
 
-        sns = SNS(profile="root", region="us-east-2")
-        self.assertEqual(sns.profile, "root")
+        sns = SNS(profile="master", region="us-east-2")
+        self.assertEqual(sns.profile, "master")
         self.assertEqual(sns.region, "us-east-2")
         self.assertEqual(sns.arns, [""])
 

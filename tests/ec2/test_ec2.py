@@ -31,8 +31,8 @@ class TestEC2(unittest.TestCase):
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [{}])
 
-        ec2 = EC2(profile="root", region="us-east-1")
-        self.assertEqual(ec2.profile, "root")
+        ec2 = EC2(profile="master", region="us-east-1")
+        self.assertEqual(ec2.profile, "master")
         self.assertEqual(ec2.region, "us-east-1")
         self.assertEqual(self.ec2.instance_ids, [""])
         self.assertEqual(self.ec2.instance_list, [{}])
@@ -211,7 +211,8 @@ class TestEC2(unittest.TestCase):
         self.ec2.instance_ids = ["11111111"]
         self.ec2.wait("instance_status_ok", "hello")
         self.assertRegex(
-            self.capturedOutput.getvalue(), r"^| hello.*$",
+            self.capturedOutput.getvalue(),
+            r"^| hello.*$",
         )
 
     @patch.object(Pyfzf, "process_list")
@@ -229,7 +230,10 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "sg-006ae18653dc5acd7"
         self.ec2.get_security_groups()
         mocked_fzf_list.assert_called_with(
-            ANY, "GroupId", "GroupName", "Name",
+            ANY,
+            "GroupId",
+            "GroupName",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -241,7 +245,9 @@ class TestEC2(unittest.TestCase):
             multi_select=True, return_attr="name", header="hello"
         )
         mocked_fzf_list.assert_called_with(
-            ANY, "GroupName", "Name",
+            ANY,
+            "GroupName",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=True, empty_allow=True, header="hello"
@@ -260,7 +266,9 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_instance_id()
         mocked_fzf_list.assert_called_with(
-            ANY, "InstanceId", "Name",
+            ANY,
+            "InstanceId",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -287,7 +295,11 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_subnet_id()
         mocked_fzf_list.assert_called_with(
-            ANY, "SubnetId", "AvailabilityZone", "CidrBlock", "Name",
+            ANY,
+            "SubnetId",
+            "AvailabilityZone",
+            "CidrBlock",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -314,7 +326,9 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_volume_id()
         mocked_fzf_list.assert_called_with(
-            ANY, "VolumeId", "Name",
+            ANY,
+            "VolumeId",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             multi_select=False, empty_allow=True, header=None
@@ -341,7 +355,11 @@ class TestEC2(unittest.TestCase):
         mocked_fzf_execute.return_value = "11111111"
         self.ec2.get_vpc_id()
         mocked_fzf_list.assert_called_with(
-            ANY, "VpcId", "IsDefault", "CidrBlock", "Name",
+            ANY,
+            "VpcId",
+            "IsDefault",
+            "CidrBlock",
+            "Name",
         )
         mocked_fzf_execute.assert_called_with(
             empty_allow=True, multi_select=False, header=None

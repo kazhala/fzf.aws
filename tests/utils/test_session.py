@@ -1,10 +1,12 @@
-import unittest
-from unittest.mock import patch, PropertyMock
-from fzfaws.utils import BaseSession, Pyfzf, FileLoader
-from boto3.session import Session
-import boto3
-from botocore.stub import Stubber
 from pathlib import Path
+import unittest
+from unittest.mock import PropertyMock, patch
+
+import boto3
+from boto3.session import Session
+from botocore.stub import Stubber
+
+from fzfaws.utils import BaseSession, FileLoader, Pyfzf
 
 
 class TestSession(unittest.TestCase):
@@ -20,9 +22,9 @@ class TestSession(unittest.TestCase):
 
     def test_param_profile_region(self):
         session = BaseSession(
-            profile="root", region="ap-southeast-2", service_name="ec2"
+            profile="master", region="ap-southeast-2", service_name="ec2"
         )
-        self.assertEqual("root", session.profile)
+        self.assertEqual("master", session.profile)
         self.assertEqual("ap-southeast-2", session.region)
 
         session = BaseSession(profile=None, region=None, service_name="ec2")
@@ -41,11 +43,11 @@ class TestSession(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Session, "available_profiles", new_callable=PropertyMock)
     def test_fzf_profile(self, mocked_profile, mocked_fzf_execute, mocked_fzf_append):
-        mocked_profile.return_value = ["root", "default", "hello"]
+        mocked_profile.return_value = ["master", "default", "hello"]
 
-        mocked_fzf_execute.return_value = "root"
+        mocked_fzf_execute.return_value = "master"
         session = BaseSession(profile=True, region=None, service_name="ec2")
-        self.assertEqual("root", session.profile)
+        self.assertEqual("master", session.profile)
         mocked_fzf_append.assert_called_with("hello\n")
 
     @patch.object(Pyfzf, "append_fzf")

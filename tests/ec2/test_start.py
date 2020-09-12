@@ -44,7 +44,8 @@ class TestEC2Start(unittest.TestCase):
         mocked_detail.assert_called_once()
         mocked_wait.assert_not_called()
         self.assertRegex(
-            self.capturedOutput.getvalue(), r".*Instance start initiated.*",
+            self.capturedOutput.getvalue(),
+            r".*Instance start initiated.*",
         )
 
         # remock
@@ -58,12 +59,13 @@ class TestEC2Start(unittest.TestCase):
         mocked_set_instance.reset_mock()
         mocked_detail.reset_mock()
 
-        start_instance("root", "us-east-1", False, True)
+        start_instance("master", "us-east-1", False, True)
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
         mocked_wait.assert_called_once()
         self.assertRegex(
-            self.capturedOutput.getvalue(), r".*Instance start initiated.*",
+            self.capturedOutput.getvalue(),
+            r".*Instance start initiated.*",
         )
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance is ready")
 
@@ -78,10 +80,11 @@ class TestEC2Start(unittest.TestCase):
         mocked_set_instance.reset_mock()
         mocked_detail.reset_mock()
 
-        start_instance("root", "us-east-1", True, False)
+        start_instance("master", "us-east-1", True, False)
         mocked_set_instance.assert_called_once()
         mocked_detail.assert_called_once()
         self.assertRegex(
-            self.capturedOutput.getvalue(), r".*Instance start initiated.*",
+            self.capturedOutput.getvalue(),
+            r".*Instance start initiated.*",
         )
         self.assertRegex(self.capturedOutput.getvalue(), r".*Instance is running")

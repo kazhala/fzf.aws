@@ -36,8 +36,8 @@ class TestCloudformationDriftStack(unittest.TestCase):
         cloudformation.stack_details = self.cloudformation_details
         cloudformation.stack_name = "testing1"
         cloudformation.client.describe_stack_resource_drifts.return_value = {}
-        drift_stack(profile="root", region="us-east-1", info=True)
-        MockedCloudformation.assert_called_with("root", "us-east-1")
+        drift_stack(profile="master", region="us-east-1", info=True)
+        MockedCloudformation.assert_called_with("master", "us-east-1")
         cloudformation.set_stack.assert_called_once()
         cloudformation.client.describe_stack_resource_drifts.assert_called_once_with(
             StackName="testing1"

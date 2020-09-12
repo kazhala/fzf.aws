@@ -28,8 +28,8 @@ class TestLambdaf(unittest.TestCase):
         self.assertEqual(self.lambdaf.function_name, "")
         self.assertEqual(self.lambdaf.function_detail, {})
 
-        lambdaf = Lambdaf(profile="root", region="us-east-1")
-        self.assertEqual(lambdaf.profile, "root")
+        lambdaf = Lambdaf(profile="master", region="us-east-1")
+        self.assertEqual(lambdaf.profile, "master")
         self.assertEqual(lambdaf.region, "us-east-1")
         self.assertEqual(lambdaf.function_name, "")
         self.assertEqual(lambdaf.function_detail, {})

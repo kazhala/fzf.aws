@@ -1,8 +1,9 @@
-import os
 import io
+import os
 import sys
 import unittest
 from unittest.mock import patch
+
 from fzfaws.cloudformation.delete_stack import delete_stack
 
 
@@ -29,8 +30,8 @@ class TestCloudformationDeleteStack(unittest.TestCase):
         cloudformation.client.delete_stack.assert_called_with(StackName="testing1")
         cloudformation.client.wait.assert_not_called()
 
-        delete_stack(wait=True, profile="root", region="us-east-1")
-        MockedCloudformation.assert_called_with("root", "us-east-1")
+        delete_stack(wait=True, profile="master", region="us-east-1")
+        MockedCloudformation.assert_called_with("master", "us-east-1")
         cloudformation.wait.assert_called_once_with(
             "stack_delete_complete", "Wating for stack to be deleted ..."
         )

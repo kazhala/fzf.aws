@@ -45,10 +45,10 @@ class TestCloudformationParams(unittest.TestCase):
         self.assertEqual(self.paramprocessor.original_params, {})
         self.assertEqual(self.paramprocessor.processed_params, [])
 
-        paramprocessor = ParamProcessor(profile="root", region="us-east-1")
-        self.assertEqual(paramprocessor.ec2.profile, "root")
+        paramprocessor = ParamProcessor(profile="master", region="us-east-1")
+        self.assertEqual(paramprocessor.ec2.profile, "master")
         self.assertEqual(paramprocessor.ec2.region, "us-east-1")
-        self.assertEqual(paramprocessor.route53.profile, "root")
+        self.assertEqual(paramprocessor.route53.profile, "master")
         self.assertEqual(paramprocessor.route53.region, "us-east-1")
         self.assertEqual(paramprocessor.params, {})
         self.assertEqual(paramprocessor.processed_params, [])
@@ -92,7 +92,8 @@ class TestCloudformationParams(unittest.TestCase):
             r"ConstraintDescription: must be the name of an existing EC2 KeyPair",
         )
         self.assertRegex(
-            self.capturedOutput.getvalue(), r"ParameterValue: 111111",
+            self.capturedOutput.getvalue(),
+            r"ParameterValue: 111111",
         )
         mocked_input.assert_called_with(
             "InstanceType",
@@ -130,7 +131,10 @@ class TestCloudformationParams(unittest.TestCase):
         self.assertEqual(
             self.paramprocessor.processed_params,
             [
-                {"ParameterKey": "InstanceRole", "ParameterValue": "111111,222222",},
+                {
+                    "ParameterKey": "InstanceRole",
+                    "ParameterValue": "111111,222222",
+                },
                 {"ParameterKey": "LatestAmiId", "ParameterValue": "111111,222222"},
                 {"ParameterKey": "SubnetId", "ParameterValue": "111111,222222"},
                 {"ParameterKey": "SecurityGroups", "ParameterValue": "111111,222222"},
@@ -316,7 +320,12 @@ class TestCloudformationParams(unittest.TestCase):
     @patch.object(Pyfzf, "execute_fzf")
     @patch.object(Pyfzf, "process_list")
     def test_get_selected_param_value(
-        self, mocked_process, mocked_execute, mocked_client, mocked_sg, mocked_zone,
+        self,
+        mocked_process,
+        mocked_execute,
+        mocked_client,
+        mocked_sg,
+        mocked_zone,
     ):
         mocked_execute.return_value = "111111"
 
@@ -396,7 +405,9 @@ class TestCloudformationParams(unittest.TestCase):
             "List<AWS::EC2::AvailabilityZone::Name>", "foo boo"
         )
         mocked_process.assert_called_once_with(
-            az_response["AvailabilityZones"], "ZoneName", empty_allow=True,
+            az_response["AvailabilityZones"],
+            "ZoneName",
+            empty_allow=True,
         )
         mocked_execute.assert_called_once_with(
             multi_select=True, empty_allow=True, header="foo boo"

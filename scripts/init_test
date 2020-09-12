@@ -11,7 +11,7 @@ cat << EOF > "$HOME"/.aws/credentials
 [default]
 aws_access_key_id = 111111111"
 aws_secret_access_key = 111111111"
-[root]
+[master]
 aws_access_key_id = 111111111"
 aws_secret_access_key = 111111111"
 EOF
@@ -20,7 +20,7 @@ cat << EOF > "$HOME"/.aws/config
 [default]
 region = ap-southeast-2
 output = json
-[profile root]
+[profile master]
 region = ap-southeast-2
 output = json
 EOF

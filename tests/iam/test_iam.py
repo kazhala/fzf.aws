@@ -26,8 +26,8 @@ class TestIAM(unittest.TestCase):
         self.assertEqual("default", self.iam.profile)
         self.assertEqual("us-east-1", self.iam.region)
 
-        iam = IAM(profile="root", region="us-east-1")
-        self.assertEqual("root", iam.profile)
+        iam = IAM(profile="master", region="us-east-1")
+        self.assertEqual("master", iam.profile)
         self.assertEqual("us-east-1", iam.region)
         self.assertEqual([""], self.iam.arns)
 
