@@ -22,7 +22,7 @@ def ls_stack(
     :type region: Union[str, bool], optional
     :param resource: display resource information rather than stack information
     :type resource: bool, optional
-    :param name: display name of stack or resource instead of the entire information 
+    :param name: display name of stack or resource instead of the entire information
     :type name: bool, optional
     :param arn: display arn of the stack instead of the entire stack information
     :type arn: bool, optional

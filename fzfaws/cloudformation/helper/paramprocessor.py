@@ -186,7 +186,7 @@ class ParamProcessor:
     ) -> Union[str, List[str]]:
         """Get user input.
 
-        :param parameter_key: the current parameter key to obtain user input 
+        :param parameter_key: the current parameter key to obtain user input
         :type parameter_key: str
         :param parameter_type: type of the parameter
         :type parameter_type: str
@@ -228,7 +228,11 @@ class ParamProcessor:
             else:
                 print(param_header.rstrip())
                 questions = [
-                    {"type": "input", "message": parameter_key, "name": "answer",}
+                    {
+                        "type": "input",
+                        "message": parameter_key,
+                        "name": "answer",
+                    }
                 ]
                 if default:
                     questions[0]["default"] = default
@@ -259,7 +263,7 @@ class ParamProcessor:
         :type type_name: str
         :param param_header: information about current parameter
         :type param_header: str
-        :return: return the selected value 
+        :return: return the selected value
         :rtype: str
         """
         fzf = Pyfzf()
@@ -359,7 +363,10 @@ class ParamProcessor:
             else:
                 original_value = self.original_params.get(parameter_key)
                 if original_value:
-                    title = "%s: %s" % (parameter_key, original_value,)
+                    title = "%s: %s" % (
+                        parameter_key,
+                        original_value,
+                    )
                     choices.append({"name": title})
                 else:
                     choices.append({"name": parameter_key})

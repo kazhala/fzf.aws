@@ -129,7 +129,10 @@ def object_s3(
 
 
 def update_object_version(
-    s3: S3, allversion: bool = False, acl: bool = False, tagging: bool = False,
+    s3: S3,
+    allversion: bool = False,
+    acl: bool = False,
+    tagging: bool = False,
 ) -> None:
     """Update versions of object's attributes.
 
@@ -313,7 +316,8 @@ def update_object_name(s3: S3, version: bool = False) -> None:
                 Config=s3transferwrapper.transfer_config,
             )
             s3.client.delete_object(
-                Bucket=s3.bucket_name, Key=s3.path_list[0],
+                Bucket=s3.bucket_name,
+                Key=s3.path_list[0],
             )
 
     else:

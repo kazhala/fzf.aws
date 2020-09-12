@@ -171,7 +171,7 @@ class CloudformationArgs:
 
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.
-        
+
         :param update: show previous values and set default values if true
         :type update: bool, optional
         """

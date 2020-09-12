@@ -34,7 +34,9 @@ def delete_stack(
 
     logical_id_list: List[str] = []
     if cloudformation.stack_details["StackStatus"] == "DELETE_FAILED":
-        header: str = "stack is in the failed state, specify any resource to skip during deletion"
+        header: str = (
+            "stack is in the failed state, specify any resource to skip during deletion"
+        )
         logical_id_list = cloudformation.get_stack_resources(
             empty_allow=True, header=header
         )

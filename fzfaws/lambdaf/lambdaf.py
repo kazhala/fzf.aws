@@ -8,7 +8,7 @@ class Lambdaf(BaseSession):
 
     Handles the initialisation of lambda client, selection of lambda
     functions.
-    
+
     :param profile: use a different profile for this opeartion
     :type profile: Union[str, bool], optional
     :param region: use a different region for this operation

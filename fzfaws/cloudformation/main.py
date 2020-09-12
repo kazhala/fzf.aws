@@ -375,7 +375,8 @@ def cloudformation(raw_args: List[Any]) -> None:
     )
 
     validate_cmd = subparsers.add_parser(
-        "validate", description="Validate the selected template.",
+        "validate",
+        description="Validate the selected template.",
     )
     validate_cmd.add_argument(
         "-b",
