@@ -163,7 +163,7 @@ class ParamProcessor:
     ) -> Union[str, List[str]]:
         """Get user input.
 
-        :param parameter_key: the current parameter key to obtain user input 
+        :param parameter_key: the current parameter key to obtain user input
         :type parameter_key: str
         :param parameter_type: type of the parameter
         :type parameter_type: str
@@ -239,7 +239,7 @@ class ParamProcessor:
         :type type_name: str
         :param param_header: information about current parameter
         :type param_header: str
-        :return: return the selected value 
+        :return: return the selected value
         :rtype: str
         """
         fzf = Pyfzf()
@@ -253,7 +253,7 @@ class ParamProcessor:
             return str(self.ec2.get_security_groups(header=param_header))
         elif type_name == "AWS::EC2::AvailabilityZone::Name":
             with Spinner.spin(message="Fetching AvailabilityZones ..."):
-                response = self.ec2.client.describe_availability_zones
+                response = self.ec2.client.describe_availability_zones()
                 response_list = response.get("AvailabilityZones", [])
             fzf.process_list(response_list, "ZoneName", empty_allow=True)
         elif type_name == "AWS::EC2::Instance::Id":
