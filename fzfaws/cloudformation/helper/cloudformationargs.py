@@ -169,7 +169,7 @@ class CloudformationArgs:
 
     def _set_rollback(self, update: bool = False) -> None:
         """Set rollback configuration for cloudformation.
-        
+
         :param update: show previous values if true
         :type update: bool, optional
         """
@@ -182,10 +182,11 @@ class CloudformationArgs:
             header += "\nOriginal value: %s" % self.cloudformation.stack_details[
                 "RollbackConfiguration"
             ].get("RollbackTriggers")
-            message = "MonitoringTimeInMinutes(Original: %s): " % self.cloudformation.stack_details[
-                "RollbackConfiguration"
-            ].get(
-                "MonitoringTimeInMinutes"
+            message = (
+                "MonitoringTimeInMinutes(Original: %s): "
+                % self.cloudformation.stack_details["RollbackConfiguration"].get(
+                    "MonitoringTimeInMinutes"
+                )
             )
         cloudwatch.set_arns(empty_allow=True, header=header, multi_select=True)
         print("Selected arns: %s" % cloudwatch.arns)

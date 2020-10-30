@@ -19,7 +19,8 @@ def describe_changes(cloudformation: Cloudformation, changeset_name: str) -> Non
     :type changeset_name: str
     """
     response = cloudformation.client.describe_change_set(
-        ChangeSetName=changeset_name, StackName=cloudformation.stack_name,
+        ChangeSetName=changeset_name,
+        StackName=cloudformation.stack_name,
     )
     print("StackName: %s" % (cloudformation.stack_name))
     print("ChangeSetName: %s" % (changeset_name))

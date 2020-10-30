@@ -93,7 +93,8 @@ def delete_s3(
             for s3_path in s3.path_list:
                 print("delete: s3://%s/%s" % (s3.bucket_name, s3_path))
                 s3.client.delete_object(
-                    Bucket=s3.bucket_name, Key=s3_path,
+                    Bucket=s3.bucket_name,
+                    Key=s3_path,
                 )
 
 
@@ -222,7 +223,8 @@ def delete_object_recursive(
             for s3_key, _ in file_list:
                 print("delete: s3://%s/%s" % (s3.bucket_name, s3_key))
                 s3.client.delete_object(
-                    Bucket=s3.bucket_name, Key=s3_key,
+                    Bucket=s3.bucket_name,
+                    Key=s3_key,
                 )
 
 

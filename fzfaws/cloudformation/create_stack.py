@@ -150,7 +150,7 @@ def construct_s3_creation_args(
     :param cloudformation: Cloudformation instance
     :type cloudformation: Cloudformation
     :param bucket: bucket name
-    :type bucket: 
+    :type bucket:
     :return: return the formated cloudformation argument thats ready to use by boto3
     :rtype: Dict[str, Any]
     """

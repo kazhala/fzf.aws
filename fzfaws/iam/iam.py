@@ -67,7 +67,10 @@ class IAM(BaseSession):
                                 ):
                                     fzf.append_fzf(
                                         "RoleName: %s  Arn: %s"
-                                        % (role.get("RoleName"), role.get("Arn"),)
+                                        % (
+                                            role.get("RoleName"),
+                                            role.get("Arn"),
+                                        )
                                     )
                     else:
                         fzf.process_list(result.get("Roles", []), "RoleName", "Arn")

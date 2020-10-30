@@ -26,7 +26,8 @@ def ec2(raw_args: List[Any]) -> None:
     :type raw_args: List[Any]
     """
     parser = argparse.ArgumentParser(
-        description="Perform operations and interact with aws EC2.", prog="fzfaws ec2",
+        description="Perform operations and interact with aws EC2.",
+        prog="fzfaws ec2",
     )
     subparsers = parser.add_subparsers(dest="subparser_name")
 

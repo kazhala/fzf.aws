@@ -48,7 +48,13 @@ def ls_s3(
     if bucket and url:
         response = s3.client.get_bucket_location(Bucket=s3.bucket_name)
         bucket_location = response["LocationConstraint"]
-        print("https://s3-%s.amazonaws.com/%s/" % (bucket_location, s3.bucket_name,))
+        print(
+            "https://s3-%s.amazonaws.com/%s/"
+            % (
+                bucket_location,
+                s3.bucket_name,
+            )
+        )
         return
     if bucket and uri:
         print("s3://%s/" % s3.bucket_name)
@@ -187,7 +193,10 @@ def get_detailed_info(
 
     else:
         for s3_key in s3.path_list:
-            response = s3.client.head_object(Bucket=s3.bucket_name, Key=s3_key,)
+            response = s3.client.head_object(
+                Bucket=s3.bucket_name,
+                Key=s3_key,
+            )
             tags = s3.client.get_object_tagging(Bucket=s3.bucket_name, Key=s3_key)
             acls = s3.client.get_object_acl(Bucket=s3.bucket_name, Key=s3_key)
             response.pop("ResponseMetadata", None)

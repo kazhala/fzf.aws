@@ -98,9 +98,13 @@ def ssh_instance(
         os.getenv("FZFAWS_EC2_KEYPAIRS", default="~/.ssh")
     )
     os.chdir(ssh_key_location)
-    ssh_key: str = os.path.join(
-        ssh_key_location, "%s.pem" % ec2.instance_list[0].get("KeyName", "")
-    ) if not keypath else keypath
+    ssh_key: str = (
+        os.path.join(
+            ssh_key_location, "%s.pem" % ec2.instance_list[0].get("KeyName", "")
+        )
+        if not keypath
+        else keypath
+    )
 
     if not tunnel:
         instance_ip = get_instance_ip(ec2.instance_list[0])
@@ -120,7 +124,11 @@ def ssh_instance(
             dest_username = username
         dest_ip = get_instance_ip(ec2.instance_list[0])
         cmd_list: list = construct_tunnel_ssh(
-            ssh_key, jumpbox_ip, jumpbox_username, dest_ip, dest_username,
+            ssh_key,
+            jumpbox_ip,
+            jumpbox_username,
+            dest_ip,
+            dest_username,
         )
 
     ssh = subprocess.Popen(cmd_list, shell=False)
@@ -158,7 +166,11 @@ def construct_normal_ssh(
             cmd_list.append("-A")
         # if for custom VPC doesn't have public dns name, use public ip address
         cmd_list.extend(
-            ["-i", ssh_key, "%s@%s" % (username, instance_ip),]
+            [
+                "-i",
+                ssh_key,
+                "%s@%s" % (username, instance_ip),
+            ]
         )
     else:
         raise EC2Error("Key pair not detected in the specified location")

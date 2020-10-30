@@ -33,7 +33,11 @@ class S3Progress(object):
     """
 
     def __init__(
-        self, filename: str, bucket: str = None, client=None, version_id: str = None,
+        self,
+        filename: str,
+        bucket: str = None,
+        client=None,
+        version_id: str = None,
     ) -> None:
         """Construct the progress bar instance."""
         self._filename: str = filename

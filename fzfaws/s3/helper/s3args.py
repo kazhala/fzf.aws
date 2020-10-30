@@ -393,7 +393,8 @@ class S3Args:
             original_values: str = ""
             if not version:
                 tags = self.s3.client.get_object_tagging(
-                    Bucket=self.s3.bucket_name, Key=self.s3.path_list[0],
+                    Bucket=self.s3.bucket_name,
+                    Key=self.s3.path_list[0],
                 )
                 for tag in tags.get("TagSet", []):
                     original_tags.append("%s=%s" % (tag.get("Key"), tag.get("Value")))

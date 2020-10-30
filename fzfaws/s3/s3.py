@@ -53,8 +53,8 @@ class S3(BaseSession):
         """Set both bucket and path.
 
         This is used to process argument of "-b bucket/object", if any of them is set,
-        skip further fzf selection. 
-        
+        skip further fzf selection.
+
         E.g. if bucket is set, skip select bucket. If both bucket and object is set, skip
         all fzf selection.
 
@@ -232,7 +232,7 @@ class S3(BaseSession):
         no_progress: bool = False,
     ) -> List[Dict[str, str]]:
         """List object versions through fzf.
-        
+
         :param bucket: object's bucketname, if not set, class instance's bucket_name will be used
         :type bucket: str, optional
         :param key: object's key, if not set, class instance's path_list[0] will be used
@@ -391,7 +391,9 @@ class S3(BaseSession):
     def _validate_input_path(
         self, user_input
     ) -> Union[
-        Tuple[str, Sequence[str]], Tuple[str, Sequence[str]], Tuple[None, None],
+        Tuple[str, Sequence[str]],
+        Tuple[str, Sequence[str]],
+        Tuple[None, None],
     ]:
         """Validate if the user input path is valid format.
 
@@ -483,7 +485,7 @@ class S3(BaseSession):
         solutions, although this handle one less edge case (if user delete a version object
         but then created a new object with the same name), this is much faster and better
         in memory usage.
-        
+
         :param results: the result from boto3 paginator
         :type results: List[Dict[str, Any]]
         :param onlydelete: boolean indicator indicates whether to only show deletemark.

@@ -90,7 +90,7 @@ class Pyfzf:
             fzf.append_fzf('World: world')
             fzf.append_fzf('\n')
             print(fzf.execute_fzf(empty_allow=True, print_col=1, preview='cat {}', multi_select=True))
-            
+
         The selected string would look like "Hello: hello".
         Above example would return 'Hello:'' if the first entry is selected, print col is 1,
         if print_col was 2, 'hello' would be printed.
