@@ -268,13 +268,13 @@ class EC2(BaseSession):
 
     def _instance_id_generator(
         self, instances: List[Dict[str, Any]]
-    ) -> Generator[Dict[str, str], None, None]:
+    ) -> Generator[Dict[str, Any], None, None]:
         """Create a generator for listing instance ids.
 
         :param instances: list of instance from boto3 response
         :type instances: List[Dict[str, Any]]
         :return: formatted dict of instance id information in generator form
-        :rtype: Generator[Dict[str,str], None, None]
+        :rtype: Generator[Dict[str,Any], None, None]
         """
         for instance in instances:
             yield {

@@ -271,7 +271,7 @@ class Pyfzf:
         if os.getenv("FZFAWS_FZF_OPTS"):
             cmd_list.extend(os.getenv("FZFAWS_FZF_OPTS").split(" "))
         if os.getenv("FZFAWS_FZF_KEYS"):
-            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS"))
+            cmd_list.append(os.getenv("FZFAWS_FZF_KEYS", ""))
         return cmd_list
 
     def _check_ctrl_c(self, fzf_result: str) -> None:

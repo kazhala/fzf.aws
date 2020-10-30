@@ -1,7 +1,7 @@
 """Contains the s3 wrapper class."""
+import itertools
 import os
 import re
-import itertools
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 from botocore.exceptions import ClientError
@@ -442,7 +442,7 @@ class S3(BaseSession):
 
     def _version_generator(
         self, versions: List[dict], markers: List[dict], non_current: bool, delete: bool
-    ) -> Generator[Dict[str, str], None, None]:
+    ) -> Generator[Dict[str, Any], None, None]:
         """Create version generator to reduce memory usage.
 
         :param versions: list of versions from list_object_versions paginator
@@ -454,7 +454,7 @@ class S3(BaseSession):
         :param delete: include delete marker
         :type delete: bool
         :return: formatted dict of version information in generator form
-        :rtype: Generator[Dict[str,str], None, None]
+        :rtype: Generator[Dict[str,Any], None, None]
         """
         for version in versions:
             if (non_current and not version.get("IsLatest")) or not non_current:
