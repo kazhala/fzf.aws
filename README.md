@@ -13,7 +13,7 @@
 [![Code Style: black](https://img.shields.io/badge/Code%20Style-black-black)](https://github.com/psf/black)
 [![License](https://img.shields.io/badge/license-MIT-green?label=License)](https://opensource.org/licenses/MIT)
 
-**Note: still under development, may have breaking changes and bugs, use it under caution.**
+## Note: Repository archived. All development efforts have now moved to [s3fm](https://github.com/kazhala/s3fm).
 
 ![fzfaws demo](https://github.com/kazhala/gif/blob/master/fzfaws-demo.gif)
 
